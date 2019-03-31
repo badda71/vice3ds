@@ -1,0 +1,41 @@
+[C64]
+
+#97, a
+#98, b
+#120, x
+#121, y
+#276, left
+#275, right
+#273, up
+#274, down
+#100, l
+#114, r
+#13, return (start)
+#27, escape (select)
+
+MenuKeySelect=97
+MenuKeyCancel=98
+SoundDeviceName="ndsp"
+SoundBufferSize=100
+KeymapIndex=2
+SDLBitdepth=32
+SDLLimitMode=1
+SDLCustomWidth=400
+SDLCustomHeight=320
+SDLWindowWidth=400
+SDLWindowHeight=320
+VICIIVideoCache=0
+VICIIHwScale=0
+VICIIDoubleSize=0
+VICIISDLFullscreenMode=1
+SidEngine=0
+SidModel=1
+Acia1Base=56832
+ConfirmOnExit=1
+KeySet1North=273
+KeySet1East=275
+KeySet1South=274
+KeySet1West=276
+KeySet1Fire=97
+JoyDevice1=4
+JoyDevice2=2
