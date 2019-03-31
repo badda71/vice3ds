@@ -692,12 +692,23 @@ ODIR = obj
 BDIR = build
 RDIR = resources
 NAME = vice3ds
+VERSION = 0.1
 
 OBJ = $(addsuffix .o,$(addprefix $(ODIR)/,$(subst /,.,$(basename $(SRCS)))))
 $(shell mkdir -p $(ODIR) >/dev/null)
 $(shell mkdir -p $(BDIR) >/dev/null)
 DEPFLAGS = -MT $@ -MMD -MP -MF $(ODIR)/$*.Td
 POSTCOMPILE = @mv -f $(ODIR)/$*.Td $(ODIR)/$*.d && touch $@
+
+all: $(BDIR)/$(NAME)_$(VERSION).7z
+
+$(BDIR)/%.7z: $(BDIR)/$(NAME).3dsx $(RDIR)/config
+	rm -rf "$(BDIR)/3ds"
+	mkdir -p "$(BDIR)/3ds/vice3ds"
+	cp -f "$(BDIR)/$(NAME).3dsx" "$(BDIR)/3ds/vice3ds"
+	cp -rf "$(RDIR)/config" "$(BDIR)/3ds/vice3ds"
+	cd "$(BDIR)" && 7za a $*.7z 3ds
+	rm -rf "$(BDIR)/3ds"
 
 $(BDIR)/$(NAME).3dsx: $(ODIR)/$(NAME).elf $(RDIR)/icon.png
 	smdhtool --create "Vice3DS" "Vice C64 emulator for Nintendo 3DS" "badda71" $(RDIR)/icon.png $(ODIR)/$(NAME).smdh
