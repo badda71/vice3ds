@@ -682,10 +682,8 @@ LDFLAGS =\
 	-lSDLmain\
 	-lSDL
 
-DEFINES =\
-	-DSDL_DEBUG\
-	-DDEBUG\
-	-DARCHDEP_EXTRA_LOG_CALL
+# DEBUG DEFINES
+# DEFINES = -DSDL_DEBUG -DDEBUG -DARCHDEP_EXTRA_LOG_CALL
 
 CFLAGS = -DARM11 -D_3DS -D_GNU_SOURCE=1 -O2 -Werror=implicit-function-declaration -Wfatal-errors -Wl,-rpath -Wl,/usr/lib/vice/lib -Wmissing-prototypes -Wshadow -fdata-sections -ffunction-sections -march=armv6k -mfloat-abi=hard -mtp=soft -mtune=mpcore -mword-relocations -specs=3dsx.specs $(DEFINES) $(INCLUDES)
 
@@ -701,8 +699,8 @@ $(shell mkdir -p $(BDIR) >/dev/null)
 DEPFLAGS = -MT $@ -MMD -MP -MF $(ODIR)/$*.Td
 POSTCOMPILE = @mv -f $(ODIR)/$*.Td $(ODIR)/$*.d && touch $@
 
-$(BDIR)/$(NAME).3dsx: $(ODIR)/$(NAME).elf
-	smdhtool --create "Vice3DS" "Vice - the Versatile Commodore Emulator" "Sebastian Weber" $(RDIR)/icon.png $(ODIR)/$(NAME).smdh
+$(BDIR)/$(NAME).3dsx: $(ODIR)/$(NAME).elf $(RDIR)/icon.png
+	smdhtool --create "Vice3DS" "Vice C64 emulator for Nintendo 3DS" "badda71" $(RDIR)/icon.png $(ODIR)/$(NAME).smdh
 	3dsxtool $(ODIR)/$(NAME).elf $(BDIR)/$(NAME).3dsx --romfs=romfs --smdh=$(ODIR)/$(NAME).smdh
 
 $(ODIR)/$(NAME).elf: $(OBJ)
