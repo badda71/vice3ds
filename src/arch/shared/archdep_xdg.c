@@ -64,7 +64,7 @@ char *archdep_xdg_data_home(void)
 char *archdep_xdg_config_home(void)
 {
     if (xdg_config_home == NULL)
-		xdg_config_home = lib_stralloc("/3ds/vice3ds/config");
+		xdg_config_home = lib_stralloc("romfs:");
 	return xdg_config_home;
 }
 

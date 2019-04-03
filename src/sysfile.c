@@ -170,13 +170,12 @@ FILE *sysfile_open(const char *name, char **complete_path_return,
 {
     char *p = NULL;
     FILE *f;
-
     if (name == NULL || *name == '\0') {
         log_error(LOG_DEFAULT, "Missing name for system file.");
         return NULL;
     }
 
-    p = findpath(name, expanded_system_path, IOUTIL_ACCESS_R_OK);
+    p = archdep_join_paths("romfs:",name,NULL);
 
     if (p == NULL) {
         if (complete_path_return != NULL) {
