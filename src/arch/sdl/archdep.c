@@ -28,7 +28,6 @@
 
 #include "vice_sdl.h"
 #include <stdio.h>
-#include "3ds.h"
 
 /* These functions are defined in the files included below and
    used lower down. */
@@ -72,13 +71,7 @@ static void archdep_shutdown_extra(void);
 
 int archdep_init(int *argc, char **argv)
 {
-    Result rc = romfsInit();
-	if (rc) {
-		log_error(LOG_ERR, "failed to init romfs: %08lX\n", rc);
-        archdep_vice_exit(1);
-	}
-	
-	archdep_program_path_set_argv0(argv[0]);
+    archdep_program_path_set_argv0(argv[0]);
 
     archdep_create_user_config_dir();
 
@@ -96,11 +89,6 @@ int archdep_init(int *argc, char **argv)
     if (archdep_vice_atexit(SDL_Quit) != 0) {
         log_error(LOG_ERR,
                 "failed to register SDL_Quit() with archdep_vice_atexit().");
-        archdep_vice_exit(1);
-    }
-    if (archdep_vice_atexit((void *)romfsExit) != 0) {
-        log_error(LOG_ERR,
-                "failed to register romfsExit() with archdep_vice_atexit().");
         archdep_vice_exit(1);
     }
 

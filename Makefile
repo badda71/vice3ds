@@ -52,7 +52,6 @@ SRCS =\
 	src/vsync.c\
 	src/zfile.c\
 	src/zipcode.c\
-	src/arch/sdl/uibottom.c\
 	src/arch/sdl/archdep.c\
 	src/arch/sdl/blockdev.c\
 	src/arch/sdl/console.c\
@@ -684,9 +683,9 @@ LDFLAGS =\
 	-lSDL
 
 # DEBUG DEFINES
-DEFINES = -DSDL_DEBUG -DDEBUG -DARCHDEP_EXTRA_LOG_CALL
+# DEFINES = -DSDL_DEBUG -DDEBUG -DARCHDEP_EXTRA_LOG_CALL
 
-MYCFLAGS = -DARM11 -D_3DS -D_GNU_SOURCE=1 -O2 -Wno-trigraphs -Werror=implicit-function-declaration -Wfatal-errors -Wl,-rpath -Wl,/usr/lib/vice/lib -Wmissing-prototypes -Wshadow -fdata-sections -ffunction-sections -march=armv6k -mfloat-abi=hard -mtp=soft -mtune=mpcore -mword-relocations -specs=3dsx.specs $(DEFINES) $(INCLUDES) $(CFLAGS)
+CFLAGS = -DARM11 -D_3DS -D_GNU_SOURCE=1 -O2 -Werror=implicit-function-declaration -Wfatal-errors -Wl,-rpath -Wl,/usr/lib/vice/lib -Wmissing-prototypes -Wshadow -fdata-sections -ffunction-sections -march=armv6k -mfloat-abi=hard -mtp=soft -mtune=mpcore -mword-relocations -specs=3dsx.specs $(DEFINES) $(INCLUDES)
 
 CC = arm-none-eabi-gcc
 ODIR = obj
@@ -711,19 +710,19 @@ $(BDIR)/%.7z: $(BDIR)/$(NAME).3dsx $(RDIR)/config
 	cd "$(BDIR)" && 7za a $*.7z 3ds
 	rm -rf "$(BDIR)/3ds"
 
-$(BDIR)/$(NAME).3dsx: $(ODIR)/$(NAME).elf $(RDIR)/icon.png $(RDIR)/config
+$(BDIR)/$(NAME).3dsx: $(ODIR)/$(NAME).elf $(RDIR)/icon.png
 	smdhtool --create "Vice3DS" "Vice C64 emulator for Nintendo 3DS" "badda71" $(RDIR)/icon.png $(ODIR)/$(NAME).smdh
-	3dsxtool $(ODIR)/$(NAME).elf $(BDIR)/$(NAME).3dsx --romfs=$(RDIR)/config --smdh=$(ODIR)/$(NAME).smdh
+	3dsxtool $(ODIR)/$(NAME).elf $(BDIR)/$(NAME).3dsx --romfs=romfs --smdh=$(ODIR)/$(NAME).smdh
 
 $(ODIR)/$(NAME).elf: $(OBJ)
-	$(CC) $(MYCFLAGS) -o $@ -Wl,--start-group $(ODIR)/*.o $(LDFLAGS) -Wl,--end-group
+	$(CC) $(CFLAGS) -o $@ -Wl,--start-group $(ODIR)/*.o $(LDFLAGS) -Wl,--end-group
 
 $(ODIR)/%.d: ;
 .PRECIOUS: $(ODIR)/%.d
 
 .SECONDEXPANSION:
 $(ODIR)/%.o: $$(subst .,/,$$*).c $(ODIR)/%.d
-	$(CC) $(MYCFLAGS) $(DEPFLAGS) -g -c -o $@ $<
+	$(CC) $(CFLAGS) $(DEPFLAGS) -g -c -o $@ $<
 	$(POSTCOMPILE)
 
 include $(wildcard $(patsubst %,%.d,$(basename $(OBJ))))

@@ -1,26 +1,20 @@
 [C64]
 
-#	KEY_A, 101
-#	KEY_B, 102
-#	KEY_X, 103
-#	KEY_Y, 104
-#	KEY_L, 105
-#	KEY_R, 106
-#	KEY_ZL, 107
-#	KEY_ZR, 108
-#	KEY_START, 109
-#	KEY_SELECT, 110
-#	KEY_UP, 111
-#	KEY_DOWN, 112
-#	KEY_LEFT, 113
-#	KEY_RIGHT, 114
-#	KEY_CSTICK_UP, 115
-#	KEY_CSTICK_DOWN, 116
-#	KEY_CSTICK_LEFT, 117
-#	KEY_CSTICK_RIGHT, 118
+#97, a
+#98, b
+#120, x
+#121, y
+#276, left
+#275, right
+#273, up
+#274, down
+#100, l
+#114, r
+#13, return (start)
+#27, escape (select)
 
-MenuKeySelect=101
-MenuKeyCancel=102
+MenuKeySelect=97
+MenuKeyCancel=98
 SoundDeviceName="ndsp"
 SoundBufferSize=100
 KeymapIndex=2
@@ -38,16 +32,10 @@ SidEngine=0
 SidModel=1
 Acia1Base=56832
 ConfirmOnExit=1
-KeySet1North=111
-KeySet1South=112
-KeySet1West=113
-KeySet1East=114
-KeySet1Fire=103
-KeySet2North=115
-KeySet2South=116
-KeySet2West=117
-KeySet2East=118
-KeySet2Fire=104
+KeySet1North=273
+KeySet1East=275
+KeySet1South=274
+KeySet1West=276
+KeySet1Fire=97
 JoyDevice1=4
 JoyDevice2=2
-Mouse=1

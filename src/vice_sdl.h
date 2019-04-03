@@ -24,8 +24,6 @@
  *
  */
 
-//#define SDL_DEBUG 1
-
 #ifndef VICE_SDL_INCLUDE
 #define VICE_SDL_INCLUDE
 

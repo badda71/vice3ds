@@ -52,7 +52,6 @@
 #include "uihotkey.h"
 #include "uimenu.h"
 #include "vkbd.h"
-#include "3ds.h"
 
 #define DEFAULT_JOYSTICK_THRESHOLD 10000
 #define DEFAULT_JOYSTICK_FUZZ      1000
@@ -399,27 +398,6 @@ int joy_arch_init(void)
     joy_arch_mapping_load(joymap_file);
 
     SDL_JoystickEventState(SDL_ENABLE);
-
-	// 3ds - map all my buttons to something higher than 100
-	SDL_N3DSKeyBind(KEY_A, 101);
-	SDL_N3DSKeyBind(KEY_B, 102);
-	SDL_N3DSKeyBind(KEY_X, 103);
-	SDL_N3DSKeyBind(KEY_Y, 104);
-	SDL_N3DSKeyBind(KEY_L, 105);
-	SDL_N3DSKeyBind(KEY_R, 106);
-	SDL_N3DSKeyBind(KEY_ZL, 107);
-	SDL_N3DSKeyBind(KEY_ZR, 108);
-	SDL_N3DSKeyBind(KEY_START, 109);
-	SDL_N3DSKeyBind(KEY_SELECT, 110);
-	SDL_N3DSKeyBind(KEY_UP, 111);
-	SDL_N3DSKeyBind(KEY_DOWN, 112);
-	SDL_N3DSKeyBind(KEY_LEFT, 113);
-	SDL_N3DSKeyBind(KEY_RIGHT, 114);
-	SDL_N3DSKeyBind(KEY_CSTICK_UP, 115);
-	SDL_N3DSKeyBind(KEY_CSTICK_DOWN, 116);
-	SDL_N3DSKeyBind(KEY_CSTICK_LEFT, 117);
-	SDL_N3DSKeyBind(KEY_CSTICK_RIGHT, 118);
-
     return 0;
 }
 

@@ -102,12 +102,26 @@ static int archdep_init_extra(int *argc, char **argv)
 
 char *archdep_default_hotkey_file_name(void)
 {
-	return util_concat("sdl-hotkey-", machine_get_name(), ".vkm", NULL);
+    if (archdep_pref_path == NULL) {
+        const char *home;
+
+        home = archdep_home_path();
+        return util_concat(home, "/.vice/sdl-hotkey-", machine_get_name(), ".vkm", NULL);
+    } else {
+        return util_concat(archdep_pref_path, "/sdl-hotkey-", machine_get_name(), ".vkm", NULL);
+    }
 }
 
 char *archdep_default_joymap_file_name(void)
 {
-	return util_concat("sdl-joymap-", machine_get_name(), ".vjm", NULL);
+    if (archdep_pref_path == NULL) {
+        const char *home;
+
+        home = archdep_home_path();
+        return util_concat(home, "/.vice/sdl-joymap-", machine_get_name(), ".vjm", NULL);
+    } else {
+        return util_concat(archdep_pref_path, "/sdl-joymap-", machine_get_name(), ".vjm", NULL);
+    }
 }
 
 

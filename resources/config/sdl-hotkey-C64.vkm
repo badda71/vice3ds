@@ -13,8 +13,8 @@
 
 !CLEAR
 
-# 3DS start-button
-109 Quit emulator
+# start
+13 Quit emulator
 
 # 300 Machine settings&Joystick settings&Swap joystick ports
 # 1072 Drive&Attach disk image to drive 10

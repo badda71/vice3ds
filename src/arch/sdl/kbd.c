@@ -52,7 +52,6 @@
 #include "uimenu.h"
 #include "util.h"
 #include "vkbd.h"
-#include "uibottom.h"
 
 /* #define SDL_DEBUG */
 
@@ -76,7 +75,7 @@ ui_menu_entry_t *sdlkbd_ui_hotkeys[SDLKBD_UI_HOTKEYS_MAX];
 static int hotkey_file_set(const char *val, void *param)
 {
 #ifdef SDL_DEBUG
-    log_debug("%s: %s\n", __func__, val);
+    fprintf(stderr, "%s: %s\n", __func__, val);
 #endif
 
     if (util_string_set(&hotkey_file, val)) {
@@ -457,10 +456,10 @@ ui_menu_action_t sdlkbd_press(SDLKey key, SDLMod mod)
     ui_menu_entry_t *hotkey_action = NULL;
 
 #ifdef SDL_DEBUG
-    log_debug("%s: %i (%s),%i\n", __func__, key, SDL_GetKeyName(key), mod);
+    fprintf(stderr, "%s: %i (%s),%i\n", __func__, key, SDL_GetKeyName(key), mod);
 #endif
-    if (sdl_menu_state || (sdl_vkbd_state & SDL_VKBD_ACTIVE) || (uibottom_kbdactive && key < 100)) {
-		if (key != SDLK_UNKNOWN) {
+    if (sdl_menu_state || (sdl_vkbd_state & SDL_VKBD_ACTIVE)) {
+        if (key != SDLK_UNKNOWN) {
             for (i = MENU_ACTION_UP; i < MENU_ACTION_NUM; ++i) {
                 if (sdl_ui_menukeys[i] == (int)key) {
                     retval = i;
@@ -493,9 +492,9 @@ ui_menu_action_t sdlkbd_release(SDLKey key, SDLMod mod)
     ui_menu_action_t i, retval = MENU_ACTION_NONE_RELEASE;
 
 #ifdef SDL_DEBUG
-    log_debug("%s: %i (%s),%i\n", __func__, key, SDL_GetKeyName(key), mod);
+    fprintf(stderr, "%s: %i (%s),%i\n", __func__, key, SDL_GetKeyName(key), mod);
 #endif
-    if ((sdl_vkbd_state & SDL_VKBD_ACTIVE) || (uibottom_kbdactive && key < 100)) {
+    if (sdl_vkbd_state & SDL_VKBD_ACTIVE) {
         if (key != SDLK_UNKNOWN) {
             for (i = MENU_ACTION_UP; i < MENU_ACTION_NUM; ++i) {
                 if (sdl_ui_menukeys[i] == (int)key) {
@@ -516,7 +515,7 @@ ui_menu_action_t sdlkbd_release(SDLKey key, SDLMod mod)
 void kbd_arch_init(void)
 {
 #ifdef SDL_DEBUG
-    log_debug("%s: hotkey table size %u (%lu bytes)\n", __func__, SDLKBD_UI_HOTKEYS_MAX, SDLKBD_UI_HOTKEYS_MAX * sizeof(ui_menu_entry_t *));
+    fprintf(stderr, "%s: hotkey table size %u (%lu bytes)\n", __func__, SDLKBD_UI_HOTKEYS_MAX, SDLKBD_UI_HOTKEYS_MAX * sizeof(ui_menu_entry_t *));
 #endif
 
     sdlkbd_log = log_open("SDLKeyboard");

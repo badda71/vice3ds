@@ -39,7 +39,6 @@
 #include "log.h"
 #include "resources.h"
 #include "util.h"
-#include "3ds.h"
 
 #ifdef DBGLOGGING
 #define DBG(x) printf x
@@ -300,7 +299,6 @@ static int log_archdep(const char *logtxt, const char *fmt, va_list ap)
 
         beg = eol + 1;
     }
-	svcOutputDebugString(txt, strlen(txt));
 
     lib_free(txt);
 

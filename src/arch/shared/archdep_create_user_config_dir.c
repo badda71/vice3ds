@@ -51,5 +51,13 @@
 
 void archdep_create_user_config_dir(void)
 {
-// NOP
+    char *cfg = archdep_user_config_path();
+
+    if (archdep_mkdir(cfg, 0755) == 0) {
+        return;     /* we created the dir */
+    } else if (errno != EEXIST) {
+        log_error(LOG_ERR, "failed to create user config dir '%s': %d: %s.",
+                cfg, errno, strerror(errno));
+        archdep_vice_exit(1);
+    }
 }

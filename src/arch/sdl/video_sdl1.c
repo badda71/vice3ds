@@ -62,8 +62,6 @@
 #include "vsidui_sdl.h"
 #include "vsync.h"
 //#include "viceicon.h"
-#include "uibottom.h"
-
 
 #ifdef SDL_DEBUG
 #define DBG(x)  log_debug x
@@ -580,10 +578,38 @@ static video_canvas_t *sdl_canvas_create(video_canvas_t *canvas, unsigned int *w
 
     DBG(("%s: %i,%i (%i)", __func__, *width, *height, canvas->index));
 
-//	flags = SDL_SWSURFACE | SDL_TOPSCR | SDL_CONSOLEBOTTOM;
+//  flags = SDL_SWSURFACE | SDL_RESIZABLE;
+//	flags = SDL_SWSURFACE | SDL_TOPSCR | SDL_CONSOLEBOTTOM | SDL_FITHEIGHT;
+#ifdef SDL_DEBUG
+	flags = SDL_SWSURFACE | SDL_TOPSCR | SDL_CONSOLEBOTTOM;
+#else
 	flags = SDL_SWSURFACE | SDL_TOPSCR;
+/*
+	// init the 3DS bottom screen
+	// bottomscreen image
+	SDL_Surface *screen2, *bitmap2;
+	screen2 = SDL_SetVideoMode(320, 240, 32, SDL_SWSURFACE | SDL_BOTTOMSCR);
+	SDL_FillRect(screen2, NULL, SDL_MapRGB(screen2->format, 0x60, 0x60, 0x60));
+	bitmap2 = SDL_CreateRGBSurfaceFrom(
+		viceicon.pixel_data,
+		viceicon.width,
+		viceicon.height,
+		viceicon.bytes_per_pixel * 8,
+		viceicon.bytes_per_pixel * viceicon.width,
+		0x000000ff,
+		0x0000ff00,
+		0x00ff0000,
+		0xff000000);
+	
+	SDL_Rect r = { 
+		.x = (screen2->w - bitmap2->w)/2,
+		.y = screen2->h - bitmap2->h };
+	SDL_BlitSurface(bitmap2, NULL, screen2, &r);
+    SDL_Flip(screen2);
+*/
+#endif
 
-	new_width = *width;
+    new_width = *width;
     new_height = *height;
 
     new_width *= canvas->videoconfig->scalex;
@@ -1198,11 +1224,8 @@ void sdl_ui_init_finalize(void)
     unsigned int width = sdl_active_canvas->draw_buffer->canvas_width;
     unsigned int height = sdl_active_canvas->draw_buffer->canvas_height;
 
-	uibottom_init();
-
     sdl_canvas_create(sdl_active_canvas, &width, &height); /* set the real canvas size */
-
-	sdl_ui_finalized = 1;
+    sdl_ui_finalized = 1;
     ui_check_mouse_cursor();
 }
 
