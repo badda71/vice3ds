@@ -61,6 +61,7 @@
 #include "vkbd.h"
 #include "vsidui_sdl.h"
 #include "vsync.h"
+#include "uibottom.h"
 //#include "viceicon.h"
 
 #ifdef SDL_DEBUG
@@ -339,15 +340,9 @@ static const resource_string_t resources_string[] = {
 #define VICE_DEFAULT_BITDEPTH 0
 #endif
 
-#ifdef ANDROID_COMPILE
-#define SDLLIMITMODE_DEFAULT     SDL_LIMIT_MODE_MAX
-#define SDLCUSTOMWIDTH_DEFAULT   320
-#define SDLCUSTOMHEIGHT_DEFAULT  200
-#else
 #define SDLLIMITMODE_DEFAULT     SDL_LIMIT_MODE_OFF
-#define SDLCUSTOMWIDTH_DEFAULT   800
-#define SDLCUSTOMHEIGHT_DEFAULT  600
-#endif
+#define SDLCUSTOMWIDTH_DEFAULT   384
+#define SDLCUSTOMHEIGHT_DEFAULT  480
 
 static const resource_int_t resources_int[] = {
     { "SDLBitdepth", VICE_DEFAULT_BITDEPTH, RES_EVENT_NO, NULL,
@@ -578,36 +573,7 @@ static video_canvas_t *sdl_canvas_create(video_canvas_t *canvas, unsigned int *w
 
     DBG(("%s: %i,%i (%i)", __func__, *width, *height, canvas->index));
 
-//  flags = SDL_SWSURFACE | SDL_RESIZABLE;
-//	flags = SDL_SWSURFACE | SDL_TOPSCR | SDL_CONSOLEBOTTOM | SDL_FITHEIGHT;
-#ifdef SDL_DEBUG
-	flags = SDL_SWSURFACE | SDL_TOPSCR | SDL_CONSOLEBOTTOM;
-#else
-	flags = SDL_SWSURFACE | SDL_TOPSCR;
-/*
-	// init the 3DS bottom screen
-	// bottomscreen image
-	SDL_Surface *screen2, *bitmap2;
-	screen2 = SDL_SetVideoMode(320, 240, 32, SDL_SWSURFACE | SDL_BOTTOMSCR);
-	SDL_FillRect(screen2, NULL, SDL_MapRGB(screen2->format, 0x60, 0x60, 0x60));
-	bitmap2 = SDL_CreateRGBSurfaceFrom(
-		viceicon.pixel_data,
-		viceicon.width,
-		viceicon.height,
-		viceicon.bytes_per_pixel * 8,
-		viceicon.bytes_per_pixel * viceicon.width,
-		0x000000ff,
-		0x0000ff00,
-		0x00ff0000,
-		0xff000000);
-	
-	SDL_Rect r = { 
-		.x = (screen2->w - bitmap2->w)/2,
-		.y = screen2->h - bitmap2->h };
-	SDL_BlitSurface(bitmap2, NULL, screen2, &r);
-    SDL_Flip(screen2);
-*/
-#endif
+	flags = SDL_SWSURFACE | SDL_DUALSCR;
 
     new_width = *width;
     new_height = *height;
@@ -857,15 +823,26 @@ void video_canvas_refresh(struct video_canvas_s *canvas, unsigned int xs, unsign
 {
     uint8_t *backup;
 
-    if ((canvas == NULL) || (canvas->screen == NULL) || (canvas != sdl_active_canvas)) {
+	static void *oldcanvas = 0;
+
+	if ((canvas == NULL) || (canvas->screen == NULL) || (canvas != sdl_active_canvas)) {
         return;
     }
+
+	if (canvas != oldcanvas) {
+		// we have a new canvas, paint our bottom screen
+		oldcanvas=canvas;
+		sdl_uibottom_draw();
+
+	}
 
     if (sdl_vsid_state & SDL_VSID_ACTIVE) {
         sdl_vsid_draw();
     }
 
-    if (sdl_vkbd_state & SDL_VKBD_ACTIVE) {
+	
+		
+	if (sdl_vkbd_state & SDL_VKBD_ACTIVE) {
         sdl_vkbd_draw();
     }
 
@@ -1032,24 +1009,14 @@ int video_canvas_set_palette(struct video_canvas_s *canvas, struct palette_s *pa
 /* called from video_viewport_resize */
 void video_canvas_resize(struct video_canvas_s *canvas, char resize_canvas)
 {
-    unsigned int width = canvas->draw_buffer->canvas_width;
-    unsigned int height = canvas->draw_buffer->canvas_height;
-    DBG(("%s: %ix%i (%i)", __func__, width, height, canvas->index));
+//    unsigned int width = canvas->draw_buffer->canvas_width;
+//    unsigned int height = canvas->draw_buffer->canvas_height;
+    unsigned int width = SDLCUSTOMWIDTH_DEFAULT;
+    unsigned int height = SDLCUSTOMHEIGHT_DEFAULT;
+
+	DBG(("%s: %ix%i (%i)", __func__, width, height, canvas->index));
     /* Check if canvas needs to be resized to real size first */
     if (sdl_ui_finalized) {
-        /* NOTE: setting the resources to zero like this here would actually
-                 not only force a recalculation of the resources, but also
-                 result in the window size being recalculated from the default
-                 dimensions instead of the (saved and supposed to be persistant)
-                 values in the resources. what goes wrong when this is done can
-                 be observed when x128 starts up.
-            FIXME: remove this note and code below after some testing. hopefully
-                   nothing else relies on the broken behavior...
-         */
-#if 0
-        sdl_window_width = 0; /* force recalculate */
-        sdl_window_height = 0;
-#endif
         sdl_canvas_create(canvas, &width, &height); /* set the real canvas size */
 
         if (resize_canvas) {
@@ -1221,8 +1188,10 @@ char video_canvas_can_resize(video_canvas_t *canvas)
 
 void sdl_ui_init_finalize(void)
 {
-    unsigned int width = sdl_active_canvas->draw_buffer->canvas_width;
-    unsigned int height = sdl_active_canvas->draw_buffer->canvas_height;
+//    unsigned int width = sdl_active_canvas->draw_buffer->canvas_width;
+//    unsigned int height = sdl_active_canvas->draw_buffer->canvas_height;
+    unsigned int width = SDLCUSTOMWIDTH_DEFAULT;
+    unsigned int height = SDLCUSTOMHEIGHT_DEFAULT;
 
     sdl_canvas_create(sdl_active_canvas, &width, &height); /* set the real canvas size */
     sdl_ui_finalized = 1;

@@ -107,6 +107,7 @@ SRCS =\
 	src/arch/sdl/sdlmain.c\
 	src/arch/sdl/signals.c\
 	src/arch/sdl/ui.c\
+	src/arch/sdl/uibottom.c\
 	src/arch/sdl/uifilereq.c\
 	src/arch/sdl/uifonts.c\
 	src/arch/sdl/uifontscbm2.c\
@@ -683,9 +684,9 @@ LDFLAGS =\
 	-lSDL
 
 # DEBUG DEFINES
-# DEFINES = -DSDL_DEBUG -DDEBUG -DARCHDEP_EXTRA_LOG_CALL
+DDEFINES = -DSDL_DEBUG -DDEBUG -DARCHDEP_EXTRA_LOG_CALL
 
-CFLAGS = -DARM11 -D_3DS -D_GNU_SOURCE=1 -O2 -Werror=implicit-function-declaration -Wfatal-errors -Wl,-rpath -Wl,/usr/lib/vice/lib -Wmissing-prototypes -Wshadow -fdata-sections -ffunction-sections -march=armv6k -mfloat-abi=hard -mtp=soft -mtune=mpcore -mword-relocations -specs=3dsx.specs $(DEFINES) $(INCLUDES)
+CFLAGS = -DARM11 -D_3DS -D_GNU_SOURCE=1 -O2 -Werror=implicit-function-declaration -Wfatal-errors -Wl,-rpath -Wl,/usr/lib/vice/lib -Wmissing-prototypes -Wshadow -fdata-sections -ffunction-sections -march=armv6k -mfloat-abi=hard -mtp=soft -mtune=mpcore -mword-relocations -specs=3dsx.specs $(DDEFINES) $(INCLUDES)
 
 CC = arm-none-eabi-gcc
 ODIR = obj
