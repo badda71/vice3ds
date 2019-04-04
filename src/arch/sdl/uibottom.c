@@ -145,6 +145,7 @@ static void negativeRect (SDL_Surface *s, int x, int y, int w, int h) {
 			pixel[3] = 255 - pixel[3];
 		}
 	}
+	SDL_UpdateRect(s, x,y,w,h);
 }
 
 static void reverseKey(int i) {
