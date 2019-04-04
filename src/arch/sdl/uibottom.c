@@ -33,6 +33,7 @@
 #include "log.h"
 #include "videoarch.h"
 #include "uistatusbar.h"
+#include "viceicon.h"
 
 int uikbd_pos[4][4] = {
 	{0,0,320,120},		// normal keys
@@ -125,6 +126,7 @@ uikbd_key uikbd_keypos[KBD_NUMKEYS] = {
  {  63, 97, 147,  16,  66,   7,   4,   0}  // SPACE
 };
 
+static SDL_Surface *vice_img=NULL;
 static SDL_Surface *kbd_img=NULL;
 static SDL_Rect bottom_r;
 int uibottom_kbdactive = 1;
@@ -193,6 +195,24 @@ void sdl_uibottom_draw(void)
 		olds=s;
 		bottom_r = (SDL_Rect){ .x = 0, .y = s->h/2, .w = s->w, .h=s->h/2};
 		SDL_FillRect(s, &bottom_r, SDL_MapRGB(s->format, 0x30, 0x30, 0x30));
+
+		// display vice icon
+		if (vice_img == NULL) {
+			vice_img = SDL_CreateRGBSurfaceFrom(
+				viceicon.pixel_data,
+				viceicon.width,
+				viceicon.height,
+				viceicon.bytes_per_pixel*8,
+				viceicon.bytes_per_pixel*viceicon.width,
+				0x000000ff,
+				0x0000ff00,
+				0x00ff0000,
+				0xff000000);
+		}
+		SDL_BlitSurface(vice_img, NULL, s,
+			&(SDL_Rect){.x = (s->w-vice_img->w)/2, .y = 248});
+
+		
 		if (kbd_img == NULL) {
 			char *fname = archdep_join_paths(archdep_user_config_path(),"ui_keyboard.bmp",NULL);
 			kbd_img = SDL_LoadBMP(fname);
