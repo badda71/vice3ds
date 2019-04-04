@@ -42,6 +42,11 @@
 
 #define MAX_CANVAS_NUM 2
 
+// for 3ds
+#define SDLCUSTOMWIDTH_DEFAULT   384
+#define SDLCUSTOMHEIGHT_DEFAULT  480
+
+
 typedef void (*video_refresh_func_t)(struct video_canvas_s *, int, int, int, int, unsigned int, unsigned int);
 
 struct video_canvas_s {

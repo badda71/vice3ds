@@ -39,6 +39,7 @@
 #include "uimenu.h"
 #include "uistatusbar.h"
 #include "videoarch.h"
+#include "log.h"
 
 /* ----------------------------------------------------------------- */
 /* static functions/variables */
@@ -61,30 +62,6 @@ static char statusbar_text[MAX_STATUSBAR_LEN] = "                               
 static char kbdstatusbar_text[MAX_STATUSBAR_LEN] = "                                       ";
 
 static menufont_t *menufont = NULL;
-static int pitch;
-static int draw_offset;
-
-static inline void uistatusbar_putchar(uint8_t c, int pos_x, int pos_y, uint8_t color_f, uint8_t color_b)
-{
-    int x, y;
-    uint8_t fontchar;
-    uint8_t *font_pos;
-    uint8_t *draw_pos;
-
-    font_pos = &(menufont->font[menufont->translate[(int)c]]);
-    draw_pos = &(sdl_active_canvas->draw_buffer->draw_buffer[pos_x * menufont->w + pos_y * menufont->h * pitch]);
-
-    draw_pos += draw_offset;
-
-    for (y = 0; y < menufont->h; ++y) {
-        fontchar = *font_pos;
-        for (x = 0; x < menufont->w; ++x) {
-            draw_pos[x] = (fontchar & (0x80 >> x)) ? color_f : color_b;
-        }
-        ++font_pos;
-        draw_pos += pitch;
-    }
-}
 
 static int tape_counter = 0;
 static int tape_enabled = 0;
@@ -370,47 +347,6 @@ void ui_display_volume(int vol)
 #endif
 }
 
-/* ----------------------------------------------------------------- */
-/* resources */
-
-static int statusbar_enabled, kbdstatusbar_enabled;
-
-static int set_statusbar(int val, void *param)
-{
-    statusbar_enabled = val ? 1 : 0;
-
-    if (statusbar_enabled) {
-        uistatusbar_open();
-    } else {
-        uistatusbar_close();
-    }
-
-    return 0;
-}
-
-static int set_kbdstatusbar(int val, void *param)
-{
-    kbdstatusbar_enabled = val ? 1 : 0;
-
-    return 0;
-}
-
-static const resource_int_t resources_int[] = {
-    { "SDLStatusbar", 0, RES_EVENT_NO, NULL,
-      &statusbar_enabled, set_statusbar, NULL },
-    { "SDLKbdStatusbar", 0, RES_EVENT_NO, NULL,
-      &kbdstatusbar_enabled, set_kbdstatusbar, NULL },
-    RESOURCE_INT_LIST_END
-};
-
-int uistatusbar_init_resources(void)
-{
-#ifdef SDL_DEBUG
-    fprintf(stderr, "%s\n", __func__);
-#endif
-    return resources_register_int(resources_int);
-}
-
 
 /* ----------------------------------------------------------------- */
 /* uistatusbar.h */
@@ -429,29 +365,49 @@ void uistatusbar_close(void)
 
 #define KBDSTATUSENTRYLEN   15
 
+// ypos of statusbar top
+#define SB_Y	240
+
+static inline void uistatusbar_putchar(uint8_t c, int pos_x, int pos_y, int color_f, int color_b)
+{
+    int x, y;
+    uint8_t fontchar;
+    uint8_t *font_pos;
+    uint8_t *offset;
+
+	
+	SDL_Surface *s = sdl_active_canvas->screen;
+	int bpp = s->format->BytesPerPixel;
+	
+	offset = s->pixels + bpp * ((SB_Y + pos_y * menufont->h) * s->w + (s->w - 320)/2 + pos_x * menufont->w);
+	font_pos = &(menufont->font[menufont->translate[(int)c]]);
+
+	int col;
+	for (y = 0; y < menufont->h; ++y) {
+        for (x = 0; x < menufont->w; ++x) {
+			col=(font_pos[y] & (0x80 >> x)) ? color_f : color_b;
+			unsigned char *pixel = offset + bpp * (y * s->w + x);
+			pixel[1]=(col & 0xff0000)>>16;
+			pixel[2]=(col & 0xff00)>>8;
+			pixel[3]=col & 0xff;
+		}
+	}
+}
+
+static int kbdstatusbar_enabled=0;
+
 void uistatusbar_draw(void)
 {
-    int i;
-    uint8_t c, color_f, color_b;
-    unsigned int line;
-    menu_draw_t *limits = NULL;
+    int i, color_f, color_b;
+    uint8_t c;
     menufont = sdl_ui_get_menu_font();
 
-    sdl_ui_init_draw_params();
-    limits = sdl_ui_get_menu_param();
+    color_f = 0xffffff;
+    color_b = 0x000000;
 
-    color_f = limits->color_default_front;
-    color_b = limits->color_default_back;
-    pitch = limits->pitch;
-
-    line = MIN(sdl_active_canvas->viewport->last_line, sdl_active_canvas->geometry->last_displayed_line);
-
-    draw_offset = (line - menufont->h + 1) * pitch
-                  + sdl_active_canvas->geometry->extra_offscreen_border_left
-                  + sdl_active_canvas->viewport->first_x;
-
-    if (kbdstatusbar_enabled) {
-        for (i = 0; i < MAX_STATUSBAR_LEN; ++i) {
+	int pos=0;
+	if (kbdstatusbar_enabled) {
+		for (i = 0; i < MAX_STATUSBAR_LEN; ++i) {
             c = kbdstatusbar_text[i];
 
             if (c == 0) {
@@ -459,11 +415,12 @@ void uistatusbar_draw(void)
             }
 
             if (((i / KBDSTATUSENTRYLEN) & 1) == 1) {
-                uistatusbar_putchar(c, i, -1, color_b, color_f);
+                uistatusbar_putchar(c, i, pos, color_b, color_f);
             } else {
-                uistatusbar_putchar(c, i, -1, color_f, color_b);
+                uistatusbar_putchar(c, i, pos, color_f, color_b);
             }
         }
+		++pos;
     }
 
     for (i = 0; i < MAX_STATUSBAR_LEN; ++i) {
@@ -474,9 +431,9 @@ void uistatusbar_draw(void)
         }
 
         if (c & 0x80) {
-            uistatusbar_putchar((uint8_t)(c & 0x7f), i, 0, color_b, color_f);
+            uistatusbar_putchar((uint8_t)(c & 0x7f), i, pos, color_b, color_f);
         } else {
-            uistatusbar_putchar(c, i, 0, color_f, color_b);
+            uistatusbar_putchar(c, i, pos, color_f, color_b);
         }
     }
 }

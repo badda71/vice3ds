@@ -56,12 +56,12 @@
 #include "uifilereq.h"
 #include "uimenu.h"
 #include "uimsgbox.h"
-#include "uistatusbar.h"
 #include "videoarch.h"
 #include "vkbd.h"
 #include "vsidui_sdl.h"
 #include "vsync.h"
 #include "uibottom.h"
+#include "uistatusbar.h"
 
 #ifndef SDL_DISABLE
 #define SDL_DISABLE SDL_IGNORE
@@ -179,7 +179,6 @@ extern char savestate_filename[256];
 extern void loader_save_snapshot(char *name);
 extern void loader_load_snapshot(char *name);
 extern void loader_set_warpmode(int on);
-extern void loader_set_statusbar(int val);
 extern void loader_set_drive_true_emulation(int val);
 static int oldx = 0, oldy = 0, down_x, down_y;
 int old_joy_direction = 0;
@@ -457,10 +456,6 @@ int ui_resources_init(void)
     if (resources_register_int(resources_int) < 0) {
         return -1;
     }
-
-    if (machine_class != VICE_MACHINE_VSID) {
-        return uistatusbar_init_resources();
-    }
     return 0;
 }
 
@@ -535,32 +530,9 @@ static const cmdline_option_t cmdline_options[] =
     CMDLINE_LIST_END
 };
 
-static const cmdline_option_t statusbar_cmdline_options[] =
-{
-    { "-statusbar", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
-      NULL, NULL, "SDLStatusbar", (resource_value_t)1,
-      NULL, "Enable statusbar" },
-    { "+statusbar", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
-      NULL, NULL, "SDLStatusbar", (resource_value_t)0,
-      NULL, "Disable statusbar" },
-    { "-kbdstatusbar", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
-      NULL, NULL, "SDLKbdStatusbar", (resource_value_t)1,
-      NULL, "Enable keyboard-status bar" },
-    { "+kbdstatusbar", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
-      NULL, NULL, "SDLKbdStatusbar", (resource_value_t)0,
-      NULL, "Disable keyboard-status bar" },
-    CMDLINE_LIST_END
-};
-
 int ui_cmdline_options_init(void)
 {
     DBG(("%s", __func__));
-
-    if (machine_class != VICE_MACHINE_VSID) {
-        if (cmdline_register_options(statusbar_cmdline_options) < 0) {
-            return -1;
-        }
-    }
 
     return cmdline_register_options(cmdline_options);
 }

@@ -90,33 +90,6 @@ static int sdl_num_screens = 0;
 static video_canvas_t *sdl_canvaslist[MAX_CANVAS_NUM];
 video_canvas_t *sdl_active_canvas = NULL;
 
-#if defined(HAVE_HWSCALE)
-static int sdl_gl_mode;
-static GLint screen_texture;
-static int sdl_gl_vertex_base = 0;
-
-static const float sdl_gl_vertex_coord[4 * 4] = {
-    /* Normal */
-    -1.0f, +1.0f, -1.0f, +1.0f,
-    /* Flip X */
-    +1.0f, +1.0f, -1.0f, -1.0f,
-    /* Flip Y */
-    -1.0f, -1.0f, +1.0f, +1.0f,
-    /* Flip X&Y */
-    +1.0f, -1.0f, +1.0f, -1.0f
-};
-
-static int sdl_gl_aspect_mode;
-static char *aspect_ratio_s = NULL;
-static double aspect_ratio;
-
-static int sdl_gl_flipx;
-static int sdl_gl_flipy;
-
-static int sdl_gl_filter_res;
-static int sdl_gl_filter;
-#endif
-
 struct sdl_lightpen_adjust_s {
     int offset_x, offset_y;
     int max_x, max_y;
@@ -226,106 +199,6 @@ static int set_sdl_window_height(int h, void *param)
     return 0;
 }
 
-#if defined(HAVE_HWSCALE)
-static int set_sdl_gl_aspect_mode(int v, void *param)
-{
-    int old_v = sdl_gl_aspect_mode;
-
-    switch (v) {
-        case SDL_ASPECT_MODE_OFF:
-        case SDL_ASPECT_MODE_CUSTOM:
-        case SDL_ASPECT_MODE_TRUE:
-            break;
-        default:
-            return -1;
-    }
-
-    sdl_gl_aspect_mode = v;
-
-    if (old_v != v) {
-        if (sdl_active_canvas && sdl_active_canvas->videoconfig->hwscale) {
-            video_viewport_resize(sdl_active_canvas, 1);
-        }
-    }
-
-    return 0;
-}
-
-static int set_aspect_ratio(const char *val, void *param)
-{
-    double old_aspect = aspect_ratio;
-    char buf[20];
-
-    if (val) {
-        char *endptr;
-
-        util_string_set(&aspect_ratio_s, val);
-
-        aspect_ratio = strtod(val, &endptr);
-        if (val == endptr) {
-            aspect_ratio = 1.0;
-        } else if (aspect_ratio < 0.5) {
-            aspect_ratio = 0.5;
-        } else if (aspect_ratio > 2.0) {
-            aspect_ratio = 2.0;
-        }
-    } else {
-        aspect_ratio = 1.0;
-    }
-
-    sprintf(buf, "%f", aspect_ratio);
-    util_string_set(&aspect_ratio_s, buf);
-
-    if (old_aspect != aspect_ratio) {
-        if (sdl_active_canvas && sdl_active_canvas->videoconfig->hwscale) {
-            video_viewport_resize(sdl_active_canvas, 1);
-        }
-    }
-
-    return 0;
-}
-
-static void update_vertex_base(void)
-{
-    sdl_gl_vertex_base = (sdl_gl_flipx << 2) | (sdl_gl_flipy << 3);
-}
-
-static int set_sdl_gl_flipx(int v, void *param)
-{
-    sdl_gl_flipx = v ? 1 : 0;
-    update_vertex_base();
-
-    return 0;
-}
-
-static int set_sdl_gl_flipy(int v, void *param)
-{
-    sdl_gl_flipy = v ? 1 : 0;
-    update_vertex_base();
-
-    return 0;
-}
-
-static int set_sdl_gl_filter(int v, void *param)
-{
-    switch (v) {
-        case SDL_FILTER_NEAREST:
-            sdl_gl_filter = GL_NEAREST;
-            break;
-
-        case SDL_FILTER_LINEAR:
-            sdl_gl_filter = GL_LINEAR;
-            break;
-
-        default:
-            return -1;
-    }
-
-    sdl_gl_filter_res = v;
-    return 0;
-}
-#endif /* HAVE_HWSCALE */
-
 static const resource_string_t resources_string[] = {
 #if defined(HAVE_HWSCALE)
     { "AspectRatio", "1.0", RES_EVENT_NO, NULL,
@@ -341,8 +214,6 @@ static const resource_string_t resources_string[] = {
 #endif
 
 #define SDLLIMITMODE_DEFAULT     SDL_LIMIT_MODE_OFF
-#define SDLCUSTOMWIDTH_DEFAULT   384
-#define SDLCUSTOMHEIGHT_DEFAULT  480
 
 static const resource_int_t resources_int[] = {
     { "SDLBitdepth", VICE_DEFAULT_BITDEPTH, RES_EVENT_NO, NULL,
@@ -357,16 +228,6 @@ static const resource_int_t resources_int[] = {
       &sdl_window_width, set_sdl_window_width, NULL },
     { "SDLWindowHeight", 0, RES_EVENT_NO, NULL,
       &sdl_window_height, set_sdl_window_height, NULL },
-#if defined(HAVE_HWSCALE)
-    { "SDLGLAspectMode", SDL_ASPECT_MODE_TRUE, RES_EVENT_NO, NULL,
-      &sdl_gl_aspect_mode, set_sdl_gl_aspect_mode, NULL },
-    { "SDLGLFlipX", 0, RES_EVENT_NO, NULL,
-      &sdl_gl_flipx, set_sdl_gl_flipx, NULL },
-    { "SDLGLFlipY", 0, RES_EVENT_NO, NULL,
-      &sdl_gl_flipy, set_sdl_gl_flipy, NULL },
-    { "SDLGLFilter", SDL_FILTER_LINEAR, RES_EVENT_NO, NULL,
-      &sdl_gl_filter_res, set_sdl_gl_filter, NULL },
-#endif
     RESOURCE_INT_LIST_END
 };
 
@@ -423,29 +284,6 @@ static const cmdline_option_t cmdline_options[] =
     { "-sdlinitialh", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
       NULL, NULL, "SDLWindowHeight", NULL,
       "<height>", "Set intiial window height" },
-#if defined(HAVE_HWSCALE)
-    { "-sdlaspectmode", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
-      NULL, NULL, "SDLGLAspectMode", NULL,
-      "<mode>", "Set aspect ratio mode (0 = off, 1 = custom, 2 = true)" },
-    { "-aspect", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
-      NULL, NULL, "AspectRatio", NULL,
-      "<aspect ratio>", "Set custom aspect ratio (0.5 - 2.0)" },
-    { "-sdlflipx", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
-      NULL, NULL, "SDLGLFlipX", (resource_value_t)1,
-      NULL, "Enable X flip" },
-    { "+sdlflipx", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
-      NULL, NULL, "SDLGLFlipX", (resource_value_t)0,
-      NULL, "Disable X flip" },
-    { "-sdlflipy", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
-      NULL, NULL, "SDLGLFlipY", (resource_value_t)1,
-      NULL, "Enable Y flip" },
-    { "+sdlflipy", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
-      NULL, NULL, "SDLGLFlipY", (resource_value_t)0,
-      NULL, "Disable Y flip" },
-    { "-sdlglfilter", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
-      NULL, NULL, "SDLGLFilter", NULL,
-      "<mode>", "Set OpenGL filtering mode (0 = nearest, 1 = linear)" },
-#endif
     CMDLINE_LIST_END
 };
 
@@ -823,18 +661,11 @@ void video_canvas_refresh(struct video_canvas_s *canvas, unsigned int xs, unsign
 {
     uint8_t *backup;
 
-	static void *oldcanvas = 0;
-
 	if ((canvas == NULL) || (canvas->screen == NULL) || (canvas != sdl_active_canvas)) {
         return;
     }
 
-	if (canvas != oldcanvas) {
-		// we have a new canvas, paint our bottom screen
-		oldcanvas=canvas;
-		sdl_uibottom_draw();
-
-	}
+	sdl_uibottom_draw();
 
     if (sdl_vsid_state & SDL_VSID_ACTIVE) {
         sdl_vsid_draw();
@@ -846,9 +677,9 @@ void video_canvas_refresh(struct video_canvas_s *canvas, unsigned int xs, unsign
         sdl_vkbd_draw();
     }
 
-    if (uistatusbar_state & UISTATUSBAR_ACTIVE) {
-        uistatusbar_draw();
-    }
+//    if (uistatusbar_state & UISTATUSBAR_ACTIVE) {
+//        uistatusbar_draw();
+//    }
 
 //sdljoy_button_event: joynum 0, button
 //NTSC:
@@ -914,67 +745,6 @@ void video_canvas_refresh(struct video_canvas_s *canvas, unsigned int xs, unsign
     if (SDL_MUSTLOCK(canvas->screen)) {
         SDL_UnlockSurface(canvas->screen);
     }
-
-#if defined(HAVE_HWSCALE)
-    if (canvas->videoconfig->hwscale) {
-        const float *v = &(sdl_gl_vertex_coord[sdl_gl_vertex_base]);
-
-        if (canvas != sdl_active_canvas) {
-            DBG(("%s: not active SDL canvas, ignoring", __func__));
-            return;
-        }
-
-        if (!(canvas->hwscale_screen)) {
-            DBG(("%s: hwscale refresh without hwscale screen, ignoring", __func__));
-            return;
-        }
-
-/* XXX make use of glXBindTexImageEXT aka texture from pixmap extension */
-
-        glClear(GL_COLOR_BUFFER_BIT);
-        glDisable(GL_DEPTH_TEST);
-
-/* GL_TEXTURE_RECTANGLE is standardised as _EXT in OpenGL 1.4. Here's some
- * aliases in the meantime. */
-#ifndef GL_TEXTURE_RECTANGLE_EXT
-    #if defined(GL_TEXTURE_RECTANGLE_NV)
-        #define GL_TEXTURE_RECTANGLE_EXT GL_TEXTURE_RECTANGLE_NV
-    #elif defined(GL_TEXTURE_RECTANGLE_ARB)
-        #define GL_TEXTURE_RECTANGLE_EXT GL_TEXTURE_RECTANGLE_ARB
-    #else
-        #error "Your headers do not supply GL_TEXTURE_RECTANGLE. Disable HWSCALE and try again."
-    #endif
-#endif
-
-        glEnable(GL_TEXTURE_RECTANGLE_EXT);
-        glBindTexture(GL_TEXTURE_RECTANGLE_EXT, screen_texture);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_EXT, GL_TEXTURE_MAG_FILTER, sdl_gl_filter);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_EXT, GL_TEXTURE_MIN_FILTER, sdl_gl_filter);
-        glTexImage2D (GL_TEXTURE_RECTANGLE_EXT, 0, sdl_gl_mode, canvas->width, canvas->height, 0, sdl_gl_mode, GL_UNSIGNED_BYTE, canvas->screen->pixels);
-
-        glBegin(GL_QUADS);
-
-        /* Lower Right Of Texture */
-        glTexCoord2f(0.0f, 0.0f);
-        glVertex2f(v[0], v[1]);
-
-        /* Upper Right Of Texture */
-        glTexCoord2f(0.0f, (float)(canvas->height));
-        glVertex2f(v[0], v[2]);
-
-        /* Upper Left Of Texture */
-        glTexCoord2f((float)(canvas->width), (float)(canvas->height));
-        glVertex2f(v[3], v[2]);
-
-        /* Lower Left Of Texture */
-        glTexCoord2f((float)(canvas->width), 0.0f);
-        glVertex2f(v[3], v[1]);
-
-        glEnd();
-
-        SDL_GL_SwapBuffers();
-    } else
-#endif
 
     SDL_UpdateRect(canvas->screen, xi, yi, w, h);
 }

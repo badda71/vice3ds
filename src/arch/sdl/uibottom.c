@@ -32,6 +32,7 @@
 #include "mousedrv.h"
 #include "log.h"
 #include "videoarch.h"
+#include "uistatusbar.h"
 
 int uikbd_pos[4][4] = {
 	{0,0,320,120},		// normal keys
@@ -125,13 +126,12 @@ uikbd_key uikbd_keypos[KBD_NUMKEYS] = {
 };
 
 static SDL_Surface *kbd_img=NULL;
+static SDL_Rect bottom_r;
 int uibottom_kbdactive = 1;
 
 static int kb_x_pos = 0;
 static int kb_y_pos = 0;
 static int kb_activekey;
-
-static void negativeRect (SDL_Surface *, int, int, int, int);
 static int sticky=0;
 
 static void negativeRect (SDL_Surface *s, int x, int y, int w, int h) {
@@ -145,7 +145,6 @@ static void negativeRect (SDL_Surface *s, int x, int y, int w, int h) {
 			pixel[3] = 255 - pixel[3];
 		}
 	}
-	SDL_Flip(s);
 }
 
 static void reverseKey(int i) {
@@ -159,7 +158,7 @@ static void updateSticky() {
 	}
 }
 
-static void updateKeyboard() {
+static void updateKeyboard(int rupdate) {
 	SDL_Rect rdest = {
 		.x = kb_x_pos,
 		.y = kb_y_pos};
@@ -179,24 +178,32 @@ static void updateKeyboard() {
 
 	SDL_BlitSurface(kbd_img, &rsrc, sdl_active_canvas->screen, &rdest);
 	updateSticky();
-	SDL_Flip(sdl_active_canvas->screen);
+	if (rupdate) SDL_UpdateRect(sdl_active_canvas->screen, rdest.x, rdest.y, rsrc.w, rsrc.h);
 }
 
 void sdl_uibottom_draw(void)
 {	
+	static void *olds = NULL;
+	
 	// init the 3DS bottom screen
 	// keyboard image
 	SDL_Surface *s=sdl_active_canvas->screen;
-	
-	SDL_FillRect(s, &(SDL_Rect){ .x = 0, .y = 240, .w = s->w, .h=s->h-240}, SDL_MapRGB(s->format, 0x30, 0x30, 0x30));
-	if (kbd_img == NULL) {
-		char *fname = archdep_join_paths(archdep_user_config_path(),"ui_keyboard.bmp",NULL);
-		kbd_img = SDL_LoadBMP(fname);
-		lib_free(fname);
+	if (olds != s) {
+		olds=s;
+		bottom_r = (SDL_Rect){ .x = 0, .y = s->h/2, .w = s->w, .h=s->h/2};
+		SDL_FillRect(s, &bottom_r, SDL_MapRGB(s->format, 0x30, 0x30, 0x30));
+		if (kbd_img == NULL) {
+			char *fname = archdep_join_paths(archdep_user_config_path(),"ui_keyboard.bmp",NULL);
+			kbd_img = SDL_LoadBMP(fname);
+			lib_free(fname);
+		}
+		kb_x_pos = (s->w - uikbd_pos[0][2]) / 2;
+		kb_y_pos = s->h - uikbd_pos[0][3];
+		updateKeyboard(0);
+		SDL_UpdateRect(sdl_active_canvas->screen, bottom_r.x, bottom_r.y, bottom_r.w, bottom_r.h);
 	}
-	kb_x_pos = (s->w - uikbd_pos[0][2]) / 2;
-	kb_y_pos = s->h - uikbd_pos[0][3];
-	updateKeyboard();
+//	uistatusbar_draw();
+
 }
 
 int sdl_uibottom_mouseevent(SDL_Event *e) {
@@ -224,7 +231,7 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 					sticky = sticky ^ uikbd_keypos[i].flg;
 					keyboard_set_keyarr_any(uikbd_keypos[i].row, uikbd_keypos[i].col, 
 						sticky & uikbd_keypos[i].flg ? 1 : 0 );
-					updateKeyboard();
+					updateKeyboard(1);
 				}
 			} else {
 				keyboard_set_keyarr_any(uikbd_keypos[i].row, uikbd_keypos[i].col, 
