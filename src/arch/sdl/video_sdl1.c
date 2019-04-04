@@ -850,6 +850,16 @@ void video_canvas_refresh(struct video_canvas_s *canvas, unsigned int xs, unsign
         uistatusbar_draw();
     }
 
+//sdljoy_button_event: joynum 0, button
+//NTSC:
+//					w	h	xs ys xi yi					
+//render_32_1x1_04 384 247 104 28 0 0
+//render_32_1x1_04 320 200 136 51 32 23
+//PAL:
+//render_32_1x1_04 384 256 104 16 0 0
+//render_32_1x1_04 320 200 136 51 32 35
+
+
     xi *= canvas->videoconfig->scalex;
     w *= canvas->videoconfig->scalex;
 
@@ -857,7 +867,16 @@ void video_canvas_refresh(struct video_canvas_s *canvas, unsigned int xs, unsign
     h *= canvas->videoconfig->scaley;
 
     w = MIN(w, canvas->width);
-    h = MIN(h, canvas->height);
+
+//    h = MIN(h, canvas->height);
+	// calc render size for 3DS topscreen
+	static int shift=1000;
+	if (shift == 1000) shift = yi + (h - SDLCUSTOMHEIGHT_DEFAULT/2) / 2;
+	if (shift > yi) {
+		ys = ys + shift - yi;
+		yi = 0;
+	} else yi = yi - shift;
+	h=MIN(h, SDLCUSTOMHEIGHT_DEFAULT/2 - yi);
 
     /* FIXME attempt to draw outside canvas */
     if ((xi + w > canvas->width) || (yi + h > canvas->height)) {
@@ -1209,7 +1228,7 @@ int sdl_ui_get_mouse_state(int *px, int *py, unsigned int *pbuttons)
     local_buttons = SDL_GetMouseState(&local_x, &local_y);
 
 #ifdef SDL_DEBUG
-    fprintf(stderr, "%s pre : x = %i, y = %i, buttons = %02x", __func__, local_x, local_y, local_buttons);
+    log_debug("%s pre : x = %i, y = %i, buttons = %02x", __func__, local_x, local_y, local_buttons);
 #endif
 
     local_x -= sdl_lightpen_adjust.offset_x;
@@ -1223,7 +1242,7 @@ int sdl_ui_get_mouse_state(int *px, int *py, unsigned int *pbuttons)
     }
 
 #ifdef SDL_DEBUG
-    fprintf(stderr, "%s post: x = %i, y = %i\n", __func__, local_x, local_y);
+    log_debug("%s post: x = %i, y = %i\n", __func__, local_x, local_y);
 #endif
     if (px) {
         *px = local_x;

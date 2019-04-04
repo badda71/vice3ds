@@ -24,5 +24,5 @@
  */
 
 extern void sdl_uibottom_draw(void);
-//extern int uibottom_mouseevent(SDL_Event *);
-//extern int uibottom_kbdactive;
+extern int sdl_uibottom_mouseevent(SDL_Event *);
+extern int uibottom_kbdactive;

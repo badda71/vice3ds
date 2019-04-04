@@ -49,7 +49,7 @@ typedef struct {
 } uikbd_key;
 
 uikbd_key uikbd_keypos[KBD_NUMKEYS] = {
- //  x,  y,   w,   h, key, row, col, flg
+ //  x,  y,   w,   h, key, row, col, sticky
  // F-Keys
  { 283, 32,  25,  16,   1,   0,   4,   0}, // F1 / F2
  { 283, 48,  25,  16,   2,   0,   5,   0}, // F3 / F4
@@ -73,7 +73,7 @@ uikbd_key uikbd_keypos[KBD_NUMKEYS] = {
  { 240, 32,  16,  16,  19,   6,   3,   0}, // CLR/HOME
  { 256, 32,  17,  16,  20,   0,   0,   0}, // INST/DEL
  // 2nd row	
- {  16, 48,  24,  16,  21,   7,   2,   1}, // CTRL - sticky ctrl
+ {  16, 48,  24,  16,  21,   7,   2,   4}, // CTRL - sticky ctrl
  {  40, 48,  16,  16,  22,   7,   6,   0}, // Q
  {  56, 48,  16,  16,  23,   1,   1,   0}, // W
  {  72, 48,  16,  16,  24,   1,   6,   0}, // E
@@ -90,7 +90,7 @@ uikbd_key uikbd_keypos[KBD_NUMKEYS] = {
  { 248, 48,  25,  16,  35,  -3,   0,   0}, // RESTORE
  // 3rd row	
  {  16, 64,  16,  16,  36,   7,   7,   0}, // RUN/STOP
- {  32, 64,  16,  16,  37,   1,   7,   2}, // SHIFT LOCK - sticky shift
+ {  32, 64,  16,  16,  37,   1,   7,   1}, // SHIFT LOCK - sticky shift
  {  48, 64,  16,  16,  38,   1,   2,   0}, // A
  {  64, 64,  16,  16,  39,   1,   5,   0}, // S
  {  80, 64,  16,  16,  40,   2,   2,   0}, // D
@@ -105,8 +105,8 @@ uikbd_key uikbd_keypos[KBD_NUMKEYS] = {
  { 224, 64,  16,  16,  49,   6,   5,   0}, // =
  { 240, 64,  33,  16,  50,   0,   1,   0}, // RETURN
  // 4th row	
- {  16, 80,  16,  17,  51,   7,   5,   3}, // cbm - sticky cbm
- {  32, 80,  24,  17,  52,   1,   7,   2}, // SHIFT - sticky shift
+ {  16, 80,  16,  17,  51,   7,   5,   2}, // cbm - sticky cbm
+ {  32, 80,  24,  17,  52,   1,   7,   1}, // SHIFT - sticky shift
  {  56, 80,  16,  17,  53,   1,   4,   0}, // Z
  {  72, 80,  16,  17,  54,   2,   7,   0}, // X
  {  88, 80,  16,  17,  55,   2,   4,   0}, // C
@@ -117,7 +117,7 @@ uikbd_key uikbd_keypos[KBD_NUMKEYS] = {
  { 168, 80,  16,  17,  60,   5,   7,   0}, // ,
  { 184, 80,  16,  17,  61,   5,   4,   0}, // .
  { 200, 80,  16,  17,  62,   6,   7,   0}, // /
- { 216, 80,  24,  17,  63,   6,   4,   2}, // SHIFT - sticky shift
+ { 216, 80,  24,  17,  63,   6,   4,   1}, // SHIFT - sticky shift
  { 240, 80,  16,  17,  64,   0,   7,   0}, // UP / DOWN
  { 256, 80,  17,  17,  65,   0,   2,   0}, // LEFT / RIGHT
  // SPACE	
@@ -125,68 +125,14 @@ uikbd_key uikbd_keypos[KBD_NUMKEYS] = {
 };
 
 static SDL_Surface *kbd_img=NULL;
-int uibottom_kbdactive = 0;
+int uibottom_kbdactive = 1;
 
 static int kb_x_pos = 0;
 static int kb_y_pos = 0;
 static int kb_activekey;
 
 static void negativeRect (SDL_Surface *, int, int, int, int);
-
-void sdl_uibottom_draw(void)
-{	
-	// init the 3DS bottom screen
-	// keyboard image
-	SDL_Surface *s=sdl_active_canvas->screen;
-	
-	SDL_FillRect(s, &(SDL_Rect){ .x = 0, .y = 241, .w = s->w, .h=s->h-240}, SDL_MapRGB(s->format, 0x30, 0x30, 0x30));
-	if (kbd_img == NULL) {
-		char *fname = archdep_join_paths(archdep_user_config_path(),"ui_keyboard.bmp",NULL);
-		kbd_img = SDL_LoadBMP(fname);
-		lib_free(fname);
-	}
-	kb_x_pos = (s->w - uikbd_pos[0][2]) / 2;
-	kb_y_pos = s->h - uikbd_pos[0][3];
-	
-	SDL_Rect rdest = {
-		.x = kb_x_pos,
-		.y = kb_y_pos};
-	SDL_Rect rsrc = {
-		.x = uikbd_pos[0][0],
-		.y = uikbd_pos[0][1],
-		.w = uikbd_pos[0][2],
-		.h = uikbd_pos[0][3]};
-
-	SDL_BlitSurface(kbd_img, &rsrc, s, &rdest);
-	SDL_Flip(s);
-}
-/*
-int uibottom_mouseevent(SDL_Event *e) {
-
-	int x = (x=e->button.x * BOTTOMSCREEN_W) / uibottom_scr->w;
-	int y = (y=e->button.y * BOTTOMSCREEN_H) / uibottom_scr->h;
-
-	if (uibottom_kbdactive) {
-		int i;
-		// check which button was pressed
-		for (i = 0; i < KBD_NUMKEYS; i++) {
-			if (x >= uikbd_keypos[i].x + kb_x_pos &&
-				x <  uikbd_keypos[i].x + uikbd_keypos[i].w + kb_x_pos &&
-				y >= uikbd_keypos[i].y + kb_y_pos &&
-				y <  uikbd_keypos[i].y + uikbd_keypos[i].h + kb_y_pos) break;
-		}		
-		if (i < KBD_NUMKEYS) { // got a hit
-			if (e->button.type == SDL_MOUSEBUTTONDOWN) {
-				keyboard_set_keyarr_any(uikbd_keypos[kb_activekey=i].row, uikbd_keypos[i].col, 1);
-				negativeRect(uibottom_scr, uikbd_keypos[i].x, uikbd_keypos[i].y, uikbd_keypos[i].w, uikbd_keypos[i].h);
-			} else {
-				keyboard_set_keyarr_any(uikbd_keypos[kb_activekey].row, uikbd_keypos[kb_activekey].col, 0);
-			}
-		}
-	}
-	mouse_button((int)(e->button.button), (e->button.state == SDL_PRESSED));
-}
-
+static int sticky=0;
 
 static void negativeRect (SDL_Surface *s, int x, int y, int w, int h) {
 	for (int yy = y; yy < y+h; yy++)
@@ -194,14 +140,101 @@ static void negativeRect (SDL_Surface *s, int x, int y, int w, int h) {
 		for (int xx = x; xx < x+w; xx++)
 		{
 			unsigned char *pixel = s->pixels + s->format->BytesPerPixel * (yy * s->w + xx);  
-			pixel[0] = 255 - pixel[0];
 			pixel[1] = 255 - pixel[1];
 			pixel[2] = 255 - pixel[2];
+			pixel[3] = 255 - pixel[3];
 		}
 	}
 	SDL_Flip(s);
 }
-*/
+
+static void reverseKey(int i) {
+	negativeRect(sdl_active_canvas->screen, uikbd_keypos[i].x+kb_x_pos, uikbd_keypos[i].y+kb_y_pos, uikbd_keypos[i].w, uikbd_keypos[i].h);
+}
+
+static void updateSticky() {
+	for (int i = 0; i < KBD_NUMKEYS; i++) {
+		if (uikbd_keypos[i].flg & sticky)
+			reverseKey(i);
+	}
+}
+
+static void updateKeyboard() {
+	SDL_Rect rdest = {
+		.x = kb_x_pos,
+		.y = kb_y_pos};
+	// which keyboard for whick sticky keys?
+	
+	int kb = 
+		sticky == 1 ? 1:
+		sticky == 2 ? 2:
+		sticky >= 4 ? 3:
+		0;
+
+	SDL_Rect rsrc = {
+		.x = uikbd_pos[kb][0],
+		.y = uikbd_pos[kb][1],
+		.w = uikbd_pos[kb][2],
+		.h = uikbd_pos[kb][3]};
+
+	SDL_BlitSurface(kbd_img, &rsrc, sdl_active_canvas->screen, &rdest);
+	updateSticky();
+	SDL_Flip(sdl_active_canvas->screen);
+}
+
+void sdl_uibottom_draw(void)
+{	
+	// init the 3DS bottom screen
+	// keyboard image
+	SDL_Surface *s=sdl_active_canvas->screen;
+	
+	SDL_FillRect(s, &(SDL_Rect){ .x = 0, .y = 240, .w = s->w, .h=s->h-240}, SDL_MapRGB(s->format, 0x30, 0x30, 0x30));
+	if (kbd_img == NULL) {
+		char *fname = archdep_join_paths(archdep_user_config_path(),"ui_keyboard.bmp",NULL);
+		kbd_img = SDL_LoadBMP(fname);
+		lib_free(fname);
+	}
+	kb_x_pos = (s->w - uikbd_pos[0][2]) / 2;
+	kb_y_pos = s->h - uikbd_pos[0][3];
+	updateKeyboard();
+}
+
+int sdl_uibottom_mouseevent(SDL_Event *e) {
+
+	int f,i1;
+	int x = e->button.x - kb_x_pos;
+	int y = e->button.y - kb_y_pos;
+
+	if (uibottom_kbdactive) {
+		int i;
+		// check which button was pressed
+		if (e->button.type != SDL_MOUSEBUTTONDOWN) i=kb_activekey;
+		else {
+			for (i = 0; i < KBD_NUMKEYS; i++) {
+				if (x >= uikbd_keypos[i].x &&
+					x <  uikbd_keypos[i].x + uikbd_keypos[i].w &&
+					y >= uikbd_keypos[i].y &&
+					y <  uikbd_keypos[i].y + uikbd_keypos[i].h) break;
+			}
+			kb_activekey=i;
+		}
+		if (i < KBD_NUMKEYS) { // got a hit
+			if (f=uikbd_keypos[i].flg>0) {	// sticky key!!
+				if (e->button.type == SDL_MOUSEBUTTONDOWN) {
+					sticky = sticky ^ uikbd_keypos[i].flg;
+					keyboard_set_keyarr_any(uikbd_keypos[i].row, uikbd_keypos[i].col, 
+						sticky & uikbd_keypos[i].flg ? 1 : 0 );
+					updateKeyboard();
+				}
+			} else {
+				keyboard_set_keyarr_any(uikbd_keypos[i].row, uikbd_keypos[i].col, 
+					e->button.type == SDL_MOUSEBUTTONDOWN ? 1 : 0 );
+				negativeRect(sdl_active_canvas->screen, uikbd_keypos[i].x+kb_x_pos, uikbd_keypos[i].y+kb_y_pos, uikbd_keypos[i].w, uikbd_keypos[i].h);
+			}
+		}
+	}
+}
+
 /*
 #include "vice.h"
 
