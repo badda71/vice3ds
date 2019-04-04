@@ -4,16 +4,25 @@
 #98, b
 #120, x
 #121, y
-#276, left
-#275, right
-#273, up
-#274, down
-#100, l
+
+#104, zl
+#105, zr
+#108, l
 #114, r
+
+#100, c-pad up
+#101, c-pad down
+#102, c-pad right
+#103, c-pad left
+
+#65, c-stick up
+#66, c-stick down
+#67, c-stick right
+#68, c-stick left
+
 #13, return (start)
 #27, escape (select)
 
-MenuKeySelect=97
 MenuKeyCancel=98
 ConfirmOnExit=1
 SoundDeviceName="ndsp"
@@ -34,12 +43,16 @@ VICIIFilter=0
 SidEngine=0
 SidModel=0
 KeySet1North=273
-KeySet1East=275
 KeySet1South=274
+KeySet1East=275
 KeySet1West=276
-KeySet1Fire=97
+KeySet1Fire=120
+KeySet2North=100
+KeySet2South=101
+KeySet2East=102
+KeySet2West=103
+KeySet2Fire=121
 JoyDevice1=4
 JoyDevice2=2
 Mouse=1
 Acia1Base=56832
-

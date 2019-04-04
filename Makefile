@@ -684,7 +684,7 @@ LDFLAGS =\
 	-lSDL
 
 # DEBUG DEFINES
-DDEFINES = -DSDL_DEBUG -DDEBUG -DARCHDEP_EXTRA_LOG_CALL
+DDEFINES = -DSDL_DEBUG=1 -DDEBUG=1 -DARCHDEP_EXTRA_LOG_CALL=1
 
 CFLAGS = -DARM11 -D_3DS -D_GNU_SOURCE=1 -O2 -Werror=implicit-function-declaration -Wfatal-errors -Wl,-rpath -Wl,/usr/lib/vice/lib -Wmissing-prototypes -Wshadow -fdata-sections -ffunction-sections -march=armv6k -mfloat-abi=hard -mtp=soft -mtune=mpcore -mword-relocations -specs=3dsx.specs $(DDEFINES) $(INCLUDES)
 

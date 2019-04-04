@@ -66,7 +66,7 @@ static void archdep_shutdown_extra(void);
  */
 #include "../shared/archdep_atexit.h"
 #include "../shared/archdep_create_user_config_dir.h"
-
+#include <3ds.h>
 
 
 int archdep_init(int *argc, char **argv)
@@ -76,9 +76,16 @@ int archdep_init(int *argc, char **argv)
     archdep_create_user_config_dir();
 
     if (SDL_REALINIT(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
-        fprintf(stderr, "SDL error: %s\n", SDL_GetError());
+        log_debug("SDL error: %s\n", SDL_GetError());
         return 1;
     }
+
+	SDL_N3DSKeyBind(KEY_CSTICK_UP, 100);
+	SDL_N3DSKeyBind(KEY_CSTICK_DOWN, 101);
+	SDL_N3DSKeyBind(KEY_CSTICK_RIGHT, 102);
+	SDL_N3DSKeyBind(KEY_CSTICK_LEFT, 103);
+	SDL_N3DSKeyBind(KEY_ZL, 104);
+	SDL_N3DSKeyBind(KEY_ZR, 105);
 
     /*
      * Call SDL_Quit() via atexit() to avoid segfaults on exit.
