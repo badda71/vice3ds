@@ -136,10 +136,10 @@ static const ui_menu_entry_t x64_main_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)monitor_menu },*/
-    { "Virtual keyboard",
+/*    { "Virtual keyboard",
       MENU_ENTRY_OTHER,
       vkbd_callback,
-      NULL },
+      NULL },*/
 /*    { "Statusbar",
       MENU_ENTRY_OTHER_TOGGLE,
       statusbar_callback,

@@ -575,27 +575,18 @@ UI_MENU_DEFINE_RADIO(CrtcFilter)
       radio_##chip##Filter_callback,           \
       (ui_callback_data_t)VIDEO_FILTER_CRT }
 
-#define VICE_SDL_FILTER_MENU_SCALE2X_ITEMS(chip) \
-    { "Scale2x",                                 \
-      MENU_ENTRY_RESOURCE_RADIO,                 \
-      radio_##chip##Filter_callback,             \
-      (ui_callback_data_t)VIDEO_FILTER_SCALE2X }
-
 static const ui_menu_entry_t vicii_filter_menu[] = {
     VICE_SDL_FILTER_MENU_ITEMS(VICII),
-    VICE_SDL_FILTER_MENU_SCALE2X_ITEMS(VICII),
     SDL_MENU_LIST_END
 };
 
 static const ui_menu_entry_t ted_filter_menu[] = {
     VICE_SDL_FILTER_MENU_ITEMS(TED),
-    VICE_SDL_FILTER_MENU_SCALE2X_ITEMS(TED),
     SDL_MENU_LIST_END
 };
 
 static const ui_menu_entry_t vic_filter_menu[] = {
     VICE_SDL_FILTER_MENU_ITEMS(VIC),
-    VICE_SDL_FILTER_MENU_SCALE2X_ITEMS(VIC),
     SDL_MENU_LIST_END
 };
 
@@ -754,24 +745,10 @@ const ui_menu_entry_t c128_video_menu[] = {
 /* C64 video menu */
 
 const ui_menu_entry_t c64_video_menu[] = {
-    { "Size settings",
-      MENU_ENTRY_SUBMENU,
-      submenu_callback,
-      (ui_callback_data_t)vicii_size_menu },
-    { "Restore window size",
-      MENU_ENTRY_OTHER,
-      restore_size_callback,
-      NULL },
-    SDL_MENU_ITEM_SEPARATOR,
     { "Video cache",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_VICIIVideoCache_callback,
       NULL },
-    SDL_MENU_ITEM_SEPARATOR,
-    { "VICII border mode",
-      MENU_ENTRY_SUBMENU,
-      submenu_radio_callback,
-      (ui_callback_data_t)vicii_border_menu },
     SDL_MENU_ITEM_SEPARATOR,
     { "Color controls",
       MENU_ENTRY_SUBMENU,

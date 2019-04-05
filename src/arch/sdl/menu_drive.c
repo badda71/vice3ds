@@ -36,9 +36,6 @@
 #include "machine.h"
 #include "menu_common.h"
 #include "menu_drive.h"
-#ifdef HAVE_OPENCBM
-#include "opencbmlib.h"
-#endif
 #include "resources.h"
 #include "ui.h"
 #include "uifilereq.h"
@@ -139,12 +136,6 @@ static char *get_drive_type_string(int drive)
     switch (type) {
         case 0:                  return MENU_SUBMENU_STRING " none";
         case ATTACH_DEVICE_FS:   return MENU_SUBMENU_STRING " directory";
-#ifdef HAVE_OPENCBM
-        case ATTACH_DEVICE_REAL: return MENU_SUBMENU_STRING " real drive";
-#endif
-#ifdef HAVE_RAWDRIVE
-        case ATTACH_DEVICE_RAW:  return MENU_SUBMENU_STRING " block device";
-#endif
         case DRIVE_TYPE_1540:    return MENU_SUBMENU_STRING " 1540";
         case DRIVE_TYPE_1541:    return MENU_SUBMENU_STRING " 1541";
         case DRIVE_TYPE_1541II:  return MENU_SUBMENU_STRING " 1541-II";
@@ -648,11 +639,7 @@ static UI_MENU_CALLBACK(set_drive_type_callback)
     parameter = (int)(vice_ptr_to_int(param) & 0xffff);
 
     if (parameter == ATTACH_DEVICE_REAL) {
-#ifdef HAVE_OPENCBM
-        support = opencbmlib_is_available();
-#else
         support = 0;
-#endif
     } else {
         support = (is_fs(parameter) || drive_check_type(parameter, drive - 8));
     }
@@ -661,10 +648,6 @@ static UI_MENU_CALLBACK(set_drive_type_callback)
     if (activated) {
         if (support) {
             if (parameter == ATTACH_DEVICE_REAL) {
-#ifdef HAVE_OPENCBM
-                resources_set_int_sprintf("IECDevice%i", 1, drive);
-                resources_set_int_sprintf("FileSystemDevice%i", parameter, drive);
-#endif
             } else if (is_fs(parameter)) {
                 resources_set_int_sprintf("IECDevice%i", 1, drive);
                 resources_set_int_sprintf("FileSystemDevice%i", parameter, drive);
@@ -824,17 +807,9 @@ static const ui_menu_entry_t create_disk_image_menu[] = {
       set_drive_type_callback,      \
       (ui_callback_data_t)(data) },
 
-#ifdef HAVE_OPENCBM
-#define DRIVE_TYPE_ITEM_OPENCBM(text, data) DRIVE_TYPE_ITEM(text, data)
-#else
 #define DRIVE_TYPE_ITEM_OPENCBM(text, data)
-#endif
 
-#ifdef HAVE_RAWDRIVE
-#define DRIVE_TYPE_ITEM_RAWDRIVE(text, data) DRIVE_TYPE_ITEM(text, data)
-#else
 #define DRIVE_TYPE_ITEM_RAWDRIVE(text, data)
-#endif
 
 #define DRIVE_TYPE_MENU(x)                                                      \
     static const ui_menu_entry_t drive_##x##_type_menu[] = {                    \
@@ -1006,19 +981,8 @@ UI_MENU_DEFINE_TOGGLE(AttachDevice9Readonly)
 UI_MENU_DEFINE_TOGGLE(AttachDevice10Readonly)
 UI_MENU_DEFINE_TOGGLE(AttachDevice11Readonly)
 
-#ifdef HAVE_RAWDRIVE
-UI_MENU_DEFINE_FILE_STRING(RawDriveDriver)
-#endif
 
-#ifdef HAVE_RAWDRIVE
-#define DRIVE_MENU_RAWDRIVE_ITEM           \
-    { "Blockdevice",                       \
-      MENU_ENTRY_DIALOG,                   \
-      file_string_RawDriveDriver_callback, \
-      (ui_callback_data_t)"Select device file to use as drive" },
-#else
 #define DRIVE_MENU_RAWDRIVE_ITEM
-#endif
 
 #define DRIVE_MENU(x)                                           \
     static const ui_menu_entry_t drive_##x##_menu[] = {         \

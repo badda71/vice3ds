@@ -577,11 +577,11 @@ ui_menu_entry_t settings_manager_menu[] = {
       load_joymap_callback,
       NULL },
 #endif
-    SDL_MENU_ITEM_SEPARATOR,
+/*    SDL_MENU_ITEM_SEPARATOR,
     { "Define UI keys",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
-      (ui_callback_data_t)define_ui_keyset_menu },
+      (ui_callback_data_t)define_ui_keyset_menu },*/
     SDL_MENU_LIST_END
 };
 
@@ -634,10 +634,10 @@ ui_menu_entry_t settings_manager_menu_vsid[] = {
       MENU_ENTRY_OTHER,
       load_hotkeys_callback,
       NULL },
-    SDL_MENU_ITEM_SEPARATOR,
+/*    SDL_MENU_ITEM_SEPARATOR,
     { "Define UI keys",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
-      (ui_callback_data_t)define_ui_keyset_menu },
+      (ui_callback_data_t)define_ui_keyset_menu },*/
     SDL_MENU_LIST_END
 };
