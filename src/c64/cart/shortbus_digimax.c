@@ -39,7 +39,7 @@
 #include "sound.h"
 #include "util.h"
 
-#include "digimaxcore.c"
+#include "digimaxcore.h"
 #include "shortbus_digimax.h"
 
 /*

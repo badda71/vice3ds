@@ -508,7 +508,7 @@ void maincpu_mainloop(void)
 
 #define GLOBAL_REGS maincpu_regs
 
-#include "6510core.c"
+#include "6510core-c.h"
 
         maincpu_int_status->num_dma_per_opcode = 0;
 

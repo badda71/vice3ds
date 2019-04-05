@@ -45,7 +45,7 @@
 #include "uiapi.h"
 #include "util.h"
 
-#include "digimaxcore.c"
+#include "digimaxcore.h"
 
 /*
     Digimax Cartridge

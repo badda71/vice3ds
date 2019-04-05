@@ -171,19 +171,9 @@ char *findpath(const char *cmd, const char *syspath, int mode)
             memcpy(p, cmd, cl);
 
             for (c = buf + 1; *c != '\0'; c++) {
-#if (FSDEV_DIR_SEP_CHR == '\\')
-                if (*c == '/') {
-                    *c = '\\';
-                }
-#else
-#if (FSDEV_DIR_SEP_CHR == '/')
                 if (*c == '\\') {
                     *c = '/';
                 }
-#else
-#error directory seperator for this platform not handled correctly, FIX NEEDED!
-#endif
-#endif
             }
             if (ioutil_access(buf + 1, mode) == 0) {
                 pd = p /* + cl*/;
@@ -195,16 +185,6 @@ char *findpath(const char *cmd, const char *syspath, int mode)
 
     if (pd) {
         char *tmpbuf;
-#if 0
-        do {
-            pd--;
-        } while (*pd != '/'); /* there is at least one '/' */
-
-        if (*(pd - 1) == '\0') {
-            pd++;
-        }
-        *pd = '\0';
-#endif
 
         tmpbuf = lib_stralloc(buf + 1);
         lib_free(buf);

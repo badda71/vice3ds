@@ -42,7 +42,7 @@
 #include "userport_digimax.h"
 #include "util.h"
 
-#include "digimaxcore.c"
+#include "digimaxcore.h"
 
 /*
     Digimax userport device

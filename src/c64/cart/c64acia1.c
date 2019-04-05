@@ -87,7 +87,7 @@ extern int acia1_set_mode(int mode);
 
 #define ACIA_MODE_HIGHEST   ACIA_MODE_TURBO232
 
-#include "aciacore.c"
+#include "aciacore.h"
 
 #if defined(HAVE_RS232DEV) || defined(HAVE_RS232NET)
 /* Flag: Do we enable the ACIA RS232 interface emulation?  */

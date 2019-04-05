@@ -449,7 +449,7 @@ void drivecpu_execute(drive_context_t *drv, CLOCK clk_value)
 #define bank_start (cpu->d_bank_start)
 #define bank_base (cpu->d_bank_base)
 
-#include "6510core.c"
+#include "6510core-c.h"
     }
 
     cpu->last_clk = clk_value;

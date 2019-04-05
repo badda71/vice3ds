@@ -47,7 +47,7 @@ static void archdep_shutdown_extra(void);
 #endif
 
 #ifdef UNIX_COMPILE
-#include "archdep_unix.c"
+#include "archdep_unix-c.h"
 #endif
 
 #ifdef WIN32_COMPILE

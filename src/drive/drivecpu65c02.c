@@ -429,7 +429,7 @@ void drivecpu65c02_execute(drive_context_t *drv, CLOCK clk_value)
 #define WDC_STP()
 #define WDC_WAI()
 
-#include "65c02core.c"
+#include "65c02core.h"
     }
 
     cpu->last_clk = clk_value;

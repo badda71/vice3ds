@@ -125,4 +125,4 @@ static void check_and_run_alternate_cpu(void)
 
 #define HAVE_Z80_REGS
 
-#include "../maincpu.c"
+#include "../maincpu-c.h"
