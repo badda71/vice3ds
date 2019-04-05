@@ -15,8 +15,11 @@ LDFLAGS :=\
 	-lcitro3d\
 	-lctru\
 	-lm\
-	-lSDLmain\
-	-lSDL
+	-lSDL\
+	-lSDL_image\
+	-lpng\
+	-lz
+
 
 # DEBUG DEFINES
 DDEFINES := -DSDL_DEBUG=1 -DDEBUG=1 -DARCHDEP_EXTRA_LOG_CALL=1
