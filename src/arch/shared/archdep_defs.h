@@ -166,20 +166,7 @@
  */
 #define ARCHDEP_AUTOSTART_DICK_EXTENSION    "d64"
 
-
-#if defined(ARCHEP_OS_AMIGA) || defined(ARCHDEP_OS_MSDOS) \
-    || defined(ARCHDEP_OS_OS2) || defined(ARCHDEP_OS_WINDOWS)
-/** \brief  Separator used for a pathlist
- */
 # define ARCHDEP_FINDPATH_SEPARATOR_STRING  ";"
-
-#else
-
-/** \brief  Separator used for a pathlist
- */
-# define ARCHDEP_FINDPATH_SEPARATOR_STRING  ":"
-#endif
-
 
 /* set LIBDIR and DOCDIR */
 #ifdef ARCHDEP_OS_UNIX

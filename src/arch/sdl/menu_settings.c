@@ -42,6 +42,8 @@
 #include "uifilereq.h"
 #include "uimenu.h"
 #include "uipoll.h"
+#include "archdep_user_config_path.h"
+#include "archdep_join_paths.h"
 
 static UI_MENU_CALLBACK(save_settings_callback)
 {
@@ -253,12 +255,15 @@ static UI_MENU_CALLBACK(save_hotkeys_callback)
             ui_error("Cannot find resource.");
             return NULL;
         }
+	    char *cfg = archdep_user_config_path();
+	    char *f = archdep_join_paths(cfg, file, NULL);
 
-        if (sdlkbd_hotkeys_dump(file)) {
+        if (sdlkbd_hotkeys_dump(f)) {
             ui_error("Cannot save hotkeys.");
         } else {
             ui_message("Hotkeys saved.");
         }
+		lib_free(f);
     }
     return NULL;
 }
@@ -328,12 +333,15 @@ static UI_MENU_CALLBACK(save_joymap_callback)
             ui_error("Cannot find resource.");
             return NULL;
         }
+	    char *cfg = archdep_user_config_path();
+	    char *f = archdep_join_paths(cfg, file, NULL);
 
-        if (joy_arch_mapping_dump(file)) {
+        if (joy_arch_mapping_dump(f)) {
             ui_error("Cannot save joymap.");
         } else {
             ui_message("Joymap saved.");
         }
+		lib_free(f);
     }
     return NULL;
 }

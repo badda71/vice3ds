@@ -59,7 +59,8 @@ char *findpath(const char *cmd, const char *syspath, int mode)
     buf[0] = '\0'; /* this will (and needs to) stay '\0' */
 
     if (strchr(cmd, FSDEV_DIR_SEP_CHR)) {
-        size_t l;
+        // absolute or relative path - not just a filename 
+		size_t l;
         int state;
         const char *ps;
 
@@ -80,17 +81,14 @@ char *findpath(const char *cmd, const char *syspath, int mode)
         ps = cmd;
         pd = buf + l; /* buf + 1 + l - 1 */
 
-#if (FSDEV_DIR_SEP_CHR == '/')
         if (*pd++ != '/') {
             *pd++ = '/';
         }
-#else
-        pd++;
-#endif
 
         state = 1;
 
-        /* delete extra `/./', '/../' and '//':s from the path */
+/*
+        // delete extra `/./', '/../' and '//':s from the path
         while (*ps) {
             switch (state) {
                 case 0:
@@ -141,7 +139,7 @@ char *findpath(const char *cmd, const char *syspath, int mode)
             }
             *pd++ = *ps++;
         }
-
+*/
         *pd = '\0';
         pd = buf + 1;
     } else {
@@ -170,12 +168,7 @@ char *findpath(const char *cmd, const char *syspath, int mode)
 
             memcpy(p, cmd, cl);
 
-            for (c = buf + 1; *c != '\0'; c++) {
-                if (*c == '\\') {
-                    *c = '/';
-                }
-            }
-            if (ioutil_access(buf + 1, mode) == 0) {
+			if (ioutil_access(buf + 1, mode) == 0) {
                 pd = p /* + cl*/;
                 break;
             }

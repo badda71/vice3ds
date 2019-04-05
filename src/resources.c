@@ -55,6 +55,8 @@
 #include "resources.h"
 #include "util.h"
 #include "vice-event.h"
+#include "sysfile.h"
+#include "archdep_defs.h"
 
 #ifdef VICE_DEBUG_RESOURCES
 #define DBG(x)  printf x
@@ -1109,8 +1111,8 @@ int resources_load(const char *fname)
         }
         fname = default_name;
     }
-
-    f = fopen(fname, MODE_READ_TEXT);
+	f = sysfile_open(fname, NULL, MODE_READ_TEXT);
+//    f = fopen(fname, MODE_READ_TEXT);
 
     if (f == NULL) {
         lib_free(default_name);
@@ -1250,12 +1252,8 @@ int resources_save(const char *fname)
 
     /* get name for config file */
     if (fname == NULL) {
-        if (vice_config_file == NULL) {
-            /* get default filename. this also creates the .vice directory if not present */
-            default_name = archdep_default_resource_file_name();
-        } else {
-            default_name = lib_stralloc(vice_config_file);
-        }
+	    char *cfg = archdep_user_config_path();
+	    default_name = archdep_join_paths(cfg, ARCHDEP_VICERC_NAME, NULL);
         fname = default_name;
     }
 

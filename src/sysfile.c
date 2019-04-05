@@ -57,56 +57,8 @@ static char *expanded_system_path = NULL;
 
 static int set_system_path(const char *val, void *param)
 {
-    char *tmp_path, *tmp_path_save, *p, *s, *current_dir;
-
-    util_string_set(&system_path, val);
-
     lib_free(expanded_system_path);
-    expanded_system_path = NULL; /* will subsequently be replaced */
-
-    tmp_path_save = util_subst(system_path, "$$", default_path); /* malloc'd */
-
-    current_dir = ioutil_current_dir();
-
-    tmp_path = tmp_path_save; /* tmp_path points into tmp_path_save */
-    do {
-        p = strstr(tmp_path, ARCHDEP_FINDPATH_SEPARATOR_STRING);
-
-        if (p != NULL) {
-            *p = 0;
-        }
-        if (!archdep_path_is_relative(tmp_path)) {
-            /* absolute path */
-            if (expanded_system_path == NULL) {
-                s = util_concat(tmp_path, NULL); /* concat allocs a new str. */
-            } else {
-                s = util_concat(expanded_system_path,
-                                ARCHDEP_FINDPATH_SEPARATOR_STRING,
-                                tmp_path, NULL );
-            }
-        } else { /* relative path */
-            if (expanded_system_path == NULL) {
-                s = util_concat(current_dir,
-                                FSDEV_DIR_SEP_STR,
-                                tmp_path, NULL );
-            } else {
-                s = util_concat(expanded_system_path,
-                                ARCHDEP_FINDPATH_SEPARATOR_STRING,
-                                current_dir,
-                                FSDEV_DIR_SEP_STR,
-                                tmp_path, NULL );
-            }
-        }
-        lib_free(expanded_system_path);
-        expanded_system_path = s;
-
-        tmp_path = p + strlen(ARCHDEP_FINDPATH_SEPARATOR_STRING);
-    } while (p != NULL);
-
-    lib_free(current_dir);
-    lib_free(tmp_path_save);
-
-    DBG(("set_system_path -> expanded_system_path:'%s'\n", expanded_system_path));
+    expanded_system_path = lib_stralloc(default_path);
 
     return 0;
 }

@@ -34,6 +34,7 @@
 #include "videoarch.h"
 #include "uistatusbar.h"
 #include "viceicon.h"
+#include "sysfile.h"
 
 int uikbd_pos[4][4] = {
 	{0,0,320,120},		// normal keys
@@ -214,7 +215,8 @@ void sdl_uibottom_draw(void)
 
 		
 		if (kbd_img == NULL) {
-			char *fname = archdep_join_paths(archdep_user_config_path(),"ui_keyboard.bmp",NULL);
+			char *fname;
+			sysfile_locate("ui_keyboard.bmp", &fname);
 			kbd_img = SDL_LoadBMP(fname);
 			lib_free(fname);
 		}

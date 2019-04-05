@@ -45,6 +45,7 @@
 #include "archdep_user_config_path.h"
 
 #include "archdep_default_resource_file_name.h"
+#include "lib.h"
 
 
 /** \brief  Get path to default resource file
@@ -53,8 +54,5 @@
  */
 char *archdep_default_resource_file_name(void)
 {
-    char *cfg;
-
-    cfg = archdep_user_config_path();
-    return archdep_join_paths(cfg, ARCHDEP_VICERC_NAME, NULL);
+    return lib_stralloc(ARCHDEP_VICERC_NAME);
 }

@@ -39,20 +39,10 @@ POSTCOMPILE = @mv -f $(ODIR)/$*.Td $(ODIR)/$*.d && touch $@
 
 all: $(BDIR)/$(NAME)_$(VERSION).7z
 
-install: $(BDIR)/$(NAME).3dsx $(RDIR)/config
-	cp -f $(BDIR)/$(NAME).3dsx $(INSTDIR)
-	rm -rf $(INSTDIR)/config
-	cp -rf $(RDIR)/config $(INSTDIR)
+$(BDIR)/%.7z: $(BDIR)/$(NAME).3dsx
+	cd "$(BDIR)" && 7za a $*.7z $(NAME).3dsx
 
-$(BDIR)/%.7z: $(BDIR)/$(NAME).3dsx $(RDIR)/config
-	rm -rf "$(BDIR)/3ds"
-	mkdir -p "$(BDIR)/3ds/vice3ds"
-	cp -f "$(BDIR)/$(NAME).3dsx" "$(BDIR)/3ds/vice3ds"
-	cp -rf "$(RDIR)/config" "$(BDIR)/3ds/vice3ds"
-	cd "$(BDIR)" && 7za a $*.7z 3ds
-	rm -rf "$(BDIR)/3ds"
-
-$(BDIR)/$(NAME).3dsx: $(ODIR)/$(NAME).elf $(RDIR)/icon.png
+$(BDIR)/$(NAME).3dsx: $(ODIR)/$(NAME).elf $(RDIR)/icon.png romfs/*
 	smdhtool --create "Vice3DS" "Vice C64 emulator for Nintendo 3DS" "badda71" $(RDIR)/icon.png $(ODIR)/$(NAME).smdh
 	3dsxtool $(ODIR)/$(NAME).elf $(BDIR)/$(NAME).3dsx --romfs=romfs --smdh=$(ODIR)/$(NAME).smdh
 
