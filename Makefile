@@ -694,6 +694,7 @@ BDIR = build
 RDIR = resources
 NAME = vice3ds
 VERSION = 0.1
+INSTDIR = /c/Users/seweber/AppData/Roaming/Citra/sdmc/3ds/vice3ds
 
 OBJ = $(addsuffix .o,$(addprefix $(ODIR)/,$(subst /,.,$(basename $(SRCS)))))
 $(shell mkdir -p $(ODIR) >/dev/null)
@@ -702,6 +703,11 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(ODIR)/$*.Td
 POSTCOMPILE = @mv -f $(ODIR)/$*.Td $(ODIR)/$*.d && touch $@
 
 all: $(BDIR)/$(NAME)_$(VERSION).7z
+
+install: $(BDIR)/$(NAME).3dsx $(RDIR)/config
+	cp -f $(BDIR)/$(NAME).3dsx $(INSTDIR)
+	rm -rf $(INSTDIR)/config
+	cp -rf $(RDIR)/config $(INSTDIR)
 
 $(BDIR)/%.7z: $(BDIR)/$(NAME).3dsx $(RDIR)/config
 	rm -rf "$(BDIR)/3ds"

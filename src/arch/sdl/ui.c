@@ -91,31 +91,11 @@ static void (*psid_play_func)(int) = NULL;
 /* Misc. SDL event handling */
 void ui_handle_misc_sdl_event(SDL_Event e)
 {
-#ifdef USE_SDLUI2
-    if (e.type == SDL_WINDOWEVENT) {
-        switch (e.window.event) {
-            case SDL_WINDOWEVENT_RESIZED:
-                DBG(("ui_handle_misc_sdl_event: SDL_WINDOWEVENT_RESIZED (%d,%d)", (unsigned int)e.window.data1, (unsigned int)e.window.data2));
-                sdl_video_resize_event((unsigned int)e.window.data1, (unsigned int)e.window.data2);
-                video_canvas_refresh_all(sdl_active_canvas);
-                break;
-            case SDL_WINDOWEVENT_FOCUS_GAINED:
-                DBG(("ui_handle_misc_sdl_event: SDL_WINDOWEVENT_FOCUS_GAINED"));
-                video_canvas_refresh_all(sdl_active_canvas);
-                break;
-            case SDL_WINDOWEVENT_EXPOSED:
-                DBG(("ui_handle_misc_sdl_event: SDL_WINDOWEVENT_EXPOSED"));
-                video_canvas_refresh_all(sdl_active_canvas);
-                break;
-        }
-    }
-#endif
     switch (e.type) {
         case SDL_QUIT:
             DBG(("ui_handle_misc_sdl_event: SDL_QUIT"));
             ui_sdl_quit();
             break;
-#ifndef USE_SDLUI2
         case SDL_VIDEORESIZE:
             DBG(("ui_handle_misc_sdl_event: SDL_VIDEORESIZE (%d,%d)", (unsigned int)e.resize.w, (unsigned int)e.resize.h));
             sdl_video_resize_event((unsigned int)e.resize.w, (unsigned int)e.resize.h);
@@ -131,27 +111,6 @@ void ui_handle_misc_sdl_event(SDL_Event e)
             DBG(("ui_handle_misc_sdl_event: SDL_VIDEOEXPOSE"));
             video_canvas_refresh_all(sdl_active_canvas);
             break;
-#else
-        case SDL_DROPFILE:
-            if (machine_class != VICE_MACHINE_VSID) {
-                if (autostart_autodetect(e.drop.file, NULL, 0,
-                            AUTOSTART_MODE_RUN) < 0) {
-                    ui_error("Cannot autostart specified file.");
-                }
-            } else {
-                /* try to load PSID file */
-
-                if (machine_autodetect_psid(e.drop.file) < 0) {
-                    ui_error("%s is not a valid SID file.", e.drop.file);
-                }
-                if (psid_init_func != NULL && psid_play_func != NULL) {
-                    psid_init_func();
-                    psid_play_func(0);
-                    machine_trigger_reset(MACHINE_RESET_MODE_SOFT);
-                }
-            }
-            break;
-#endif
 #ifdef SDL_DEBUG
         case SDL_USEREVENT:
             DBG(("ui_handle_misc_sdl_event: SDL_USEREVENT"));
@@ -166,47 +125,6 @@ void ui_handle_misc_sdl_event(SDL_Event e)
     }
 }
 
-#ifdef ANDROID_COMPILE
-#include "loader.h"
-#include "keyboard.h"
-
-extern int loader_loadstate;
-extern int loader_savestate;
-extern int loader_turbo;
-extern int loader_showinfo;
-extern int loader_true_drive;
-extern char savestate_filename[256];
-extern void loader_save_snapshot(char *name);
-extern void loader_load_snapshot(char *name);
-extern void loader_set_warpmode(int on);
-extern void loader_set_drive_true_emulation(int val);
-static int oldx = 0, oldy = 0, down_x, down_y;
-int old_joy_direction = 0;
-extern int mouse_x, mouse_y;
-#endif
-
-#if 0
-/* unused ? */
-void ui_dispatch_next_event(void)
-{
-#ifdef ANDROID_COMPILE
-    struct locnet_al_event event;
-
-    if (Android_PollEvent(&event)) {
-#else
-    SDL_Event e;
-
-    if (SDL_PollEvent(&e)) {
-        ui_handle_misc_sdl_event(e);
-#endif
-    } else {
-        /* Add a small delay to not hog the host CPU when remote
-           monitor is being used. */
-        SDL_Delay(10);
-    }
-}
-#endif
-
 /* Main event handler */
 ui_menu_action_t ui_dispatch_events(void)
 {
@@ -216,13 +134,17 @@ ui_menu_action_t ui_dispatch_events(void)
     while (SDL_PollEvent(&e)) {
         switch (e.type) {
             case SDL_KEYDOWN:
-                ui_display_kbd_status(&e);
-                retval = sdlkbd_press(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod);
+                if (e.key.keysym.sym != 0) {
+					ui_display_kbd_status(&e);
+	                retval = sdlkbd_press(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod);
+				}
                 break;
             case SDL_KEYUP:
-                ui_display_kbd_status(&e);
-                retval = sdlkbd_release(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod);
-                break;
+                if (e.key.keysym.sym != 0) {
+					ui_display_kbd_status(&e);
+					retval = sdlkbd_release(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod);
+				}
+				break;
 #ifdef HAVE_SDL_NUMJOYSTICKS
             case SDL_JOYAXISMOTION:
                 retval = sdljoy_axis_event(e.jaxis.which, e.jaxis.axis, e.jaxis.value);
@@ -237,14 +159,14 @@ ui_menu_action_t ui_dispatch_events(void)
                 retval = sdljoy_hat_event(e.jhat.which, e.jhat.hat, e.jhat.value);
                 break;
 #endif
-            case SDL_MOUSEMOTION:
+            /*case SDL_MOUSEMOTION:
                 sdl_ui_consume_mouse_event(&e);
                 mouse_move((int)(e.motion.xrel), (int)(e.motion.yrel));
-                break;
+                break;*/
             case SDL_MOUSEBUTTONDOWN:
             case SDL_MOUSEBUTTONUP:
 				retval = sdl_uibottom_mouseevent(&e);
-				mouse_button((int)(e.button.button), (e.button.state == SDL_PRESSED));
+				//mouse_button((int)(e.button.button), (e.button.state == SDL_PRESSED));
                 break;
             default:
                 /* SDL_EventState(SDL_VIDEORESIZE, SDL_IGNORE); */
@@ -265,27 +187,6 @@ ui_menu_action_t ui_dispatch_events(void)
  *
  * TODO: and perhaps in windowed mode enable it when the mouse is moved.
  */
-
-#ifdef USE_SDLUI2
-static SDL_Cursor *arrow_cursor = NULL;
-static SDL_Cursor *crosshair_cursor = NULL;
-
-static void set_arrow_cursor(void)
-{
-    if (!arrow_cursor) {
-        arrow_cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
-    }
-    SDL_SetCursor(arrow_cursor);
-}
-
-static void set_crosshair_cursor(void)
-{
-    if (!crosshair_cursor) {
-        crosshair_cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
-    }
-    SDL_SetCursor(crosshair_cursor);
-}
-#endif
 
 void ui_check_mouse_cursor(void)
 {

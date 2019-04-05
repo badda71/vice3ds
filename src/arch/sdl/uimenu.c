@@ -52,6 +52,7 @@
 #include "vkbd.h"
 #include "vsidui_sdl.h"
 #include "vsync.h"
+#include "uibottom.h"
 
 #ifdef ANDROID_COMPILE
 #include "loader.h"
@@ -829,155 +830,28 @@ static int sdl_ui_readline_vkbd_press(SDLKey *key, SDLMod *mod, Uint16 *c_uni, i
     return 1;
 }
 
-static int sdl_ui_readline_vkbd_input(SDLKey *key, SDLMod *mod, Uint16 *c_uni)
-{
-    int done = 0;
-
-    do {
-        switch (sdl_ui_menu_poll_input()) {
-            case MENU_ACTION_UP:
-                sdl_ui_readline_vkbd_move(&pc_vkbd_y, -1, 0, PC_VKBD_H);
-                break;
-            case MENU_ACTION_DOWN:
-                sdl_ui_readline_vkbd_move(&pc_vkbd_y, 1, 0, PC_VKBD_H);
-                break;
-            case MENU_ACTION_LEFT:
-                sdl_ui_readline_vkbd_move(&pc_vkbd_x, -1, 0, PC_VKBD_W);
-                break;
-            case MENU_ACTION_RIGHT:
-                sdl_ui_readline_vkbd_move(&pc_vkbd_x, 1, 0, PC_VKBD_W);
-                break;
-            case MENU_ACTION_SELECT:
-                if (sdl_ui_readline_vkbd_press(key, mod, c_uni, 0)) {
-                    done = 1;
-                }
-                break;
-            case MENU_ACTION_CANCEL:
-                if (sdl_ui_readline_vkbd_press(key, mod, c_uni, 1)) {
-                    done = 1;
-                }
-                break;
-            case MENU_ACTION_MAP:
-            case MENU_ACTION_EXIT:
-                *key = SDL2x_to_SDL1x_Keys(PC_VKBD_ACTIVATE);
-                done = 1;
-                break;
-            default:
-                break;
-        }
-    } while (!done);
-
-    return 1;
-}
-
 static int sdl_ui_readline_input(SDLKey *key, SDLMod *mod, Uint16 *c_uni)
 {
     SDL_Event e;
     int got_key = 0;
     ui_menu_action_t action = MENU_ACTION_NONE;
-#ifdef USE_SDLUI2
-    int i;
-#endif
 
     *mod = KMOD_NONE;
     *c_uni = 0;
 
-#ifdef USE_SDLUI2
-    SDL_StartTextInput();
-#endif
 
     do {
-#ifdef ANDROID_COMPILE
-        struct locnet_al_event event1;
-        struct locnet_al_event *event = &event1;
-        ui_menu_action_t action2;
-#endif
         action = MENU_ACTION_NONE;
 
-#ifdef ANDROID_COMPILE
-        while (!Android_PollEvent(&event1)) {
-            SDL_Delay(20);
-        }
-        switch (event->eventType) {
-            case SDL_JOYAXISMOTION:
-                {
-                    action = sdljoy_axis_event(0, 0, event->x / 256.0f * 32767);
-                    action2 = sdljoy_axis_event(0, 1, event->y / 256.0f * 32767);
-                    if (action == MENU_ACTION_NONE) {
-                        action = action2;
-                    }
-                }
-                break;
-            case SDL_JOYBUTTONDOWN:
-                {
-                    action = sdljoy_button_event(0, event->keycode, 1);
-                }
-                break;
-            case SDL_JOYBUTTONUP:
-                {
-                    action = sdljoy_button_event(0, event->keycode, 0);
-                }
-                break;
-            case SDL_KEYDOWN:
-                {
-                    unsigned long modifier = event->modifier;
-                    int ctrl = ((modifier & KEYBOARD_CTRL_FLAG) != 0);
-                    int alt = ((modifier & KEYBOARD_ALT_FLAG) != 0);
-                    int shift = ((modifier & KEYBOARD_SHIFT_FLAG) != 0);
-                    unsigned long kcode = (unsigned long)event->keycode;
-
-                    int kmod = 0;
-
-                    if (ctrl) {
-                        kmod |= KMOD_LCTRL;
-                    }
-                    if (alt) {
-                        kmod |= KMOD_LALT;
-                    }
-                    if (shift) {
-                        kmod |= KMOD_LSHIFT;
-                    }
-
-                    *key = kcode;
-                    *mod = kmod;
-                    *c_uni = event->unicode;
-                    got_key = 1;
-                }
-                break;
-        }
-#else
         SDL_WaitEvent(&e);
 
         switch (e.type) {
             case SDL_KEYDOWN:
                 *key = SDL2x_to_SDL1x_Keys(e.key.keysym.sym);
                 *mod = e.key.keysym.mod;
-#ifdef USE_SDLUI2
-                /* For SDL2x only get 'special' keys from keydown event. */
-                for (i = 0; keytable_pc_special[i] != -1; ++i) {
-                    SDLKey special = SDL2x_to_SDL1x_Keys(e.key.keysym.sym);
-                    if (special == keytable_pc_special[i]) {
-                        *c_uni = special;
-                        got_key = 1;
-                    }
-                }
-#else
                 *c_uni = e.key.keysym.unicode;
                 got_key = 1;
-#endif
                 break;
-
-#ifdef USE_SDLUI2
-            case SDL_TEXTINPUT:
-                if (e.text.text[0] != 0) {
-                    *key = e.text.text[0];
-                    *c_uni = (Uint16)e.text.text[0];
-                    SDL_StopTextInput();
-                    SDL_StartTextInput();
-                    got_key = 1;
-                }
-                break;
-#endif
 
 #ifdef HAVE_SDL_NUMJOYSTICKS
             case SDL_JOYAXISMOTION:
@@ -990,11 +864,14 @@ static int sdl_ui_readline_input(SDLKey *key, SDLMod *mod, Uint16 *c_uni)
                 action = sdljoy_hat_event(e.jhat.which, e.jhat.hat, e.jhat.value);
                 break;
 #endif
-            default:
+			case SDL_MOUSEBUTTONDOWN:
+			case SDL_MOUSEBUTTONUP:
+				sdl_uibottom_mouseevent(&e);
+				break;
+			default:
                 ui_handle_misc_sdl_event(e);
                 break;
         }
-#endif
 
         switch (action) {
             case MENU_ACTION_LEFT:
@@ -1021,10 +898,6 @@ static int sdl_ui_readline_input(SDLKey *key, SDLMod *mod, Uint16 *c_uni)
         }
 
     } while (!got_key);
-
-#ifdef USE_SDLUI2
-    SDL_StopTextInput();
-#endif
 
     return got_key;
 }
@@ -1490,10 +1363,6 @@ char* sdl_ui_readline(const char* previous, int pos_x, int pos_y)
     /* draw previous string (if any), initialize size and cursor position */
     size = i = sdl_ui_print_wrap(new_string, pos_x, &pos_y);
 
-#ifndef USE_SDLUI2
-    SDL_EnableUNICODE(1);
-#endif
-
     do {
         if (i != prev) {
             if ((pos_y * menu_draw.max_text_x + pos_x + i) >= (menu_draw.max_text_y * menu_draw.max_text_x)) {
@@ -1520,19 +1389,12 @@ char* sdl_ui_readline(const char* previous, int pos_x, int pos_y)
         }
 
         if (screen_dirty) {
-            if (pc_vkbd_state) {
-                sdl_ui_readline_vkbd_draw();
-            }
             sdl_ui_refresh();
             screen_dirty = 0;
         }
 
         /* get input */
-        if (pc_vkbd_state) {
-            got_key = sdl_ui_readline_vkbd_input(&key, &mod, &c_uni);
-        } else {
-            got_key = sdl_ui_readline_input(&key, &mod, &c_uni);
-        }
+        got_key = sdl_ui_readline_input(&key, &mod, &c_uni);
 
         switch (key) {
             case VICE_SDLK_LEFT:
@@ -1550,19 +1412,6 @@ char* sdl_ui_readline(const char* previous, int pos_x, int pos_y)
                 break;
             case VICE_SDLK_END:
                 i = size;
-                break;
-            case PC_VKBD_ACTIVATE:
-                pc_vkbd_state ^= 1;
-                screen_dirty = 1;
-                if (!pc_vkbd_state) {
-                    sdl_ui_readline_vkbd_erase();
-                    screen_redraw = 1;
-                    if (archdep_require_vkbd()) {
-                        string_changed = 0;
-                        escaped = 1;
-                        done = 1;
-                    }
-                }
                 break;
             case VICE_SDLK_BACKSPACE:
                 if (i > 0) {
@@ -1590,12 +1439,12 @@ char* sdl_ui_readline(const char* previous, int pos_x, int pos_y)
                 done = 1;
                 break;
             default:
-                got_key = 0; /* got unicode value */
+                if (key>0 && key<128) got_key = 0; /* got unicode value */
                 break;
         }
 
-        if (!got_key && (size < max) && ((c_uni & 0xff80) == 0) && ((c_uni & 0x7f) != 0)) {
-            c = c_uni & 0x7f;
+        if (!got_key && (size < max) && ((c_uni & 0xff80) == 0) && ((c_uni & 0x7f) != 0)) { 
+			c = c_uni & 0x7f;
             memmove(new_string + i + 1, new_string + i, size - i);
             new_string[i] = c;
             ++size;
@@ -1607,11 +1456,10 @@ char* sdl_ui_readline(const char* previous, int pos_x, int pos_y)
         }
     } while (!done);
 
-#ifndef USE_SDLUI2
-    SDL_EnableUNICODE(0);
-#endif
+    // flush event queue
+	// SDL_Event e; while (SDL_PollEvent(&e)) {}
 
-    if ((!string_changed && previous) || escaped) {
+	if ((!string_changed && previous) || escaped) {
         lib_free(new_string);
         new_string = NULL;
     }

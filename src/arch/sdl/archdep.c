@@ -80,12 +80,30 @@ int archdep_init(int *argc, char **argv)
         return 1;
     }
 
-	SDL_N3DSKeyBind(KEY_CSTICK_UP, 100);
-	SDL_N3DSKeyBind(KEY_CSTICK_DOWN, 101);
-	SDL_N3DSKeyBind(KEY_CSTICK_RIGHT, 102);
-	SDL_N3DSKeyBind(KEY_CSTICK_LEFT, 103);
-	SDL_N3DSKeyBind(KEY_ZL, 104);
-	SDL_N3DSKeyBind(KEY_ZR, 105);
+	// 3ds buttons must be remapped - the standard conflicts with the keyboard
+	// key codes over 200 are unused
+	SDL_N3DSKeyBind(KEY_A, 200);
+	SDL_N3DSKeyBind(KEY_B, 201);
+	SDL_N3DSKeyBind(KEY_X, 202);
+	SDL_N3DSKeyBind(KEY_Y, 203);
+	SDL_N3DSKeyBind(KEY_L, 204);
+	SDL_N3DSKeyBind(KEY_R, 205);
+	SDL_N3DSKeyBind(KEY_ZL, 206);
+	SDL_N3DSKeyBind(KEY_ZR, 207);
+	SDL_N3DSKeyBind(KEY_START, 208);
+	SDL_N3DSKeyBind(KEY_SELECT, 209);
+	SDL_N3DSKeyBind(KEY_UP, 210);
+	SDL_N3DSKeyBind(KEY_DOWN, 211);
+	SDL_N3DSKeyBind(KEY_LEFT, 212);
+	SDL_N3DSKeyBind(KEY_RIGHT, 213);
+	SDL_N3DSKeyBind(KEY_CSTICK_UP, 214);
+	SDL_N3DSKeyBind(KEY_CSTICK_DOWN, 215);
+	SDL_N3DSKeyBind(KEY_CSTICK_LEFT, 216);
+	SDL_N3DSKeyBind(KEY_CSTICK_RIGHT, 217);
+	SDL_N3DSKeyBind(KEY_CPAD_UP, 218);
+	SDL_N3DSKeyBind(KEY_CPAD_DOWN, 219);
+	SDL_N3DSKeyBind(KEY_CPAD_LEFT, 220);
+	SDL_N3DSKeyBind(KEY_CPAD_RIGHT, 221);
 
     /*
      * Call SDL_Quit() via atexit() to avoid segfaults on exit.

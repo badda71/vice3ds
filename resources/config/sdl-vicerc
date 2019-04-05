@@ -1,29 +1,28 @@
 [C64]
+# KEY_A, 200
+# KEY_B, 201
+# KEY_X, 202
+# KEY_Y, 203
+# KEY_L, 204
+# KEY_R, 205
+# KEY_ZL, 206
+# KEY_ZR, 207
+# KEY_START, 208
+# KEY_SELECT, 209
+# KEY_UP, 210
+# KEY_DOWN, 211
+# KEY_LEFT, 212
+# KEY_RIGHT, 213
+# KEY_CSTICK_UP, 214
+# KEY_CSTICK_DOWN, 215
+# KEY_CSTICK_LEFT, 216
+# KEY_CSTICK_RIGHT, 217
+# KEY_CPAD_UP, 218
+# KEY_CPAD_DOWN, 219
+# KEY_CPAD_LEFT, 220
+# KEY_CPAD_RIGHT, 221
 
-#97, a
-#98, b
-#120, x
-#121, y
-
-#104, zl
-#105, zr
-#108, l
-#114, r
-
-#100, c-pad up
-#101, c-pad down
-#102, c-pad right
-#103, c-pad left
-
-#65, c-stick up
-#66, c-stick down
-#67, c-stick right
-#68, c-stick left
-
-#13, return (start)
-#27, escape (select)
-
-MenuKeyCancel=98
+MenuKeyCancel=201
 ConfirmOnExit=1
 SoundDeviceName="ndsp"
 SoundBufferSize=100
@@ -42,16 +41,16 @@ VICIISDLFullscreenMode=1
 VICIIFilter=0
 SidEngine=0
 SidModel=0
-KeySet1North=273
-KeySet1South=274
-KeySet1East=275
-KeySet1West=276
-KeySet1Fire=120
-KeySet2North=100
-KeySet2South=101
-KeySet2East=102
-KeySet2West=103
-KeySet2Fire=121
+KeySet1North=210
+KeySet1South=211
+KeySet1West=212
+KeySet1East=213
+KeySet1Fire=202
+KeySet2North=214
+KeySet2South=215
+KeySet2West=216
+KeySet2East=217
+KeySet2Fire=203
 JoyDevice1=4
 JoyDevice2=2
 Mouse=1
