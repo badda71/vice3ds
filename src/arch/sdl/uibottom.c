@@ -217,10 +217,10 @@ void sdl_uibottom_draw(void)
 		kb_x_pos = (s->w - uikbd_pos[0][2]) / 2;
 		kb_y_pos = s->h - uikbd_pos[0][3];
 		updateKeyboard(0);
-		SDL_UpdateRect(sdl_active_canvas->screen, bottom_r.x, bottom_r.y, bottom_r.w, bottom_r.h);
+		SDL_UpdateRect(s, bottom_r.x, bottom_r.y, bottom_r.w, bottom_r.h);
 	}
-//	uistatusbar_draw();
-
+	//uistatusbar_draw();
+	//SDL_Flip(s);
 }
 
 static SDL_Event sdl_e;
@@ -249,7 +249,6 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 					sticky = sticky ^ uikbd_keypos[i].flg;
 					sdl_e.type = sticky & uikbd_keypos[i].flg ? SDL_KEYDOWN : SDL_KEYUP,
 					sdl_e.key.keysym.unicode = sdl_e.key.keysym.sym = uikbd_keypos[i].key;
-
 					SDL_PushEvent(&sdl_e);
 					updateKeyboard(1);
 				}

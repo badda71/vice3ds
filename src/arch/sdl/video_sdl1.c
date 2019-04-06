@@ -55,7 +55,6 @@
 #include "resources.h"
 #include "ui.h"
 #include "uimenu.h"
-#include "uistatusbar.h"
 #include "util.h"
 #include "videoarch.h"
 #include "vkbd.h"

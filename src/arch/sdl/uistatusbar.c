@@ -394,8 +394,7 @@ static inline void uistatusbar_putchar(uint8_t c, int pos_x, int pos_y, int colo
 	}
 }
 
-static int kbdstatusbar_enabled=0;
-
+int kbdstatusbar_enabled=0;
 void uistatusbar_draw(void)
 {
     int i, color_f, color_b;
@@ -405,7 +404,20 @@ void uistatusbar_draw(void)
     color_f = 0xffffff;
     color_b = 0x000000;
 
-	int pos=0;
+    for (i = 0; i < MAX_STATUSBAR_LEN; ++i) {
+        c = statusbar_text[i];
+
+        if (c == 0) {
+            break;
+        }
+
+        if (c & 0x80) {
+            uistatusbar_putchar((uint8_t)(c & 0x7f), i, 0, color_b, color_f);
+        } else {
+            uistatusbar_putchar(c, i, 0, color_f, color_b);
+        }
+    }
+
 	if (kbdstatusbar_enabled) {
 		for (i = 0; i < MAX_STATUSBAR_LEN; ++i) {
             c = kbdstatusbar_text[i];
@@ -415,25 +427,10 @@ void uistatusbar_draw(void)
             }
 
             if (((i / KBDSTATUSENTRYLEN) & 1) == 1) {
-                uistatusbar_putchar(c, i, pos, color_b, color_f);
+                uistatusbar_putchar(c, i, 1, color_b, color_f);
             } else {
-                uistatusbar_putchar(c, i, pos, color_f, color_b);
+                uistatusbar_putchar(c, i, 1, color_f, color_b);
             }
-        }
-		++pos;
-    }
-
-    for (i = 0; i < MAX_STATUSBAR_LEN; ++i) {
-        c = statusbar_text[i];
-
-        if (c == 0) {
-            break;
-        }
-
-        if (c & 0x80) {
-            uistatusbar_putchar((uint8_t)(c & 0x7f), i, pos, color_b, color_f);
-        } else {
-            uistatusbar_putchar(c, i, pos, color_f, color_b);
         }
     }
 }
@@ -453,10 +450,3 @@ void ui_display_kbd_status(SDL_Event *e)
     }
 }
 
-
-#ifdef ANDROID_COMPILE
-void loader_set_statusbar(int val)
-{
-    set_statusbar(val, 0);
-}
-#endif
