@@ -58,10 +58,8 @@ int archdep_stat(const char *path, unsigned int *len, unsigned int *isdir)
     if (stat(path, &statbuf) < 0) {
         *len = -1;
         *isdir = 0;
-log_debug("Stat failed for %s, %s",path, strerror(errno));
         return -1;
     }
-log_debug("Stat ok for %s",path);
     *len = statbuf.st_size;
     *isdir = S_ISDIR(statbuf.st_mode);
     return 0;

@@ -33,7 +33,6 @@
 #include "log.h"
 #include "videoarch.h"
 #include "uistatusbar.h"
-#include "sysfile.h"
 #include "SDL/SDL_image.h"
 
 int uikbd_pos[4][4] = {
@@ -189,7 +188,18 @@ void sdl_uibottom_draw(void)
 {	
 	static void *olds = NULL;
 	char *fn;
-	
+	SDL_RWops *rwop;
+
+
+	extern void *_binary_data_vice_png_start;
+	extern void *_binary_data_vice_png_end;
+	extern void *_binary_data_keyboard_png_start;
+	extern void *_binary_data_keyboard_png_end;
+	void *img1s = &_binary_data_vice_png_start;
+	void *img1e = &_binary_data_vice_png_end;
+	void *img2s = &_binary_data_keyboard_png_start;
+	void *img2e = &_binary_data_keyboard_png_end;
+
 	// init the 3DS bottom screen
 	// keyboard image
 	SDL_Surface *s=sdl_active_canvas->screen;
@@ -200,8 +210,7 @@ void sdl_uibottom_draw(void)
 
 		// display vice icon
 		if (vice_img == NULL) {
-			sysfile_locate("vice.png", &fn);
-			SDL_RWops *rwop = SDL_RWFromFile(fn, "rb");
+			rwop = SDL_RWFromMem(img1s, img1e - img1s);
 			vice_img = IMG_LoadPNG_RW(rwop);
 			lib_free(fn);
 		}
@@ -209,8 +218,7 @@ void sdl_uibottom_draw(void)
 			&(SDL_Rect){.x = (s->w-vice_img->w)/2, .y = 248});
 
 		if (kbd_img == NULL) {
-			sysfile_locate("keyboard.png", &fn);
-			SDL_RWops *rwop = SDL_RWFromFile(fn, "rb");
+			rwop = SDL_RWFromMem(img2s, img2e - img2s);
 			kbd_img = IMG_LoadPNG_RW(rwop);
 			lib_free(fn);
 		}
