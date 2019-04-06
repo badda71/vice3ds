@@ -88,10 +88,8 @@
 
 !CLEAR
 
-!LSHIFT 1 7
 !RSHIFT 6 4
 !VSHIFT RSHIFT
-!SHIFTL LSHIFT
 
 133 0 4 0		/* F1 / F2 */
 134 0 5 0		/* F3 / F4 */
@@ -113,7 +111,7 @@
 92 6 0 0		/* Pound / .. */
 19 6 3 0		/* CLR/HOME */
 20 0 0 0		/* INST/DEL */
-23 7 2 0		/* CTRL - sticky ctrl */
+24 7 2 0		/* CTRL - sticky ctrl */
 113 7 6 0		/* Q */
 119 1 1 0		/* W */
 101 1 6 0		/* E */
@@ -127,9 +125,9 @@
 64 5 6 0		/* @ */
 42 6 1 0		/* * */
 94 6 6 0		/* ^| / π */
-24 -3 0 0		/* RESTORE */
+25 -3 0 0		/* RESTORE */
 3 7 7 0			/* RUN/STOP */
-21 0 1 7 0		/* SHIFT LOCK - sticky shift */
+21 1 7 0		/* SHIFT LOCK - sticky shift */
 97 1 2 0		/* A */
 115 1 5 0		/* S */
 100 2 2 0		/* D */
@@ -143,8 +141,8 @@
 59 6 2 0		/* ; / ] */
 61 6 5 0		/* = */
 13 0 1 0		/* RETURN */
-22 7 5 0		/* cbm - sticky cbm */
-21 1 7 0		/* SHIFT - sticky shift */
+23 7 5 0		/* cbm - sticky cbm */
+#21 1 7 0		/* LSHIFT - sticky shift - same as SHIFT LOCK */
 122 1 4 0		/* Z */
 120 2 7 0		/* X */
 99 2 4 0		/* C */
@@ -152,19 +150,19 @@
 98 3 4 0		/* B */
 110 4 7 0		/* N */
 109 4 4 0		/* M */
-44 5 7 0		/* */
+44 5 7 0		/* , */
 46 5 4 0		/* . */
 47 6 7 0		/* / */
-21 6 4 0		/* SHIFT - sticky shift */
+22 6 4 0		/* RSHIFT - sticky shift - same as SHIFT LOCK */
 17 0 7 0		/* UP / DOWN */
 29 0 2 0		/* LEFT / RIGHT */
 32 7 4 0		/* SPACE */
 
 # map 3ds c-stick to cursor keys
 214 0 7 1		/* UP */
-215 0 7 8		/* DOWN */
+215 0 7 0		/* DOWN */
 216 0 2 1		/* LEFT */
-217 0 2 8		/* RIGHT */
+217 0 2 0		/* RIGHT */
 
 #27 7 7 8               /*          ESC -> Run/Stop     */
 #49 7 0 8               /*            1 -> 1            */

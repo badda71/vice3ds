@@ -75,7 +75,7 @@ uikbd_key uikbd_keypos[KBD_NUMKEYS] = {
  { 240, 32,  16,  16,  19,   6,   3,   0}, // CLR/HOME
  { 256, 32,  17,  16,  20,   0,   0,   0}, // INST/DEL
  // 2nd row	
- {  16, 48,  24,  16,  23,   7,   2,   4}, // CTRL - sticky ctrl
+ {  16, 48,  24,  16,  24,   7,   2,   4}, // CTRL - sticky ctrl
  {  40, 48,  16,  16, 113,   7,   6,   0}, // Q
  {  56, 48,  16,  16, 119,   1,   1,   0}, // W
  {  72, 48,  16,  16, 101,   1,   6,   0}, // E
@@ -89,7 +89,7 @@ uikbd_key uikbd_keypos[KBD_NUMKEYS] = {
  { 200, 48,  16,  16,  64,   5,   6,   0}, // @
  { 216, 48,  16,  16,  42,   6,   1,   0}, // *
  { 232, 48,  16,  16,  94,   6,   6,   0}, // ^| / π
- { 248, 48,  25,  16,  24,  -3,   0,   0}, // RESTORE
+ { 248, 48,  25,  16,  25,  -3,   0,   0}, // RESTORE
  // 3rd row	
  {  16, 64,  16,  16,   3,   7,   7,   0}, // RUN/STOP
  {  32, 64,  16,  16,  21,   1,   7,   1}, // SHIFT LOCK - sticky shift
@@ -107,8 +107,8 @@ uikbd_key uikbd_keypos[KBD_NUMKEYS] = {
  { 224, 64,  16,  16,  61,   6,   5,   0}, // =
  { 240, 64,  33,  16,  13,   0,   1,   0}, // RETURN
  // 4th row	
- {  16, 80,  16,  17,  22,   7,   5,   2}, // cbm - sticky cbm
- {  32, 80,  24,  17,  21,   1,   7,   1}, // SHIFT - sticky shift
+ {  16, 80,  16,  17,  23,   7,   5,   2}, // cbm - sticky cbm
+ {  32, 80,  24,  17,  21,   1,   7,   1}, // LSHIFT - sticky shift
  {  56, 80,  16,  17, 122,   1,   4,   0}, // Z
  {  72, 80,  16,  17, 120,   2,   7,   0}, // X
  {  88, 80,  16,  17,  99,   2,   4,   0}, // C
@@ -119,7 +119,7 @@ uikbd_key uikbd_keypos[KBD_NUMKEYS] = {
  { 168, 80,  16,  17,  44,   5,   7,   0}, // ,
  { 184, 80,  16,  17,  46,   5,   4,   0}, // .
  { 200, 80,  16,  17,  47,   6,   7,   0}, // /
- { 216, 80,  24,  17,  21,   6,   4,   1}, // SHIFT - sticky shift
+ { 216, 80,  24,  17,  21,   6,   4,   1}, // RSHIFT - sticky shift
  { 240, 80,  16,  17,  17,   0,   7,   0}, // UP / DOWN
  { 256, 80,  17,  17,  29,   0,   2,   0}, // LEFT / RIGHT
  // SPACE	
@@ -127,6 +127,7 @@ uikbd_key uikbd_keypos[KBD_NUMKEYS] = {
 };
 
 int uibottom_kbdactive = 1;
+int uibottom_must_redraw = 0;
 
 static SDL_Surface *vice_img=NULL;
 static SDL_Surface *kbd_img=NULL;
@@ -203,12 +204,13 @@ void sdl_uibottom_draw(void)
 	// init the 3DS bottom screen
 	// keyboard image
 	SDL_Surface *s=sdl_active_canvas->screen;
-	if (olds != s) {
+	if (olds != s || uibottom_must_redraw) {
 		olds=s;
+		uibottom_must_redraw=0;
 		bottom_r = (SDL_Rect){ .x = 0, .y = s->h/2, .w = s->w, .h=s->h/2};
 		SDL_FillRect(s, &bottom_r, SDL_MapRGB(s->format, 0x60, 0x60, 0x60));
 
-		// display vice icon
+		// display background
 		if (vice_img == NULL) {
 			rwop = SDL_RWFromMem(img1s, img1e - img1s);
 			vice_img = IMG_LoadPNG_RW(rwop);
@@ -217,6 +219,7 @@ void sdl_uibottom_draw(void)
 		SDL_BlitSurface(vice_img, NULL, s,
 			&(SDL_Rect){.x = (s->w-vice_img->w)/2, .y = 248});
 
+		// display keyboard
 		if (kbd_img == NULL) {
 			rwop = SDL_RWFromMem(img2s, img2e - img2s);
 			kbd_img = IMG_LoadPNG_RW(rwop);
