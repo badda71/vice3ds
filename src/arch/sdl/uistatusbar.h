@@ -32,7 +32,7 @@
 #define UISTATUSBAR_ACTIVE  (1 << 0)
 #define UISTATUSBAR_REPAINT (1 << 1)
 
-extern int uistatusbar_state;
+extern int uistatusbar_must_redraw;
 
 extern void uistatusbar_open(void);
 extern void uistatusbar_close(void);

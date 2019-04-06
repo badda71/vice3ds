@@ -93,6 +93,7 @@ extern void ui_sdl_quit(void);
 
 extern int native_monitor;
 extern int sdl_kbd_statusbar;
+extern int sdl_statusbar;
 
 #ifdef BEOS_COMPILE
 extern int CheckForHaiku(void);

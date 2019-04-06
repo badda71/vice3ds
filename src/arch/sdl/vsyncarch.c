@@ -95,12 +95,12 @@ void vsyncarch_presync(void)
         ui_dispatch_events();
     }
 
-    if ((sdl_vkbd_state & SDL_VKBD_REPAINT) || (uistatusbar_state & UISTATUSBAR_REPAINT) || (sdl_vsid_state & SDL_VSID_REPAINT)) {
+    if ((sdl_vkbd_state & SDL_VKBD_REPAINT) || (uistatusbar_must_redraw) || (sdl_vsid_state & SDL_VSID_REPAINT)) {
         if (!console_mode) {
             raster_force_repaint(sdl_active_canvas->parent_raster);
         }
         sdl_vkbd_state &= ~SDL_VKBD_REPAINT;
-        uistatusbar_state &= ~UISTATUSBAR_REPAINT;
+        uistatusbar_must_redraw = 0;
     }
 
     sdl_lightpen_update();

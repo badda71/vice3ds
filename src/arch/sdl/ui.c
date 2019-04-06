@@ -254,6 +254,7 @@ void ui_message(const char* format, ...)
 static int save_resources_on_exit;
 static int confirm_on_exit;
 int sdl_kbd_statusbar;
+int sdl_statusbar;
 
 static int set_ui_menukey(int val, void *param)
 {
@@ -278,9 +279,19 @@ static int set_confirm_on_exit(int val, void *param)
 static int set_sdl_kbd_statusbar(int val, void *param)
 {
     sdl_kbd_statusbar = val ? 1 : 0;
-
+	uistatusbar_must_redraw=1;
+	uibottom_must_redraw = 1;
     return 0;
 }
+
+static int set_sdl_statusbar(int val, void *param)
+{
+    sdl_statusbar = val ? 1 : 0;
+	uistatusbar_must_redraw=1;
+	uibottom_must_redraw = 1;
+    return 0;
+}
+
 
 #ifdef ALLOW_NATIVE_MONITOR
 int native_monitor;
@@ -337,6 +348,8 @@ static const resource_int_t resources_int[] = {
       &confirm_on_exit, set_confirm_on_exit, NULL },
     { "SDLKbdStatusbar", 0, RES_EVENT_NO, NULL,
       &sdl_kbd_statusbar, set_sdl_kbd_statusbar, NULL },
+    { "SDLStatusbar", 0, RES_EVENT_NO, NULL,
+      &sdl_statusbar, set_sdl_statusbar, NULL },
 #ifdef ALLOW_NATIVE_MONITOR
     { "NativeMonitor", 0, RES_EVENT_NO, NULL,
       &native_monitor, set_native_monitor, NULL },

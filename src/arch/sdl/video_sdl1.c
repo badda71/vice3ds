@@ -669,14 +669,6 @@ void video_canvas_refresh(struct video_canvas_s *canvas, unsigned int xs, unsign
     if (sdl_vsid_state & SDL_VSID_ACTIVE) {
         sdl_vsid_draw();
     }
-		
-//	if (sdl_vkbd_state & SDL_VKBD_ACTIVE) {
-//        sdl_vkbd_draw();
-//    }
-
-//    if (uistatusbar_state & UISTATUSBAR_ACTIVE) {
-//        uistatusbar_draw();
-//    }
 
 //sdljoy_button_event: joynum 0, button
 //NTSC:
