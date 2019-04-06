@@ -195,6 +195,7 @@ void sdl_uibottom_draw(void)
 	// keyboard image
 	SDL_Surface *s=sdl_active_canvas->screen;
 	if (olds != s || uibottom_must_redraw) {
+		uistatusbar_must_redraw=1;
 		olds=s;
 		extern void *_binary_data_vice_png_start;
 		extern void *_binary_data_vice_png_end;

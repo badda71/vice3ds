@@ -279,7 +279,6 @@ static int set_confirm_on_exit(int val, void *param)
 static int set_sdl_kbd_statusbar(int val, void *param)
 {
     sdl_kbd_statusbar = val ? 1 : 0;
-	uistatusbar_must_redraw=1;
 	uibottom_must_redraw = 1;
     return 0;
 }
@@ -287,7 +286,6 @@ static int set_sdl_kbd_statusbar(int val, void *param)
 static int set_sdl_statusbar(int val, void *param)
 {
     sdl_statusbar = val ? 1 : 0;
-	uistatusbar_must_redraw=1;
 	uibottom_must_redraw = 1;
     return 0;
 }

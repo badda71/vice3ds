@@ -39,6 +39,7 @@
 #include "resources.h"
 #include "uimenu.h"
 #include "vicii.h"
+#include "uibottom.h"
 
 /* ------------------------------------------------------------------------- */
 /* common */
@@ -48,6 +49,7 @@ static UI_MENU_CALLBACK(custom_C64Model_callback)
     int model, selected;
 
     selected = vice_ptr_to_int(param);
+	uibottom_must_redraw = 1;
 
     if (activated) {
         c64model_set(selected);
