@@ -47,7 +47,7 @@ $(BDIR)/%.7z: $(BDIR)/$(NAME).3dsx
 
 $(BDIR)/$(NAME).3dsx: $(ODIR)/$(NAME).elf $(RDIR)/icon.png romfs/*
 	smdhtool --create "Vice3DS" "Vice C64 emulator for Nintendo 3DS" "badda71" $(RDIR)/icon.png $(ODIR)/$(NAME).smdh
-	3dsxtool $(ODIR)/$(NAME).elf $(BDIR)/$(NAME).3dsx --romfs=romfs --smdh=$(ODIR)/$(NAME).smdh
+	3dsxtool $(ODIR)/$(NAME).elf $(BDIR)/$(NAME).3dsx --smdh=$(ODIR)/$(NAME).smdh
 
 $(ODIR)/$(NAME).elf: $(OBJ)
 	$(CC) $(CFLAGS) -o $@ -Wl,--start-group $(ODIR)/*.o $(LDFLAGS) -Wl,--end-group
