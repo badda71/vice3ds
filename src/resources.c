@@ -57,6 +57,7 @@
 #include "vice-event.h"
 #include "sysfile.h"
 #include "archdep_defs.h"
+#include "archdep_user_config_path.h"
 
 #ifdef VICE_DEBUG_RESOURCES
 #define DBG(x)  printf x
