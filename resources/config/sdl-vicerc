@@ -23,6 +23,10 @@
 # KEY_CPAD_RIGHT, 221
 
 MenuKeyCancel=201
+MenuKeyUp=210
+MenuKeyDown=211
+MenuKeyLeft=212
+MenuKeyRight=213
 ConfirmOnExit=1
 SoundDeviceName="ndsp"
 SoundBufferSize=100

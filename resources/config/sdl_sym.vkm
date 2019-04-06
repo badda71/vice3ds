@@ -88,6 +88,11 @@
 
 !CLEAR
 
+!LSHIFT 1 7
+!RSHIFT 6 4
+!VSHIFT RSHIFT
+!SHIFTL LSHIFT
+
 133 0 4 0		/* F1 / F2 */
 134 0 5 0		/* F3 / F4 */
 135 0 6 0		/* F5 / F6 */
@@ -155,11 +160,12 @@
 29 0 2 0		/* LEFT / RIGHT */
 32 7 4 0		/* SPACE */
 
-#!LSHIFT 1 7
-#!RSHIFT 6 4
-#!VSHIFT RSHIFT
-#!SHIFTL LSHIFT
-#
+# map 3ds c-stick to cursor keys
+214 0 7 1		/* UP */
+215 0 7 8		/* DOWN */
+216 0 2 1		/* LEFT */
+217 0 2 8		/* RIGHT */
+
 #27 7 7 8               /*          ESC -> Run/Stop     */
 #49 7 0 8               /*            1 -> 1            */
 #50 7 3 32              /*            2 -> 2            */
