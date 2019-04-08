@@ -24,8 +24,6 @@ LDFLAGS :=\
 	-L/opt/devkitpro/portlibs/3ds/lib\
 	-L/opt/devkitpro/portlibs/3ds\
 	-L/opt/devkitpro/libctru/lib\
-	-lctru\
-	-lSDL\
 	-lcitro3d\
 	-lctru\
 	-lm\

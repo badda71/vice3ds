@@ -158,6 +158,7 @@ static char *get_drive_type_string(int drive)
 }
 
 UI_MENU_DEFINE_TOGGLE(DriveTrueEmulation)
+UI_MENU_DEFINE_TOGGLE(DriveLED)
 UI_MENU_DEFINE_TOGGLE(DriveSoundEmulation)
 UI_MENU_DEFINE_TOGGLE(VirtualDevices)
 
@@ -1179,6 +1180,26 @@ static UI_MENU_CALLBACK(custom_drive_volume_callback)
     return NULL;
 }
 
+static UI_MENU_CALLBACK(custom_led_brightness_callback)
+{
+    static char buf[20];
+    int previous, new_value;
+
+    resources_get_int("DriveLEDBrightness", &previous);
+
+    if (activated) {
+        new_value = sdl_ui_slider_input_dialog("Select brightness", previous, 0, 255);
+        if (new_value != previous) {
+            resources_set_int("DriveLEDBrightness", new_value);
+        }
+    } else {
+        sprintf(buf, "%3i%%", (previous * 100) / 255);
+        return buf;
+    }
+    return NULL;
+}
+
+
 const ui_menu_entry_t drive_menu[] = {
     { "Attach disk image to drive 8",
       MENU_ENTRY_DIALOG,
@@ -1238,6 +1259,14 @@ const ui_menu_entry_t drive_menu[] = {
       submenu_callback,
       (ui_callback_data_t)drive_11_menu },
     SDL_MENU_ITEM_SEPARATOR,
+    { "Drive status in notification LED",
+      MENU_ENTRY_RESOURCE_TOGGLE,
+      toggle_DriveLED_callback,
+      NULL },
+    { "Notification LED brightness",
+      MENU_ENTRY_DIALOG,
+      custom_led_brightness_callback,
+      NULL },
     { "True drive emulation",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_DriveTrueEmulation_callback,

@@ -255,6 +255,8 @@ static int save_resources_on_exit;
 static int confirm_on_exit;
 int sdl_kbd_statusbar;
 int sdl_statusbar;
+int drive_led;
+int drive_led_brightness;
 
 static int set_ui_menukey(int val, void *param)
 {
@@ -290,6 +292,22 @@ static int set_sdl_statusbar(int val, void *param)
     return 0;
 }
 
+static int set_drive_led(int val, void *param)
+{
+    drive_led = val ? 1 : 0;
+	ui_update_drive_led();
+	return 0;
+}
+
+static int set_drive_led_brightness(int val, void *param)
+{
+    if ((val < 0) || (val > 255)) {
+        return -1;
+    }
+	drive_led_brightness = val;
+	ui_update_drive_led();
+	return 0;
+}
 
 #ifdef ALLOW_NATIVE_MONITOR
 int native_monitor;
@@ -348,6 +366,10 @@ static const resource_int_t resources_int[] = {
       &sdl_kbd_statusbar, set_sdl_kbd_statusbar, NULL },
     { "SDLStatusbar", 0, RES_EVENT_NO, NULL,
       &sdl_statusbar, set_sdl_statusbar, NULL },
+    { "DriveLED", 0, RES_EVENT_NO, NULL,
+      &drive_led, set_drive_led, NULL },
+    { "DriveLEDBrightness", 40, RES_EVENT_NO, (resource_value_t)40,
+      &drive_led_brightness, set_drive_led_brightness, NULL },
 #ifdef ALLOW_NATIVE_MONITOR
     { "NativeMonitor", 0, RES_EVENT_NO, NULL,
       &native_monitor, set_native_monitor, NULL },

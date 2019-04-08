@@ -40,6 +40,7 @@
 #include "uistatusbar.h"
 #include "videoarch.h"
 #include "log.h"
+#include "3ds_led.h"
 
 /* ----------------------------------------------------------------- */
 /* static functions/variables */
@@ -218,6 +219,13 @@ void ui_display_drive_track(unsigned int drive_number, unsigned int drive_base, 
     }
 }
 
+static int drive_led_status=0;
+
+void ui_update_drive_led(void) {
+	if (drive_led_status && drive_led) LED3DS_On(drive_led_brightness,0,0);
+	else LED3DS_Off();
+}
+
 /* The pwm value will vary between 0 and 1000.  */
 void ui_display_drive_led(int drive_number, unsigned int pwm1, unsigned int led_pwm2)
 {
@@ -228,6 +236,11 @@ void ui_display_drive_led(int drive_number, unsigned int pwm1, unsigned int led_
 #ifdef SDL_DEBUG
     fprintf(stderr, "%s: drive %i, pwm1 = %i, led_pwm2 = %u\n", __func__, drive_number, pwm1, led_pwm2);
 #endif
+
+	if ((pwm1 > 500) != drive_led_status) {
+		drive_led_status=(pwm1 > 500);
+		ui_update_drive_led();
+	}
 
     low = "8901"[drive_number] | ((pwm1 > 500) ? 0x80 : 0);
     high = '1' | ((pwm1 > 500) ? 0x80: 0);
@@ -252,6 +265,7 @@ void ui_display_drive_led(int drive_number, unsigned int pwm1, unsigned int led_
         statusbar_text[offset] = low;
         statusbar_text[offset + 1] = 'T';
     } else {
+
         statusbar_text[offset] = high;
         statusbar_text[offset + 1] = low;
         statusbar_text[offset + 2] = 'T';

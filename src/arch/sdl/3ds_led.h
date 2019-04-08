@@ -1,8 +1,8 @@
 /*
- * uistatusbar.h - SDL statusbar.
+ * 3ds_led.h - Notification LED control functions for Nintendo 3DS
  *
  * Written by
- *  Hannu Nuotio <hannu.nuotio@tut.fi>
+ *  Sebastian Weber <me@badda.de>
  *
  * This file is part of VICE, the Versatile Commodore Emulator.
  * See README for copyright notice.
@@ -24,23 +24,5 @@
  *
  */
 
-#ifndef VICE_UISTATUSBAR_H
-#define VICE_UISTATUSBAR_H
-
-#include "vice.h"
-
-#define UISTATUSBAR_ACTIVE  (1 << 0)
-#define UISTATUSBAR_REPAINT (1 << 1)
-
-extern int uistatusbar_must_redraw;
-
-extern void uistatusbar_open(void);
-extern void uistatusbar_close(void);
-extern void uistatusbar_draw(void);
-
-extern int uistatusbar_init_resources(void);
-
-extern void ui_display_kbd_status(SDL_Event *event);
-extern void ui_update_drive_led(void);
-
-#endif
+extern int LED3DS_On(unsigned char r, unsigned char g, unsigned char b);
+extern int LED3DS_Off(void);
