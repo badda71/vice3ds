@@ -79,6 +79,7 @@ extern void keyboard_key_pressed(signed long key);
 
 
 static int sdl_ui_ready = 0;
+static int save_resources_on_exit;
 
 
 static void (*psid_init_func)(void) = NULL;
@@ -94,7 +95,8 @@ void ui_handle_misc_sdl_event(SDL_Event e)
     switch (e.type) {
         case SDL_QUIT:
             DBG(("ui_handle_misc_sdl_event: SDL_QUIT"));
-            ui_sdl_quit();
+			if (save_resources_on_exit) resources_save(NULL);
+			archdep_vice_exit(0);
             break;
         case SDL_VIDEORESIZE:
             DBG(("ui_handle_misc_sdl_event: SDL_VIDEORESIZE (%d,%d)", (unsigned int)e.resize.w, (unsigned int)e.resize.h));
@@ -251,7 +253,6 @@ void ui_message(const char* format, ...)
 /* ----------------------------------------------------------------- */
 /* uiapi.h */
 
-static int save_resources_on_exit;
 static int confirm_on_exit;
 int sdl_kbd_statusbar;
 int sdl_statusbar;
