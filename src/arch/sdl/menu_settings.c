@@ -422,7 +422,7 @@ static UI_MENU_CALLBACK(custom_ui_keyset_callback)
             resources_set_int((const char *)param, (int)SDL2x_to_SDL1x_Keys(e.key.keysym.sym));
         }
     } else {
-        return SDL_GetKeyName(SDL1x_to_SDL2x_Keys(previous));
+        return get_3ds_keyname(previous);
     }
     return NULL;
 }
@@ -582,11 +582,11 @@ ui_menu_entry_t settings_manager_menu[] = {
       load_joymap_callback,
       NULL },
 #endif
-/*    SDL_MENU_ITEM_SEPARATOR,
+    SDL_MENU_ITEM_SEPARATOR,
     { "Define UI keys",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
-      (ui_callback_data_t)define_ui_keyset_menu },*/
+      (ui_callback_data_t)define_ui_keyset_menu },
     SDL_MENU_LIST_END
 };
 

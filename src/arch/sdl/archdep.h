@@ -107,3 +107,10 @@ extern int archdep_require_vkbd(void);
 #endif
 
 #endif
+
+typedef struct {
+	int sdlkey, key;
+	char *name;
+} sdl_3dsbuttons;
+
+extern sdl_3dsbuttons buttons3ds[];

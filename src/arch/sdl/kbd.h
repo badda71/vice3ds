@@ -76,5 +76,6 @@ extern void kbd_focus_change(void);
 extern int sdl_ui_menukeys[];
 
 extern const char *kbd_get_menu_keyname(void);
+extern const char *get_3ds_keyname(int);
 
 #endif

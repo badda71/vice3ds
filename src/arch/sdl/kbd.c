@@ -564,7 +564,17 @@ void kbd_initialize_numpad_joykeys(int* joykeys)
     joykeys[8] = SDL2x_to_SDL1x_Keys(SDLK_KP9);
 }
 
+const char *get_3ds_keyname(int k)
+{
+	int i;
+	for (i=0; buttons3ds[i].key !=0; ++i)
+		if (k==buttons3ds[i].key) return buttons3ds[i].name;
+	for (i=0; uikbd_keypos[i].key !=0; ++i)
+		if (k==uikbd_keypos[i].key) return uikbd_keypos[i].name;
+	return "unknown key";
+}
+
 const char *kbd_get_menu_keyname(void)
 {
-    return SDL_GetKeyName(SDL1x_to_SDL2x_Keys(sdl_ui_menukeys[0]));
+    return get_3ds_keyname(sdl_ui_menukeys[0]);
 }

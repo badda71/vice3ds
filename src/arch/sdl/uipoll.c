@@ -36,6 +36,7 @@
 #include "ui.h"
 #include "uimenu.h"
 #include "uipoll.h"
+#include "uibottom.h"
 
 /* ------------------------------------------------------------------ */
 /* static functions */
@@ -90,15 +91,11 @@ SDL_Event sdl_ui_poll_event(const char *what, const char *target, int options, i
     }
 
     /* TODO check if key/event is suitable */
-#ifdef ANDROID_COMPILE
-    e.type = SDL_USEREVENT;
-    polling = 0;
-#else
     while (polling) {
         while (polling && SDL_PollEvent(&e)) {
             switch (e.type) {
                 case SDL_KEYDOWN:
-                    if (allow_keyboard && (allow_modifier || is_not_modifier(e.key.keysym.sym))) {
+                    if (allow_keyboard && (allow_modifier || is_not_modifier(e.key.keysym.sym)) && e.key.keysym.sym!=0) {
                         polling = 0;
                     }
                     break;
@@ -119,6 +116,10 @@ SDL_Event sdl_ui_poll_event(const char *what, const char *target, int options, i
                     }
                     break;
 #endif
+				case SDL_MOUSEBUTTONDOWN:
+				case SDL_MOUSEBUTTONUP:
+					sdl_uibottom_mouseevent(&e);
+					break;
                 default:
                     ui_handle_misc_sdl_event(e);
                     break;
@@ -136,7 +137,6 @@ SDL_Event sdl_ui_poll_event(const char *what, const char *target, int options, i
             }
         }
     }
-#endif
 
     if (polling == 1) {
         e.type = SDL_USEREVENT;

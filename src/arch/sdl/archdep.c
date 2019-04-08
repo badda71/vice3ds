@@ -68,6 +68,32 @@ static void archdep_shutdown_extra(void);
 #include "../shared/archdep_create_user_config_dir.h"
 #include <3ds.h>
 
+sdl_3dsbuttons buttons3ds[] = {
+	//  x,  y, name
+	{KEY_A, 200, "A btn"},
+	{KEY_B, 201, "B btn"},
+	{KEY_X, 202, "X btn"},
+	{KEY_Y, 203, "Y btn"},
+	{KEY_L, 204, "L btn"},
+	{KEY_R, 205, "R btn"},
+	{KEY_ZL, 206, "ZL btn"},
+	{KEY_ZR, 207, "ZR btn"},
+	{KEY_START, 208, "START btn"},
+	{KEY_SELECT, 209, "SELECT btn"},
+	{KEY_UP, 210, "DPAD UP"},
+	{KEY_DOWN, 211, "DPAD DOWN"},
+	{KEY_LEFT, 212, "DPAD LEFT"},
+	{KEY_RIGHT, 213, "DPAD RIGHT"},
+	{KEY_CSTICK_UP, 214, "CSTK UP"},
+	{KEY_CSTICK_DOWN, 215, "CSTK DOWN"},
+	{KEY_CSTICK_LEFT, 216, "CSTK LEFT"},
+	{KEY_CSTICK_RIGHT, 217, "CSTK RIGHT"},
+	{KEY_CPAD_UP, 218, "CPAD UP"},
+	{KEY_CPAD_DOWN, 219, "CPAD DOWN"},
+	{KEY_CPAD_LEFT, 220, "CPAD LEFT"},
+	{KEY_CPAD_RIGHT, 221, "CPAD RIGHT"},
+	{0,0,0}
+};
 
 int archdep_init(int *argc, char **argv)
 {
@@ -89,28 +115,8 @@ int archdep_init(int *argc, char **argv)
 
 	// 3ds buttons must be remapped - the standard conflicts with the keyboard
 	// key codes over 200 are unused
-	SDL_N3DSKeyBind(KEY_A, 200);
-	SDL_N3DSKeyBind(KEY_B, 201);
-	SDL_N3DSKeyBind(KEY_X, 202);
-	SDL_N3DSKeyBind(KEY_Y, 203);
-	SDL_N3DSKeyBind(KEY_L, 204);
-	SDL_N3DSKeyBind(KEY_R, 205);
-	SDL_N3DSKeyBind(KEY_ZL, 206);
-	SDL_N3DSKeyBind(KEY_ZR, 207);
-	SDL_N3DSKeyBind(KEY_START, 208);
-	SDL_N3DSKeyBind(KEY_SELECT, 209);
-	SDL_N3DSKeyBind(KEY_UP, 210);
-	SDL_N3DSKeyBind(KEY_DOWN, 211);
-	SDL_N3DSKeyBind(KEY_LEFT, 212);
-	SDL_N3DSKeyBind(KEY_RIGHT, 213);
-	SDL_N3DSKeyBind(KEY_CSTICK_UP, 214);
-	SDL_N3DSKeyBind(KEY_CSTICK_DOWN, 215);
-	SDL_N3DSKeyBind(KEY_CSTICK_LEFT, 216);
-	SDL_N3DSKeyBind(KEY_CSTICK_RIGHT, 217);
-	SDL_N3DSKeyBind(KEY_CPAD_UP, 218);
-	SDL_N3DSKeyBind(KEY_CPAD_DOWN, 219);
-	SDL_N3DSKeyBind(KEY_CPAD_LEFT, 220);
-	SDL_N3DSKeyBind(KEY_CPAD_RIGHT, 221);
+	for (int i=0; buttons3ds[i].key!=0; ++i)
+		SDL_N3DSKeyBind(buttons3ds[i].sdlkey, buttons3ds[i].key);
 
     /*
      * Call SDL_Quit() via atexit() to avoid segfaults on exit.
