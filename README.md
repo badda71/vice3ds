@@ -13,10 +13,9 @@ devkitpro on windows:
 
 devkitpro on Linux:
     
-    pacman -Sy 3ds-sdl 3ds-sdl_gfx 3ds-sdl_image 3ds-sdl_mixer 3ds-sdl_ttf devkitpro-pkgbuild-helpers
-    apt-get install p7zip pkg-config
+    [sudo] pacman -Sy 3ds-sdl 3ds-sdl_gfx 3ds-sdl_image 3ds-sdl_mixer 3ds-sdl_ttf devkitpro-pkgbuild-helpers
+    [sudo] apt-get install p7zip pkg-config
 
 Afterwards, the emulator can be compiled via
 
-    source /opt/devkitpro/3dsvars.sh
     make
