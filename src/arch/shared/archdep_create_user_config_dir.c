@@ -40,6 +40,7 @@
 #include "archdep_join_paths.h"
 #include "archdep_mkdir.h"
 #include "archdep_user_config_path.h"
+#include "archdep_cp.h"
 
 #ifdef ARCHDEP_OS_UNIX
 # include <sys/stat.h>
@@ -51,13 +52,19 @@
 
 void archdep_create_user_config_dir(void)
 {
-    char *cfg = archdep_user_config_path();
+    // create user config directory and unpack default config files
+	// from romfs if necessary (do not overwrite)
 
-    if (archdep_mkdir(cfg, 0755) == 0) {
-        return;     /* we created the dir */
+	char *cfg = archdep_user_config_path();
+
+    xcopy("romfs:/config",cfg,0);
+/*	
+	if (archdep_mkdir(cfg, 0755) == 0) {
+        return;     // we created the dir
     } else if (errno != EEXIST) {
         log_error(LOG_ERR, "failed to create user config dir '%s': %d: %s.",
                 cfg, errno, strerror(errno));
         archdep_vice_exit(1);
     }
+*/
 }

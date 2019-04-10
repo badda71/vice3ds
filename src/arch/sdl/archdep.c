@@ -98,11 +98,11 @@ sdl_3dsbuttons buttons3ds[] = {
 int archdep_init(int *argc, char **argv)
 {
 	
-/*	Result rc = romfsInit();
+	Result rc = romfsInit();
 	if (rc) {
 		log_error(LOG_ERR, "failed to init romfs: %08lX\n", rc);
         archdep_vice_exit(1);
-	}*/
+	}
 
 	archdep_program_path_set_argv0(argv[0]);
 
@@ -130,11 +130,11 @@ int archdep_init(int *argc, char **argv)
         archdep_vice_exit(1);
     }
 
-/*    if (archdep_vice_atexit((void *)romfsExit) != 0) {
+    if (archdep_vice_atexit((void *)romfsExit) != 0) {
         log_error(LOG_ERR,
                 "failed to register romfsExit() with archdep_vice_atexit().");
         archdep_vice_exit(1);
-    }*/
+    }
 
     return archdep_init_extra(argc, argv);
 }

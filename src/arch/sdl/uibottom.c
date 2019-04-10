@@ -181,7 +181,6 @@ static void updateKeyboard(int rupdate) {
 void sdl_uibottom_draw(void)
 {	
 	static void *olds = NULL;
-	char *fn;
 	SDL_RWops *rwop;
 
 	// init the 3DS bottom screen
@@ -190,33 +189,22 @@ void sdl_uibottom_draw(void)
 	if (olds != s || uibottom_must_redraw) {
 		uistatusbar_must_redraw=1;
 		olds=s;
-		extern void *_binary_data_vice_png_start;
-		extern void *_binary_data_vice_png_end;
-		extern void *_binary_data_keyboard_png_start;
-		extern void *_binary_data_keyboard_png_end;
-		void *img1s = &_binary_data_vice_png_start;
-		void *img1e = &_binary_data_vice_png_end;
-		void *img2s = &_binary_data_keyboard_png_start;
-		void *img2e = &_binary_data_keyboard_png_end;
-
 		uibottom_must_redraw=0;
 		bottom_r = (SDL_Rect){ .x = 0, .y = s->h/2, .w = s->w, .h=s->h/2};
 		SDL_FillRect(s, &bottom_r, SDL_MapRGB(s->format, 0x60, 0x60, 0x60));
 
 		// display background
 		if (vice_img == NULL) {
-			rwop = SDL_RWFromMem(img1s, img1e - img1s);
+			rwop=SDL_RWFromFile("romfs:/vice.png", "r");
 			vice_img = IMG_LoadPNG_RW(rwop);
-			lib_free(fn);
 		}
 		SDL_BlitSurface(vice_img, NULL, s,
 			&(SDL_Rect){.x = (s->w-vice_img->w)/2, .y = 240});
 
 		// display keyboard
 		if (kbd_img == NULL) {
-			rwop = SDL_RWFromMem(img2s, img2e - img2s);
+			rwop=SDL_RWFromFile("romfs:/keyboard.png", "r");
 			kbd_img = IMG_LoadPNG_RW(rwop);
-			lib_free(fn);
 		}
 		kb_x_pos = (s->w - uikbd_pos[0][2]) / 2;
 		kb_y_pos = s->h - uikbd_pos[0][3];

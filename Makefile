@@ -12,14 +12,13 @@ SRCDIR := src
 CC := arm-none-eabi-gcc
 ODIR := obj
 BDIR := build
-DATADIR := data
 RDIR := resources
 NAME := vice3ds
 VERSION := 0.3
 INSTDIR := $(APPDATA)/Citra/sdmc/3ds/vice3ds
+ROMFSDIR := romfs
 
 SRCS := $(shell find $(SRCDIR) -name *.c)
-DATAFILES := $(shell find $(DATADIR) -type f)
 
 INCLUDES := $(addprefix -I,$(shell find $(SRCDIR) -type d))\
 	-I/opt/devkitpro/portlibs/3ds/include\
@@ -53,28 +52,19 @@ POSTCOMPILE = @mv -f $(ODIR)/$*.Td $(ODIR)/$*.d && touch $@
 # Targets
 ###############
 
-all: $(BDIR)/$(NAME)_$(VERSION).7z
+all: $(BDIR)/$(NAME).3dsx
 
-install: $(BDIR)/$(NAME).3dsx $(RDIR)/config
+install: $(BDIR)/$(NAME).3dsx
 	cp -f $(BDIR)/$(NAME).3dsx $(INSTDIR)
 	rm -rf $(INSTDIR)/config
-	cp -rf $(RDIR)/config $(INSTDIR)
-
-$(BDIR)/%.7z: $(BDIR)/$(NAME).3dsx $(RDIR)/config
-	rm -rf "$(BDIR)/3ds"
-	mkdir -p "$(BDIR)/3ds/vice3ds"
-	cp -f "$(BDIR)/$(NAME).3dsx" "$(BDIR)/3ds/vice3ds"
-	cp -rf "$(RDIR)/config" "$(BDIR)/3ds/vice3ds"
-	cd "$(BDIR)" && 7za a $*.7z 3ds
-	rm -rf "$(BDIR)/3ds"
+	cp -rf $(ROMFSDIR)/config $(INSTDIR)
 
 $(BDIR)/$(NAME).3dsx: $(ODIR)/$(NAME).elf $(RDIR)/icon.png
 	smdhtool --create "Vice3DS" "Vice C64 emulator for Nintendo 3DS" "badda71" $(RDIR)/icon.png $(ODIR)/$(NAME).smdh
-	3dsxtool $(ODIR)/$(NAME).elf $(BDIR)/$(NAME).3dsx --smdh=$(ODIR)/$(NAME).smdh
+	3dsxtool $(ODIR)/$(NAME).elf $(BDIR)/$(NAME).3dsx --romfs=$(ROMFSDIR) --smdh=$(ODIR)/$(NAME).smdh
 
-$(ODIR)/$(NAME).elf: $(OBJ) $(DATAFILES)
+$(ODIR)/$(NAME).elf: $(OBJ)
 	$(CC) $(CFLAGS) -o $@\
-		-Wl,--format=binary	$(addprefix -Wl$(COMMA),$(DATAFILES)) -Wl,--format=default\
 		-Wl,--start-group $(ODIR)/*.o $(LDFLAGS) -Wl,--end-group
 
 $(ODIR)/%.d: ;
