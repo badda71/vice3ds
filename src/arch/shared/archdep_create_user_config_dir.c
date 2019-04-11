@@ -57,7 +57,11 @@ void archdep_create_user_config_dir(void)
 
 	char *cfg = archdep_user_config_path();
 
-    xcopy("romfs:/config",cfg,0);
+    if (xcopy("romfs:/config",cfg,0) != 0) {
+        log_error(LOG_ERR, "failed to copy user config dir '%s': %d: %s.",
+                cfg, errno, strerror(errno));
+        archdep_vice_exit(1);
+	}		
 /*	
 	if (archdep_mkdir(cfg, 0755) == 0) {
         return;     // we created the dir

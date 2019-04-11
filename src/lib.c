@@ -643,27 +643,16 @@ void *lib_AllocMem(unsigned long size, unsigned long attributes)
 #endif
 
 /* Like calloc, but abort if not enough memory is available.  */
+
 #ifdef LIB_DEBUG_PINPOINT
 static
 #endif
 void *lib_calloc(size_t nmemb, size_t size)
 {
-#ifdef LIB_DEBUG
-    void *ptr = lib_debug_libc_calloc(nmemb, size);
-#else
     void *ptr = calloc(nmemb, size);
-#endif
-
-#ifndef __OS2__
     if (ptr == NULL && (size * nmemb) > 0) {
-        fprintf(stderr, "error: lib_calloc failed\n");
         archdep_vice_exit(-1);
     }
-#endif
-#ifdef LIB_DEBUG
-    lib_debug_alloc(ptr, size * nmemb, 1);
-#endif
-
     return ptr;
 }
 

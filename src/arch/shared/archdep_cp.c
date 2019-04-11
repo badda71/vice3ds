@@ -139,6 +139,7 @@ static int dircopy(char *src, char *dest)
 		}
 		free(newsrc);free(newdest);
 	}
+	return 0;
 }
 
 
