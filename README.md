@@ -16,6 +16,8 @@ devkitpro on Linux:
     [sudo] pacman -Sy 3ds-sdl 3ds-sdl_gfx 3ds-sdl_image 3ds-sdl_mixer 3ds-sdl_ttf devkitpro-pkgbuild-helpers
     [sudo] apt-get install p7zip pkg-config
 
+Apart from this, bannertool (https://github.com/Steveice10/bannertool/releases) and makerom (https://github.com/profi200/Project_CTR/releases) should be available in your path.
+
 Afterwards, the emulator can be compiled via
 
     make
