@@ -48,18 +48,12 @@ SRCS := $(shell find $(SRCDIR) -name *.c)
 OBJ := $(addsuffix .o,$(addprefix $(ODIR)/,$(subst /,.,$(basename $(SRCS)))))
 
 # command options
-COMMON_MAKEROM_FLAGS := -rsf $(RDIR)/template.rsf -target t -exefslogo -icon $(SMDH) -banner $(BANNER) -major $(VERSION_MAJOR) -minor $(VERSION_MINOR) -micro $(VERSION_MICRO) -DAPP_TITLE="$(TITLE)" -DAPP_PRODUCT_CODE="$(PRODUCT_CODE)" -DAPP_UNIQUE_ID="$(UNIQUE_ID)" -DAPP_SYSTEM_MODE="$(SYSTEM_MODE)" -DAPP_SYSTEM_MODE_EXT="$(SYSTEM_MODE_EXT)" -DAPP_CATEGORY="$(CATEGORY)" -DAPP_USE_ON_SD="$(USE_ON_SD)" -DAPP_MEMORY_TYPE="$(MEMORY_TYPE)" -DAPP_CPU_SPEED="$(CPU_SPEED)" -DAPP_ENABLE_L2_CACHE="$(ENABLE_L2_CACHE)" -DAPP_VERSION_MAJOR="$(VERSION_MAJOR)"
+COMMON_MAKEROM_FLAGS := -rsf $(RDIR)/template.rsf -target t -exefslogo -icon $(SMDH) -banner $(BANNER) -major $(VERSION_MAJOR) -minor $(VERSION_MINOR) -micro $(VERSION_MICRO) -DAPP_TITLE="$(TITLE)" -DAPP_PRODUCT_CODE="$(PRODUCT_CODE)" -DAPP_UNIQUE_ID="$(UNIQUE_ID)" -DAPP_SYSTEM_MODE="$(SYSTEM_MODE)" -DAPP_SYSTEM_MODE_EXT="$(SYSTEM_MODE_EXT)" -DAPP_CATEGORY="$(CATEGORY)" -DAPP_USE_ON_SD="$(USE_ON_SD)" -DAPP_MEMORY_TYPE="$(MEMORY_TYPE)" -DAPP_CPU_SPEED="$(CPU_SPEED)" -DAPP_ENABLE_L2_CACHE="$(ENABLE_L2_CACHE)" -DAPP_VERSION_MAJOR="$(VERSION_MAJOR)" -logo "$(RDIR)/logo.bcma.lz"
 
-ifneq ("$(wildcard $(ROMFS))","")
-	_3DSXTOOL_FLAGS += --romfs=$(ROMFS)
-	COMMON_MAKEROM_FLAGS += -DAPP_ROMFS="$(ROMFS)"
+ifneq ("$(wildcard $(ROMFSDIR))","")
+	_3DSXTOOL_FLAGS += --romfs=$(ROMFSDIR)
+	COMMON_MAKEROM_FLAGS += -DAPP_ROMFS="$(ROMFSDIR)"
 endif
-
-#ifneq ("$(wildcard $(LOGO))","")
-#	COMMON_MAKEROM_FLAGS += -logo "$(LOGO)"
-#else ifneq ($(LOGO),plain)
-#	COMMON_MAKEROM_FLAGS += -logo "$(BUILDTOOLS_DIR)/3ds/logo.bcma.lz"
-#endif
 
 INCLUDES := $(addprefix -I,$(shell find $(SRCDIR) -type d))\
 	-I/opt/devkitpro/portlibs/3ds/include\
@@ -119,10 +113,10 @@ $(ODIR)/$(TITLE).elf: $(OBJ)
 %.smdh: $(ICON)
 	$(BANNERTOOL) makesmdh -s "$(TITLE)" -l "$(DESCRIPTION)" -p "$(AUTHOR)" -i $(ICON) -o $@
 
-%.cia: $(ODIR)/$(TITLE).elf $(ODIR)/banner.bnr $(ODIR)/$(TITLE).smdh
+%.cia: $(ODIR)/$(TITLE).elf $(ODIR)/banner.bnr $(ODIR)/$(TITLE).smdh $(RDIR)/logo.bcma.lz
 	$(MAKEROM) -f cia -o $@ -elf $< -DAPP_ENCRYPTED=false $(COMMON_MAKEROM_FLAGS)
 
-%.3ds: $(ODIR)/$(TITLE).elf $(ODIR)/banner.bnr $(ODIR)/$(TITLE).smdh
+%.3ds: $(ODIR)/$(TITLE).elf $(ODIR)/banner.bnr $(ODIR)/$(TITLE).smdh $(RDIR)/logo.bcma.lz
 	$(MAKEROM) -f cci -o $@ -elf $< -DAPP_ENCRYPTED=true $(COMMON_MAKEROM_FLAGS)
 
 $(ODIR)/%.d: ;
