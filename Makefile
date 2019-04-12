@@ -19,6 +19,7 @@ ROMFS_DIR := romfs
 INCLUDE_DIRS := $(shell find $(SOURCE_DIRS) -type d) /opt/devkitpro/portlibs/3ds/include
 LIBRARY_DIRS := /opt/devkitpro/portlibs/3ds
 
+BUILD_FLAGS := -O2
 #BUILD_FLAGS := -DSDL_DEBUG=1 -DDEBUG=1 -DARCHDEP_EXTRA_LOG_CALL=1
 LIBRARIES := SDL SDL_image png z citro3d
 
@@ -28,7 +29,7 @@ VERSION_MICRO := 0
 
 # 3DS/Wii U/Switch CONFIGURATION #
 
-AUTHOR := badda71
+AUTHOR := badda71 <me@badda.de>
 
 # 3DS/Wii U CONFIGURATION #
 
@@ -36,33 +37,18 @@ DESCRIPTION := Vice C64 emulator for Nintendo 3DS
 
 # 3DS CONFIGURATION #
 
-ifeq ($(TARGET),3DS)
-    LIBRARY_DIRS += $(DEVKITPRO)/libctru
-    LIBRARIES += ctru
+LIBRARY_DIRS += $(DEVKITPRO)/libctru
+LIBRARIES += ctru
 
-    PRODUCT_CODE := CTR-P-VICE
-    UNIQUE_ID := 0xFF4BA
+PRODUCT_CODE := CTR-P-VICE
+UNIQUE_ID := 0xFF4BA
 
-    BANNER_AUDIO := meta/audio_3ds.wav
-    BANNER_IMAGE := meta/banner_3ds.png
-    ICON := meta/icon_3ds.png
-endif
-
-# Wii U CONFIGURATION #
-
-ifeq ($(TARGET),WIIU)
-    LONG_DESCRIPTION := Build template.
-    ICON := meta/icon_wiiu.png
-endif
-
-# Switch CONFIGURATION #
-
-ifeq ($(TARGET),SWITCH)
-    LIBRARY_DIRS += $(DEVKITPRO)/libnx
-    LIBRARIES += nx
-
-    ICON := meta/icon_switch.jpg
-endif
+BANNER_AUDIO := meta/audio_3ds.wav
+BANNER_IMAGE := meta/banner_3ds.png
+ICON := meta/icon_3ds.png
+Category := Application
+CPU_MODE := 804MHz
+ENABLE_L2_CACHE := true
 
 # INTERNAL #
 
