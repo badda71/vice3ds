@@ -463,6 +463,7 @@ static int init_joyport_ports(void)
    the machine itself with `machine_init()'.  */
 int machine_resources_init(void)
 {
+
     if (traps_resources_init() < 0) {
         init_resource_fail("traps");
         return -1;
@@ -479,7 +480,7 @@ int machine_resources_init(void)
         init_resource_fail("c64export");
         return -1;
     }
-    if (memory_hacks_resources_init() < 0) {
+	if (memory_hacks_resources_init() < 0) {
         init_resource_fail("memory hacks");
         return -1;
     }

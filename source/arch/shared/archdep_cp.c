@@ -43,18 +43,6 @@
 struct stat path_stat;
 int overwrite=1;
 
-#ifndef _3DS
-static char *basename(char *path)
-{
-	char *bname;
-	if ((bname = strrchr(path, PATH_SEP_CHAR)+1) == (void *)1)
-		bname=path;
-#ifdef DEBUG
-	log_debug("basename %s -> %s",path,bname);
-#endif
-	return bname;
-}
-#endif
 /*
 int main (int argc, char **argv,1) {
 	if (argc!=3) return -1;
@@ -66,7 +54,7 @@ static int mkpath(char* file_path, int complete) {
 	log_debug("mkpath %s %d",file_path, complete);
 #endif
 	char* p=file_path;
-	while (p=strchr(p+1, '/')) {
+	while ((p=strchr(p+1, '/'))) {
 		*p='\0';
 		if (mkdir(file_path, COPYMOD) != 0) {
 			if (errno!=EEXIST) { *p='/'; return -1; }
@@ -150,9 +138,6 @@ int xcopy(char *src, char *dest, int overwrt)
 	log_debug("xcopy %s %s %d",src, dest, overwrt);
 #endif
 	overwrite=overwrt;
-
-	// get my basename
-	char *bname = basename(src);
 	
 	// copy dir or file
 	if (stat(src, &path_stat) != 0 ) goto err_xcopy;
