@@ -19,7 +19,7 @@ ROMFS_DIR := romfs
 INCLUDE_DIRS := $(shell find $(SOURCE_DIRS) -type d) /opt/devkitpro/portlibs/3ds/include
 LIBRARY_DIRS := /opt/devkitpro/portlibs/3ds
 
-BUILD_FLAGS := -DSDL_DEBUG=1 -DDEBUG=1 -DARCHDEP_EXTRA_LOG_CALL=1
+#BUILD_FLAGS := -DSDL_DEBUG=1 -DDEBUG=1 -DARCHDEP_EXTRA_LOG_CALL=1
 LIBRARIES := SDL SDL_image png z citro3d
 
 VERSION_MAJOR := 0

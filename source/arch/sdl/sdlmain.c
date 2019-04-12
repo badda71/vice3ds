@@ -36,10 +36,20 @@
 
 #include "vice_sdl.h"
 
-int main(int argc, char **argv)
+int main()
 {
-    return main_program(argc, argv);
-}
+    
+    int argc=1;
+	char *argv[]={"vice3ds"};
+
+#ifdef DEBUG
+	SDL_Init(SDL_INIT_VIDEO);
+	SDL_SetVideoMode(400, 240, 24, SDL_HWSURFACE | SDL_TOPSCR | SDL_CONSOLEBOTTOM);
+	printf("Starting...");
+#endif
+
+	return main_program(argc, argv);
+}	
 
 void main_exit(void)
 {
