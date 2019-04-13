@@ -53,10 +53,6 @@ UI_MENU_DEFINE_RADIO(JoyDevice5)
           MENU_ENTRY_RESOURCE_RADIO,                                     \
           radio_JoyDevice##port##_callback,                              \
           (ui_callback_data_t)JOYDEV_NONE },                             \
-        { "Numpad",                                                      \
-          MENU_ENTRY_RESOURCE_RADIO,                                     \
-          radio_JoyDevice##port##_callback,                              \
-          (ui_callback_data_t)JOYDEV_NUMPAD },                           \
         { "Keyset 1",                                                    \
           MENU_ENTRY_RESOURCE_RADIO,                                     \
           radio_JoyDevice##port##_callback,                              \
@@ -89,13 +85,14 @@ static UI_MENU_CALLBACK(custom_swap_ports_callback)
     return sdljoy_get_swap_ports() ? MENU_CHECKMARK_CHECKED_STRING : NULL;
 }
 
+/*
 static UI_MENU_CALLBACK(custom_swap_userport_joystick_ports)
 {
     if (activated) {
         sdljoy_swap_userport_ports();
     }
     return sdljoy_get_swap_userport_ports() ? MENU_CHECKMARK_CHECKED_STRING : NULL;
-}
+}*/
 
 static UI_MENU_CALLBACK(custom_keyset_callback)
 {
@@ -321,7 +318,7 @@ const ui_menu_entry_t joystick_menu[] = {
 
 UI_MENU_DEFINE_TOGGLE(UserportJoy)
 UI_MENU_DEFINE_RADIO(UserportJoyType)
-
+/*
 static const ui_menu_entry_t joystick_extra_joy_type_menu[] = {
     { "CGA/Protovision userport adapter",
       MENU_ENTRY_RESOURCE_RADIO,
@@ -353,7 +350,7 @@ static const ui_menu_entry_t joystick_extra_joy_type_menu[] = {
       (ui_callback_data_t)USERPORT_JOYSTICK_OEM },
     SDL_MENU_LIST_END
 };
-
+*/
 static const ui_menu_entry_t joystick_extra_joy_type_no_hit_menu[] = {
     { "CGA/Protovision userport adapter",
       MENU_ENTRY_RESOURCE_RADIO,
@@ -399,14 +396,14 @@ const ui_menu_entry_t joystick_c64_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_radio_callback,
       (ui_callback_data_t)joystick_port2_device_menu },
-    { "Userport joystick adapter port 1",
+/*    { "Userport joystick adapter port 1",
       MENU_ENTRY_SUBMENU,
       submenu_radio_callback,
       (ui_callback_data_t)joystick_port3_device_menu },
     { "Userport joystick adapter port 2",
       MENU_ENTRY_SUBMENU,
       submenu_radio_callback,
-      (ui_callback_data_t)joystick_port4_device_menu },
+      (ui_callback_data_t)joystick_port4_device_menu },*/
     { "Swap joystick ports",
       MENU_ENTRY_OTHER_TOGGLE,
       custom_swap_ports_callback,
@@ -416,16 +413,16 @@ const ui_menu_entry_t joystick_c64_menu[] = {
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_JoyOpposite_callback,
       NULL },
-    { "Allow keyset joystick",
+/*    { "Allow keyset joystick",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_KeySetEnable_callback,
-      NULL },
+      NULL },*/
     { "Define keysets",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)define_keyset_menu },
     SDL_MENU_ITEM_SEPARATOR,
-    { "Userport joystick adapter",
+/*    { "Userport joystick adapter",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_UserportJoy_callback,
       NULL },
@@ -436,7 +433,7 @@ const ui_menu_entry_t joystick_c64_menu[] = {
     { "Swap userport joystick ports",
       MENU_ENTRY_OTHER_TOGGLE,
       custom_swap_userport_joystick_ports,
-      NULL },
+      NULL },*/
 #ifdef HAVE_SDL_NUMJOYSTICKS
     SDL_MENU_ITEM_SEPARATOR,
     { "Joystick 1 mapping", /* TODO better name */
@@ -447,14 +444,14 @@ const ui_menu_entry_t joystick_c64_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)define_joy2_menu },
-    { "Userport joystick 1 mapping",
+/*    { "Userport joystick 1 mapping",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)define_joy3_menu },
     { "Userport joystick 2 mapping",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
-      (ui_callback_data_t)define_joy4_menu },
+      (ui_callback_data_t)define_joy4_menu },*/
     { "Extra joystick options",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
