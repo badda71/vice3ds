@@ -397,16 +397,6 @@ static video_canvas_t *sdl_canvas_create(video_canvas_t *canvas, unsigned int *w
     unsigned int limit_h = (unsigned int)sdl_custom_height;
     int hwscale = 0;
     int lightpen_updated = 0;
-#ifdef HAVE_HWSCALE
-    int rbits = 0, gbits = 0, bbits = 0;
-    const Uint32
-
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    rmask = 0xff000000, gmask = 0x00ff0000, bmask = 0x0000ff00, amask = 0x000000ff;
-#else
-    rmask = 0x000000ff, gmask = 0x0000ff00, bmask = 0x00ff0000, amask = 0xff000000;
-#endif
-#endif
 
     DBG(("%s: %i,%i (%i)", __func__, *width, *height, canvas->index));
 
@@ -422,15 +412,8 @@ static video_canvas_t *sdl_canvas_create(video_canvas_t *canvas, unsigned int *w
         fullscreen = 1;
     }
 
-#ifdef HAVE_HWSCALE
-    if ((canvas == sdl_active_canvas) && (canvas->videoconfig->hwscale)) {
-        hwscale = 1;
-    }
-#endif
-
     if (fullscreen) {
-//        flags = SDL_FULLSCREEN | SDL_SWSURFACE;
-        flags = SDL_FULLSCREEN | SDL_SWSURFACE | SDL_TOPSCR | SDL_CONSOLEBOTTOM;
+        flags = SDL_FULLSCREEN | SDL_SWSURFACE | SDL_DUALSCR;
 
         if (canvas->fullscreenconfig->mode == FULLSCREEN_MODE_CUSTOM) {
             limit = SDL_LIMIT_MODE_FIXED;
@@ -439,90 +422,16 @@ static video_canvas_t *sdl_canvas_create(video_canvas_t *canvas, unsigned int *w
 
     if (!sdl_ui_finalized) { /* remember first size */
         double aspect = 1.0;
-#ifdef HAVE_HWSCALE
-        aspect = aspect_ratio;
 
-        if (sdl_gl_aspect_mode == SDL_ASPECT_MODE_TRUE) {
-            aspect = sdl_active_canvas->geometry->pixel_aspect_ratio;
-        }
-#endif
-        sdl_active_canvas->real_width = (unsigned int)((double)new_width * aspect + 0.5);
+		sdl_active_canvas->real_width = (unsigned int)((double)new_width * aspect + 0.5);
         sdl_active_canvas->real_height = new_height;
         DBG(("first: %d:%d\n", sdl_active_canvas->real_width, sdl_active_canvas->real_height));
     }
-
-#ifdef HAVE_HWSCALE
-    if (hwscale) {
-        flags |= SDL_OPENGL;
-
-        if (fullscreen) {
-            limit = SDL_LIMIT_MODE_OFF;
-        } else {
-            double aspect = aspect_ratio;
-
-            if (sdl_gl_aspect_mode == SDL_ASPECT_MODE_TRUE) {
-                aspect = sdl_active_canvas->geometry->pixel_aspect_ratio;
-            }
-
-            /* if no window geometry given then create one. */
-            if (!sdl_window_width || !sdl_window_height) {
-                limit_w = (unsigned int)((double)new_width * aspect + 0.5);
-                limit_h = new_height;
-            } else { /* full window size remembering when aspect ratio is not important */
-                if (sdl_gl_aspect_mode == SDL_ASPECT_MODE_OFF) {
-                    limit_w = (unsigned int)sdl_window_width;
-                    limit_h = (unsigned int)sdl_window_height;
-                } else { /* only remember height, set width according to that and the aspect ratio */
-                    limit_h = (unsigned int)sdl_window_height;
-                    limit_w = (unsigned int)((double)new_width * (double)sdl_window_height * aspect / (double)new_height + 0.5);
-                }
-            }
-            limit = SDL_LIMIT_MODE_FIXED;
-        }
-
-        switch (sdl_bitdepth) {
-            case 0:
-                log_warning(sdlvideo_log, "bitdepth not set for OpenGL, trying 32...");
-                sdl_bitdepth = 32;
-            /* fall through */
-            case 32:
-                rbits = gbits = bbits = 8;
-                sdl_gl_mode = GL_RGBA;
-                break;
-            case 24:
-                rbits = gbits = bbits = 8;
-                sdl_gl_mode = GL_RGB;
-                break;
-            default:
-                log_error(sdlvideo_log, "%i bpp not supported in OpenGL.", sdl_bitdepth);
-                resources_set_int("HwScalePossible", 0);
-                hwscale = 0;
-                canvas->videoconfig->hwscale = 0;
-                flags = SDL_SWSURFACE;
-                break;
-        }
-
-        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, rbits);
-        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, gbits);
-        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, bbits);
-    }
-#endif
 
     actual_width = new_width;
     actual_height = new_height;
 
     if (canvas == sdl_active_canvas) {
-#ifdef HAVE_HWSCALE
-        if (hwscale) {
-            double aspect = aspect_ratio;
-
-            if (sdl_gl_aspect_mode == SDL_ASPECT_MODE_TRUE) {
-                aspect = sdl_active_canvas->geometry->pixel_aspect_ratio;
-            }
-
-            actual_width = (unsigned int)((double)actual_width * aspect + 0.5);
-        }
-#endif
         if (sdl_video_canvas_limit(limit_w, limit_h, &actual_width, &actual_height, limit)) {
             if (!hwscale) {
                 canvas->draw_buffer->canvas_physical_width = actual_width;
@@ -536,71 +445,16 @@ static video_canvas_t *sdl_canvas_create(video_canvas_t *canvas, unsigned int *w
     }
 
     if (canvas == sdl_active_canvas) {
-#ifndef ANDROID_COMPILE
         SDL_EventState(SDL_VIDEORESIZE, SDL_IGNORE);
-#endif
-#ifndef HAVE_HWSCALE
-        new_screen = SDL_SetVideoMode(actual_width, actual_height, sdl_bitdepth, flags);
+
+		new_screen = SDL_SetVideoMode(actual_width, actual_height, sdl_bitdepth, flags);
         new_width = new_screen->w;
         new_height = new_screen->h;
-#else
-        if (hwscale) {
-            /* To get fullscreen resolution, SetVideoMode must be called with the
-               desired fullscreen resolution. If it is called with a smaller resolution,
-               it will display the undesirable black borders around the emulator display. */
-            if ((fullscreen) && (canvas->fullscreenconfig->mode == FULLSCREEN_MODE_CUSTOM)) {
-                new_screen = SDL_SetVideoMode(limit_w, limit_h, sdl_bitdepth, flags);
-            } else {
-                new_screen = SDL_SetVideoMode(actual_width, actual_height, sdl_bitdepth, flags);
-            }
-            if (!new_screen) { /* Did not work out quite well. Let's try without hwscale */
-                resources_set_int("HwScalePossible", 0);
-                canvas->videoconfig->hwscale = 0;
-                return sdl_canvas_create(canvas, width, height);
-            }
-            actual_width = new_screen->w;
-            actual_height = new_screen->h;
 
-            /* free the old rendering surface when staying in hwscale mode */
-            if ((canvas->hwscale_screen) && (canvas->screen)) {
-                SDL_FreeSurface(canvas->screen);
-            }
-
-            canvas->hwscale_screen = new_screen;
-            new_screen = SDL_CreateRGBSurface(SDL_SWSURFACE, new_width, new_height, sdl_bitdepth, rmask, gmask, bmask, amask);
-            sdl_gl_set_viewport(new_width, new_height, actual_width, actual_height);
-            lightpen_updated = 1;
-        } else {
-            new_screen = SDL_SetVideoMode(actual_width, actual_height, sdl_bitdepth, flags);
-            new_width = new_screen->w;
-            new_height = new_screen->h;
-
-            /* free the old rendering surface when leaving hwscale mode */
-            if ((canvas->hwscale_screen) && (canvas->screen)) {
-                SDL_FreeSurface(canvas->screen);
-                SDL_FreeSurface(canvas->hwscale_screen);
-                canvas->hwscale_screen = NULL;
-            }
-        }
-#endif
-#ifndef ANDROID_COMPILE
         SDL_EventState(SDL_VIDEORESIZE, SDL_ENABLE);
-#endif
     } else {
-#ifdef HAVE_HWSCALE
-        /* free the old hwscale screen when hwscaled screen is switched away */
-        if (canvas->hwscale_screen) {
-            SDL_FreeSurface(canvas->hwscale_screen);
-            canvas->hwscale_screen = NULL;
-        }
-        if (!hwscale) {
-            new_width = actual_width;
-            new_height = actual_height;
-        }
-#else
         new_width = actual_width;
         new_height = actual_height;
-#endif
         if (canvas->screen) {
             SDL_FreeSurface(canvas->screen);
         }

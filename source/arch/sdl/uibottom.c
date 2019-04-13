@@ -218,7 +218,7 @@ void sdl_uibottom_draw(void)
 static SDL_Event sdl_e;
 int sdl_uibottom_mouseevent(SDL_Event *e) {
 
-	int f,i1;
+	int f;
 	int x = e->button.x - kb_x_pos;
 	int y = e->button.y - kb_y_pos;
 
@@ -236,7 +236,7 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 			kb_activekey=i;
 		}
 		if (uikbd_keypos[i].key != 0) { // got a hit
-			if (f=uikbd_keypos[i].flg>0) {	// sticky key!!
+			if ((f=uikbd_keypos[i].flg)>0) {	// sticky key!!
 				if (e->button.type == SDL_MOUSEBUTTONDOWN) {
 					sticky = sticky ^ uikbd_keypos[i].flg;
 					sdl_e.type = sticky & uikbd_keypos[i].flg ? SDL_KEYDOWN : SDL_KEYUP,
@@ -252,4 +252,5 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 			}
 		}
 	}
+	return 0;
 }

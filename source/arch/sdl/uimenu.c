@@ -737,50 +737,9 @@ static void sdl_ui_trap(uint16_t addr, void *data)
 #define PC_VKBD_W 17
 #define PC_VKBD_H 4
 
-static const char *keyb_pc[] = {
-    "X`1234567890-= <-",
-    "escQWERTYUIOP[]\\ ",
-    "   ASDFGHJKL;' rt",
-    "spc ZXCVBNM,./ <>",
-    NULL
-};
-
-static const uint8_t keytable_pc[] =
-    "\x87`1234567890-=\xff\x80\x80"
-    "\x81\x81\x81qwertyuiop[]\\\xff"
-    "\xff\xff\xff\x61sdfghjkl;'\xff\x82\x82"
-    "   \xffzxcvbnm,./\xff\x83\x84";
-
-static const uint8_t keytable_pc_shift[] =
-    "\x87~!@#$%^&*()_+\x87\x80\x80"
-    "\x81\x81\x81QWERTYUIOP{}|\x87"
-    "\x87\x87\xff\x41SDFGHJKL:\"\x87\x82\x82"
-    "   \x87ZXCVBNM<>?\x87\x85\x86";
-
-static const SDLKey keytable_pc_special[] = {
-    VICE_SDLK_BACKSPACE,
-    VICE_SDLK_ESCAPE,
-    VICE_SDLK_RETURN,
-    VICE_SDLK_LEFT,
-    VICE_SDLK_RIGHT,
-    VICE_SDLK_HOME,
-    VICE_SDLK_END,
-    PC_VKBD_ACTIVATE,
-    -1
-};
 
 static int pc_vkbd_pos_x, pc_vkbd_pos_y, pc_vkbd_x, pc_vkbd_y;
 
-static void sdl_ui_readline_vkbd_draw(void)
-{
-    int i;
-
-    for (i = 0; i < PC_VKBD_H; ++i) {
-        sdl_ui_print(keyb_pc[i], pc_vkbd_pos_x, pc_vkbd_pos_y + i);
-    }
-
-    sdl_ui_invert_char(pc_vkbd_pos_x + pc_vkbd_x, pc_vkbd_pos_y + pc_vkbd_y);
-}
 
 static void sdl_ui_readline_vkbd_erase(void)
 {
@@ -789,45 +748,6 @@ static void sdl_ui_readline_vkbd_erase(void)
     for (i = 0; i < PC_VKBD_H; ++i) {
         sdl_ui_print("                 ", pc_vkbd_pos_x, pc_vkbd_pos_y + i);
     }
-}
-
-static void sdl_ui_readline_vkbd_move(int *var, int amount, int min, int max)
-{
-    sdl_ui_invert_char(pc_vkbd_pos_x + pc_vkbd_x, pc_vkbd_pos_y + pc_vkbd_y);
-
-    *var += amount;
-
-    if (*var < min) {
-        *var = max - 1;
-    } else if (*var >= max) {
-        *var = min;
-    }
-
-    sdl_ui_invert_char(pc_vkbd_pos_x + pc_vkbd_x, pc_vkbd_pos_y + pc_vkbd_y);
-    sdl_ui_refresh();
-}
-
-static int sdl_ui_readline_vkbd_press(SDLKey *key, SDLMod *mod, Uint16 *c_uni, int shift)
-{
-    const uint8_t *table;
-    uint8_t b;
-
-    table = (shift == 0) ? keytable_pc : keytable_pc_shift;
-    b = table[pc_vkbd_x + pc_vkbd_y * PC_VKBD_W];
-
-    if (b == 0xff) {
-        return 0;
-    }
-
-    if (b & 0x80) {
-        *key = keytable_pc_special[b & 0x7f];
-        *c_uni = 0;
-    } else {
-        *key = SDLK_UNKNOWN;
-        *c_uni = (Uint16)b;
-    }
-
-    return 1;
 }
 
 static int sdl_ui_readline_input(SDLKey *key, SDLMod *mod, Uint16 *c_uni)

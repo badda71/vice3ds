@@ -404,6 +404,18 @@ int log_debug(const char *format, ...)
     return rc;
 }
 
+int log_3ds(const char *format, ...)
+{
+    va_list ap;
+    int rc = 0;
+
+    va_start(ap, format);
+    rc = log_archdep("", format, ap);
+    va_end(ap);
+
+    return rc;
+}
+
 int log_verbose(const char *format, ...)
 {
     va_list ap;

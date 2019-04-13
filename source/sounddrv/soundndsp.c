@@ -127,7 +127,7 @@ static void ndsp_close(void)
 		{
 			linearFree((void *)ndsp_waveBuf[i].data_vaddr);
 		}
-		ndsp_isinit == false;
+		ndsp_isinit = false;
 	}
 }
 
