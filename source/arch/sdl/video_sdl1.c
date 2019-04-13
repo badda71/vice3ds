@@ -399,8 +399,11 @@ static video_canvas_t *sdl_canvas_create(video_canvas_t *canvas, unsigned int *w
     int lightpen_updated = 0;
 
     DBG(("%s: %i,%i (%i)", __func__, *width, *height, canvas->index));
-
+#ifdef UIBOTTOMOFF
+	flags = SDL_SWSURFACE | SDL_CONSOLEBOTTOM | SDL_TOPSCR;
+#else
 	flags = SDL_SWSURFACE | SDL_DUALSCR;
+#endif
 
     new_width = *width;
     new_height = *height;
@@ -413,7 +416,11 @@ static video_canvas_t *sdl_canvas_create(video_canvas_t *canvas, unsigned int *w
     }
 
     if (fullscreen) {
-        flags = SDL_FULLSCREEN | SDL_SWSURFACE | SDL_DUALSCR;
+#ifdef UIBOTTOMOFF
+        flags = SDL_FULLSCREEN | SDL_SWSURFACE | SDL_CONSOLEBOTTOM | SDL_TOPSCR;
+#else
+		flags = SDL_FULLSCREEN | SDL_SWSURFACE | SDL_DUALSCR;
+#endif
 
         if (canvas->fullscreenconfig->mode == FULLSCREEN_MODE_CUSTOM) {
             limit = SDL_LIMIT_MODE_FIXED;
@@ -545,12 +552,12 @@ void video_canvas_refresh(struct video_canvas_s *canvas, unsigned int xs, unsign
 //    h = MIN(h, canvas->height);
 	// calc render size for 3DS topscreen
 	static int shift=1000;
-	if (shift == 1000) shift = yi + (h - SDLCUSTOMHEIGHT_DEFAULT/2) / 2;
+	if (shift == 1000) shift = yi + h/2 - 120; // 120 = half upper screen size
 	if (shift > yi) {
 		ys = ys + shift - yi;
 		yi = 0;
 	} else yi = yi - shift;
-	h=MIN(h, SDLCUSTOMHEIGHT_DEFAULT/2 - yi);
+	h=MIN(h, 240 - yi);
 
     /* FIXME attempt to draw outside canvas */
     if ((xi + w > canvas->width) || (yi + h > canvas->height)) {
@@ -588,7 +595,6 @@ void video_canvas_refresh(struct video_canvas_s *canvas, unsigned int xs, unsign
     if (SDL_MUSTLOCK(canvas->screen)) {
         SDL_UnlockSurface(canvas->screen);
     }
-
     SDL_UpdateRect(canvas->screen, xi, yi, w, h);
 }
 
@@ -675,34 +681,6 @@ static void sdl_video_resize(unsigned int w, unsigned int h)
 
     vsync_suspend_speed_eval();
 
-#if defined(HAVE_HWSCALE)
-    if (sdl_active_canvas->videoconfig->hwscale && sdl_active_canvas->hwscale_screen) {
-        int flags;
-
-        if (sdl_active_canvas->fullscreenconfig->enable) {
-            flags = SDL_OPENGL | SDL_SWSURFACE | SDL_FULLSCREEN;
-        } else {
-            flags = SDL_OPENGL | SDL_SWSURFACE | SDL_RESIZABLE;
-        }
-
-#ifndef ANDROID_COMPILE
-        SDL_EventState(SDL_VIDEORESIZE, SDL_IGNORE);
-#endif
-        sdl_active_canvas->hwscale_screen = SDL_SetVideoMode((int)w, (int)h, sdl_bitdepth, flags);
-#ifndef ANDROID_COMPILE
-        SDL_EventState(SDL_VIDEORESIZE, SDL_ENABLE);
-#endif
-
-#ifdef SDL_DEBUG
-        if (!sdl_active_canvas->hwscale_screen) {
-            DBG(("%s: setting video mode failed", __func__));
-        }
-#endif
-        sdl_gl_set_viewport(sdl_active_canvas->width, sdl_active_canvas->height, w, h);
-        sdl_active_canvas->actual_width = w;
-        sdl_active_canvas->actual_height = h;
-    } else
-#endif /*  HAVE_HWSCALE */
     {
         sdl_active_canvas->draw_buffer->canvas_physical_width = w;
         sdl_active_canvas->draw_buffer->canvas_physical_height = h;

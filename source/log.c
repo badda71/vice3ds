@@ -40,6 +40,7 @@
 #include "resources.h"
 #include "util.h"
 #include "3ds.h"
+#include "videoarch.h"
 
 #ifdef DBGLOGGING
 #define DBG(x) printf x
@@ -302,7 +303,9 @@ static int log_archdep(const char *logtxt, const char *fmt, va_list ap)
     }
 	svcOutputDebugString(txt, strlen(txt));
     lib_free(txt);
-
+#ifdef UIBOTTOMOFF
+	printf(txt);
+#endif
     return rc;
 }
 

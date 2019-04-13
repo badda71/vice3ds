@@ -37,6 +37,7 @@
 #include "uimenu.h"
 #include "uipoll.h"
 #include "uibottom.h"
+#include "log.h"
 
 /* ------------------------------------------------------------------ */
 /* static functions */

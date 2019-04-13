@@ -180,6 +180,8 @@ static void updateKeyboard(int rupdate) {
 
 void sdl_uibottom_draw(void)
 {	
+#ifndef UIBOTTOMOFF
+	
 	static void *olds = NULL;
 	SDL_RWops *rwop;
 
@@ -213,6 +215,7 @@ void sdl_uibottom_draw(void)
 	}
 	uistatusbar_draw();
 	//SDL_Flip(s);
+#endif
 }
 
 static SDL_Event sdl_e;
