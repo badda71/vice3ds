@@ -1,5 +1,5 @@
 /*
- * 3dskbd.h - 3DS virtual keyboard
+ * uibottom.h - 3DS bottom screen handling incl. virtual keyboard
  *
  * Written by
  *  Sebastian Weber <me@badda.de>

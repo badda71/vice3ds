@@ -157,6 +157,8 @@
 17 0 7 0		/* UP / DOWN */
 29 0 2 0		/* LEFT / RIGHT */
 32 7 4 0		/* SPACE */
+30 0 7 1		/* UP (4 cursor keys) */
+31 0 2 1		/* LEFT (LEFT cursor keys) */
 
 # map 3ds c-stick to cursor keys
 214 0 7 1		/* UP */
