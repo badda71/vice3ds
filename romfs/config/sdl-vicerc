@@ -1,4 +1,3 @@
-[C64]
 # KEY_A, 200
 # KEY_B, 201
 # KEY_X, 202
@@ -22,11 +21,13 @@
 # KEY_CPAD_LEFT, 220
 # KEY_CPAD_RIGHT, 221
 
-MenuKeyCancel=201
+[C64]
+Directory=
 MenuKeyUp=210
 MenuKeyDown=211
 MenuKeyLeft=212
 MenuKeyRight=213
+MenuKeyCancel=201
 ConfirmOnExit=1
 SoundDeviceName="ndsp"
 SoundBufferSize=100
@@ -46,15 +47,17 @@ VICIIFilter=0
 SidEngine=0
 SidModel=0
 KeySet1North=210
+KeySet1East=213
 KeySet1South=211
 KeySet1West=212
-KeySet1East=213
 KeySet1Fire=202
 KeySet2North=214
+KeySet2East=217
 KeySet2South=215
 KeySet2West=216
-KeySet2East=217
 KeySet2Fire=203
+JoyDev1Auto=207
+JoyDev2Auto=206
 JoyDevice1=4
 JoyDevice2=2
 Mouse=1
