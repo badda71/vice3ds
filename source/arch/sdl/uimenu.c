@@ -484,7 +484,7 @@ static void sdl_ui_menu_redraw(ui_menu_entry_t *menu, const char *title, int off
 
 static void sdl_ui_menu_redraw_cursor(ui_menu_entry_t *menu, int offset, int *value_offsets, int cur_offset, int old_offset)
 {
-	int i = 0, n;
+    int i = 0, n;
 
     while ((menu[i + offset].string != NULL) && (i <= (menu_draw.max_text_y - MENU_FIRST_Y))) {
         if (i == cur_offset) {

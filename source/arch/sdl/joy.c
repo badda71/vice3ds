@@ -140,6 +140,7 @@ struct sdljoystick_s {
     sdljoystick_mapping_t *input[NUM_INPUT_TYPES];
 };
 typedef struct sdljoystick_s sdljoystick_t;
+int sdl_joy_fire=0;
 
 static sdljoystick_t *sdljoystick = NULL;
 
@@ -670,7 +671,11 @@ static void joy_arch_parse_entry(char *buffer)
 
                     switch (action) {
                         case JOYSTICK:
-                            sdljoystick[joynum].input[inputtype][inputindex].value.joy[0] = data1;
+                            // save inputindex of fire-button of joystick 0 to global variable
+							// autofire needs this
+							if (joynum==0 && inputtype==1 && data2==16) sdl_joy_fire = inputindex;
+						
+							sdljoystick[joynum].input[inputtype][inputindex].value.joy[0] = data1;
                             sdljoystick[joynum].input[inputtype][inputindex].value.joy[1] = data2;
                             break;
                         case KEYBOARD:
@@ -1163,6 +1168,9 @@ void sdljoy_swap_ports(void)
             }
         }
     }
+	i=joykeys_autofire[0];
+	joykeys_autofire[0]=joykeys_autofire[1];
+	joykeys_autofire[1]=i;
 }
 
 int sdljoy_get_swap_ports(void) 

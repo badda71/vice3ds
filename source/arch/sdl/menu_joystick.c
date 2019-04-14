@@ -99,10 +99,6 @@ static UI_MENU_CALLBACK(custom_keyset_callback)
     SDL_Event e;
     int previous;
 
-    if (resources_get_int((const char *)param, &previous)) {
-        return sdl_menu_text_unknown;
-    }
-
     if (activated) {
         e = sdl_ui_poll_event("key", (const char *)param, SDL_POLL_KEYBOARD | SDL_POLL_MODIFIER, 5);
 
@@ -110,6 +106,9 @@ static UI_MENU_CALLBACK(custom_keyset_callback)
             resources_set_int((const char *)param, (int)SDL2x_to_SDL1x_Keys(e.key.keysym.sym));
         }
     } else {
+		if (resources_get_int((const char *)param, &previous)) {
+			return sdl_menu_text_unknown;
+		}
 		return get_3ds_keyname(previous);
     }
     return NULL;
@@ -248,6 +247,25 @@ static UI_MENU_CALLBACK(custom_joy_misc_callback)
         }
     }
 
+    return NULL;
+}
+
+static UI_MENU_CALLBACK(custom_joy_auto_speed_callback)
+{
+    static char buf[20];
+    int previous, new_value;
+
+    resources_get_int("JoyAutoSpeed", &previous);
+
+    if (activated) {
+        new_value = sdl_ui_slider_input_dialog("Select speed (clks/s)", previous, 2, 100);
+        if (new_value != previous) {
+            resources_set_int("JoyAutoSpeed", joy_auto_speed=new_value);
+        }
+    } else {
+        sprintf(buf, "%3i", previous);
+        return buf;
+    }
     return NULL;
 }
 
@@ -404,7 +422,19 @@ const ui_menu_entry_t joystick_c64_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_radio_callback,
       (ui_callback_data_t)joystick_port4_device_menu },*/
-    { "Swap joystick ports",
+    { "Joydev 1 autofire",
+      MENU_ENTRY_DIALOG,
+      custom_keyset_callback,
+      (ui_callback_data_t)"JoyDev1Auto" },
+    { "Joydev 2 autofire",
+      MENU_ENTRY_DIALOG,
+      custom_keyset_callback,
+      (ui_callback_data_t)"JoyDev2Auto" },
+    { "Joystick Autofire speed",
+      MENU_ENTRY_DIALOG,
+      custom_joy_auto_speed_callback,
+      NULL },
+	{ "Swap joystick ports",
       MENU_ENTRY_OTHER_TOGGLE,
       custom_swap_ports_callback,
       NULL },

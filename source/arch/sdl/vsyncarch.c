@@ -85,15 +85,7 @@ void vsyncarch_sleep(unsigned long delay)
 
 void vsyncarch_presync(void)
 {
-    if (sdl_vkbd_state & SDL_VKBD_ACTIVE) {
-        while (sdl_vkbd_process(ui_dispatch_events())) {
-        }
-#ifdef HAVE_SDL_NUMJOYSTICKS
-        sdl_vkbd_process(sdljoy_autorepeat());
-#endif
-    } else {
-        ui_dispatch_events();
-    }
+	ui_dispatch_events();
 
     if ((sdl_vkbd_state & SDL_VKBD_REPAINT) || (uistatusbar_must_redraw) || (sdl_vsid_state & SDL_VSID_REPAINT)) {
         if (!console_mode) {

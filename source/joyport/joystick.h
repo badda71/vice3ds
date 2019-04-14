@@ -59,6 +59,9 @@ extern uint8_t get_joystick_value(int index);
 typedef void (*joystick_machine_func_t)(void);
 extern void joystick_register_machine(joystick_machine_func_t func);
 
+extern int joykeys_autofire[];
+extern int joy_auto_speed;
+
 /*! the number of joysticks that can be attached to the emu */
 #define JOYSTICK_NUM 5
 

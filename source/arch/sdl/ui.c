@@ -62,6 +62,8 @@
 #include "vsync.h"
 #include "uibottom.h"
 #include "uistatusbar.h"
+#include "autofire.h"
+#include "joystick.h"
 
 #ifndef SDL_DISABLE
 #define SDL_DISABLE SDL_IGNORE
@@ -98,11 +100,11 @@ void ui_handle_misc_sdl_event(SDL_Event e)
 			if (save_resources_on_exit) resources_save(NULL);
 			archdep_vice_exit(0);
             break;
-        case SDL_VIDEORESIZE:
+/*        case SDL_VIDEORESIZE:
             DBG(("ui_handle_misc_sdl_event: SDL_VIDEORESIZE (%d,%d)", (unsigned int)e.resize.w, (unsigned int)e.resize.h));
             sdl_video_resize_event((unsigned int)e.resize.w, (unsigned int)e.resize.h);
             video_canvas_refresh_all(sdl_active_canvas);
-            break;
+            break;*/
         case SDL_ACTIVEEVENT:
             DBG(("ui_handle_misc_sdl_event: SDL_ACTIVEEVENT"));
             if ((e.active.state & SDL_APPACTIVE) && e.active.gain) {
@@ -139,12 +141,19 @@ ui_menu_action_t ui_dispatch_events(void)
                 if (e.key.keysym.sym != 0) {
 					ui_display_kbd_status(&e);
 	                retval = sdlkbd_press(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod);
+//log_3ds("Keydown %d",e.key.keysym.sym);
+	// 206 -> 200 autofire
+					if (e.key.keysym.sym == joykeys_autofire[0] && !sdl_menu_state) start_autofire(0);
+					if (e.key.keysym.sym == joykeys_autofire[1] && !sdl_menu_state) start_autofire(1);
 				}
                 break;
             case SDL_KEYUP:
                 if (e.key.keysym.sym != 0) {
 					ui_display_kbd_status(&e);
 					retval = sdlkbd_release(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod);
+//log_3ds("Keyup %d",e.key.keysym.sym);
+					if (e.key.keysym.sym == joykeys_autofire[0] && !sdl_menu_state) stop_autofire(0);
+					if (e.key.keysym.sym == joykeys_autofire[1] && !sdl_menu_state) stop_autofire(1);
 				}
 				break;
 #ifdef HAVE_SDL_NUMJOYSTICKS
@@ -152,9 +161,11 @@ ui_menu_action_t ui_dispatch_events(void)
                 retval = sdljoy_axis_event(e.jaxis.which, e.jaxis.axis, e.jaxis.value);
                 break;
             case SDL_JOYBUTTONDOWN:
+//log_3ds("Joybutton down %d",e.jbutton.button);
                 retval = sdljoy_button_event(e.jbutton.which, e.jbutton.button, 1);
                 break;
             case SDL_JOYBUTTONUP:
+//log_3ds("Joybutton up %d",e.jbutton.button);
                 retval = sdljoy_button_event(e.jbutton.which, e.jbutton.button, 0);
                 break;
             case SDL_JOYHATMOTION:

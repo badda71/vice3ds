@@ -37,6 +37,8 @@
 
 #include "uimenu.h"
 
+extern int sdl_joy_fire;
+
 extern void joystick_close(void);
 
 extern void joy_arch_resources_shutdown(void);

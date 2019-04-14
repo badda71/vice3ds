@@ -85,6 +85,9 @@
 #define JOYPAD_NW   (JOYPAD_N | JOYPAD_W)
 #define JOYPAD_NE   (JOYPAD_N | JOYPAD_E)
 
+int joykeys_autofire[] = { 0 , 0 };
+int joy_auto_speed = 10;
+
 static int joyport_joystick[5] = { 0, 0, 0, 0, 0 };
 
 /* Global joystick value.  */
@@ -333,6 +336,27 @@ static int set_joykeys_enable(int val, void *param)
     return 0;
 }
 
+static int set_joykeys_autofire1(int val, void *param)
+{
+    joykeys_autofire[0] = val;
+    return 0;
+}
+
+static int set_joykeys_autofire2(int val, void *param)
+{
+    joykeys_autofire[1] = val;
+    return 0;
+}
+static int set_joy_auto_speed(int val, void *param)
+{
+    if ((val < 2) || (val > 100)) {
+        return -1;
+    }
+	joy_auto_speed = val;
+	return 0;
+}
+
+
 #define DEFINE_SET_KEYSET(num)                       \
     static int set_keyset##num(int val, void *param) \
     {                                                \
@@ -381,7 +405,13 @@ static const resource_int_t joykeys_resources_int[] = {
       &joykeys[JOYSTICK_KEYSET_IDX_B][JOYSTICK_KEYSET_W], set_keyset2, (void *)JOYSTICK_KEYSET_W },
     { "KeySet2Fire", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
       &joykeys[JOYSTICK_KEYSET_IDX_B][JOYSTICK_KEYSET_FIRE], set_keyset2, (void *)JOYSTICK_KEYSET_FIRE },
-    { "KeySetEnable", 1, RES_EVENT_NO, NULL,
+	{ "JoyDev1Auto", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
+      &joykeys_autofire[0], set_joykeys_autofire1, NULL },
+    { "JoyDev2Auto", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
+      &joykeys_autofire[1], set_joykeys_autofire2, NULL },
+	{ "JoyAutoSpeed", 10, RES_EVENT_NO, (resource_value_t)10,
+      &joy_auto_speed, set_joy_auto_speed, NULL },
+	{ "KeySetEnable", 1, RES_EVENT_NO, NULL,
       &joykeys_enable, set_joykeys_enable, NULL },
     RESOURCE_INT_LIST_END
 };
