@@ -129,10 +129,10 @@ static int af_get_joydev_fire(int port) {
 
 int start_autofire(int port) {
 	if (port<0 || port>1) return -1;
-	if ((af_key[port]=af_get_joydev_fire(port))==0) return -1;
-
 	// init if not alread done
 	if (!af_init && autofire_init()!=0) return -1;
+
+	if ((af_key[port]=af_get_joydev_fire(port))==0) return -1;
 	SDL_SemPost(af_start[port]);
 	return 0;
 }
