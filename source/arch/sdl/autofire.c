@@ -104,10 +104,6 @@ void autofire_shutdown() {
 	if (af_init) {
 		if (af_port1_thread) SDL_KillThread (af_port1_thread);
 		if (af_port2_thread) SDL_KillThread (af_port2_thread);
-		if(af_start[0]) SDL_DestroySemaphore(af_start[0]);
-		if(af_start[1]) SDL_DestroySemaphore(af_start[1]);
-		if(af_stop[0]) SDL_DestroySemaphore(af_stop[0]);
-		if(af_stop[1]) SDL_DestroySemaphore(af_stop[1]);
 	}
 	af_init=0;
 }
