@@ -533,6 +533,7 @@ static ui_menu_retval_t sdl_ui_menu_display(ui_menu_entry_t *menu, const char *t
             sdl_ui_menu_redraw_cursor(menu, cur_offset, value_offsets, cur, cur_old);
         }
         sdl_ui_refresh();
+		SDL_Flip(sdl_active_canvas->screen);
 
         switch (sdl_ui_menu_poll_input()) {
             case MENU_ACTION_HOME:
