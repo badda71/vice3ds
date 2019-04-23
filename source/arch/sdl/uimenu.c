@@ -533,7 +533,6 @@ static ui_menu_retval_t sdl_ui_menu_display(ui_menu_entry_t *menu, const char *t
             sdl_ui_menu_redraw_cursor(menu, cur_offset, value_offsets, cur, cur_old);
         }
         sdl_ui_refresh();
-		SDL_Flip(sdl_active_canvas->screen);
 
         switch (sdl_ui_menu_poll_input()) {
             case MENU_ACTION_HOME:
@@ -1075,7 +1074,8 @@ ui_menu_action_t sdl_ui_menu_poll_input(void)
     ui_menu_action_t retval = MENU_ACTION_NONE;
 
     do {
-        SDL_Delay(20);
+ 		SDL_Flip(sdl_active_canvas->screen);       
+		SDL_Delay(20);
         retval = ui_dispatch_events();
 #ifdef HAVE_SDL_NUMJOYSTICKS
         if (retval == MENU_ACTION_NONE || retval == MENU_ACTION_NONE_RELEASE) {
