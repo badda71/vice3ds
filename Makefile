@@ -16,12 +16,14 @@ BUILD_DIR := build
 OUTPUT_DIR := output
 SOURCE_DIRS := source
 ROMFS_DIR := romfs
+VICELIBS := VICE3DS_SDL
+VICELIBS_F := $(addprefix lib,$(addsuffix .a,$(VICELIBS)))
 INCLUDE_DIRS := $(shell find $(SOURCE_DIRS) -type d) /opt/devkitpro/portlibs/3ds/include
-LIBRARY_DIRS := /opt/devkitpro/portlibs/3ds
+LIBRARY_DIRS := /opt/devkitpro/portlibs/3ds $(VICELIBS)
 
 #DEBUG_DEFINES := -DSDL_DEBUG=1 -DDEBUG=1 -DARCHDEP_EXTRA_LOG_CALL=1
 BUILD_FLAGS := -DARM11 -D_3DS -D_GNU_SOURCE=1 -O2 -Werror=implicit-function-declaration -Wno-trigraphs -Wfatal-errors -Wmissing-prototypes -Wshadow -fdata-sections -ffunction-sections -march=armv6k -mfloat-abi=hard -mtp=soft -mtune=mpcore -mword-relocations $(DEBUG_DEFINES)
-LIBRARIES := SDL SDL_image png z citro3d
+LIBRARIES := $(VICELIBS) SDL_image png z citro3d
 
 VERSION_MAJOR := 1
 VERSION_MINOR := 0
@@ -49,6 +51,15 @@ ICON := meta/icon_3ds.png
 Category := Application
 CPU_MODE := 804MHz
 ENABLE_L2_CACHE := true
+
+# TARGET #
+vice3ds: $(VICELIBS_F) all
+
+lib%.a: %/lib/lib%.a
+
+%.a:
+	rm -rf output
+	$(MAKE) -C $(subst lib,,$(notdir $*))
 
 # INTERNAL #
 
