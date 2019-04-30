@@ -29,9 +29,7 @@ POSTCOMPILE = @mv -f $(ODIR)/$*.Td $(ODIR)/$*.d && touch $@
 ##################
 # TARGETS
 
-all: $(LDIR)/lib$(NAME).a
-
-%.a: $(OBJ)
+$(LDIR)/lib$(NAME).a: $(OBJ)
 	$(AR) crus $@ $^
 
 $(ODIR)/%.d: ;
