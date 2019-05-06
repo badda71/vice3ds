@@ -246,7 +246,7 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 			if ((f=uikbd_keypos[i].flg)>0) {	// sticky key!!
 				if (e->button.type == SDL_MOUSEBUTTONDOWN) {
 					sticky = sticky ^ uikbd_keypos[i].flg;
-					sdl_e.type = sticky & uikbd_keypos[i].flg ? SDL_KEYDOWN : SDL_KEYUP,
+					sdl_e.type = sticky & uikbd_keypos[i].flg ? SDL_KEYDOWN : SDL_KEYUP;
 					sdl_e.key.keysym.unicode = sdl_e.key.keysym.sym = uikbd_keypos[i].key;
 					SDL_PushEvent(&sdl_e);
 					updateKeyboard(1);

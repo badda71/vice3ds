@@ -142,7 +142,6 @@ ui_menu_action_t ui_dispatch_events(void)
 					ui_display_kbd_status(&e);
 	                retval = sdlkbd_press(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod);
 //log_3ds("Keydown %d",e.key.keysym.sym);
-	// 206 -> 200 autofire
 					if (e.key.keysym.sym == joykeys_autofire[0] && !sdl_menu_state) start_autofire(0);
 					if (e.key.keysym.sym == joykeys_autofire[1] && !sdl_menu_state) start_autofire(1);
 				}

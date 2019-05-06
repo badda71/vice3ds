@@ -46,6 +46,7 @@
 #include "menu_joyport.h"
 #include "menu_midi.h"
 #include "menu_reset.h"
+#include "menu_misc.h"
 #include "menu_settings.h"
 #include "menu_sid.h"
 #include "menu_snapshot.h"
@@ -164,7 +165,11 @@ static const ui_menu_entry_t x64_main_menu[] = {
       submenu_callback,
       (ui_callback_data_t)edit_menu },
 #endif
-    { "Quit emulator",
+    { "Misc",
+      MENU_ENTRY_SUBMENU,
+      submenu_callback,
+      (ui_callback_data_t)misc_menu },
+	{ "Quit emulator",
       MENU_ENTRY_OTHER,
       quit_callback,
       NULL },
