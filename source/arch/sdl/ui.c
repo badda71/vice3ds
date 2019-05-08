@@ -34,6 +34,7 @@
 
 #include "vice_sdl.h"
 #include <stdio.h>
+#include <3ds.h>
 
 #include "autostart.h"
 #include "cmdline.h"
@@ -135,7 +136,21 @@ ui_menu_action_t ui_dispatch_events(void)
     SDL_Event e;
     ui_menu_action_t retval = MENU_ACTION_NONE;
 
-    while (SDL_PollEvent(&e)) {
+    // check 3d slider and adjust emulation speed if necessary
+	static float slider3d = -1.0;
+	float f;
+	if ((f=osGet3DSliderState())!=slider3d) {
+		slider3d=f;
+		// 0 = 100, 0.8=400, 0.9=0, 1=warp
+		if (f==1.0) resources_set_int("WarpMode", 1);
+		else {
+			resources_set_int("WarpMode", 0);
+			resources_set_int("Speed", f >= 0.9 ? 0 : 100+(int)(f * 375.0));
+		}
+	}
+	
+	// check event queue
+	while (SDL_PollEvent(&e)) {
         switch (e.type) {
             case SDL_KEYDOWN:
                 if (e.key.keysym.sym != 0) {
