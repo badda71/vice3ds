@@ -45,7 +45,7 @@
 #include "uimenu.h"
 #include "vkbd.h"
 #include "vsyncapi.h"
-
+#include "uibottom.h"
 
 /* ------------------------------------------------------------------ */
 /* Common strings */
@@ -170,7 +170,8 @@ const char *sdl_ui_menu_toggle_helper(int activated, const char *resource_name)
         if (r < 0) {
             r = resources_get_int(resource_name, &value);
         }
-    } else {
+		uibottom_must_redraw=1;	
+	} else {
         r = resources_get_int(resource_name, &value);
     }
 
@@ -189,6 +190,7 @@ const char *sdl_ui_menu_radio_helper(int activated, ui_callback_data_t param, co
         } else {
             resources_set_string(resource_name, (char *)param);
         }
+		uibottom_must_redraw=1;
     } else {
         int v;
         const char *w;

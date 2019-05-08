@@ -101,9 +101,11 @@ static int set_refresh_rate(int val, void *param)
     return 0;
 }
 
+#include "uibottom.h"
 static int set_warp_mode(int val, void *param)
 {
     warp_mode_enabled = val ? 1 : 0;
+	uibottom_must_redraw=1;	
 
     sound_set_warp_mode(warp_mode_enabled);
     set_timer_speed(relative_speed);

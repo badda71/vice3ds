@@ -30,7 +30,7 @@ extern int uibottom_kbdactive;
 extern int uibottom_must_redraw;
 
 typedef struct {
-	int x,y,w,h,key,row,col,flg;
+	int x,y,w,h,key,row,col,sticky,flags;
 	char *name;
 } uikbd_key;
 

@@ -52,6 +52,7 @@
 #include "uihotkey.h"
 #include "uimenu.h"
 #include "vkbd.h"
+#include "uibottom.h"
 
 #define DEFAULT_JOYSTICK_THRESHOLD 10000
 #define DEFAULT_JOYSTICK_FUZZ      1000
@@ -1171,6 +1172,7 @@ void sdljoy_swap_ports(void)
 	i=joykeys_autofire[0];
 	joykeys_autofire[0]=joykeys_autofire[1];
 	joykeys_autofire[1]=i;
+	uibottom_must_redraw=1;
 }
 
 int sdljoy_get_swap_ports(void) 
