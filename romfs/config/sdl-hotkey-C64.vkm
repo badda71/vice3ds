@@ -15,9 +15,10 @@
 
 208 Quit emulator
 231 Autostart image
-232 Misc&Press RUN/STOP + RESTORE
+232 Misc&RUN/STOP + RESTORE
 233 Machine settings&Joystick settings&Swap joystick ports
 234 Speed settings&Warp mode
 235 Reset&Hard
 236 Snapshot&Quickload snapshot.vsf
 237 Snapshot&Quicksave snapshot.vsf
+238 Misc&LOAD"*",8,1
