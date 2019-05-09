@@ -18,8 +18,9 @@ SOURCE_DIRS := source
 ROMFS_DIR := romfs
 VICELIBS := VICE3DS_SDL
 VICELIBS_F := $(addprefix lib,$(addsuffix .a,$(VICELIBS)))
-INCLUDE_DIRS := $(shell find $(SOURCE_DIRS) -type d) /opt/devkitpro/portlibs/3ds/include
-LIBRARY_DIRS := /opt/devkitpro/portlibs/3ds $(VICELIBS)
+VICEINC := $(addsuffix /include,$(VICELIBS))
+INCLUDE_DIRS := $(VICEINC) $(shell find $(SOURCE_DIRS) -type d) /opt/devkitpro/portlibs/3ds/include
+LIBRARY_DIRS := $(VICELIBS) /opt/devkitpro/portlibs/3ds
 
 #DEBUG_DEFINES := -DSDL_DEBUG=1 -DDEBUG=1 -DARCHDEP_EXTRA_LOG_CALL=1
 BUILD_FLAGS := -DARM11 -D_3DS -D_GNU_SOURCE=1 -O2 -Werror=implicit-function-declaration -Wno-trigraphs -Wfatal-errors -Wmissing-prototypes -Wshadow -fdata-sections -ffunction-sections -march=armv6k -mfloat-abi=hard -mtp=soft -mtune=mpcore -mword-relocations $(DEBUG_DEFINES)

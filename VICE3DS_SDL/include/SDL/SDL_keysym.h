@@ -40,6 +40,7 @@ typedef enum {
 	SDLK_CLEAR		= 12,
 	SDLK_RETURN		= 13,
 	SDLK_PAUSE		= 19,
+	SDLK_KEY20		= 20,
 	SDLK_ESCAPE		= 27,
 	SDLK_SPACE		= 32,
 	SDLK_EXCLAIM		= 33,

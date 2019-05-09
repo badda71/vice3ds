@@ -116,12 +116,14 @@ int sigemptyset(sigset_t *set)
 }
 #endif
 
+#ifndef _3DS
 static struct sigaction ignore;
+#endif
 
 int fork_coproc(int *fd_wr, int *fd_rd, char *cmd)
 {
 #ifdef _3DS
-	error3ds("function fork-coproc not supported");
+	log_3ds("function fork-coproc not supported");
 	return -1;
 #else
     int fd1[2], fd2[2];

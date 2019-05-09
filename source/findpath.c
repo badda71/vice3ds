@@ -49,7 +49,8 @@
 char *findpath(const char *cmd, const char *syspath, int mode)
 {
     char *pd = NULL;
-    char *c, *buf;
+//    char *c
+	char *buf;
     size_t maxpathlen;
 
     maxpathlen = (size_t)ioutil_maxpathlen();
@@ -61,8 +62,8 @@ char *findpath(const char *cmd, const char *syspath, int mode)
     if (strchr(cmd, FSDEV_DIR_SEP_CHR)) {
         // absolute or relative path - not just a filename 
 		size_t l;
-        int state;
-        const char *ps;
+//        int state;
+//        const char *ps;
 
         if (archdep_path_is_relative(cmd)) {
             if (ioutil_getcwd(buf + 1, (int)maxpathlen - 128) == NULL) {
@@ -78,14 +79,14 @@ char *findpath(const char *cmd, const char *syspath, int mode)
             goto fail;
         }
 
-        ps = cmd;
+  //      ps = cmd;
         pd = buf + l; /* buf + 1 + l - 1 */
 
         if (*pd++ != '/') {
             *pd++ = '/';
         }
 
-        state = 1;
+//        state = 1;
 
 /*
         // delete extra `/./', '/../' and '//':s from the path

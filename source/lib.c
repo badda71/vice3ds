@@ -339,22 +339,6 @@ static void *lib_debug_libc_malloc(size_t size)
 #endif
 }
 
-static void *lib_debug_libc_calloc(size_t nmemb, size_t size)
-{
-#if LIB_DEBUG_GUARD > 0
-    char *ptr;
-
-    ptr = (char *)malloc(nmemb * size + 2 * LIB_DEBUG_GUARD);
-    lib_debug_guard_add(ptr, (unsigned int)(nmemb * size));
-
-    memset(ptr + LIB_DEBUG_GUARD, 0, nmemb * size);
-
-    return (void *)(ptr + LIB_DEBUG_GUARD);
-#else
-    return calloc(nmemb, size);
-#endif
-}
-
 static void lib_debug_libc_free(void *ptr)
 {
 #if LIB_DEBUG_GUARD > 0
@@ -585,62 +569,6 @@ void *lib_malloc(size_t size)
 #endif
     return ptr;
 }
-
-#ifdef AMIGA_SUPPORT
-void *lib_AllocVec(unsigned long size, unsigned long attributes)
-{
-#ifdef LIB_DEBUG
-    void *ptr;
-
-    if (attributes & MEMF_CLEAR) {
-        ptr = lib_debug_libc_calloc(1, size);
-    } else {
-        ptr = lib_debug_libc_malloc(size);
-    }
-#else
-    void *ptr = AllocVec(size, attributes);
-#endif
-
-#ifndef __OS2__
-    if (ptr == NULL && size > 0) {
-        fprintf(stderr, "error: lib_AllocVec failed\n");
-        archdep_vice_exit(-1);
-    }
-#endif
-#ifdef LIB_DEBUG
-    lib_debug_alloc(ptr, size, 1);
-#endif
-
-    return ptr;
-}
-
-void *lib_AllocMem(unsigned long size, unsigned long attributes)
-{
-#ifdef LIB_DEBUG
-    void *ptr;
-
-    if (attributes & MEMF_CLEAR) {
-        ptr = lib_debug_libc_calloc(1, size);
-    } else {
-        ptr = lib_debug_libc_malloc(size);
-    }
-#else
-    void *ptr = AllocMem(size, attributes);
-#endif
-
-#ifndef __OS2__
-    if (ptr == NULL && size > 0) {
-        fprintf(stderr, "error: lib_AllocMem failed\n");
-        archdep_vice_exit(-1);
-    }
-#endif
-#ifdef LIB_DEBUG
-    lib_debug_alloc(ptr, size, 1);
-#endif
-
-    return ptr;
-}
-#endif
 
 /* Like calloc, but abort if not enough memory is available.  */
 

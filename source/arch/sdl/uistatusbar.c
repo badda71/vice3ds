@@ -375,7 +375,7 @@ int uistatusbar_must_redraw = 0;
 static inline void uistatusbar_putchar(uint8_t c, int pos_x, int pos_y, int color_f, int color_b)
 {
     int x, y;
-    uint8_t fontchar;
+//    uint8_t fontchar;
     uint8_t *font_pos;
     uint8_t *offset;
 

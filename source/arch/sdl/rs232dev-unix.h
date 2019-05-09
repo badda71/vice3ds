@@ -213,8 +213,9 @@ typedef struct rs232 {
 #define T_PROC 2
 
 //static rs232_t fds[RS232_NUM_DEVICES];  - 3DS
-
+#ifndef _3DS
 static log_t rs232dev_log = LOG_ERR;
+#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -224,7 +225,7 @@ void rs232dev_close(int fd);
 void rs232dev_init(void)
 {
 #ifdef _3DS
-	error3ds("function rs232dev_init not supported");
+	log_3ds("function rs232dev_init not supported");
 #else
 	int i;
 
@@ -237,14 +238,16 @@ void rs232dev_init(void)
 }
 
 /* resets terminal to old mode */
+/* 3DS
 static void unset_tty(int i)
 {
 #ifdef _3DS
-	error3ds("function unset_tty not supported");
+	log_3ds("function unset_tty not supported");
 #else
     tcsetattr(fds[i].fd_r, TCSAFLUSH, &fds[i].saved);
 #endif
-}
+}*/
+
 /* 3DS
 static struct {
     int baud;
@@ -263,45 +266,45 @@ static struct {
 };
 */
 /* sets terminal to raw mode */
+/* 3DS
 static void set_tty(int i, int baud)
 {
 
 #ifdef _3DS
-	error3ds("function set_tty not supported");
+	log_3ds("function set_tty not supported");
 #else
 	
-	/*
-     * set tty to raw mode as of
-     * "Advanced Programming in the Unix Environment"
-     * by W.R. Stevens, Addison-Wesley.
-     */
+	//
+    // set tty to raw mode as of
+    // "Advanced Programming in the Unix Environment"
+    // by W.R. Stevens, Addison-Wesley.
     speed_t speed;
     int fd = fds[i].fd_r;
     struct termios buf;
 
     if (tcgetattr(fd, &fds[i].saved) < 0) {
-        return /* -1 */ ;
+        return; // -1
     }
     buf = fds[i].saved;
 
     buf.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
 
-    /* echho off, cononical mode off, extended input processing
-     * off, signal chars off */
+    // echho off, cononical mode off, extended input processing
+    // off, signal chars off
     buf.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
 
-    /* no SIGINT on Break, CR-to-NL off, input parity check off,
-     * don't strip 8th bit on input, output flow control off */
+    // no SIGINT on Break, CR-to-NL off, input parity check off,
+    // don't strip 8th bit on input, output flow control off
     buf.c_cflag &= ~(CSIZE | PARENB);
 
-    /* clear size bits, parity checking off */
+    // clear size bits, parity checking off 
     buf.c_cflag |= CS8;
 
-    /* set 8 bits/char */
+    // set 8 bits/char 
     buf.c_oflag &= ~(OPOST);
 
-    /* ouput processing off */
-    buf.c_cc[VMIN] = 1;         /* 1 byte at a time, no timer */
+    // ouput processing off 
+    buf.c_cc[VMIN] = 1;         // 1 byte at a time, no timer
     buf.c_cc[VTIME] = 0;
 
     for (i = 0; speed_tab[i].baud; i++) {
@@ -317,12 +320,13 @@ static void set_tty(int i, int baud)
     tcsetattr(fd, TCSAFLUSH, &buf);
 #endif
 }
+*/
 
 /* reset RS232 stuff */
 void rs232dev_reset(void)
 {
 #ifdef _3DS
-	error3ds("function rs232dev_reset not supported");
+	log_3ds("function rs232dev_reset not supported");
 #else
     int i;
 
@@ -338,7 +342,7 @@ void rs232dev_reset(void)
 int rs232dev_open(int device)
 {
 #ifdef _3DS
-	error3ds("function rs232dev_open not supported");
+	log_3ds("function rs232dev_open not supported");
 	return -1;
 #else
     int i, fd;
@@ -398,7 +402,7 @@ int rs232dev_open(int device)
 void rs232dev_close(int fd)
 {
 #ifdef _3DS
-	error3ds("function rs232dev_close not supported");
+	log_3ds("function rs232dev_close not supported");
 #else
 
 #ifdef DEBUG
@@ -429,7 +433,7 @@ void rs232dev_close(int fd)
 int rs232dev_putc(int fd, uint8_t b)
 {
 #ifdef _3DS
-	error3ds("function rs232dev_putc not supported");
+	log_3ds("function rs232dev_putc not supported");
 	return -1;
 #else
     ssize_t n;
@@ -464,7 +468,7 @@ int rs232dev_putc(int fd, uint8_t b)
 int rs232dev_getc(int fd, uint8_t * b)
 {
 #ifdef _3DS
-	error3ds("function rs232dev_getc not supported");
+	log_3ds("function rs232dev_getc not supported");
 	return -1;
 #else
     int ret;

@@ -124,6 +124,7 @@ void archdep_program_path_set_argv0(char *argv0)
  *
  * \return  bool (if this fails, we have to give up)
  */
+/* 3DS
 static int argv_fallback(void)
 {
     char cwd_buf[4096];
@@ -139,15 +140,13 @@ static int argv_fallback(void)
         return 0;
     }
 
-    /* do we have an absolute path in argv[0]? */
+    // do we have an absolute path in argv[0]?
     if (!archdep_path_is_relative(argv0_ref)) {
         strcpy(buffer, argv0_ref);
         return 1;
     }
 
-    /*
-     * Relative path in argv[0], try to get cwd and join it with argv[0]
-     */
+    //Relative path in argv[0], try to get cwd and join it with argv[0]
     memset(cwd_buf, 0, 4096);
 
 #if defined(ARCHDEP_OS_UNIX) || defined(ARCHDEP_OS_BEOS)
@@ -168,7 +167,7 @@ static int argv_fallback(void)
     result = archdep_join_paths(cwd_buf, argv0_ref, NULL);
     res_len = strlen(result);
     if (res_len >= 4096) {
-        /* insufficient space */
+        // insufficient space
         log_error(LOG_ERR, "insufficient space for path, giving up.");
         lib_free(result);
         return 0;
@@ -177,7 +176,7 @@ static int argv_fallback(void)
     lib_free(result);
     return 1;
 }
-
+*/
 
 
 /** \brief  Get absolute path to the running executable

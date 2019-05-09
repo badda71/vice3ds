@@ -122,7 +122,7 @@ int archdep_default_logger(const char *level_string, const char *txt)
 int archdep_spawn(const char *name, char **argv, char **pstdout_redir, const char *stderr_redir)
 {
 #ifdef _3DS
-	error3ds("function archdep_spawn not supported");
+	log_3ds("function archdep_spawn not supported");
 	return -1;
 #else
     pid_t child_pid;
