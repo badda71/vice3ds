@@ -53,6 +53,8 @@
 #include "util.h"
 #include "vkbd.h"
 #include "uibottom.h"
+#include "autofire.h"
+#include "joystick.h"
 
 /* #define SDL_DEBUG */
 
@@ -475,6 +477,10 @@ ui_menu_action_t sdlkbd_press(SDLKey key, SDLMod mod)
         return retval;
     }
 
+	// autofire on
+	if (key == joykeys_autofire[0]) start_autofire(0);
+	if (key == joykeys_autofire[1]) start_autofire(1);
+
     if ((int)(key) == sdl_ui_menukeys[0]) {
         sdl_ui_activate();
         return retval;
@@ -507,6 +513,11 @@ ui_menu_action_t sdlkbd_release(SDLKey key, SDLMod mod)
         }
         return retval + MENU_ACTION_NONE_RELEASE;
     }
+
+	// autofire off
+	if (key == joykeys_autofire[0] && !sdl_menu_state) stop_autofire(0);
+	if (key == joykeys_autofire[1] && !sdl_menu_state) stop_autofire(1);
+
 
     keyboard_key_released((unsigned long)key);
     return retval;
@@ -552,17 +563,17 @@ const char *kbd_arch_keynum_to_keyname(signed long keynum)
     return keyname;
 }
 
-void kbd_initialize_numpad_joykeys(int* joykeys)
+void kbd_initialize_numpad_joykeys(int* jkeys)
 {
-    joykeys[0] = SDL2x_to_SDL1x_Keys(SDLK_KP0);
-    joykeys[1] = SDL2x_to_SDL1x_Keys(SDLK_KP1);
-    joykeys[2] = SDL2x_to_SDL1x_Keys(SDLK_KP2);
-    joykeys[3] = SDL2x_to_SDL1x_Keys(SDLK_KP3);
-    joykeys[4] = SDL2x_to_SDL1x_Keys(SDLK_KP4);
-    joykeys[5] = SDL2x_to_SDL1x_Keys(SDLK_KP6);
-    joykeys[6] = SDL2x_to_SDL1x_Keys(SDLK_KP7);
-    joykeys[7] = SDL2x_to_SDL1x_Keys(SDLK_KP8);
-    joykeys[8] = SDL2x_to_SDL1x_Keys(SDLK_KP9);
+    jkeys[0] = SDL2x_to_SDL1x_Keys(SDLK_KP0);
+    jkeys[1] = SDL2x_to_SDL1x_Keys(SDLK_KP1);
+    jkeys[2] = SDL2x_to_SDL1x_Keys(SDLK_KP2);
+    jkeys[3] = SDL2x_to_SDL1x_Keys(SDLK_KP3);
+    jkeys[4] = SDL2x_to_SDL1x_Keys(SDLK_KP4);
+    jkeys[5] = SDL2x_to_SDL1x_Keys(SDLK_KP6);
+    jkeys[6] = SDL2x_to_SDL1x_Keys(SDLK_KP7);
+    jkeys[7] = SDL2x_to_SDL1x_Keys(SDLK_KP8);
+    jkeys[8] = SDL2x_to_SDL1x_Keys(SDLK_KP9);
 }
 
 const char *get_3ds_keyname(int k)
