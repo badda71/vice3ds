@@ -103,10 +103,6 @@ int main_program(int argc, char **argv)
 	
 	lib_init_rand();
 
-	if (log_init() < 0) {
-        archdep_startup_log_error("Cannot startup logging system.\n");
-    }
-
     /* Check for -config and -console before initializing the user interface.
        -config  => use specified configuration file
        -console => no user interface
@@ -135,6 +131,10 @@ int main_program(int argc, char **argv)
     if (archdep_init(&argc, argv) != 0) {
         archdep_startup_log_error("archdep_init failed.\n");
         return -1;
+    }
+
+	if (log_init() < 0) {
+        archdep_startup_log_error("Cannot startup logging system.\n");
     }
 
     if (archdep_vice_atexit(main_exit) != 0) {

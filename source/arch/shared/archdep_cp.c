@@ -23,7 +23,7 @@
  *  02111-1307  USA.
  *
  */
- #include <sys/types.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -35,44 +35,30 @@
 #include "archdep_cp.h"
 
 #define BUFFERSIZE 1024
-#define COPYMOD 0644
+#define MKDIRMOD 0644
 #define PATH_SEP_CHAR '/'
 #define PATH_SEP_STRING "/"
-//#define DEBUG 1
 
 struct stat path_stat;
 int overwrite=1;
 
-/*
-int main (int argc, char **argv,1) {
-	if (argc!=3) return -1;
-	xcopy (argv[1],argv[2],1);
-}
-*/
 static int mkpath(char* file_path, int complete) {
-#ifdef DEBUG
-	log_debug("mkpath %s %d",file_path, complete);
-#endif
-	char* p=file_path;
-	while ((p=strchr(p+1, '/'))) {
+	char* p;
+	for (p=strchr(file_path+1, '/'); p; p=strchr(p+1, '/')) {
 		*p='\0';
-		if (mkdir(file_path, COPYMOD) != 0) {
+		if (mkdir(file_path, MKDIRMOD)==-1) {
 			if (errno!=EEXIST) { *p='/'; return -1; }
 		}
 		*p='/';
 	}
 	if (complete) {
-		mkdir(file_path, COPYMOD);
+		mkdir(file_path, MKDIRMOD);
 	}
-
 	return 0;
 }
 
 static int filecopy (char *src, char *dest)
 {
-#ifdef DEBUG
-	log_debug("filecopy %s %s",src, dest);
-#endif
 	FILE *in_fd, *out_fd;
 	int n_chars;
 	char buf[BUFFERSIZE];
@@ -87,16 +73,13 @@ static int filecopy (char *src, char *dest)
 	{
 		if( fwrite(buf, 1, n_chars, out_fd) != n_chars ) break;
 	}
-	fclose(in_fd);
 	fclose(out_fd);
+	fclose(in_fd);
 	return 0;
 }
 
 static int dircopy(char *src, char *dest)
 {
-#ifdef DEBUG
-	log_debug("dircopy %s %s",src, dest);
-#endif
 	DIR *dir_ptr = NULL;
     struct dirent *direntp;
 	char *newsrc,*newdest;
@@ -134,9 +117,6 @@ static int dircopy(char *src, char *dest)
 // copy src to dest, returns 0 on success, -1 on error
 int xcopy(char *src, char *dest, int overwrt)
 {
-#ifdef DEBUG
-	log_debug("xcopy %s %s %d",src, dest, overwrt);
-#endif
 	overwrite=overwrt;
 	
 	// copy dir or file
