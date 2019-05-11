@@ -136,15 +136,34 @@ ui_menu_action_t ui_dispatch_events(void)
 
     // check 3d slider and adjust emulation speed if necessary
 	static float slider3d = -1.0;
+	static int sliderf=-1;
 	float f;
-	if ((f=osGet3DSliderState())!=slider3d) {
-		slider3d=f;
-		// 0 = 100, 0.8=400, 0.9=0, 1=warp
-		if (f==1.0) resources_set_int("WarpMode", 1);
-		else {
-			resources_set_int("WarpMode", 0);
-			resources_set_int("Speed", f >= 0.9 ? 0 : 100+(int)(f * 375.0));
+	if ((sliderf != slider3d_func && (f=osGet3DSliderState())!=-1) ||
+		(sliderf && (f=osGet3DSliderState())!=slider3d)) {
+		int w=0,s=100;
+		switch (slider3d_func) {
+			case 0:	// off
+				w=0;
+				s=100;
+				break;
+			case 1: // slowdown
+				w=0;
+				s=100-(int)(f * 100.0);
+				if (f == 1.0) ui_pause_emulation(1);
+				if (slider3d == 1.0) ui_pause_emulation(0);
+				break;
+			default: //speedup
+				// 0 = 100, 0.8=400, 0.9=0, 1=warp
+				if (f == 1.0) w=1;
+				else {
+					w=0;
+					s= f >= 0.9 ? 0 : 100+(int)(f * 375.0);
+				}
 		}
+		slider3d=f;
+		sliderf=slider3d_func;
+		resources_set_int("WarpMode", w);
+		resources_set_int("Speed", s);
 	}
 	
 	// check event queue

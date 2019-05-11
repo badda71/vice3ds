@@ -95,11 +95,33 @@ static UI_MENU_CALLBACK(custom_Speed_callback)
     return NULL;
 }
 
+UI_MENU_DEFINE_RADIO(Slider3DFunc)
+
+static const ui_menu_entry_t slider3d_func_submenu[] = {
+    { "None",
+      MENU_ENTRY_RESOURCE_RADIO,
+      radio_Slider3DFunc_callback,
+      (ui_callback_data_t)0 },
+    { "Slowdown",
+      MENU_ENTRY_RESOURCE_RADIO,
+      radio_Slider3DFunc_callback,
+      (ui_callback_data_t)1 },
+    { "Speedup",
+      MENU_ENTRY_RESOURCE_RADIO,
+      radio_Slider3DFunc_callback,
+      (ui_callback_data_t)2 },
+    SDL_MENU_LIST_END
+};
+
 const ui_menu_entry_t speed_menu[] = {
     { "Warp mode",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_WarpMode_callback,
       NULL },
+    { "3D-slider function",
+      MENU_ENTRY_SUBMENU,
+      submenu_radio_callback,
+      (ui_callback_data_t)slider3d_func_submenu },
     SDL_MENU_ITEM_SEPARATOR,
     SDL_MENU_ITEM_TITLE("Refresh rate"),
     { "Automatic",
@@ -163,14 +185,17 @@ const ui_menu_entry_t speed_menu[] = {
     SDL_MENU_LIST_END
 };
 
-
 /* VSID specific speed menu: VSID has no concept of 'RefreshRate' */
 const ui_menu_entry_t speed_menu_vsid[] = {
     { "Warp mode",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_WarpMode_callback,
       NULL },
-    SDL_MENU_ITEM_SEPARATOR,
+    { "3D-slider function",
+      MENU_ENTRY_SUBMENU,
+      submenu_radio_callback,
+      (ui_callback_data_t)slider3d_func_submenu },
+	SDL_MENU_ITEM_SEPARATOR,
     SDL_MENU_ITEM_TITLE("Maximum speed"),
     { "10%",
       MENU_ENTRY_RESOURCE_RADIO,

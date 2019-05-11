@@ -80,6 +80,14 @@ static int refresh_rate;
 /* "Warp mode".  If nonzero, attempt to run as fast as possible. */
 static int warp_mode_enabled;
 
+// 3d-slider function (0=off, 1=Slowdown, 2=Speedup)
+int slider3d_func;
+
+static int set_slider3d_func(int val, void *param)
+{
+    slider3d_func=val;
+    return 0;
+}
 
 static int set_relative_speed(int val, void *param)
 {
@@ -95,9 +103,7 @@ static int set_refresh_rate(int val, void *param)
     if (val < 0) {
         return -1;
     }
-
     refresh_rate = val;
-
     return 0;
 }
 
@@ -118,7 +124,9 @@ static int set_warp_mode(int val, void *param)
 static const resource_int_t resources_int[] = {
     { "Speed", 100, RES_EVENT_SAME, NULL,
       &relative_speed, set_relative_speed, NULL },
-    { "RefreshRate", 0, RES_EVENT_STRICT, (resource_value_t)1,
+    { "Slider3DFunc", 2, RES_EVENT_STRICT, NULL,
+      &slider3d_func, set_slider3d_func, NULL },
+	{ "RefreshRate", 0, RES_EVENT_STRICT, (resource_value_t)1,
       &refresh_rate, set_refresh_rate, NULL },
     { "WarpMode", 0, RES_EVENT_STRICT, (resource_value_t)0,
       /* FIXME: maybe RES_EVENT_NO */
@@ -126,10 +134,11 @@ static const resource_int_t resources_int[] = {
     RESOURCE_INT_LIST_END
 };
 
-
 static const resource_int_t resources_int_vsid[] = {
     { "Speed", 100, RES_EVENT_SAME, NULL,
       &relative_speed, set_relative_speed, NULL },
+    { "Slider3DFunc", 2, RES_EVENT_STRICT, NULL,
+      &slider3d_func, set_slider3d_func, NULL },
     { "WarpMode", 0, RES_EVENT_STRICT, (resource_value_t)0,
       /* FIXME: maybe RES_EVENT_NO */
       &warp_mode_enabled, set_warp_mode, NULL },
