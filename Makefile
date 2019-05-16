@@ -48,7 +48,7 @@ PRODUCT_CODE := CTR-P-VICE
 UNIQUE_ID := 0xFF4BA
 
 BANNER_AUDIO := meta/audio_3ds.wav
-BANNER_IMAGE := meta/banner_3ds.png
+BANNER_IMAGE := meta/banner_3ds.cgfx
 ICON := meta/icon_3ds.png
 Category := Application
 CPU_MODE := 804MHz
