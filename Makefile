@@ -49,6 +49,7 @@ UNIQUE_ID := 0xFF4BA
 
 BANNER_AUDIO := meta/audio_3ds.wav
 BANNER_IMAGE := meta/banner_3ds.cgfx
+LOGO := meta/logo-padded.lz11
 ICON := meta/icon_3ds.png
 Category := Application
 CPU_MODE := 804MHz
