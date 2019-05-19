@@ -27,9 +27,13 @@ BUILD_FLAGS := -DARM11 -D_3DS -D_GNU_SOURCE=1 -O2 -Werror=implicit-function-decl
 LIBRARIES := $(VICELIBS) SDL_image png z citro3d
 
 VERSION_MAJOR := 1
-VERSION_MINOR := 1
+VERSION_MINOR := 2
 VERSION_MICRO := 0
-VERSION := $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_MICRO)
+ifeq ($(VERSION_MICRO),0)
+	VERSION := $(VERSION_MAJOR).$(VERSION_MINOR)
+else
+	VERSION := $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_MICRO)
+endif
 
 # 3DS/Wii U/Switch CONFIGURATION #
 
@@ -54,6 +58,8 @@ ICON := meta/icon_3ds.png
 Category := Application
 CPU_MODE := 804MHz
 ENABLE_L2_CACHE := true
+
+CMD := $(shell gm convert -font "Arial-Narrow" -fill white -draw "font-size 8;text 1,238 'badda71';" -font "Arial" -draw "font-size 9;text 1,229 '$(NAME) $(VERSION)';" meta/vice.png romfs/vice.png)
 
 # TARGET #
 vice3ds: $(VICELIBS_F) all
