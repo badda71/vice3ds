@@ -42,6 +42,7 @@
 #include "uimenu.h"
 #include "util.h"
 #include "vice-event.h"
+#include "archdep_xdg.h"
 
 static int save_disks = 1;
 static int save_roms = 0;
@@ -109,10 +110,23 @@ static UI_MENU_CALLBACK(save_snapshot_slot_callback)
 }
 #endif
 
+static char *quick_fname=NULL;
+
+static void fill_quick_fname()
+{
+	char *fname="snapshot.vsf";
+	if (quick_fname) lib_free(quick_fname);
+	char *s=archdep_xdg_data_home();
+	quick_fname=lib_malloc(strlen(s)+strlen(fname)+2);
+	sprintf(quick_fname,"%s/%s",s,fname);
+	lib_free(s);
+}
+
 static UI_MENU_CALLBACK(quickload_snapshot_callback)
 {
-    if (activated) {
-        if (machine_read_snapshot("snapshot.vsf", 0) < 0) {
+    if (!quick_fname) fill_quick_fname();
+	if (activated) {
+        if (machine_read_snapshot(quick_fname, 0) < 0) {
            snapshot_display_error();
         }
     }
@@ -121,8 +135,9 @@ static UI_MENU_CALLBACK(quickload_snapshot_callback)
 
 static UI_MENU_CALLBACK(quicksave_snapshot_callback)
 {
+    if (!quick_fname) fill_quick_fname();
     if (activated) {
-        if (machine_write_snapshot("snapshot.vsf", save_roms, save_disks, 0) < 0) {
+        if (machine_write_snapshot(quick_fname, save_roms, save_disks, 0) < 0) {
             snapshot_display_error();
         }
     }

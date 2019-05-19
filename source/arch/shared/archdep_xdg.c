@@ -50,7 +50,7 @@ static char *xdg_cache_home = NULL;
 char *archdep_xdg_data_home(void)
 {
     if (xdg_data_home == NULL)
-		xdg_data_home = lib_stralloc("/3ds/vice3ds/data");
+		xdg_data_home = lib_stralloc("/3ds/vice3ds");
 	return xdg_data_home;
 }
 
