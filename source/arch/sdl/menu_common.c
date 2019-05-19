@@ -115,10 +115,11 @@ UI_MENU_CALLBACK(pause_callback)
     int paused = ui_emulation_is_paused();
 
     if (activated) {
-        ui_pause_emulation(!paused);
-        return sdl_menu_text_exit_ui;
+		paused=!paused;
+        ui_pause_emulation(paused);
+//        return sdl_menu_text_exit_ui;
     }
-    return NULL;
+    return paused ? sdl_menu_text_tick : NULL;
 }
 
 UI_MENU_CALLBACK(advance_frame_callback)

@@ -37,6 +37,7 @@
 #include "uiapi.h"
 #include "uimenu.h"
 #include "vsync.h"
+#include "uibottom.h"
 
 /* ----------------------------------------------------------------- */
 /* ui.h */
@@ -54,7 +55,8 @@ static void pause_trap(uint16_t addr, void *data)
 
 void ui_pause_emulation(int flag)
 {
-    if (flag) {
+	uibottom_must_redraw=1;
+	if (flag) {
         ui_display_paused(1);
         is_paused = 1;
         interrupt_maincpu_trigger_trap(pause_trap, 0);
