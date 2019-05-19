@@ -77,6 +77,14 @@ int keyseq_load[][3]={
 	{ 60, SDL_KEYUP  ,  49},
 	{ 10, SDL_KEYDOWN,  13}, //CR
 	{ 60, SDL_KEYUP  ,  13},
+	{100, SDL_KEYDOWN, 114}, //R
+	{ 60, SDL_KEYUP  , 114},
+	{ 10, SDL_KEYDOWN, 117}, //U
+	{ 60, SDL_KEYUP  , 117},
+	{ 10, SDL_KEYDOWN, 110}, //N
+	{ 60, SDL_KEYUP  , 110},
+	{ 10, SDL_KEYDOWN,  13}, //CR
+	{ 60, SDL_KEYUP  ,  13},
 	{  0,           0,   0}
 };
 
@@ -104,7 +112,7 @@ const ui_menu_entry_t misc_menu[] = {
       MENU_ENTRY_OTHER,
       press_runstop_restore_callback,
       NULL },
-    { "LOAD\"*\",8,1",
+    { "LOAD\"*\",8,1 RUN",
       MENU_ENTRY_OTHER,
       type_load_callback,
       NULL },
