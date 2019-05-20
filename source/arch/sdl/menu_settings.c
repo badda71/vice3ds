@@ -29,6 +29,7 @@
 
 #include "vice_sdl.h"
 #include <stdlib.h>
+#include "archdep.h"
 
 #include "joy.h"
 #include "kbd.h"
@@ -114,8 +115,23 @@ static UI_MENU_CALLBACK(load_settings_from_callback)
 static UI_MENU_CALLBACK(default_settings_callback)
 {
     if (activated) {
-        resources_set_defaults();
-        ui_message("Default settings restored.");
+		// copy the default config file to the config directory and restart
+		FILE *s=fopen("romfs:/config/sdl-vicerc", "r");
+		FILE *d=fopen("/3ds/vice3ds/config/sdl-vicerc", "w");
+		if(s!=NULL && d != NULL ) {
+			char buf[256];
+			int i;
+			while( (i = fread(buf, 1, 256, s)) > 0 )
+			{
+				if( fwrite(buf, 1, i, d) != i ) break;
+			}
+			fclose(d);
+			fclose(s);
+			ui_message("Default settings restored - please restart VICE");
+			archdep_vice_exit(0);
+		} else {
+			ui_message("Default settings could not be restored");
+		}
     }
     return NULL;
 }
