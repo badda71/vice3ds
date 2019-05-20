@@ -851,7 +851,7 @@
 /* #undef USE_DXSOUND */
 
 /* Use embedded data files. */
-#define USE_EMBEDDED /**/
+// #define USE_EMBEDDED /**/
 
 /* Enable FLAC support. */
 /* #undef USE_FLAC */
