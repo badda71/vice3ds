@@ -27,6 +27,9 @@
 #include "vice.h"
 #include "menu_common.h"
 #include "log.h"
+#include "lib.h"
+#include "charset.h"
+#include "kbdbuf.h"
 
 static int ui_key_press_sequence (void *param) {
 	int (*keyseq)[3]=param;
@@ -48,45 +51,12 @@ int keyseq_rsrestore[][3]={
 	{0,   0,            0}
 };
 
-int keyseq_load[][3]={
-	{  0, SDL_KEYDOWN, 108}, //L
-	{ 60, SDL_KEYUP  , 108},
-	{ 10, SDL_KEYDOWN, 111}, //O
-	{ 60, SDL_KEYUP  , 111},
-	{ 10, SDL_KEYDOWN,  97}, //A
-	{ 60, SDL_KEYUP  ,  97},
-	{ 10, SDL_KEYDOWN, 100}, //D
-	{ 60, SDL_KEYUP  , 100},
-	{ 10, SDL_KEYDOWN,  21}, //SHIFT
-	{ 10, SDL_KEYDOWN,  50}, //2
-	{ 60, SDL_KEYUP  ,  50},
-	{ 10, SDL_KEYUP  ,  21},
-	{ 10, SDL_KEYDOWN,  42}, //*
-	{ 60, SDL_KEYUP  ,  42},
-	{ 10, SDL_KEYDOWN,  21}, //SHIFT
-	{ 10, SDL_KEYDOWN,  50}, //2
-	{ 60, SDL_KEYUP  ,  50},
-	{ 10, SDL_KEYUP  ,  21},
-	{ 10, SDL_KEYDOWN,  44}, //,
-	{ 60, SDL_KEYUP  ,  44},
-	{ 10, SDL_KEYDOWN,  56}, //8
-	{ 60, SDL_KEYUP  ,  56},
-	{ 10, SDL_KEYDOWN,  44}, //,
-	{ 60, SDL_KEYUP  ,  44},
-	{ 10, SDL_KEYDOWN,  49}, //1
-	{ 60, SDL_KEYUP  ,  49},
-	{ 10, SDL_KEYDOWN,  13}, //CR
-	{ 60, SDL_KEYUP  ,  13},
-	{100, SDL_KEYDOWN, 114}, //R
-	{ 60, SDL_KEYUP  , 114},
-	{ 10, SDL_KEYDOWN, 117}, //U
-	{ 60, SDL_KEYUP  , 117},
-	{ 10, SDL_KEYDOWN, 110}, //N
-	{ 60, SDL_KEYUP  , 110},
-	{ 10, SDL_KEYDOWN,  13}, //CR
-	{ 60, SDL_KEYUP  ,  13},
-	{  0,           0,   0}
-};
+static void kb_feed(char *text) {
+	char *text_in_petscii = lib_stralloc(text);
+	charset_petconvstring((unsigned char*)text_in_petscii, 0);
+	kbdbuf_feed(text_in_petscii);
+	lib_free(text_in_petscii);
+}
 
 static UI_MENU_CALLBACK(press_runstop_restore_callback)
 {
@@ -100,12 +70,12 @@ static UI_MENU_CALLBACK(press_runstop_restore_callback)
 static UI_MENU_CALLBACK(type_load_callback)
 {
     if (activated) {
-		SDL_CreateThread(ui_key_press_sequence, keyseq_load);
+		char *text="lO\"*\",8,1\rrun\r";
+		kb_feed(text);
         return sdl_menu_text_exit_ui;
     }
     return NULL;
 }
-
 
 const ui_menu_entry_t misc_menu[] = {
     { "RUN/STOP + RESTORE",
