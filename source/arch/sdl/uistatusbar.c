@@ -409,10 +409,10 @@ void uistatusbar_draw(void)
 {
     int i, color_f, color_b;
     uint8_t c;
-    menufont = sdl_ui_get_menu_font();
 
 	if (sdl_statusbar && uistatusbar_must_redraw) {
 
+	    if (menufont == NULL) menufont = sdl_ui_get_menu_font();
 		color_f = 0xffffff;
 		color_b = 0x000000;
 

@@ -156,6 +156,7 @@ static int kb_activekey;
 static int sticky=0;
 static int keypressed=-1;
 static SDL_Surface *sbmask=NULL;
+static int lock_updates=0;
 
 static void negativeKey (SDL_Surface *s, int x, int y, int w, int h, SDL_Surface *mask) {
 	for (int yy = y; yy < y+h; yy++)
@@ -171,7 +172,7 @@ static void negativeKey (SDL_Surface *s, int x, int y, int w, int h, SDL_Surface
 			} 
 		}
 	}
-	SDL_UpdateRect(s, x,y,w,h);
+	if (!lock_updates) SDL_UpdateRect(s, x,y,w,h);
 }
 
 static unsigned char keysPressed[256];
@@ -338,44 +339,60 @@ static void sbuttons_update() {
 	}
 }
 
+// init bottom
+static int uibottom_isinit=0;
+static void uibottom_init() {
+	uibottom_isinit=1;
+	SDL_Surface *s=sdl_active_canvas->screen;
+
+	// pre-load some images
+	sbmask=IMG_Load("romfs:/sbmask.png");
+	vice_img = IMG_Load("romfs:/vice.png");
+	kbd_img = IMG_Load("romfs:/keyboard.png");
+
+	// calc global vars
+	bottom_r = (SDL_Rect){ .x = 0, .y = s->h/2, .w = s->w, .h=s->h/2};
+	kb_x_pos = (s->w - uikbd_pos[0][2]) / 2;
+	kb_y_pos = s->h - uikbd_pos[0][3];
+	bs_x_pos = (s->w - 320) / 2;
+	bs_y_pos = s->h - 240;
+
+}
+
 // update the whole bottom screen
 void sdl_uibottom_draw(void)
 {	
 #ifndef UIBOTTOMOFF
 	
 	static void *olds = NULL;
-
-	// init the 3DS bottom screen
-	// keyboard image
 	SDL_Surface *s=sdl_active_canvas->screen;
+
+	// init if needed
+	if (!uibottom_isinit) uibottom_init();
+
 	if (olds != s || uibottom_must_redraw) {
 //log_3ds("Updating bottom screen");
 		uistatusbar_must_redraw=1;
 		olds=s;
 		uibottom_must_redraw=0;
-		bottom_r = (SDL_Rect){ .x = 0, .y = s->h/2, .w = s->w, .h=s->h/2};
-		SDL_FillRect(s, &bottom_r, SDL_MapRGB(s->format, 0x60, 0x60, 0x60));
-
-		// pre-load some images
-		if (sbmask==NULL) sbmask=IMG_Load("romfs:/sbmask.png");
-
-		// display background
-		if (vice_img == NULL)
-			vice_img = IMG_Load("romfs:/vice.png");
+				
+		// display the background image
 		SDL_BlitSurface(vice_img, NULL, s,
 			&(SDL_Rect){.x = (s->w-vice_img->w)/2, .y = 240});
 
 		// display keyboard
-		if (kbd_img == NULL)
-			kbd_img = IMG_Load("romfs:/keyboard.png");
-		kb_x_pos = (s->w - uikbd_pos[0][2]) / 2;
-		kb_y_pos = s->h - uikbd_pos[0][3];
-		bs_x_pos = (s->w - 320) / 2;
-		bs_y_pos = s->h - 240;
-		memset(keysPressed,0,sizeof(keysPressed));
 		updateKeyboard();
+		
+		// update icons on sbuttons
 		sbuttons_update();
+
+		// press the right keys
+		lock_updates=1;
+		memset(keysPressed,0,sizeof(keysPressed));
 		updateKeys();
+		lock_updates=0;
+
+		// update screen
 		SDL_UpdateRect(s, bottom_r.x, bottom_r.y, bottom_r.w, bottom_r.h);
 	}
 	uistatusbar_draw();	
