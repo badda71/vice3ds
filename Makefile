@@ -10,7 +10,7 @@ TARGET := 3DS
 
 # COMMON CONFIGURATION #
 
-NAME := vice3ds
+NAME := vice3DS
 
 BUILD_DIR := build
 OUTPUT_DIR := output

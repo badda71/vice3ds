@@ -28,6 +28,8 @@
 #include "vice.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <3ds.h>
+#include "menu_misc.h"
 
 #include "archdep_atexit.h"
 
@@ -52,5 +54,6 @@ int archdep_vice_atexit(void (*function)(void))
  */
 void archdep_vice_exit(int excode)
 {
-    exit(excode);
+	if (bottom_lcd_off) GSPLCD_PowerOnBacklight(GSPLCD_SCREEN_BOTTOM);
+	exit(excode);
 }

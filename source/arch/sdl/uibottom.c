@@ -36,6 +36,8 @@
 #include <SDL/SDL_image.h>
 #include "kbd.h"
 #include "uifonts.h"
+#include "menu_misc.h"
+#include <3ds.h>
 
 int uikbd_pos[4][4] = {
 	{0,0,320,120},		// normal keys
@@ -416,6 +418,10 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 		// check which button was pressed
 		if (e->button.type != SDL_MOUSEBUTTONDOWN) i=kb_activekey;
 		else {
+			if (bottom_lcd_off) {
+				GSPLCD_PowerOnBacklight(GSPLCD_SCREEN_BOTTOM);
+				bottom_lcd_off=0;
+			}
 			for (i = 0; uikbd_keypos[i].key != 0 ; ++i) {
 				if (x >= uikbd_keypos[i].x + kb_x_pos &&
 					x <  uikbd_keypos[i].x + uikbd_keypos[i].w + kb_x_pos &&

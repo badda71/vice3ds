@@ -30,6 +30,7 @@
 #include "lib.h"
 #include "charset.h"
 #include "kbdbuf.h"
+#include <3ds.h>
 
 static int ui_key_press_sequence (void *param) {
 	int (*keyseq)[3]=param;
@@ -77,6 +78,18 @@ static UI_MENU_CALLBACK(type_load_callback)
     return NULL;
 }
 
+int bottom_lcd_off=0;
+
+static UI_MENU_CALLBACK(type_bottomoff_callback)
+{
+    if (activated) {
+		GSPLCD_PowerOffBacklight(GSPLCD_SCREEN_BOTTOM);
+		bottom_lcd_off=1;
+		return sdl_menu_text_exit_ui;
+    }
+    return NULL;
+}
+
 const ui_menu_entry_t misc_menu[] = {
     { "RUN/STOP + RESTORE",
       MENU_ENTRY_OTHER,
@@ -85,6 +98,10 @@ const ui_menu_entry_t misc_menu[] = {
     { "LOAD\"*\",8,1 RUN",
       MENU_ENTRY_OTHER,
       type_load_callback,
+      NULL },
+    { "Power off bottom screen backlight",
+      MENU_ENTRY_OTHER,
+      type_bottomoff_callback,
       NULL },
     SDL_MENU_LIST_END
 };
