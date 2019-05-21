@@ -45,6 +45,8 @@
 #include "uipoll.h"
 #include "archdep_user_config_path.h"
 #include "archdep_join_paths.h"
+#include "uimsgbox.h"
+#include "archdep_cp.h"
 
 static UI_MENU_CALLBACK(save_settings_callback)
 {
@@ -116,18 +118,34 @@ static UI_MENU_CALLBACK(default_settings_callback)
 {
     if (activated) {
 		// copy the default config file to the config directory and restart
-		FILE *s=fopen("romfs:/config/sdl-vicerc", "r");
-		FILE *d=fopen("/3ds/vice3ds/config/sdl-vicerc", "w");
-		if(s!=NULL && d != NULL ) {
-			char buf[256];
-			int i;
-			while( (i = fread(buf, 1, 256, s)) > 0 )
-			{
-				if( fwrite(buf, 1, i, d) != i ) break;
-			}
-			fclose(d);
-			fclose(s);
+		if (message_box("VICE QUESTION", "Do you really want to restore the default settings? This will overwrite your vicerc-file.", MESSAGE_YESNO) != 0) {
+            return NULL;
+        }
+
+	    char *cfg = archdep_user_config_path();
+	    char *f = archdep_join_paths(cfg, "sdl-vicerc", NULL);
+
+		if (xcopy("romfs:/config/sdl-vicerc", f, 1)==0) {
 			ui_message("Default settings restored - please restart VICE");
+			archdep_vice_exit(0);
+		} else {
+			ui_message("Default settings could not be restored");
+		}
+		lib_free(f);
+    }
+    return NULL;
+}
+
+static UI_MENU_CALLBACK(all_default_settings_callback)
+{
+    if (activated) {
+		// copy the complete config directory to SD-card and restart
+		if (message_box("VICE QUESTION", "Do you really want to restore all the default settings?\nThis will overwrite all your config files including keymaps, joymaps, hotkeys and vicerc.", MESSAGE_YESNO) != 0) {
+            return NULL;
+        }
+
+		if (xcopy("romfs:/config", archdep_user_config_path(), 1)==0) {
+			ui_message("All default settings restored - please restart VICE");
 			archdep_vice_exit(0);
 		} else {
 			ui_message("Default settings could not be restored");
@@ -523,6 +541,10 @@ ui_menu_entry_t settings_manager_menu[] = {
       MENU_ENTRY_OTHER,
       default_settings_callback,
       NULL },
+    { "Restore ALL default settings",
+      MENU_ENTRY_OTHER,
+      all_default_settings_callback,
+      NULL },
     { "Save settings on exit",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_SaveResourcesOnExit_callback,
@@ -628,6 +650,10 @@ ui_menu_entry_t settings_manager_menu_vsid[] = {
     { "Restore default settings",
       MENU_ENTRY_OTHER,
       default_settings_callback,
+      NULL },
+    { "Restore ALL default settings",
+      MENU_ENTRY_OTHER,
+      all_default_settings_callback,
       NULL },
     { "Save settings on exit",
       MENU_ENTRY_RESOURCE_TOGGLE,
