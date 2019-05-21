@@ -138,7 +138,7 @@ static UI_MENU_CALLBACK(default_settings_callback)
 
 static UI_MENU_CALLBACK(all_default_settings_callback)
 {
-    if (activated) {
+	if (activated) {
 		// copy the complete config directory to SD-card and restart
 		if (message_box("VICE QUESTION", "Do you really want to restore all the default settings?\nThis will overwrite all your config files including keymaps, joymaps, hotkeys and vicerc.", MESSAGE_YESNO) != 0) {
             return NULL;
@@ -219,13 +219,13 @@ void uikeyboard_menu_create(void)
         num--;
     }
     memset(entry, 0, sizeof(ui_menu_entry_t));
-    settings_manager_menu[10].data = keyboard_mapping_submenu;
+    settings_manager_menu[11].data = keyboard_mapping_submenu;
 }
 
 
 void uikeyboard_menu_shutdown(void)
 {
-    lib_free(settings_manager_menu[10].data);
+    lib_free(settings_manager_menu[11].data);
 }
 
 
@@ -440,6 +440,7 @@ static UI_MENU_CALLBACK(load_joymap_from_callback)
 UI_MENU_DEFINE_TOGGLE(SaveResourcesOnExit)
 UI_MENU_DEFINE_TOGGLE(ConfirmOnExit)
 
+/*
 static UI_MENU_CALLBACK(custom_ui_keyset_callback)
 {
     SDL_Event e;
@@ -515,7 +516,7 @@ static const ui_menu_entry_t define_ui_keyset_menu[] = {
       custom_ui_keyset_callback,
       (ui_callback_data_t)"MenuKeyMap" },
     SDL_MENU_LIST_END
-};
+};*/
 
 UI_MENU_DEFINE_TOGGLE(SDLKbdStatusbar)
 UI_MENU_DEFINE_TOGGLE(SDLStatusbar)
@@ -620,11 +621,11 @@ ui_menu_entry_t settings_manager_menu[] = {
       load_joymap_callback,
       NULL },
 #endif
-    SDL_MENU_ITEM_SEPARATOR,
+/*    SDL_MENU_ITEM_SEPARATOR,
     { "Define UI keys",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
-      (ui_callback_data_t)define_ui_keyset_menu },
+      (ui_callback_data_t)define_ui_keyset_menu },*/
     SDL_MENU_LIST_END
 };
 

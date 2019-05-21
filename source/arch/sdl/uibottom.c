@@ -35,6 +35,7 @@
 #include "uistatusbar.h"
 #include <SDL/SDL_image.h>
 #include "kbd.h"
+#include "uifonts.h"
 
 int uikbd_pos[4][4] = {
 	{0,0,320,120},		// normal keys
@@ -197,6 +198,7 @@ static void pressKey(int key, int press) {
 }
 
 static void updateKey(int key) {
+	const char *s;
 	if (key<0 || uikbd_keypos[key].key==0) return;
 	int state=0;
 	if (key == keypressed) state=1;
@@ -204,7 +206,9 @@ static void updateKey(int key) {
 	else if (uikbd_keypos[key].flags==1) {
 		ui_menu_entry_t *item;
 		if ((item=sdlkbd_ui_hotkeys[uikbd_keypos[key].key]) != NULL &&
-			item->callback(0, item->data) != NULL) state=1;
+			(s=item->callback(0, item->data)) != NULL &&
+			s[0]==UIFONT_CHECKMARK_CHECKED_CHAR)
+			state=1;
 	}
 	pressKey(key,state);
 }
