@@ -295,7 +295,8 @@ static ui_menu_entry_t *sdlkbd_get_hotkey(SDLKey key, SDLMod mod)
 void sdlkbd_set_hotkey(SDLKey key, SDLMod mod, ui_menu_entry_t *value)
 {
     sdlkbd_ui_hotkeys[sdlkbd_key_mod_to_index(key, mod)] = value;
-	uibottom_must_redraw=1;
+	// repaint the soft buttons just in case the mapping was done there
+	uibottom_must_redraw |= UIB_SBUTTONS;
 }
 
 static void sdlkbd_keyword_clear(void)

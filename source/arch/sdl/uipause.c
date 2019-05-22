@@ -55,7 +55,6 @@ static void pause_trap(uint16_t addr, void *data)
 
 void ui_pause_emulation(int flag)
 {
-	uibottom_must_redraw=1;
 	if (flag) {
         ui_display_paused(1);
         is_paused = 1;
@@ -64,6 +63,9 @@ void ui_pause_emulation(int flag)
         ui_display_paused(0);
         is_paused = 0;
     }
+	// update bottom screen key presses just in case pause is mapped to any key there
+	uibottom_must_redraw |= UIB_KEYPRESS;
+	sdl_uibottom_draw();
 }
 
 int ui_emulation_is_paused(void)

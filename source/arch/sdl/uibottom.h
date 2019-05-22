@@ -23,15 +23,27 @@
  *
  */
 
+// exposed function
 extern void sdl_uibottom_draw(void);
 extern int sdl_uibottom_mouseevent(SDL_Event *);
 
-extern int uibottom_kbdactive;
-extern int uibottom_must_redraw;
-
+// exposed definitions
 typedef struct {
 	int x,y,w,h,key,row,col,sticky,flags;
 	char *name;
 } uikbd_key;
 
+enum bottom_action {
+	UIB_NO = 0,
+	UIB_KEYPRESS_SBUTTONS = 1,
+	UIB_KEYPRESS_KEYBOARD = 2,
+	UIB_KEYPRESS = 3,
+	UIB_SBUTTONS = 4,
+	UIB_KEYBOARD = 8,
+	UIB_ALL = 15,
+};
+
+// exposed variables
 extern uikbd_key uikbd_keypos[];
+extern int uibottom_kbdactive;
+extern enum bottom_action uibottom_must_redraw;

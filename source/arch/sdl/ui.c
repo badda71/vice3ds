@@ -320,14 +320,16 @@ static int set_confirm_on_exit(int val, void *param)
 static int set_sdl_kbd_statusbar(int val, void *param)
 {
     sdl_kbd_statusbar = val ? 1 : 0;
-	uibottom_must_redraw = 1;
+	// statusbar covers the SBUTTON region, so we need to repaint if the statusbar is hidden
+	uibottom_must_redraw |= UIB_SBUTTONS;
     return 0;
 }
 
 static int set_sdl_statusbar(int val, void *param)
 {
     sdl_statusbar = val ? 1 : 0;
-	uibottom_must_redraw = 1;
+	// statusbar covers the SBUTTON region, so we need to repaint if the statusbar is hidden
+	uibottom_must_redraw |= UIB_SBUTTONS;
     return 0;
 }
 

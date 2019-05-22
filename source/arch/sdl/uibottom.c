@@ -143,14 +143,14 @@ uikbd_key uikbd_keypos[] = {
 };
 
 int uibottom_kbdactive = 1;
-int uibottom_must_redraw = 0;
+enum bottom_action uibottom_must_redraw = UIB_NO;
+int uibottom_must_update_key = -1;
 
 #define ICON_W 40
 #define ICON_H 40
 
 static SDL_Surface *vice_img=NULL;
 static SDL_Surface *kbd_img=NULL;
-static SDL_Rect bottom_r;
 static int kb_x_pos = 0;
 static int kb_y_pos = 0;
 static int bs_x_pos = 0;
@@ -161,42 +161,48 @@ static int keypressed=-1;
 static SDL_Surface *sbmask=NULL;
 static int lock_updates=0;
 
-static void negativeKey (SDL_Surface *s, int x, int y, int w, int h, SDL_Surface *mask) {
-	for (int yy = y; yy < y+h; yy++)
-	{
-		for (int xx = x; xx < x+w; xx++)
-		{
-			unsigned char *pixel = s->pixels + s->format->BytesPerPixel * (yy * s->w + xx);  
-			if (mask == NULL ||
-				((unsigned char *)mask->pixels + s->format->BytesPerPixel * ((yy - y) * mask->w + (xx - x)))[0]) {
-				pixel[1] = 255 - pixel[1];
-				pixel[2] = 255 - pixel[2];
-				pixel[3] = 255 - pixel[3];
-			} 
-		}
-	}
-	if (!lock_updates) SDL_UpdateRect(s, x,y,w,h);
-}
-
 static unsigned char keysPressed[256];
+static void sbutton_update(int);
 
 static void pressKey(int key, int press) {
 	if (keysPressed[key]==press) return;
 	keysPressed[key]=press;
+	SDL_Surface *s=sdl_active_canvas->screen;
+	int x,y,w,h;
+
 	if (uikbd_keypos[key].flags==0) {
-		negativeKey(sdl_active_canvas->screen,
-			uikbd_keypos[key].x + kb_x_pos,
-			uikbd_keypos[key].y + kb_y_pos,
-			uikbd_keypos[key].w,
-			uikbd_keypos[key].h, NULL);
+		// negative the key for keyboard keys
+		x=uikbd_keypos[key].x + kb_x_pos;
+		y=uikbd_keypos[key].y + kb_y_pos;
+		w=uikbd_keypos[key].w;
+		h=uikbd_keypos[key].h;
+		for (int yy = y; yy < y+h; yy++)
+		{
+			for (int xx = x; xx < x+w; xx++)
+			{
+				unsigned char *pixel = s->pixels + s->format->BytesPerPixel * (yy * s->w + xx);  
+				pixel[1] = 255 - pixel[1];
+				pixel[2] = 255 - pixel[2];
+				pixel[3] = 255 - pixel[3];
+			}
+		}
 	} else {
-		negativeKey(sdl_active_canvas->screen,
-			uikbd_keypos[key].x + bs_x_pos + (uikbd_keypos[key].w - sbmask->w)/2,
-			uikbd_keypos[key].y + bs_y_pos + (uikbd_keypos[key].h - sbmask->h)/2,
-			sbmask->w,
-			sbmask->h,
-			sbmask);
+		// blit the mask image or background image onto the screen
+		x=uikbd_keypos[key].x + bs_x_pos;
+		y=uikbd_keypos[key].y + bs_y_pos;
+		w=sbmask->w;
+		h=sbmask->h;
+		if (press) {
+			// blit the mask image
+			SDL_BlitSurface(sbmask, NULL, s, &(SDL_Rect){
+				.x = bs_x_pos+uikbd_keypos[key].x,
+				.y = bs_y_pos+uikbd_keypos[key].y});
+		} else {
+			// blit the background + icon
+			sbutton_update(key);
+		}
 	}
+	if (!lock_updates) SDL_UpdateRect(s, x,y,w,h);
 }
 
 static void updateKey(int key) {
@@ -225,8 +231,14 @@ static void updateKeyboard() {
 	SDL_Rect rdest = {
 		.x = kb_x_pos,
 		.y = kb_y_pos};
-	// which keyboard for whick sticky keys?
+
+	// blit background image part
+	SDL_BlitSurface(vice_img,
+		&(SDL_Rect){.x = 0, .y=120 ,.w=320, .h=120},
+		sdl_active_canvas->screen,
+		&rdest);
 	
+	// which keyboard for whick sticky keys?
 	int kb = 
 		sticky == 1 ? 1:
 		sticky == 2 ? 2:
@@ -329,19 +341,30 @@ static SDL_Surface *sbuttons_getIcon(char *name) {
 	return img;
 }
 
-// update the icons on my soft buttons
-static void sbuttons_update() {
-	int i;
+// update one soft button
+static void sbutton_update(int i) {
 	ui_menu_entry_t *item;
 	SDL_Surface *img;
-	for (i = 0; uikbd_keypos[i].key != 0 ; ++i) {
-		if (uikbd_keypos[i].flags != 1) continue;
-		if ((item=sdlkbd_ui_hotkeys[uikbd_keypos[i].key]) == NULL) continue;
-		
-		if ((img = sbuttons_getIcon(item->string)) == NULL) continue;
-		SDL_BlitSurface(img, NULL, sdl_active_canvas->screen, &(SDL_Rect){
-				.x = bs_x_pos+uikbd_keypos[i].x+(uikbd_keypos[i].w - img->w)/2,
-				.y = bs_y_pos+uikbd_keypos[i].y+(uikbd_keypos[i].h - img->h)/2});
+	int x=bs_x_pos+uikbd_keypos[i].x;
+	int y=bs_y_pos+uikbd_keypos[i].y;
+	// blit background image part
+	SDL_BlitSurface(vice_img,
+		&(SDL_Rect){.x = uikbd_keypos[i].x, .y=uikbd_keypos[i].y, .w=uikbd_keypos[i].w, .h=uikbd_keypos[i].h},
+		sdl_active_canvas->screen,
+		&(SDL_Rect){.x = x, .y = y});
+
+	// blit icon
+	if ((item=sdlkbd_ui_hotkeys[uikbd_keypos[i].key]) == NULL) return;	
+	if ((img = sbuttons_getIcon(item->string)) == NULL) return;
+	SDL_BlitSurface(img, NULL, sdl_active_canvas->screen, &(SDL_Rect){
+		.x = x+(uikbd_keypos[i].w - img->w)/2,
+		.y = y+(uikbd_keypos[i].h - img->h)/2});
+}
+
+// update all soft buttons
+static void sbuttons_update() {
+	for (int i = 0; uikbd_keypos[i].key != 0 ; ++i) {
+		if (uikbd_keypos[i].flags == 1) sbutton_update(i);
 	}
 }
 
@@ -357,12 +380,11 @@ static void uibottom_init() {
 	kbd_img = IMG_Load("romfs:/keyboard.png");
 
 	// calc global vars
-	bottom_r = (SDL_Rect){ .x = 0, .y = s->h/2, .w = s->w, .h=s->h/2};
 	kb_x_pos = (s->w - uikbd_pos[0][2]) / 2;
 	kb_y_pos = s->h - uikbd_pos[0][3];
 	bs_x_pos = (s->w - 320) / 2;
 	bs_y_pos = s->h - 240;
-
+	uibottom_must_redraw = UIB_ALL;
 }
 
 // update the whole bottom screen
@@ -378,30 +400,37 @@ void sdl_uibottom_draw(void)
 
 	if (olds != s || uibottom_must_redraw) {
 //log_3ds("Updating bottom screen");
-		uistatusbar_must_redraw=1;
 		olds=s;
-		uibottom_must_redraw=0;
-				
-		// display the background image
-		SDL_BlitSurface(vice_img, NULL, s,
-			&(SDL_Rect){.x = (s->w-vice_img->w)/2, .y = 240});
-
-		// display keyboard
-		updateKeyboard();
+		uistatusbar_must_redraw |= uibottom_must_redraw & UIB_SBUTTONS;
 		
-		// update icons on sbuttons
-		sbuttons_update();
+		// update sbuttons if required
+		if (uibottom_must_redraw & UIB_SBUTTONS)
+			sbuttons_update();
+
+		// update keyboard if required
+		if (uibottom_must_redraw & UIB_KEYBOARD)
+			updateKeyboard();
+		
+		// zero keypress status if we updated anything
+		if (uibottom_must_redraw & (UIB_KEYBOARD | UIB_SBUTTONS))
+			memset(keysPressed,0,sizeof(keysPressed));
 
 		// press the right keys
 		lock_updates=1;
-		memset(keysPressed,0,sizeof(keysPressed));
 		updateKeys();
 		lock_updates=0;
 
 		// update screen
-		SDL_UpdateRect(s, bottom_r.x, bottom_r.y, bottom_r.w, bottom_r.h);
+		SDL_UpdateRect(s, bs_x_pos, bs_y_pos, 320, 240);
+
+		uibottom_must_update_key = -1;
+		uibottom_must_redraw = UIB_NO;
+
+	} else if (uibottom_must_update_key != -1) {
+		updateKey(uibottom_must_update_key);
+		uibottom_must_update_key=-1;
 	}
-	uistatusbar_draw();	
+	uistatusbar_draw();
 	//SDL_Flip(s);
 #endif
 }
@@ -437,14 +466,14 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 					sdl_e.type = sticky & uikbd_keypos[i].sticky ? SDL_KEYDOWN : SDL_KEYUP;
 					sdl_e.key.keysym.unicode = sdl_e.key.keysym.sym = uikbd_keypos[i].key;
 					SDL_PushEvent(&sdl_e);
-					uibottom_must_redraw=1;
+					uibottom_must_redraw |= UIB_KEYBOARD;
 				}
 			} else {
 				sdl_e.type = e->button.type == SDL_MOUSEBUTTONDOWN ? SDL_KEYDOWN : SDL_KEYUP;
 				sdl_e.key.keysym.unicode = sdl_e.key.keysym.sym = uikbd_keypos[i].key;
 				SDL_PushEvent(&sdl_e);
 				keypressed = (e->button.type == SDL_MOUSEBUTTONDOWN) ? i : -1;
-				updateKey(i);
+				uibottom_must_update_key=i;
 			}
 		}
 	}
