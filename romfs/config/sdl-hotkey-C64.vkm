@@ -22,5 +22,5 @@
 236 Snapshot&Quickload snapshot.vsf
 237 Snapshot&Quicksave snapshot.vsf
 238 Drive&True drive emulation
-239 Misc&LOAD"*",8,1 RUN
+239 Misc&Power off bottom screen backlight
 240 Pause

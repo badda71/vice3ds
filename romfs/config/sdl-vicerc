@@ -32,7 +32,6 @@ ConfirmOnExit=1
 DriveLED=1
 SoundDeviceName="ndsp"
 SoundBufferSize=100
-KeymapIndex=2
 SDLBitdepth=32
 SDLLimitMode=1
 SDLWindowWidth=384
