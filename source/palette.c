@@ -226,9 +226,10 @@ int palette_load(const char *file_name, palette_t *palette_return)
         return 0;
     }
 
-    f = sysfile_open(file_name, &complete_path, MODE_READ_TEXT);
+// 3DS change
+//    f = sysfile_open(file_name, &complete_path, MODE_READ_TEXT);
 
-    if (f == NULL) {
+//    if (f == NULL) {
         /* Try to add the extension.  */
         char *tmp = lib_stralloc(file_name);
 
@@ -240,7 +241,7 @@ int palette_load(const char *file_name, palette_t *palette_return)
             log_error(palette_log, "Palette not found: `%s'.", file_name);
             return -1;
         }
-    }
+//    }
 
     log_message(palette_log, "Loading palette `%s'.", complete_path);
     lib_free(complete_path);
