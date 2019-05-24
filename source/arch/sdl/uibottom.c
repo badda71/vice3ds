@@ -445,11 +445,15 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 	if (uibottom_kbdactive) {
 		int i;
 		// check which button was pressed
-		if (e->button.type != SDL_MOUSEBUTTONDOWN) i=kb_activekey;
-		else {
+		if (e->button.type != SDL_MOUSEBUTTONDOWN) {
+			i=kb_activekey;
+			kb_activekey=-1;
+		} else {
 			if (bottom_lcd_off) {
 				GSPLCD_PowerOnBacklight(GSPLCD_SCREEN_BOTTOM);
 				bottom_lcd_off=0;
+				kb_activekey=-1;
+				return 0; // do not further process the event
 			}
 			for (i = 0; uikbd_keypos[i].key != 0 ; ++i) {
 				if (x >= uikbd_keypos[i].x + kb_x_pos &&
@@ -459,7 +463,7 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 			}
 			kb_activekey=i;
 		}
-		if (uikbd_keypos[i].key != 0) { // got a hit
+		if (i != -1 && uikbd_keypos[i].key != 0) { // got a hit
 			if ((f=uikbd_keypos[i].sticky)>0) {	// sticky key!!
 				if (e->button.type == SDL_MOUSEBUTTONDOWN) {
 					sticky = sticky ^ uikbd_keypos[i].sticky;
