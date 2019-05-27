@@ -398,13 +398,6 @@ static inline void uistatusbar_putchar(uint8_t c, int pos_x, int pos_y, int colo
 	}
 }
 
-static void uistatusbar_updateRect()
-{
-	SDL_Surface *s = sdl_active_canvas->screen;
-	SDL_UpdateRect(s, 0, SB_Y, s->w, menufont->h*(sdl_kbd_statusbar?2:1));
-}
-
-
 void uistatusbar_draw(void)
 {
     int i, color_f, color_b;
@@ -446,7 +439,8 @@ void uistatusbar_draw(void)
 			}
 		}
 
-		uistatusbar_updateRect();
+		if (sdl_menu_state || ui_emulation_is_paused())
+			SDL_UpdateRect(sdl_active_canvas->screen, 0, SB_Y, s->w, menufont->h*(sdl_kbd_statusbar?2:1));
 		uistatusbar_must_redraw = 0;
 	}
 }

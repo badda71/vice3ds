@@ -20,15 +20,15 @@ VICELIBS := VICE3DS_SDL
 VICELIBS_F := $(addprefix lib,$(addsuffix .a,$(VICELIBS)))
 VICEINC := $(addsuffix /include,$(VICELIBS))
 INCLUDE_DIRS := $(VICEINC) $(shell find $(SOURCE_DIRS) -type d) /opt/devkitpro/portlibs/3ds/include
-LIBRARY_DIRS := $(VICELIBS) /opt/devkitpro/portlibs/3ds
+LIBRARY_DIRS := $(VICELIBS) /opt/devkitpro/portlibs/3ds $(DEVKITPRO)/libctru
 
 #DEBUG_DEFINES := -DSDL_DEBUG=1 -DDEBUG=1 -DARCHDEP_EXTRA_LOG_CALL=1
-BUILD_FLAGS := -DARM11 -D_3DS -D_GNU_SOURCE=1 -O2 -Werror=implicit-function-declaration -Wno-trigraphs -Wfatal-errors -Wmissing-prototypes -Wshadow -fdata-sections -ffunction-sections -march=armv6k -mfloat-abi=hard -mtp=soft -mtune=mpcore -mword-relocations $(DEBUG_DEFINES)
-LIBRARIES := $(VICELIBS) SDL_image png z citro3d
+BUILD_FLAGS := -O $(DEBUG_DEFINES)
+LIBRARIES := $(VICELIBS) SDL_image png z citro3d ctru
 
 VERSION_MAJOR := 1
 VERSION_MINOR := 2
-VERSION_MICRO := 0
+VERSION_MICRO := 1
 ifeq ($(VERSION_MICRO),0)
 	VERSION := $(VERSION_MAJOR).$(VERSION_MINOR)
 else
@@ -45,9 +45,6 @@ DESCRIPTION := Vice C64 emulator for Nintendo 3DS
 
 # 3DS CONFIGURATION #
 
-LIBRARY_DIRS += $(DEVKITPRO)/libctru
-LIBRARIES += ctru
-
 PRODUCT_CODE := CTR-P-VICE
 UNIQUE_ID := 0xFF4BA
 
@@ -59,16 +56,17 @@ Category := Application
 CPU_MODE := 804MHz
 ENABLE_L2_CACHE := true
 
-CMD := $(shell gm convert -font "Arial-Narrow" -fill white -draw "font-size 8;text 1,238 'badda71';" -font "Arial" -draw "font-size 9;text 1,229 '$(NAME) $(VERSION)';" meta/vice.png romfs/vice.png)
-
 # TARGET #
-vice3ds: $(VICELIBS_F) all
+vice3ds: $(ROMFS_DIR)/vice.png $(VICELIBS_F) all
 
 lib%.a: %/lib/lib%.a
 
 %.a:
 	rm -rf output
 	$(MAKE) -C $(subst lib,,$(notdir $*))
+
+$(ROMFS_DIR)/vice.png: meta/vice.png Makefile
+	gm convert -font "Arial-Narrow" -fill white -draw "font-size 8;text 1,238 'badda71';" -font "Arial" -draw "font-size 9;text 1,229 '$(NAME) $(VERSION)';" $< $(ROMFS_DIR)/vice.png
 
 # INTERNAL #
 

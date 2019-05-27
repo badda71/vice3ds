@@ -205,6 +205,7 @@ ui_menu_action_t ui_dispatch_events(void)
                 break;*/
             case SDL_MOUSEBUTTONDOWN:
             case SDL_MOUSEBUTTONUP:
+//log_3ds("Mousebutton %s",e.type==SDL_MOUSEBUTTONDOWN?"down":"up");
 				retval = sdl_uibottom_mouseevent(&e);
 				//mouse_button((int)(e.button.button), (e.button.state == SDL_PRESSED));
                 break;

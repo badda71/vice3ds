@@ -33,10 +33,11 @@
 #include "log.h"
 #include "videoarch.h"
 #include "uistatusbar.h"
-#include <SDL/SDL_image.h>
 #include "kbd.h"
 #include "uifonts.h"
 #include "menu_misc.h"
+#include "ui.h"
+#include <SDL/SDL_image.h>
 #include <3ds.h>
 
 int uikbd_pos[4][4] = {
@@ -202,7 +203,7 @@ static void pressKey(int key, int press) {
 			sbutton_update(key);
 		}
 	}
-	if (!lock_updates) SDL_UpdateRect(s, x,y,w,h);
+	if (!lock_updates && (sdl_menu_state || ui_emulation_is_paused())) SDL_UpdateRect(s, x,y,w,h);
 }
 
 static void updateKey(int key) {
@@ -421,7 +422,7 @@ void sdl_uibottom_draw(void)
 		lock_updates=0;
 
 		// update screen
-		SDL_UpdateRect(s, bs_x_pos, bs_y_pos, 320, 240);
+		if (sdl_menu_state || ui_emulation_is_paused()) SDL_UpdateRect(s, bs_x_pos, bs_y_pos, 320, 240);
 
 		uibottom_must_update_key = -1;
 		uibottom_must_redraw = UIB_NO;
@@ -471,6 +472,7 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 					sdl_e.key.keysym.unicode = sdl_e.key.keysym.sym = uikbd_keypos[i].key;
 					SDL_PushEvent(&sdl_e);
 					uibottom_must_redraw |= UIB_KEYBOARD;
+					if (sdl_menu_state || ui_emulation_is_paused()) sdl_uibottom_draw();
 				}
 			} else {
 				sdl_e.type = e->button.type == SDL_MOUSEBUTTONDOWN ? SDL_KEYDOWN : SDL_KEYUP;
@@ -478,6 +480,7 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 				SDL_PushEvent(&sdl_e);
 				keypressed = (e->button.type == SDL_MOUSEBUTTONDOWN) ? i : -1;
 				uibottom_must_update_key=i;
+				if (sdl_menu_state || ui_emulation_is_paused()) sdl_uibottom_draw();
 			}
 		}
 	}

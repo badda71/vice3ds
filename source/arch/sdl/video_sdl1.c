@@ -595,7 +595,8 @@ void video_canvas_refresh(struct video_canvas_s *canvas, unsigned int xs, unsign
     if (SDL_MUSTLOCK(canvas->screen)) {
         SDL_UnlockSurface(canvas->screen);
     }
-    SDL_UpdateRect(canvas->screen, xi, yi, w, h);
+//    SDL_UpdateRect(canvas->screen, xi, yi, w, h);
+	SDL_Flip(canvas->screen);
 }
 
 int video_canvas_set_palette(struct video_canvas_s *canvas, struct palette_s *palette)

@@ -150,7 +150,7 @@ SDL_error *SDL_GetErrBuf(void)
 	SDL_error *errbuf;
 
 	errbuf = &SDL_global_error;
-	if ( SDL_Threads ) {
+/*	if ( SDL_Threads ) {
 		int i;
 		Uint32 this_thread;
 
@@ -163,7 +163,7 @@ SDL_error *SDL_GetErrBuf(void)
 			}
 		}
 		SDL_mutexV(thread_lock);
-	}
+	}*/
 	return(errbuf);
 }
 

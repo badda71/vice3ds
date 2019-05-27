@@ -87,7 +87,7 @@ static void N3DSAUD_DeleteDevice(SDL_AudioDevice *device)
 		device->hidden->mixbuf = NULL;
 	}
 	if 	( device->hidden->waveBuf[0].data_vaddr!= NULL ) {
-		linearFree(device->hidden->waveBuf[0].data_vaddr);
+		linearFree((void *)device->hidden->waveBuf[0].data_vaddr);
 		device->hidden->waveBuf[0].data_vaddr = NULL;
 	}
 
@@ -234,7 +234,7 @@ static void N3DSAUD_CloseAudio(_THIS)
 		this->hidden->mixbuf = NULL;
 	}
 	if ( this->hidden->waveBuf[0].data_vaddr!= NULL ) {
-		linearFree(this->hidden->waveBuf[0].data_vaddr);
+		linearFree((void *)this->hidden->waveBuf[0].data_vaddr);
 		this->hidden->waveBuf[0].data_vaddr = NULL;
 	}
 

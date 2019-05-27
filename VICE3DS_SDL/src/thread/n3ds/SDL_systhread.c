@@ -73,10 +73,12 @@ Uint32 SDL_ThreadID(void)
 {
 	//Incompatible with SDL API, this function will NOT return
 	//a valid thread ID when called from the main thread.
+	u32 threadID=0;
 	Thread current = threadGetCurrent();
-	Handle handle = threadGetHandle(current);
-	u32 threadID;
-	svcGetThreadId(&threadID, handle);
+	if (current) {
+		Handle handle = threadGetHandle(current);
+		svcGetThreadId(&threadID, handle);
+	}
 
 	return threadID;
 }
