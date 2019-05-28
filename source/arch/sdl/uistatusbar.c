@@ -440,7 +440,7 @@ void uistatusbar_draw(void)
 		}
 
 		if (sdl_menu_state || ui_emulation_is_paused())
-			SDL_UpdateRect(sdl_active_canvas->screen, 0, SB_Y, s->w, menufont->h*(sdl_kbd_statusbar?2:1));
+			SDL_UpdateRect(sdl_active_canvas->screen, 0, SB_Y, sdl_active_canvas->screen->w, menufont->h*(sdl_kbd_statusbar?2:1));
 		uistatusbar_must_redraw = 0;
 	}
 }
