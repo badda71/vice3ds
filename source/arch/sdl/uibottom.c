@@ -315,9 +315,10 @@ static SDL_Surface *createIcon(char *name) {
 	char *t;
 	for (int i=0; name[i] != 0 && y < maxh; ++i) {
 		c=(name[i] & 0x7f)-32;
-		if (c==0 && x==0) continue;
-		if (c==0) {x=0;++y; continue;}
 		if (c<0) c=0;
+		if (c==0 && x==0) continue;
+		if (c==0 && (((t=strchr(name+i+1,' '))==NULL && y<=maxh-1) || t-name-i > maxw-x)) {
+			x=0;++y; continue;}
 		SDL_BlitSurface(
 			chars,
 			&(SDL_Rect){.x=(c&0x0f)*8, .y=(c>>4)*8, .w=8, .h=8},
@@ -326,7 +327,7 @@ static SDL_Surface *createIcon(char *name) {
 		++x;
 		if (x>=maxw) {
 			x=0;++y;
-			if ((t=strchr(name+i+1,' '))!=NULL) i=t-name;
+			if ((t=strchr(name+i+1,' '))!=NULL && t-name-i-2<(maxw/2)) i=t-name;
 		}
 	}
 	return icon;
