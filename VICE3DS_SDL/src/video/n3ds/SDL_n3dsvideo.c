@@ -460,7 +460,9 @@ int hh= next_pow2(height);
 
 	// Setup the textures
 	C3D_TexInit(&spritesheet_tex, hw, hh, this->hidden->mode);
-	C3D_TexSetFilter(&spritesheet_tex, GPU_NEAREST, GPU_NEAREST);
+	C3D_TexSetFilter(&spritesheet_tex,
+		this->hidden->fitscreen ? GPU_LINEAR : GPU_NEAREST,
+		GPU_NEAREST);
 //	C3D_TexBind(0, &spritesheet_tex);
 	
 	runThread = true;
