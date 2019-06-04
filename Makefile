@@ -35,16 +35,10 @@ else
 	VERSION := $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_MICRO)
 endif
 
-# 3DS/Wii U/Switch CONFIGURATION #
-
-AUTHOR := badda71 <me@badda.de>
-
-# 3DS/Wii U CONFIGURATION #
-
-DESCRIPTION := Vice C64 emulator for Nintendo 3DS
-
 # 3DS CONFIGURATION #
 
+AUTHOR := badda71 <me@badda.de>
+DESCRIPTION := Vice C64 emulator for Nintendo 3DS
 PRODUCT_CODE := CTR-P-VICE
 UNIQUE_ID := 0xFF4BA
 
@@ -56,6 +50,12 @@ Category := Application
 CPU_MODE := 804MHz
 ENABLE_L2_CACHE := true
 
+ifeq (, $(shell which gm))
+	MKVICEPNG := cp -f
+else
+	MKVICEPNG := gm convert -font "Arial-Narrow" -fill white -draw "font-size 8;text 1,238 'badda71';" -font "Arial" -draw "font-size 9;text 1,229 '$(NAME) $(VERSION)';"
+endif
+
 # TARGET #
 vice3ds: $(ROMFS_DIR)/vice.png $(VICELIBS_F) all
 
@@ -66,7 +66,7 @@ lib%.a: %/lib/lib%.a
 	$(MAKE) -C $(subst lib,,$(notdir $*))
 
 $(ROMFS_DIR)/vice.png: meta/vice.png Makefile
-	gm convert -font "Arial-Narrow" -fill white -draw "font-size 8;text 1,238 'badda71';" -font "Arial" -draw "font-size 9;text 1,229 '$(NAME) $(VERSION)';" $< $(ROMFS_DIR)/vice.png
+	$(MKVICEPNG) $< $@
 
 # INTERNAL #
 

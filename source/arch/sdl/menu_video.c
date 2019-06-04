@@ -745,11 +745,25 @@ const ui_menu_entry_t c128_video_menu[] = {
 /* C64 video menu */
 
 const ui_menu_entry_t c64_video_menu[] = {
+/*    { "Size settings",	// 3DS
+      MENU_ENTRY_SUBMENU,
+      submenu_callback,
+      (ui_callback_data_t)vicii_size_menu },
+    { "Restore window size",	// 3DS
+      MENU_ENTRY_OTHER,
+      restore_size_callback,
+      NULL },
+    SDL_MENU_ITEM_SEPARATOR, */
     { "Video cache",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_VICIIVideoCache_callback,
       NULL },
     SDL_MENU_ITEM_SEPARATOR,
+/*    { "VICII border mode",	// 3DS
+      MENU_ENTRY_SUBMENU,
+      submenu_radio_callback,
+      (ui_callback_data_t)vicii_border_menu },
+    SDL_MENU_ITEM_SEPARATOR, */
     { "Color controls",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
