@@ -39,6 +39,7 @@
 #include "uifilereq.h"
 #include "util.h"
 #include "menu_common.h"
+#include <unistd.h>
 
 static menu_draw_t *menu_draw;
 static char *last_selected_file = NULL;
@@ -372,6 +373,8 @@ static char * display_drive_menu(void)
 #define SDL_FILESELECTOR_DIRMODE    IOUTIL_OPENDIR_ALL_FILES
 #endif
 
+#include "persistence.h"
+
 char* sdl_ui_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mode)
 {
     int total, dirs, files, menu_max;
@@ -391,6 +394,8 @@ char* sdl_ui_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mod
     menu_draw = sdl_ui_get_menu_param();
     maxpathlen = ioutil_maxpathlen();
     current_dir = lib_malloc(maxpathlen);
+
+    chdir(persistence_get("cwd","/"));
 
     ioutil_getcwd(current_dir, maxpathlen);
     backup_dir = lib_stralloc(current_dir);
@@ -604,6 +609,8 @@ char* sdl_ui_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mod
         }
     }
     ioutil_closedir(directory);
+    persistence_put("cwd",current_dir);
+
     lib_free(current_dir);
     lib_free(backup_dir);
 
