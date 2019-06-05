@@ -103,30 +103,6 @@ int main_program(int argc, char **argv)
 	
 	lib_init_rand();
 
-    /* Check for -config and -console before initializing the user interface.
-       -config  => use specified configuration file
-       -console => no user interface
-    */
-    DBG(("main:early cmdline(argc:%d)\n", argc));
-    for (i = 0; i < argc; i++) {
-#ifndef __OS2__
-        if ((!strcmp(argv[i], "-console")) || (!strcmp(argv[i], "--console"))) {
-            console_mode = 1;
-            video_disabled_mode = 1;
-        } else
-#endif
-        if ((!strcmp(argv[i], "-config")) || (!strcmp(argv[i], "--config"))) {
-            if ((i + 1) < argc) {
-                vice_config_file = lib_stralloc(argv[++i]);
-            }
-        } else if ((!strcmp(argv[i], "-help")) ||
-                   (!strcmp(argv[i], "--help")) ||
-                   (!strcmp(argv[i], "-h")) ||
-                   (!strcmp(argv[i], "-?"))) {
-            ishelp = 1;
-        }
-    }
-
     DBG(("main:archdep_init(argc:%d)\n", argc));
     if (archdep_init(&argc, argv) != 0) {
         archdep_startup_log_error("archdep_init failed.\n");

@@ -64,8 +64,8 @@ static void archdep_shutdown_extra(void);
  * XXX: this will get fixed once the code in this file is moved into
  *      src/arch/shared
  */
-#include "../shared/archdep_atexit.h"
-#include "../shared/archdep_create_user_config_dir.h"
+#include "archdep_atexit.h"
+#include "archdep_create_user_config_dir.h"
 #include <3ds.h>
 
 sdl_3dsbuttons buttons3ds[] = {

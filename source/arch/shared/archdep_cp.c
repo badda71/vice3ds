@@ -44,17 +44,20 @@ int overwrite=1;
 
 static int mkpath(char* file_path, int complete) {
 	char* p;
-	for (p=strchr(file_path+1, '/'); p; p=strchr(p+1, '/')) {
+
+	for (p=strchr(file_path+1, PATH_SEP_CHAR); p; p=strchr(p+1, PATH_SEP_CHAR)) {
 		*p='\0';
 		if (mkdir(file_path, MKDIRMOD)==-1) {
-			if (errno!=EEXIST) { *p='/'; return -1; }
+			if (errno!=EEXIST) { *p=PATH_SEP_CHAR; goto mkpath_err; }
 		}
-		*p='/';
+		*p=PATH_SEP_CHAR;
 	}
 	if (complete) {
 		mkdir(file_path, MKDIRMOD);
 	}
 	return 0;
+mkpath_err:
+	return 1;
 }
 
 static int filecopy (char *src, char *dest)
@@ -64,18 +67,23 @@ static int filecopy (char *src, char *dest)
 	char buf[BUFFERSIZE];
 
 	// file exists?
-	if (stat(dest, &path_stat) == 0 && overwrite==0) return 0;
-
-	mkpath(dest, 0);
-	if( (in_fd=fopen(src, "r")) == NULL ) return -1;
-	if( (out_fd=fopen(dest, "w")) == NULL ) return -1;
-	while( (n_chars = fread(buf, 1, BUFFERSIZE, in_fd)) > 0 )
+	if (stat(dest, &path_stat) == 0) {
+		if (overwrite==0) goto filecopy_ok;
+	} else {
+		mkpath(dest, 0);
+	}
+	if( (in_fd=fopen(src, "r")) == NULL ) goto filecopy_err;
+	if( (out_fd=fopen(dest, "w")) == NULL ) goto filecopy_err;
+	while( (n_chars = fread(buf, sizeof(char), sizeof(buf), in_fd)) > 0 )
 	{
-		if( fwrite(buf, 1, n_chars, out_fd) != n_chars ) break;
+		if( fwrite(buf, sizeof(char), n_chars, out_fd) != n_chars ) break;
 	}
 	fclose(out_fd);
 	fclose(in_fd);
+filecopy_ok:
 	return 0;
+filecopy_err:
+	return -1;
 }
 
 static int dircopy(char *src, char *dest)
@@ -86,7 +94,7 @@ static int dircopy(char *src, char *dest)
 
 	mkpath(dest, 1);
 
-	if( (dir_ptr = opendir(src)) == NULL ) return -1;
+	if( (dir_ptr = opendir(src)) == NULL ) goto dircopy_err;
 	
 	while( (direntp = readdir(dir_ptr)))
 	{
@@ -106,11 +114,13 @@ static int dircopy(char *src, char *dest)
 		strcat(newdest, direntp->d_name);
 		if (xcopy(newsrc, newdest, overwrite)!=0) {
 			free(newdest);free(newsrc);
-			return -1;
+			goto dircopy_err;
 		}
 		free(newsrc);free(newdest);
 	}
 	return 0;
+dircopy_err:
+	return -1;
 }
 
 
