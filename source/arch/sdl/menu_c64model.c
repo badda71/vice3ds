@@ -40,6 +40,7 @@
 #include "uimenu.h"
 #include "vicii.h"
 #include "uibottom.h"
+#include "videoarch.h"
 
 /* ------------------------------------------------------------------------- */
 /* common */
@@ -51,6 +52,8 @@ static UI_MENU_CALLBACK(custom_C64Model_callback)
     selected = vice_ptr_to_int(param);
 	// this deletes the whole screen - repaint my bottom screen
 	uibottom_must_redraw |= UIB_ALL;
+	// and re-center c64 screen
+	screen_shift=1000;
 
     if (activated) {
         c64model_set(selected);

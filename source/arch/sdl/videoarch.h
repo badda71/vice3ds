@@ -111,6 +111,8 @@ void sdl_ui_consume_mouse_event(SDL_Event *event);
 
 extern uint8_t *draw_buffer_vsid;
 
+extern int screen_shift;
+
 /* Modes of resolution limitation */
 #define SDL_LIMIT_MODE_OFF   0
 #define SDL_LIMIT_MODE_MAX   1

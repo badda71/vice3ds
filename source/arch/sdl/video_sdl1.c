@@ -517,6 +517,8 @@ video_canvas_t *video_canvas_create(video_canvas_t *canvas, unsigned int *width,
     return canvas;
 }
 
+int screen_shift=1000;
+
 void video_canvas_refresh(struct video_canvas_s *canvas, unsigned int xs, unsigned int ys, unsigned int xi, unsigned int yi, unsigned int w, unsigned int h)
 {
     uint8_t *backup;
@@ -551,12 +553,11 @@ void video_canvas_refresh(struct video_canvas_s *canvas, unsigned int xs, unsign
 
 //    h = MIN(h, canvas->height);
 	// calc render size for 3DS topscreen
-	static int shift=1000;
-	if (shift == 1000) shift = yi + h/2 - 120; // 120 = half upper screen size
-	if (shift > yi) {
-		ys = ys + shift - yi;
+	if (screen_shift == 1000) screen_shift = yi + h/2 - 120; // 120 = half upper screen size
+	if (screen_shift > yi) {
+		ys = ys + screen_shift - yi;
 		yi = 0;
-	} else yi = yi - shift;
+	} else yi = yi - screen_shift;
 	h=MIN(h, 240 - yi);
 
     /* FIXME attempt to draw outside canvas */
