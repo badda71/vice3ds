@@ -48,6 +48,7 @@
 #endif
 
 #include "archdep_create_user_config_dir.h"
+#include "archdep_xdg.h"
 
 
 void archdep_create_user_config_dir(void)
@@ -56,19 +57,21 @@ void archdep_create_user_config_dir(void)
 	// from romfs if necessary (do not overwrite)
 
 	char *cfg = archdep_user_config_path();
+	int i;
 
-    if (xcopy("romfs:/config",cfg,0) != 0) {
+	i=xcopy("romfs:/config",cfg,0);
+    if (i != 0) {
         log_error(LOG_ERR, "failed to copy user config dir '%s': %d: %s.",
                 cfg, errno, strerror(errno));
         archdep_vice_exit(1);
 	}		
-/*	
-	if (archdep_mkdir(cfg, 0755) == 0) {
-        return;     // we created the dir
-    } else if (errno != EEXIST) {
-        log_error(LOG_ERR, "failed to create user config dir '%s': %d: %s.",
+    
+	cfg=archdep_join_paths(archdep_xdg_data_home(),"icons",NULL);
+	i=xcopy("romfs:/icons",cfg,0);
+	lib_free(cfg);
+    if (i != 0) {
+        log_error(LOG_ERR, "failed to copy icons dir '%s': %d: %s.",
                 cfg, errno, strerror(errno));
         archdep_vice_exit(1);
-    }
-*/
+	}
 }

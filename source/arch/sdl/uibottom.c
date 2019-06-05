@@ -27,6 +27,7 @@
 #include "uibottom.h"
 #include "archdep_join_paths.h"
 #include "archdep_user_config_path.h"
+#include "archdep_xdg.h"
 #include "lib.h"
 #include "keyboard.h"
 #include "mousedrv.h"
@@ -289,13 +290,16 @@ static void hash_put(char *key, void *val) {
 static SDL_Surface *loadIcon(char *name) {
 	char s[100];
 	int i;
-	strcpy(s,"romfs:/icons/");
-	for(i=strlen(s); i<90 && *name!=0; ++i, ++name) {
-		s[i]=isalnum(*name)?*name:'_';
+	for(i=0; i<95 && name[i]!=0; ++i) {
+		s[i]=isalnum(name[i])?name[i]:'_';
 	}
 	strcpy(s+i,".png");
-//log_3ds("loadIcon: %s",s);
-	return IMG_Load(s);
+	
+	char *fn=archdep_join_paths(archdep_xdg_data_home(),"icons",s,NULL);
+//log_3ds("loadIcon: %s",fn);
+	SDL_Surface *r=IMG_Load(fn);
+	lib_free(fn);
+	return r;
 }
 
 static SDL_Surface *createIcon(char *name) {
