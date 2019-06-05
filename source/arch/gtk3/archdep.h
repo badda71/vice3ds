@@ -51,7 +51,7 @@ char *archdep_get_current_drive(void);
 void archdep_set_current_drive(const char *drive);
 
 /* Virtual keyboard handling */
-int archdep_require_vkbd(void);
+//int archdep_require_vkbd(void);
 
 /* Video chip scaling.  */
 #define ARCHDEP_VICII_DSIZE   1

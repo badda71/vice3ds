@@ -38,7 +38,7 @@
 #include "ui.h"
 #include "uistatusbar.h"
 #include "videoarch.h"
-#include "vkbd.h"
+//#include "vkbd.h"
 #include "vsidui_sdl.h"
 #include "vsyncapi.h"
 
@@ -87,11 +87,10 @@ void vsyncarch_presync(void)
 {
 	ui_dispatch_events();
 
-    if ((sdl_vkbd_state & SDL_VKBD_REPAINT) || (uistatusbar_must_redraw) || (sdl_vsid_state & SDL_VSID_REPAINT)) {
+    if (uistatusbar_must_redraw || (sdl_vsid_state & SDL_VSID_REPAINT)) {
         if (!console_mode) {
             raster_force_repaint(sdl_active_canvas->parent_raster);
         }
-        sdl_vkbd_state &= ~SDL_VKBD_REPAINT;
         uistatusbar_must_redraw = 0;
     }
 

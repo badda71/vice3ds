@@ -57,7 +57,7 @@
 #include "uimenu.h"
 #include "util.h"
 #include "videoarch.h"
-#include "vkbd.h"
+//#include "vkbd.h"
 #include "vsidui_sdl.h"
 #include "vsync.h"
 #include "uibottom.h"

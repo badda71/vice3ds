@@ -270,11 +270,11 @@ FILE *archdep_mkstemp_fd(char **filename, const char *mode)
 #endif
 }
 
-
+/* 3DS
 int archdep_require_vkbd(void)
 {
     return 0;
-}
+}*/
 
 
 static void archdep_shutdown_extra(void)

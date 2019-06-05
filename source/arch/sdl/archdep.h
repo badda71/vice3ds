@@ -49,7 +49,7 @@ extern char *archdep_get_current_drive(void);
 extern void archdep_set_current_drive(const char *drive);
 
 /* Virtual keyboard handling */
-extern int archdep_require_vkbd(void);
+//extern int archdep_require_vkbd(void);
 
 #ifndef BEOS_COMPILE
 /* Video chip scaling.  */

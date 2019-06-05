@@ -51,7 +51,7 @@
 #include "uihotkey.h"
 #include "uimenu.h"
 #include "util.h"
-#include "vkbd.h"
+//#include "vkbd.h"
 #include "uibottom.h"
 #include "autofire.h"
 #include "joystick.h"
@@ -463,7 +463,7 @@ ui_menu_action_t sdlkbd_press(SDLKey key, SDLMod mod)
 #ifdef SDL_DEBUG
     log_debug("%s: %i (%s),%i\n", __func__, key, SDL_GetKeyName(key), mod);
 #endif
-    if (sdl_menu_state || (sdl_vkbd_state & SDL_VKBD_ACTIVE) || (uibottom_kbdactive && key == 0)) {
+    if (sdl_menu_state || (uibottom_kbdactive && key == 0)) {
 		if (key != SDLK_UNKNOWN) {
             for (i = MENU_ACTION_UP; i < MENU_ACTION_NUM; ++i) {
                 if (sdl_ui_menukeys[i] == (int)key) {
@@ -503,7 +503,7 @@ ui_menu_action_t sdlkbd_release(SDLKey key, SDLMod mod)
 #ifdef SDL_DEBUG
     log_debug("%s: %i (%s),%i\n", __func__, key, SDL_GetKeyName(key), mod);
 #endif
-    if ((sdl_vkbd_state & SDL_VKBD_ACTIVE) || (uibottom_kbdactive && key == 0)) {
+    if (uibottom_kbdactive && key == 0) {
         if (key != SDLK_UNKNOWN) {
             for (i = MENU_ACTION_UP; i < MENU_ACTION_NUM; ++i) {
                 if (sdl_ui_menukeys[i] == (int)key) {

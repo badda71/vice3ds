@@ -49,7 +49,7 @@
 #include "util.h"
 #include "video.h"
 #include "videoarch.h"
-#include "vkbd.h"
+//#include "vkbd.h"
 #include "vsidui_sdl.h"
 #include "vsync.h"
 #include "uibottom.h"
@@ -733,14 +733,14 @@ static void sdl_ui_trap(uint16_t addr, void *data)
 /* ------------------------------------------------------------------ */
 /* Readline static functions/variables */
 
-#define PC_VKBD_ACTIVATE VICE_SDLK_F10
-#define PC_VKBD_W 17
-#define PC_VKBD_H 4
+//#define PC_VKBD_ACTIVATE VICE_SDLK_F10
+//#define PC_VKBD_W 17
+//#define PC_VKBD_H 4
 
 
-static int pc_vkbd_pos_x, pc_vkbd_pos_y, pc_vkbd_x, pc_vkbd_y;
+//static int pc_vkbd_pos_x, pc_vkbd_pos_y, pc_vkbd_x, pc_vkbd_y;
 
-
+/*
 static void sdl_ui_readline_vkbd_erase(void)
 {
     int i;
@@ -748,7 +748,7 @@ static void sdl_ui_readline_vkbd_erase(void)
     for (i = 0; i < PC_VKBD_H; ++i) {
         sdl_ui_print("                 ", pc_vkbd_pos_x, pc_vkbd_pos_y + i);
     }
-}
+}*/
 
 static int sdl_ui_readline_input(SDLKey *key, SDLMod *mod, Uint16 *c_uni)
 {
@@ -806,11 +806,11 @@ static int sdl_ui_readline_input(SDLKey *key, SDLMod *mod, Uint16 *c_uni)
                 *key = VICE_SDLK_RETURN;
                 got_key = 1;
                 break;
-            case MENU_ACTION_CANCEL:
+/*            case MENU_ACTION_CANCEL:
             case MENU_ACTION_MAP:
                 *key = PC_VKBD_ACTIVATE;
                 got_key = 1;
-                break;
+                break;*/
             case MENU_ACTION_UP:
             case MENU_ACTION_DOWN:
             default:
@@ -1005,10 +1005,6 @@ void sdl_ui_activate_pre_action(void)
 
     vsync_suspend_speed_eval();
     sound_suspend();
-
-    if (sdl_vkbd_state & SDL_VKBD_ACTIVE) {
-        sdl_vkbd_close();
-    }
 
     if (sdl_vsid_state & SDL_VSID_ACTIVE) {
         sdl_vsid_close();
@@ -1243,7 +1239,7 @@ int sdl_ui_hotkey(ui_menu_entry_t *item)
 char* sdl_ui_readline(const char* previous, int pos_x, int pos_y)
 {
     int i = 0, prev = -1, done = 0, got_key = 0, string_changed = 0, screen_dirty = 1, escaped = 0;
-    int pc_vkbd_state = 0, screen_redraw = 0;
+    int screen_redraw = 0;
     size_t size = 0, max;
     char *new_string = NULL;
     SDLKey key = SDLK_UNKNOWN;
@@ -1253,8 +1249,6 @@ char* sdl_ui_readline(const char* previous, int pos_x, int pos_y)
 
     /* restrict maximum length to screen size, leaving room for the prompt and the cursor*/
     max = menu_draw.max_text_y * menu_draw.max_text_x - pos_x - 1;
-
-    pc_vkbd_state = archdep_require_vkbd();
 
     if (previous) {
         new_string = lib_stralloc(previous);
@@ -1270,8 +1264,8 @@ char* sdl_ui_readline(const char* previous, int pos_x, int pos_y)
         new_string = lib_malloc(max);
         new_string[0] = 0;
     }
-
-    /* set vkbd location away from the prompt */
+/* 3DS
+    // set vkbd location away from the prompt
     if (pos_y < (menu_draw.max_text_y / 2)) {
         pc_vkbd_pos_y = menu_draw.max_text_y - PC_VKBD_H;
     } else {
@@ -1280,7 +1274,7 @@ char* sdl_ui_readline(const char* previous, int pos_x, int pos_y)
     pc_vkbd_pos_x = menu_draw.max_text_x - PC_VKBD_W;
     pc_vkbd_x = 0;
     pc_vkbd_y = 0;
-
+*/
     /* draw previous string (if any), initialize size and cursor position */
     size = i = sdl_ui_print_wrap(new_string, pos_x, &pos_y);
 
@@ -1289,10 +1283,6 @@ char* sdl_ui_readline(const char* previous, int pos_x, int pos_y)
             if ((pos_y * menu_draw.max_text_x + pos_x + i) >= (menu_draw.max_text_y * menu_draw.max_text_x)) {
                 sdl_ui_scroll_screen_up();
                 --pos_y;
-
-                if (pc_vkbd_state) {
-                    screen_redraw = 1;
-                }
             }
 
             sdl_ui_invert_char(pos_x + i, pos_y);
@@ -1353,9 +1343,6 @@ char* sdl_ui_readline(const char* previous, int pos_x, int pos_y)
                 escaped = 1;
             /* fall through */
             case VICE_SDLK_RETURN:
-                if (pc_vkbd_state) {
-                    sdl_ui_readline_vkbd_erase();
-                }
                 sdl_ui_invert_char(pos_x + i, pos_y);
                 done = 1;
                 break;

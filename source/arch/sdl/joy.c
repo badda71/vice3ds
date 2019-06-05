@@ -51,7 +51,7 @@
 #include "util.h"
 #include "uihotkey.h"
 #include "uimenu.h"
-#include "vkbd.h"
+//#include "vkbd.h"
 #include "uibottom.h"
 
 #define DEFAULT_JOYSTICK_THRESHOLD 10000
@@ -845,7 +845,7 @@ static ui_menu_action_t sdljoy_perform_event(sdljoystick_mapping_t *event, int v
 
     autorepeat = MENU_ACTION_NONE;
 
-    if (sdl_menu_state || (sdl_vkbd_state & SDL_VKBD_ACTIVE)) {
+    if (sdl_menu_state) {
         if (event->action == JOYSTICK) {
             switch (event->value.joy[1]) {
                 case 0x01:

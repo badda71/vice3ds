@@ -43,7 +43,7 @@
 #include "ui.h"
 #include "uifilereq.h"
 #include "uimenu.h"
-#include "vkbd.h"
+//#include "vkbd.h"
 #include "vsyncapi.h"
 #include "uibottom.h"
 
@@ -137,6 +137,7 @@ UI_MENU_CALLBACK(advance_frame_callback)
     return NULL;
 }
 
+/* 3DS
 UI_MENU_CALLBACK(vkbd_callback)
 {
     if (activated) {
@@ -144,7 +145,7 @@ UI_MENU_CALLBACK(vkbd_callback)
         return sdl_menu_text_exit_ui;
     }
     return NULL;
-}
+}*/
 
 UI_MENU_CALLBACK(statusbar_callback)
 {

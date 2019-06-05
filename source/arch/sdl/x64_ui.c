@@ -57,7 +57,7 @@
 #include "ui.h"
 #include "uifonts.h"
 #include "uimenu.h"
-#include "vkbd.h"
+//#include "vkbd.h"
 
 static const ui_menu_entry_t x64_main_menu[] = {
     { "Autostart image",
@@ -226,7 +226,7 @@ int c64ui_init(void)
 
     sdl_ui_set_main_menu(x64_main_menu);
     sdl_ui_vicii_font_init();
-    sdl_vkbd_set_vkbd(&vkbd_c64);
+//    sdl_vkbd_set_vkbd(&vkbd_c64);
 
 #ifdef HAVE_FFMPEG
     sdl_menu_ffmpeg_init();
