@@ -38,6 +38,7 @@
 #include "uifonts.h"
 #include "menu_misc.h"
 #include "ui.h"
+#include "palette.h"
 #include <SDL/SDL_image.h>
 #include <3ds.h>
 
@@ -247,6 +248,31 @@ static void updateKeyboard() {
 		sticky >= 4 ? 3:
 		0;
 
+	// do we need to color any keys?
+	if (kb>1) {
+		// color keys "1"-"8" (49-56)
+		for (int i = 0; uikbd_keypos[i].key != 0 ; ++i) {
+			int k=uikbd_keypos[i].key-49;
+			if (k<0 || k>7) continue;
+			if (kb==2) k+=8;
+
+			u8 r=sdl_active_canvas->palette->entries[k].red;
+			u8 g=sdl_active_canvas->palette->entries[k].green;
+			u8 b=sdl_active_canvas->palette->entries[k].blue;
+
+			SDL_FillRect(
+				sdl_active_canvas->screen,
+				&(SDL_Rect){
+					.x = kb_x_pos+uikbd_keypos[i].x,
+					.y = kb_y_pos+uikbd_keypos[i].y,
+					.w = uikbd_keypos[i].w,
+					.h = uikbd_keypos[i].h},
+				SDL_MapRGB(sdl_active_canvas->screen->format, r, g, b)
+			);
+		}
+	}
+	
+	// blit the keyboard
 	SDL_Rect rsrc = {
 		.x = uikbd_pos[kb][0],
 		.y = uikbd_pos[kb][1],

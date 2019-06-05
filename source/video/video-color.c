@@ -50,6 +50,7 @@
 #include "video-canvas.h"
 #include "video-color.h"
 #include "video.h"
+#include "uibottom.h"
 
 uint32_t gamma_red[256 * 3];
 uint32_t gamma_grn[256 * 3];
@@ -921,6 +922,7 @@ int video_color_update_palette(struct video_canvas_s *canvas)
     video_ycbcr_palette_free(ycbcr);
 
     if (palette != NULL) {
+        uibottom_must_redraw |= UIB_KEYBOARD;
         return video_canvas_palette_set(canvas, palette);
     }
 
