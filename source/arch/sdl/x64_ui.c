@@ -54,6 +54,7 @@
 #include "menu_speed.h"
 #include "menu_tape.h"
 #include "menu_video.h"
+#include "menu_help.h"
 #include "ui.h"
 #include "uifonts.h"
 #include "uimenu.h"
@@ -151,10 +152,10 @@ static const ui_menu_entry_t x64_main_menu[] = {
       submenu_callback,
       (ui_callback_data_t)debug_menu },
 #endif
-/*    { "Help",
+    { "Help",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
-      (ui_callback_data_t)help_menu },*/
+      (ui_callback_data_t)help_menu },
     { "Settings management",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
