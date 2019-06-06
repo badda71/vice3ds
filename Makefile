@@ -23,8 +23,8 @@ INCLUDE_DIRS := $(VICEINC) $(shell find $(SOURCE_DIRS) -type d) /opt/devkitpro/p
 LIBRARY_DIRS := $(VICELIBS) /opt/devkitpro/portlibs/3ds $(DEVKITPRO)/libctru
 
 VERSION_MAJOR := 1
-VERSION_MINOR := 2
-VERSION_MICRO := 1
+VERSION_MINOR := 3
+VERSION_MICRO := 0
 ifeq ($(VERSION_MICRO),0)
 	VERSION := $(VERSION_MAJOR).$(VERSION_MINOR)
 else

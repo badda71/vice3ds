@@ -293,7 +293,7 @@ const char info_usage_text[] =
 	"- Power off bottom screen backlight\n"
 	"- Pause emulation\n"
 	"\n"
-	"This (and a lot of other things) can be changed in Vice menu. To change the mapping of a soft button (or actually any other button incl. all the 3DS- and soft keyboard buttons) to a menu item in Vice menu, touch 'M' when the menu item is selected, then touch/press the button. This button will now be mapped to the selcted menu entry.";
+	"This (and a lot of other things) can be changed in Vice menu. To change the mapping of a soft button (or actually any other button incl. all the 3DS- and soft keyboard buttons) to a menu item in Vice menu, touch 'M' when the menu item is selected, then touch/press the button. This button will now be mapped to the selected menu entry.\n";
 
 static UI_MENU_CALLBACK(usage_callback)
 {
