@@ -154,6 +154,7 @@ int uibottom_must_update_key = -1;
 
 static SDL_Surface *vice_img=NULL;
 static SDL_Surface *kbd_img=NULL;
+static SDL_Surface *calcsb_img=NULL;
 static int kb_x_pos = 0;
 static int kb_y_pos = 0;
 static int bs_x_pos = 0;
@@ -165,7 +166,7 @@ static SDL_Surface *sbmask=NULL;
 static int lock_updates=0;
 
 static unsigned char keysPressed[256];
-static void sbutton_update(int);
+static void sbutton_repaint(int);
 
 static void pressKey(int key, int press) {
 	if (keysPressed[key]==press) return;
@@ -202,7 +203,7 @@ static void pressKey(int key, int press) {
 				.y = bs_y_pos+uikbd_keypos[key].y});
 		} else {
 			// blit the background + icon
-			sbutton_update(key);
+			sbutton_repaint(key);
 		}
 	}
 	if (!lock_updates && (sdl_menu_state || ui_emulation_is_paused())) SDL_UpdateRect(s, x,y,w,h);
@@ -230,16 +231,11 @@ static void updateKeys() {
 	}
 }
 
-static void updateKeyboard() {
+// paint the keyboard onto the background
+static void keyboard_paint() {
 	SDL_Rect rdest = {
 		.x = kb_x_pos,
 		.y = kb_y_pos};
-
-	// blit background image part
-	SDL_BlitSurface(vice_img,
-		&(SDL_Rect){.x = 0, .y=120 ,.w=320, .h=120},
-		sdl_active_canvas->screen,
-		&rdest);
 	
 	// which keyboard for whick sticky keys?
 	int kb = 
@@ -337,7 +333,7 @@ static SDL_Surface *createIcon(char *name) {
 		SDL_SetAlpha(chars, 0, 255);
 	}
 	SDL_Surface *icon=SDL_CreateRGBSurface(SDL_SWSURFACE,ICON_W,ICON_H,32,0xff000000,0x00ff0000,0x0000ff00,0x000000ff);
-	SDL_FillRect(icon, NULL, SDL_MapRGBA(icon->format, 0, 0, 0, 0));
+//	SDL_FillRect(icon, NULL, SDL_MapRGBA(icon->format, 0, 0, 0, 0));
 
 	int maxw=ICON_W/8;
 	int maxh=ICON_H/8;
@@ -373,28 +369,37 @@ static SDL_Surface *sbuttons_getIcon(char *name) {
 	return img;
 }
 
-// update one soft button
+// paint one soft button onto my calcsb_img
 static void sbutton_update(int i) {
 	ui_menu_entry_t *item;
 	SDL_Surface *img;
-	int x=bs_x_pos+uikbd_keypos[i].x;
-	int y=bs_y_pos+uikbd_keypos[i].y;
-	// blit background image part
-	SDL_BlitSurface(vice_img,
-		&(SDL_Rect){.x = uikbd_keypos[i].x, .y=uikbd_keypos[i].y, .w=uikbd_keypos[i].w, .h=uikbd_keypos[i].h},
-		sdl_active_canvas->screen,
-		&(SDL_Rect){.x = x, .y = y});
 
 	// blit icon
 	if ((item=sdlkbd_ui_hotkeys[uikbd_keypos[i].key]) == NULL) return;	
 	if ((img = sbuttons_getIcon(item->string)) == NULL) return;
-	SDL_BlitSurface(img, NULL, sdl_active_canvas->screen, &(SDL_Rect){
-		.x = x+(uikbd_keypos[i].w - img->w)/2,
-		.y = y+(uikbd_keypos[i].h - img->h)/2});
+	SDL_BlitSurface(img, NULL, calcsb_img, &(SDL_Rect){
+		.x = uikbd_keypos[i].x + (uikbd_keypos[i].w - img->w)/2,
+		.y = uikbd_keypos[i].y + (uikbd_keypos[i].h - img->h)/2});
 }
 
-// update all soft buttons
-static void sbuttons_update() {
+// paint sbutton to screen - if i==-1 then repaint all
+static void sbutton_repaint(int i) {
+	// blit background image part
+//	SDL_SetClipRect(sdl_active_canvas->screen, &(SDL_Rect){.x = bs_x_pos, .y=bs_y_pos, .w=320, .h=480-kb_y_pos});
+	SDL_BlitSurface(calcsb_img,
+		i == -1 ? NULL : &(SDL_Rect){.x = uikbd_keypos[i].x, .y=uikbd_keypos[i].y, .w=uikbd_keypos[i].w, .h=uikbd_keypos[i].h},
+		sdl_active_canvas->screen,
+		&(SDL_Rect){
+			.x = bs_x_pos + (i==-1?0:uikbd_keypos[i].x),
+			.y = bs_y_pos + (i==-1?0:uikbd_keypos[i].y)});
+//	SDL_SetClipRect(sdl_active_canvas->screen, NULL);
+}
+
+// init calcsb_img and update all soft buttons 
+static void sbuttons_recalc() {
+	SDL_FreeSurface(calcsb_img);
+	calcsb_img = SDL_ConvertSurface(vice_img, vice_img->format, SDL_SWSURFACE);
+
 	for (int i = 0; uikbd_keypos[i].key != 0 ; ++i) {
 		if (uikbd_keypos[i].flags == 1) sbutton_update(i);
 	}
@@ -431,21 +436,27 @@ void sdl_uibottom_draw(void)
 	if (!uibottom_isinit) uibottom_init();
 
 	if (olds != s || uibottom_must_redraw) {
-//log_3ds("Updating bottom screen");
-		olds=s;
-		uistatusbar_must_redraw |= uibottom_must_redraw & UIB_SBUTTONS;
-		
-		// update sbuttons if required
-		if (uibottom_must_redraw & UIB_SBUTTONS)
-			sbuttons_update();
 
-		// update keyboard if required
-		if (uibottom_must_redraw & UIB_KEYBOARD)
-			updateKeyboard();
+		olds=s;
+		uistatusbar_must_redraw |= uibottom_must_redraw & UIB_GET_REPAINT_SBUTTONS;
+
+		// recalc sbuttons if required
+		if (uibottom_must_redraw & UIB_GET_RECALC_SBUTTONS)
+			sbuttons_recalc();
 		
+		// repaint sbuttons if required
+		if (uibottom_must_redraw & UIB_GET_REPAINT_SBUTTONS) {
+			sbutton_repaint(-1);
+		}
+
+		// repaint keyboard if required
+		if (uibottom_must_redraw & UIB_GET_REPAINT_KEYBOARD)
+			keyboard_paint();
+
 		// zero keypress status if we updated anything
-		if (uibottom_must_redraw & (UIB_KEYBOARD | UIB_SBUTTONS))
+		if (uibottom_must_redraw & (UIB_GET_REPAINT_KEYBOARD | UIB_GET_REPAINT_SBUTTONS)) {
 			memset(keysPressed,0,sizeof(keysPressed));
+		}
 
 		// press the right keys
 		lock_updates=1;
@@ -502,7 +513,7 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 					sdl_e.type = sticky & uikbd_keypos[i].sticky ? SDL_KEYDOWN : SDL_KEYUP;
 					sdl_e.key.keysym.unicode = sdl_e.key.keysym.sym = uikbd_keypos[i].key;
 					SDL_PushEvent(&sdl_e);
-					uibottom_must_redraw |= UIB_KEYBOARD;
+					uibottom_must_redraw |= UIB_RECALC_KEYBOARD;
 					if (sdl_menu_state || ui_emulation_is_paused()) sdl_uibottom_draw();
 				}
 			} else {

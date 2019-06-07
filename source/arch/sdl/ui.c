@@ -322,7 +322,7 @@ static int set_sdl_kbd_statusbar(int val, void *param)
 {
     sdl_kbd_statusbar = val ? 1 : 0;
 	// statusbar covers the SBUTTON region, so we need to repaint if the statusbar is hidden
-	uibottom_must_redraw |= UIB_SBUTTONS;
+	uibottom_must_redraw |= UIB_REPAINT_SBUTTONS;
     return 0;
 }
 
@@ -330,7 +330,7 @@ static int set_sdl_statusbar(int val, void *param)
 {
     sdl_statusbar = val ? 1 : 0;
 	// statusbar covers the SBUTTON region, so we need to repaint if the statusbar is hidden
-	uibottom_must_redraw |= UIB_SBUTTONS;
+	uibottom_must_redraw |= UIB_REPAINT_SBUTTONS;
     return 0;
 }
 

@@ -64,7 +64,7 @@ void ui_pause_emulation(int flag)
         is_paused = 0;
     }
 	// update bottom screen key presses just in case pause is mapped to any key there
-	uibottom_must_redraw |= UIB_KEYPRESS;
+	uibottom_must_redraw |= UIB_REPAINT_SBUTTONS;
 	sdl_uibottom_draw();
 }
 

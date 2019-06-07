@@ -112,7 +112,7 @@ static int set_warp_mode(int val, void *param)
 {
     warp_mode_enabled = val ? 1 : 0;
 	// update bottom screen key presses just in case warp mode is mapped to any key there
-	uibottom_must_redraw |= UIB_KEYPRESS;
+	uibottom_must_redraw |= UIB_REPAINT_SBUTTONS;
 
 	sound_set_warp_mode(warp_mode_enabled);
     set_timer_speed(relative_speed);

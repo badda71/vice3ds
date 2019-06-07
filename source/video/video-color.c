@@ -922,7 +922,8 @@ int video_color_update_palette(struct video_canvas_s *canvas)
     video_ycbcr_palette_free(ycbcr);
 
     if (palette != NULL) {
-        uibottom_must_redraw |= UIB_KEYBOARD;
+        // palette changed, recalc and repaint the keyboard
+		uibottom_must_redraw |= UIB_RECALC_KEYBOARD;
         return video_canvas_palette_set(canvas, palette);
     }
 
