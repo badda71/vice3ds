@@ -26,6 +26,7 @@
 // exposed function
 extern void sdl_uibottom_draw(void);
 extern int sdl_uibottom_mouseevent(SDL_Event *);
+extern void toggle_keyboard(void);
 
 // exposed definitions
 typedef struct {

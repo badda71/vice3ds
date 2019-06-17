@@ -482,6 +482,11 @@ ui_menu_action_t sdlkbd_press(SDLKey key, SDLMod mod)
 	if (key == joykeys_autofire[0]) start_autofire(0);
 	if (key == joykeys_autofire[1]) start_autofire(1);
 
+	// toggle keyboard
+	if (key == 255) { // toggle keyboard
+		toggle_keyboard();
+	}
+
     if ((int)(key) == sdl_ui_menukeys[0]) {
         sdl_ui_activate();
         return retval;

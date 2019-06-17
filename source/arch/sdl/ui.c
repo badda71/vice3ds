@@ -215,11 +215,16 @@ ui_menu_action_t ui_dispatch_events(void)
                 /* SDL_EventState(SDL_VIDEORESIZE, SDL_ENABLE); */
                 break;
         }
+
         /* When using the menu or vkbd, pass every meaningful event to the caller */
         if (sdl_menu_state && (retval != MENU_ACTION_NONE) && (retval != MENU_ACTION_NONE_RELEASE)) {
             break;
         }
     }
+	// update bottom screen if needed (and vsync is not doing it)
+	if (uibottom_must_redraw && (sdl_menu_state || ui_emulation_is_paused()))
+		sdl_uibottom_draw();
+
     return retval;
 }
 

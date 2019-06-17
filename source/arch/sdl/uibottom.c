@@ -50,6 +50,7 @@ int uikbd_pos[4][4] = {
 };
 
 uikbd_key uikbd_keypos[] = {
+//	{   1,  1,  30,  20, 255,   0,   0,   0,  0,  "ToggleKB"},  // deactivated right now - must be 255
 	//  x,  y,   w,   h, key, row, col, sticky, flags, name
 	// soft buttons
 	{   0,  0,  64,  60, 231,   0,   0,   0,  1,  "SButton1"},
@@ -152,11 +153,15 @@ int uibottom_must_update_key = -1;
 #define ICON_W 40
 #define ICON_H 40
 
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+
 static SDL_Surface *vice_img=NULL;
 static SDL_Surface *kbd_img=NULL;
 static SDL_Surface *calcsb_img=NULL;
 static int kb_x_pos = 0;
 static int kb_y_pos = 0;
+static int set_kb_y_pos = -10000;
 static int bs_x_pos = 0;
 static int bs_y_pos = 0;
 static int kb_activekey;
@@ -180,7 +185,7 @@ static void pressKey(int key, int press) {
 		y=uikbd_keypos[key].y + kb_y_pos;
 		w=uikbd_keypos[key].w;
 		h=uikbd_keypos[key].h;
-		for (int yy = y; yy < y+h; yy++)
+		for (int yy = y; yy < MIN(y+h,s->h); yy++)
 		{
 			for (int xx = x; xx < x+w; xx++)
 			{
@@ -431,30 +436,39 @@ void sdl_uibottom_draw(void)
 	
 	static void *olds = NULL;
 	SDL_Surface *s=sdl_active_canvas->screen;
+	enum bottom_action uibottom_must_redraw_local;
 
 	// init if needed
 	if (!uibottom_isinit) uibottom_init();
 
 	if (olds != s || uibottom_must_redraw) {
 
+		// needed for mutithreading
+		uibottom_must_redraw_local = uibottom_must_redraw;
+		uibottom_must_redraw = UIB_NO;
+		if (set_kb_y_pos != -10000) {
+			kb_y_pos=set_kb_y_pos;
+			set_kb_y_pos=-10000;
+		}
+		
 		olds=s;
-		uistatusbar_must_redraw |= uibottom_must_redraw & UIB_GET_REPAINT_SBUTTONS;
+		uistatusbar_must_redraw |= uibottom_must_redraw_local & UIB_GET_REPAINT_SBUTTONS;
 
 		// recalc sbuttons if required
-		if (uibottom_must_redraw & UIB_GET_RECALC_SBUTTONS)
+		if (uibottom_must_redraw_local & UIB_GET_RECALC_SBUTTONS)
 			sbuttons_recalc();
 		
 		// repaint sbuttons if required
-		if (uibottom_must_redraw & UIB_GET_REPAINT_SBUTTONS) {
+		if (uibottom_must_redraw_local & UIB_GET_REPAINT_SBUTTONS) {
 			sbutton_repaint(-1);
 		}
 
 		// repaint keyboard if required
-		if (uibottom_must_redraw & UIB_GET_REPAINT_KEYBOARD)
+		if (uibottom_must_redraw_local & UIB_GET_REPAINT_KEYBOARD)
 			keyboard_paint();
 
 		// zero keypress status if we updated anything
-		if (uibottom_must_redraw & (UIB_GET_REPAINT_KEYBOARD | UIB_GET_REPAINT_SBUTTONS)) {
+		if (uibottom_must_redraw_local & (UIB_GET_REPAINT_KEYBOARD | UIB_GET_REPAINT_SBUTTONS)) {
 			memset(keysPressed,0,sizeof(keysPressed));
 		}
 
@@ -467,7 +481,6 @@ void sdl_uibottom_draw(void)
 		if (sdl_menu_state || ui_emulation_is_paused()) SDL_UpdateRect(s, bs_x_pos, bs_y_pos, 320, 240);
 
 		uibottom_must_update_key = -1;
-		uibottom_must_redraw = UIB_NO;
 
 	} else if (uibottom_must_update_key != -1) {
 		updateKey(uibottom_must_update_key);
@@ -514,7 +527,6 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 					sdl_e.key.keysym.unicode = sdl_e.key.keysym.sym = uikbd_keypos[i].key;
 					SDL_PushEvent(&sdl_e);
 					uibottom_must_redraw |= UIB_RECALC_KEYBOARD;
-					if (sdl_menu_state || ui_emulation_is_paused()) sdl_uibottom_draw();
 				}
 			} else {
 				sdl_e.type = e->button.type == SDL_MOUSEBUTTONDOWN ? SDL_KEYDOWN : SDL_KEYUP;
@@ -522,9 +534,30 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 				SDL_PushEvent(&sdl_e);
 				keypressed = (e->button.type == SDL_MOUSEBUTTONDOWN) ? i : -1;
 				uibottom_must_update_key=i;
-				if (sdl_menu_state || ui_emulation_is_paused()) sdl_uibottom_draw();
+				uibottom_must_redraw |= UIB_KEYPRESS_ALL;
 			}
 		}
 	}
 	return 0;
+}
+
+int toggle_keyboard_thread(void *data) {
+	if (kb_y_pos < 440) {
+		for (int i=kb_y_pos; i<=460; i+=10) {
+			set_kb_y_pos=i;
+			uibottom_must_redraw |= UIB_REPAINT_ALL;
+			SDL_Delay(30);
+		}
+	} else {
+		for (int i=kb_y_pos; i>=360; i-=10) {
+			set_kb_y_pos=i;
+			uibottom_must_redraw |= UIB_REPAINT_ALL;
+			SDL_Delay(30);
+		}
+	}
+	return 0;
+}
+
+void toggle_keyboard() {
+	SDL_CreateThread(toggle_keyboard_thread,NULL);
 }
