@@ -171,6 +171,10 @@ ui_menu_action_t ui_dispatch_events(void)
         switch (e.type) {
             case SDL_KEYDOWN:
                 if (e.key.keysym.sym != 0) {
+					if (e.key.keysym.sym == 255) {
+						toggle_keyboard();
+						continue;
+					}
 					ui_display_kbd_status(&e);
 	                retval = sdlkbd_press(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod);
 //log_3ds("Keydown %d",e.key.keysym.sym);

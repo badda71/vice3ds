@@ -761,62 +761,68 @@ static int sdl_ui_readline_input(SDLKey *key, SDLMod *mod, Uint16 *c_uni)
 
 
     do {
-        action = MENU_ACTION_NONE;
-
-        SDL_WaitEvent(&e);
-
-        switch (e.type) {
-            case SDL_KEYDOWN:
-                *key = SDL2x_to_SDL1x_Keys(e.key.keysym.sym);
-                *mod = e.key.keysym.mod;
-                *c_uni = e.key.keysym.unicode;
-                got_key = 1;
-                break;
+		if (SDL_PollEvent(&e)) {
+	        action = MENU_ACTION_NONE;
+			switch (e.type) {
+				case SDL_KEYDOWN:
+					if (e.key.keysym.sym == 255) {
+						toggle_keyboard();
+						break;
+					}
+					*key = SDL2x_to_SDL1x_Keys(e.key.keysym.sym);
+					*mod = e.key.keysym.mod;
+					*c_uni = e.key.keysym.unicode;
+					got_key = 1;
+					break;
 
 #ifdef HAVE_SDL_NUMJOYSTICKS
-            case SDL_JOYAXISMOTION:
-                action = sdljoy_axis_event(e.jaxis.which, e.jaxis.axis, e.jaxis.value);
-                break;
-            case SDL_JOYBUTTONDOWN:
-                action = sdljoy_button_event(e.jbutton.which, e.jbutton.button, 1);
-                break;
-            case SDL_JOYHATMOTION:
-                action = sdljoy_hat_event(e.jhat.which, e.jhat.hat, e.jhat.value);
-                break;
+				case SDL_JOYAXISMOTION:
+					action = sdljoy_axis_event(e.jaxis.which, e.jaxis.axis, e.jaxis.value);
+					break;
+				case SDL_JOYBUTTONDOWN:
+					action = sdljoy_button_event(e.jbutton.which, e.jbutton.button, 1);
+					break;
+				case SDL_JOYHATMOTION:
+					action = sdljoy_hat_event(e.jhat.which, e.jhat.hat, e.jhat.value);
+					break;
 #endif
-			case SDL_MOUSEBUTTONDOWN:
-			case SDL_MOUSEBUTTONUP:
-				sdl_uibottom_mouseevent(&e);
-				break;
-			default:
-                ui_handle_misc_sdl_event(e);
-                break;
-        }
+				case SDL_MOUSEBUTTONDOWN:
+				case SDL_MOUSEBUTTONUP:
+					sdl_uibottom_mouseevent(&e);
+					break;
+				default:
+					ui_handle_misc_sdl_event(e);
+					break;
+			}
 
-        switch (action) {
-            case MENU_ACTION_LEFT:
-                *key = VICE_SDLK_LEFT;
-                got_key = 1;
-                break;
-            case MENU_ACTION_RIGHT:
-                *key = VICE_SDLK_RIGHT;
-                got_key = 1;
-                break;
-            case MENU_ACTION_SELECT:
-                *key = VICE_SDLK_RETURN;
-                got_key = 1;
-                break;
-/*            case MENU_ACTION_CANCEL:
-            case MENU_ACTION_MAP:
-                *key = PC_VKBD_ACTIVATE;
-                got_key = 1;
-                break;*/
-            case MENU_ACTION_UP:
-            case MENU_ACTION_DOWN:
-            default:
-                break;
-        }
+			switch (action) {
+				case MENU_ACTION_LEFT:
+					*key = VICE_SDLK_LEFT;
+					got_key = 1;
+					break;
+				case MENU_ACTION_RIGHT:
+					*key = VICE_SDLK_RIGHT;
+					got_key = 1;
+					break;
+				case MENU_ACTION_SELECT:
+					*key = VICE_SDLK_RETURN;
+					got_key = 1;
+					break;
+	/*            case MENU_ACTION_CANCEL:
+				case MENU_ACTION_MAP:
+					*key = PC_VKBD_ACTIVATE;
+					got_key = 1;
+					break;*/
+				case MENU_ACTION_UP:
+				case MENU_ACTION_DOWN:
+				default:
+					break;
+			}
+		}
+		// update bottom screen if needed
+		if (uibottom_must_redraw) sdl_uibottom_draw();
 
+		SDL_Delay(20);
     } while (!got_key);
 
     return got_key;

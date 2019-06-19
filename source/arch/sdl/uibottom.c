@@ -583,19 +583,12 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 				keypressed = (e->button.type == SDL_MOUSEBUTTONDOWN) ? i : -1;
 				uibottom_must_update_key=i;
 				uibottom_must_redraw |= UIB_KEYPRESS_ALL;
-
-				// toggle keyboard or push event
-				if (uikbd_keypos[i].key == 255) {
-					if (e->button.type == SDL_MOUSEBUTTONDOWN) toggle_keyboard();
-				} else {
-					SDL_PushEvent(&sdl_e);
-				}
+				SDL_PushEvent(&sdl_e);
 			}
 		}
 	}
 	return 0;
 }
-
 
 #define STEP 5
 #define DELAY 10

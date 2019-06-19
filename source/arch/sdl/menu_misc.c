@@ -61,6 +61,14 @@ static UI_MENU_CALLBACK(keystroke_callback)
     return NULL;
 }
 
+static UI_MENU_CALLBACK(keystroke_callback_noexit)
+{
+	if (activated) {
+		SDL_CreateThread(ui_key_press_sequence, (int(*)[3])param);
+    }
+    return NULL;
+}
+
 static UI_MENU_CALLBACK(command_callback)
 {
 	if (activated) {
@@ -86,6 +94,13 @@ const ui_menu_entry_t misc_menu[] = {
 		MENU_ENTRY_OTHER,
 		bottomoff_callback,
 		NULL },
+	{ "Toggle hide keyboard",
+		MENU_ENTRY_OTHER,
+		keystroke_callback_noexit,
+		(ui_callback_data_t)((int[][3]){
+		{0,  SDL_KEYDOWN,  255},
+		{50, SDL_KEYUP,    255},
+		{0,   0,            0}})},
     SDL_MENU_ITEM_SEPARATOR,
     SDL_MENU_ITEM_TITLE("Commands"),
     { "LOAD\"*\",8,1 RUN",
@@ -127,6 +142,27 @@ const ui_menu_entry_t misc_menu[] = {
 		(ui_callback_data_t)((int[][3]){
 		{0,   SDL_KEYDOWN,  13},
 		{150, SDL_KEYUP,    13},
+		{0,   0,            0}})},
+	{ "Y",
+		MENU_ENTRY_OTHER,
+		keystroke_callback,
+		(ui_callback_data_t)((int[][3]){
+		{0,   SDL_KEYDOWN, 121},
+		{150, SDL_KEYUP,   121},
+		{0,   0,            0}})},
+	{ "N",
+		MENU_ENTRY_OTHER,
+		keystroke_callback,
+		(ui_callback_data_t)((int[][3]){
+		{0,   SDL_KEYDOWN, 121},
+		{150, SDL_KEYUP,   121},
+		{0,   0,            0}})},
+	{ "0",
+		MENU_ENTRY_OTHER,
+		keystroke_callback,
+		(ui_callback_data_t)((int[][3]){
+		{0,   SDL_KEYDOWN,  48},
+		{150, SDL_KEYUP,    48},
 		{0,   0,            0}})},
 	SDL_MENU_LIST_END
 };

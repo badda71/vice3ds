@@ -96,6 +96,11 @@ SDL_Event sdl_ui_poll_event(const char *what, const char *target, int options, i
         while (polling && SDL_PollEvent(&e)) {
             switch (e.type) {
                 case SDL_KEYDOWN:
+					if (e.key.keysym.sym == 255) {
+log_3ds("toggle keyboard");
+						toggle_keyboard();
+						break;
+					}
                     if (allow_keyboard && (allow_modifier || is_not_modifier(e.key.keysym.sym)) && e.key.keysym.sym!=0) {
                         polling = 0;
                     }
@@ -126,10 +131,10 @@ SDL_Event sdl_ui_poll_event(const char *what, const char *target, int options, i
                     break;
             }
         }
-        SDL_Delay(20);
-
 		// update bottom screen if needed
 		if (uibottom_must_redraw) sdl_uibottom_draw();
+
+		SDL_Delay(20);
 
         if ((timeout > 0) && (++count == 1000 / 20)) {
             count = 0;
