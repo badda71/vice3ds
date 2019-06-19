@@ -26,10 +26,11 @@
  */
 
 #include "vice.h"
+#include "vice_sdl.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <3ds.h>
-#include "menu_misc.h"
+#include "uibottom.h"
 
 #include "archdep_atexit.h"
 

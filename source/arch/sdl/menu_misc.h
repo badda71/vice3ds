@@ -30,6 +30,5 @@
 #include "uimenu.h"
 
 extern const ui_menu_entry_t misc_menu[];
-extern int bottom_lcd_off;
 
 #endif

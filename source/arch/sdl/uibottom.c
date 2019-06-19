@@ -157,10 +157,13 @@ uikbd_key uikbd_keypos[] = {
 	{   0,  0,   0,   0,   0,   0,   0,   0,  0,  ""}
 };
 
+// exposed variables
 int uibottom_kbdactive = 1;
 enum bottom_action uibottom_must_redraw = UIB_NO;
 int uibottom_must_update_key = -1;
+int bottom_lcd_off=0;
 
+// internal variables
 #define ICON_W 40
 #define ICON_H 40
 

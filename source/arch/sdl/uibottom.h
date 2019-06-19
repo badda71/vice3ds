@@ -58,3 +58,4 @@ enum bottom_action {
 extern uikbd_key uikbd_keypos[];
 extern int uibottom_kbdactive;
 extern enum bottom_action uibottom_must_redraw;
+extern int bottom_lcd_off;
