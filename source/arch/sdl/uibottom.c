@@ -596,18 +596,21 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 	return 0;
 }
 
+
+#define STEP 5
+#define DELAY 10
 int toggle_keyboard_thread(void *data) {
 	if (kb_y_pos < 480) {
-		for (int i=kb_y_pos; i<=480; i+=10) {
+		for (int i=kb_y_pos; i<=480; i+=STEP) {
 			set_kb_y_pos=i;
 			uibottom_must_redraw |= UIB_REPAINT_ALL;
-			SDL_Delay(30);
+			SDL_Delay(DELAY);
 		}
 	} else {
-		for (int i=kb_y_pos; i>=480-uikbd_pos[0][3]; i-=10) {
+		for (int i=kb_y_pos; i>=480-uikbd_pos[0][3]; i-=STEP) {
 			set_kb_y_pos=i;
 			uibottom_must_redraw |= UIB_REPAINT_ALL;
-			SDL_Delay(30);
+			SDL_Delay(DELAY);
 		}
 	}
 	return 0;
