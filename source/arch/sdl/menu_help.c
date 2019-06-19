@@ -292,8 +292,18 @@ const char info_usage_text[] =
 	"- Toggle True Drive Emulation\n"
 	"- Power off bottom screen backlight\n"
 	"- Pause emulation\n"
+	"- Attach disk image to drive 8\n"
+	"- Toggle Sprite-Sprite collisions\n"
+	"- Toggle Sprite-Background collisions\n"
+	"- Type command: LOAD\"*\",8,1 RUN\n"
+	"- Type command: LOAD\"$\",8 LIST\n"
+	"- Hit RUN/STOP\n"
+	"- Hit SPACE\n"
+	"- Hit RETURN\n"
+	"- Press PLAY on tape drive\n"
+	"- Press STOP on tape drive\n"
 	"\n"
-	"This (and a lot of other things) can be changed in Vice menu. To change the mapping of a soft button (or actually any other button incl. all the 3DS- and soft keyboard buttons) to a menu item in Vice menu, touch 'M' when the menu item is selected, then touch/press the button. This button will now be mapped to the selected menu entry.\n";
+	"This (and a lot of other things) can be changed in Vice menu. To change the mapping of a soft button (or actually any other button incl. all the 3DS- and soft keyboard buttons) to a menu item in Vice menu, press the ZL-button when the menu item is selected, then touch/press the button. This button will now be mapped to the selected menu entry.\n";
 
 static UI_MENU_CALLBACK(usage_callback)
 {
