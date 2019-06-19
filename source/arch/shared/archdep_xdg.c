@@ -25,7 +25,6 @@
  *  02111-1307  USA.
  *
  */
-
 #include "vice.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,48 +36,21 @@
 
 #include "archdep_xdg.h"
 
-static char *xdg_data_home = NULL;
-static char *xdg_config_home = NULL;
-static char *xdg_cache_home = NULL;
+static char *xdg_data_home = "/3ds/vice3ds";
+static char *xdg_config_home = "/3ds/vice3ds/config";
+static char *xdg_cache_home = "/3ds/vice3ds/cache";
 
-/** \brief  Get XDG_DATA_HOME
- *
- * Either returns the value of $XDG_DATA_HOME or the default $HOME/.local/share
- *
- * \return  heap-allocated string, free with lib_free()
- */
 char *archdep_xdg_data_home(void)
 {
-    if (xdg_data_home == NULL)
-		xdg_data_home = lib_stralloc("/3ds/vice3ds");
 	return xdg_data_home;
 }
 
-
-/** \brief  Get XDG_CONFIG_HOME
- *
- * Either returns the value of $XDG_CONFIG_HOME or the default $HOME/.config
- *
- * \return  heap-allocated string, free with lib_free()
- */
 char *archdep_xdg_config_home(void)
 {
-    if (xdg_config_home == NULL)
-		xdg_config_home = lib_stralloc("/3ds/vice3ds/config");
-//		xdg_config_home = lib_stralloc("romfs:");
 	return xdg_config_home;
 }
 
-
-/** \brief  Get XDG_CACHE_HOME
- *
- * Either returns the value of $XDG_CACHE_HOME or the default $HOME/.cache
- *
- * \return  heap-allocated string, free with lib_free()
- */
 char *archdep_xdg_cache_home(void)
 {
-    if (xdg_cache_home == NULL)
-		xdg_cache_home = lib_stralloc("/3ds/vice3ds/cache");
 	return xdg_cache_home;
 }

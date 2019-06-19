@@ -119,7 +119,6 @@ static void fill_quick_fname()
 	char *s=archdep_xdg_data_home();
 	quick_fname=lib_malloc(strlen(s)+strlen(fname)+2);
 	sprintf(quick_fname,"%s/%s",s,fname);
-	lib_free(s);
 }
 
 static UI_MENU_CALLBACK(quickload_snapshot_callback)

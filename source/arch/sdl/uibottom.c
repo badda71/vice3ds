@@ -50,7 +50,7 @@ int uikbd_pos[4][4] = {
 };
 
 uikbd_key uikbd_keypos[] = {
-//	{   1,  1,  30,  20, 255,   0,   0,   0,  0,  "ToggleKB"},  // deactivated right now - must be 255
+	{   0,-10,  36,  10, 255,   0,   0,   0,  0,  "ToggleKB"},
 	//  x,  y,   w,   h, key, row, col, sticky, flags, name
 	// soft buttons
 	{   0,  0,  64,  60, 231,   0,   0,   0,  1,  "SButton1"},
@@ -63,6 +63,16 @@ uikbd_key uikbd_keypos[] = {
 	{ 128, 60,  64,  60, 238,   0,   0,   0,  1,  "SButton8"},
 	{ 192, 60,  64,  60, 239,   0,   0,   0,  1,  "SButton9"},
 	{ 256, 60,  64,  60, 240,   0,   0,   0,  1,  "SButton10"},
+	{   0,120,  64,  60, 241,   0,   0,   0,  1,  "SButton11"},
+	{  64,120,  64,  60, 242,   0,   0,   0,  1,  "SButton12"},
+	{ 128,120,  64,  60, 243,   0,   0,   0,  1,  "SButton13"},
+	{ 192,120,  64,  60, 244,   0,   0,   0,  1,  "SButton14"},
+	{ 256,120,  64,  60, 245,   0,   0,   0,  1,  "SButton15"},
+	{   0,180,  64,  60, 246,   0,   0,   0,  1,  "SButton16"},
+	{  64,180,  64,  60, 247,   0,   0,   0,  1,  "SButton17"},
+	{ 128,180,  64,  60, 248,   0,   0,   0,  1,  "SButton18"},
+	{ 192,180,  64,  60, 249,   0,   0,   0,  1,  "SButton19"},
+	{ 256,180,  64,  60, 250,   0,   0,   0,  1,  "SButton20"},
 	// F-Keys
 	{  81,  1,  30,  20, 133,   0,   4,   0,  0,  "F1"}, // F1
 	{ 111,  1,  30,  20, 137,   0,   4,   0,  0,  "F2"}, // F2
@@ -159,6 +169,9 @@ int uibottom_must_update_key = -1;
 static SDL_Surface *vice_img=NULL;
 static SDL_Surface *kbd_img=NULL;
 static SDL_Surface *calcsb_img=NULL;
+static SDL_Surface *twistyup_img=NULL;
+static SDL_Surface *twistydn_img=NULL;
+
 static int kb_x_pos = 0;
 static int kb_y_pos = 0;
 static int set_kb_y_pos = -10000;
@@ -180,7 +193,7 @@ static void pressKey(int key, int press) {
 	int x,y,w,h;
 
 	if (uikbd_keypos[key].flags==0) {
-		// negative the key for keyboard keys
+		// keyboard key - negative the key
 		x=uikbd_keypos[key].x + kb_x_pos;
 		y=uikbd_keypos[key].y + kb_y_pos;
 		w=uikbd_keypos[key].w;
@@ -196,11 +209,13 @@ static void pressKey(int key, int press) {
 			}
 		}
 	} else {
-		// blit the mask image or background image onto the screen
+		// soft button - blit the mask image or background image onto the screen
 		x=uikbd_keypos[key].x + bs_x_pos;
 		y=uikbd_keypos[key].y + bs_y_pos;
 		w=sbmask->w;
 		h=sbmask->h;
+		// set a clipping rectangle to exlude the keyboard
+		SDL_SetClipRect(s, &(SDL_Rect){.x = bs_x_pos, .y=bs_y_pos, .w=320, .h=kb_y_pos-240});
 		if (press) {
 			// blit the mask image
 			SDL_BlitSurface(sbmask, NULL, s, &(SDL_Rect){
@@ -210,6 +225,7 @@ static void pressKey(int key, int press) {
 			// blit the background + icon
 			sbutton_repaint(key);
 		}
+		SDL_SetClipRect(s, NULL);
 	}
 	if (!lock_updates && (sdl_menu_state || ui_emulation_is_paused())) SDL_UpdateRect(s, x,y,w,h);
 }
@@ -390,14 +406,12 @@ static void sbutton_update(int i) {
 // paint sbutton to screen - if i==-1 then repaint all
 static void sbutton_repaint(int i) {
 	// blit background image part
-//	SDL_SetClipRect(sdl_active_canvas->screen, &(SDL_Rect){.x = bs_x_pos, .y=bs_y_pos, .w=320, .h=480-kb_y_pos});
 	SDL_BlitSurface(calcsb_img,
 		i == -1 ? NULL : &(SDL_Rect){.x = uikbd_keypos[i].x, .y=uikbd_keypos[i].y, .w=uikbd_keypos[i].w, .h=uikbd_keypos[i].h},
 		sdl_active_canvas->screen,
 		&(SDL_Rect){
 			.x = bs_x_pos + (i==-1?0:uikbd_keypos[i].x),
 			.y = bs_y_pos + (i==-1?0:uikbd_keypos[i].y)});
-//	SDL_SetClipRect(sdl_active_canvas->screen, NULL);
 }
 
 // init calcsb_img and update all soft buttons 
@@ -410,6 +424,18 @@ static void sbuttons_recalc() {
 	}
 }
 
+// paint the right twisty at the right place
+void paint_twisty() {
+	SDL_BlitSurface(
+		kb_y_pos >= 480 ? twistyup_img: twistydn_img,
+		NULL,
+		sdl_active_canvas->screen,
+		&(SDL_Rect){
+			.x = kb_x_pos,
+			.y = kb_y_pos - twistyup_img->h}
+	);
+}
+
 // init bottom
 static int uibottom_isinit=0;
 static void uibottom_init() {
@@ -420,6 +446,8 @@ static void uibottom_init() {
 	sbmask=IMG_Load("romfs:/sbmask.png");
 	vice_img = IMG_Load("romfs:/vice.png");
 	kbd_img = IMG_Load("romfs:/keyboard.png");
+	twistyup_img = IMG_Load("romfs:/kbd_twistyup.png");
+	twistydn_img = IMG_Load("romfs:/kbd_twistydn.png");
 
 	// calc global vars
 	kb_x_pos = (s->w - uikbd_pos[0][2]) / 2;
@@ -477,6 +505,9 @@ void sdl_uibottom_draw(void)
 		updateKeys();
 		lock_updates=0;
 
+		// paint the twisty
+		paint_twisty();
+
 		// update screen
 		if (sdl_menu_state || ui_emulation_is_paused()) SDL_UpdateRect(s, bs_x_pos, bs_y_pos, 320, 240);
 
@@ -484,6 +515,9 @@ void sdl_uibottom_draw(void)
 
 	} else if (uibottom_must_update_key != -1) {
 		updateKey(uibottom_must_update_key);
+		if (uikbd_keypos[uibottom_must_update_key].flags == 1) {
+			paint_twisty();
+		}
 		uibottom_must_update_key=-1;
 	}
 	uistatusbar_draw();
@@ -512,15 +546,25 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 				return 0; // do not further process the event
 			}
 			for (i = 0; uikbd_keypos[i].key != 0 ; ++i) {
-				if (x >= uikbd_keypos[i].x + kb_x_pos &&
-					x <  uikbd_keypos[i].x + uikbd_keypos[i].w + kb_x_pos &&
-					y >= uikbd_keypos[i].y + (uikbd_keypos[i].flags==0?kb_y_pos:bs_y_pos) &&
-					y <  uikbd_keypos[i].y + uikbd_keypos[i].h + (uikbd_keypos[i].flags==0?kb_y_pos:bs_y_pos)) break;
+				if (uikbd_keypos[i].flags == 1) {
+					// soft button
+					if (y >= kb_y_pos) continue; // ignore soft buttons below keyboard
+					if (x >= uikbd_keypos[i].x + bs_x_pos &&
+						x <  uikbd_keypos[i].x + uikbd_keypos[i].w + bs_x_pos &&
+						y >= uikbd_keypos[i].y + bs_y_pos &&
+						y <  uikbd_keypos[i].y + uikbd_keypos[i].h + bs_y_pos) break;
+				} else {
+					// keyboard button
+					if (x >= uikbd_keypos[i].x + kb_x_pos &&
+						x <  uikbd_keypos[i].x + uikbd_keypos[i].w + kb_x_pos &&
+						y >= uikbd_keypos[i].y + kb_y_pos &&
+						y <  uikbd_keypos[i].y + uikbd_keypos[i].h + kb_y_pos) break;
+				}
 			}
 			kb_activekey=i;
 		}
 		if (i != -1 && uikbd_keypos[i].key != 0) { // got a hit
-			if ((f=uikbd_keypos[i].sticky)>0) {	// sticky key!!
+			if ((f=uikbd_keypos[i].sticky)>0) {	// ... on a sticky key
 				if (e->button.type == SDL_MOUSEBUTTONDOWN) {
 					sticky = sticky ^ uikbd_keypos[i].sticky;
 					sdl_e.type = sticky & uikbd_keypos[i].sticky ? SDL_KEYDOWN : SDL_KEYUP;
@@ -528,13 +572,19 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 					SDL_PushEvent(&sdl_e);
 					uibottom_must_redraw |= UIB_RECALC_KEYBOARD;
 				}
-			} else {
+			} else { // ... on a normal key
 				sdl_e.type = e->button.type == SDL_MOUSEBUTTONDOWN ? SDL_KEYDOWN : SDL_KEYUP;
 				sdl_e.key.keysym.unicode = sdl_e.key.keysym.sym = uikbd_keypos[i].key;
-				SDL_PushEvent(&sdl_e);
 				keypressed = (e->button.type == SDL_MOUSEBUTTONDOWN) ? i : -1;
 				uibottom_must_update_key=i;
 				uibottom_must_redraw |= UIB_KEYPRESS_ALL;
+
+				// toggle keyboard or push event
+				if (uikbd_keypos[i].key == 255) {
+					if (e->button.type == SDL_MOUSEBUTTONDOWN) toggle_keyboard();
+				} else {
+					SDL_PushEvent(&sdl_e);
+				}
 			}
 		}
 	}
@@ -542,14 +592,14 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 }
 
 int toggle_keyboard_thread(void *data) {
-	if (kb_y_pos < 440) {
-		for (int i=kb_y_pos; i<=460; i+=10) {
+	if (kb_y_pos < 480) {
+		for (int i=kb_y_pos; i<=480; i+=10) {
 			set_kb_y_pos=i;
 			uibottom_must_redraw |= UIB_REPAINT_ALL;
 			SDL_Delay(30);
 		}
 	} else {
-		for (int i=kb_y_pos; i>=360; i-=10) {
+		for (int i=kb_y_pos; i>=480-uikbd_pos[0][3]; i-=10) {
 			set_kb_y_pos=i;
 			uibottom_must_redraw |= UIB_REPAINT_ALL;
 			SDL_Delay(30);

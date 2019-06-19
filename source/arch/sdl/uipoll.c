@@ -128,6 +128,9 @@ SDL_Event sdl_ui_poll_event(const char *what, const char *target, int options, i
         }
         SDL_Delay(20);
 
+		// update bottom screen if needed
+		if (uibottom_must_redraw) sdl_uibottom_draw();
+
         if ((timeout > 0) && (++count == 1000 / 20)) {
             count = 0;
             if (--timeout == 0) {

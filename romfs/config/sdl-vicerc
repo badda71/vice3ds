@@ -28,6 +28,7 @@ MenuKeyDown=211
 MenuKeyLeft=212
 MenuKeyRight=213
 MenuKeyCancel=201
+MenuKeyMap=206
 ConfirmOnExit=1
 DriveLED=1
 SoundDeviceName="ndsp"
