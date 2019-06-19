@@ -39,6 +39,7 @@
 #include "menu_misc.h"
 #include "ui.h"
 #include "palette.h"
+#include "persistence.h"
 #include <SDL/SDL_image.h>
 #include <3ds.h>
 
@@ -451,7 +452,8 @@ static void uibottom_init() {
 
 	// calc global vars
 	kb_x_pos = (s->w - uikbd_pos[0][2]) / 2;
-	kb_y_pos = s->h - uikbd_pos[0][3];
+	kb_y_pos = 
+		persistence_getInt("kbd_hidden",0) ? s->h : s->h - uikbd_pos[0][3];
 	bs_x_pos = (s->w - 320) / 2;
 	bs_y_pos = s->h - 240;
 	uibottom_must_redraw = UIB_ALL;
@@ -609,5 +611,6 @@ int toggle_keyboard_thread(void *data) {
 }
 
 void toggle_keyboard() {
+	persistence_putInt("kbd_hidden",kb_y_pos >= 480 ? 0 : 1);
 	SDL_CreateThread(toggle_keyboard_thread,NULL);
 }

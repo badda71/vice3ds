@@ -23,8 +23,8 @@
  *
  */
 
-extern char *persistence_get(char *, char *);
-extern int persistence_getInt(char *, int );
-extern int persistence_put(char *, char *);
-extern int persistence_putInt(char *, int );
-extern int persistence_remove(char *);
+extern char *persistence_get(char *key, char *deflt);
+extern int persistence_getInt(char *key, int deflt);
+extern int persistence_put(char *key, char *value);
+extern int persistence_putInt(char *key, int value);
+extern int persistence_remove(char *key);
