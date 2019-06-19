@@ -183,7 +183,7 @@ int persistence_put(char *key, char *value) {
 	// save persistence
 	FILE* f = fopen(filename, "w");
 	for (i=0;i<numdata;i++) {
-		fprintf(f,"%s=%s\n",data[i*1],data[i*2+1]);
+		fprintf(f,"%s=%s\n",data[i*2],data[i*2+1]);
 	}
 	fclose(f);
 	return 0;
@@ -191,7 +191,7 @@ int persistence_put(char *key, char *value) {
 
 int persistence_putInt(char *key, int value) {
 	char c[15];
-	sprintf(c,"%d",value);
+	snprintf(c,sizeof(c),"%d",value);
 	return persistence_put(key,c);
 }
 
