@@ -24,3 +24,13 @@
 238 Drive&True drive emulation
 239 Misc&Power off bottom screen backlight
 240 Pause
+241 Drive&Attach disk image to drive 8
+242 Video settings&Enable Sprite-Sprite collisions
+243 Video settings&Enable Sprite-Background collisions
+244 Misc&LOAD"*",8,1 RUN
+245 Misc&LOAD"$",8 LIST
+246 Misc&RUN/STOP
+247 Misc&SPACE
+248 Misc&RETURN
+249 Tape&Play
+250 Tape&Stop
