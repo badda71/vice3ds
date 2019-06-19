@@ -51,13 +51,17 @@ CPU_MODE := 804MHz
 ENABLE_L2_CACHE := true
 
 ifeq (, $(shell which gm))
-	MKVICEPNG := cp -f
+	MKKBDPNG := cp -f
 else
-	MKVICEPNG := gm convert -font "Arial-Narrow" -fill white -draw "font-size 8;text 1,238 'badda71';" -font "Arial" -draw "font-size 9;text 1,229 '$(NAME) $(VERSION)';"
+	MKKBDPNG := gm convert -fill white\
+		-font "Arial-Narrow" -draw "font-size 8;text 1,118 'badda71';" -font "Arial" -draw "font-size 9;text 1,109 '$(NAME) $(VERSION)';"\
+		-font "Arial-Narrow" -draw "font-size 8;text 1,238 'badda71';" -font "Arial" -draw "font-size 9;text 1,229 '$(NAME) $(VERSION)';"\
+		-font "Arial-Narrow" -draw "font-size 8;text 1,358 'badda71';" -font "Arial" -draw "font-size 9;text 1,349 '$(NAME) $(VERSION)';"\
+		-font "Arial-Narrow" -draw "font-size 8;text 1,478 'badda71';" -font "Arial" -draw "font-size 9;text 1,469 '$(NAME) $(VERSION)';"
 endif
 
 # TARGET #
-vice3ds: $(ROMFS_DIR)/vice.png $(VICELIBS_F) all
+vice3ds: $(ROMFS_DIR)/keyboard.png $(VICELIBS_F) all
 
 lib%.a: %/lib/lib%.a
 
@@ -65,8 +69,8 @@ lib%.a: %/lib/lib%.a
 	rm -rf output
 	$(MAKE) -C $(subst lib,,$(notdir $*))
 
-$(ROMFS_DIR)/vice.png: meta/vice.png Makefile
-	$(MKVICEPNG) $< $@
+$(ROMFS_DIR)/keyboard.png: meta/keyboard.png Makefile
+	$(MKKBDPNG) $< $@
 
 # INTERNAL #
 
