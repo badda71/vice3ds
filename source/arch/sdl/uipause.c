@@ -38,6 +38,8 @@
 #include "uimenu.h"
 #include "vsync.h"
 #include "uibottom.h"
+#include "videoarch.h"
+
 
 /* ----------------------------------------------------------------- */
 /* ui.h */
@@ -50,6 +52,7 @@ static void pause_trap(uint16_t addr, void *data)
     while (is_paused) {
         ui_dispatch_events();
         SDL_Delay(10);
+		SDL_Flip(sdl_active_canvas->screen);
     }
 }
 
