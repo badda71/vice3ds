@@ -105,6 +105,8 @@ static void persistence_init() {
 	filename = archdep_join_paths(archdep_user_config_path(), "persistence", NULL);
 	persistence_isinit=1;
 
+	atexit(persistence_fini);
+
 	// read in persistence data
 	unsigned int len;
 	char *line=NULL;
@@ -135,7 +137,6 @@ static void persistence_init() {
 	if (line)
 		free(line);
 	fclose(f);
-	atexit(persistence_fini);
 }
 
 static int findkey(char *key) {
