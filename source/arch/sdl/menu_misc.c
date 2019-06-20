@@ -83,8 +83,7 @@ static UI_MENU_CALLBACK(command_callback)
 static UI_MENU_CALLBACK(bottomoff_callback)
 {
     if (activated) {
-		GSPLCD_PowerOffBacklight(GSPLCD_SCREEN_BOTTOM);
-		bottom_lcd_off=1;
+		setBottomBacklight(0);
 		return sdl_menu_text_exit_ui;
     }
     return NULL;

@@ -112,7 +112,6 @@ int archdep_init(int *argc, char **argv)
         log_debug("SDL error: %s\n", SDL_GetError());
         return 1;
     }
-	gspLcdInit();
 
 	// 3ds buttons must be remapped - the standard conflicts with the keyboard
 	// key codes over 200 are unused
@@ -136,7 +135,6 @@ int archdep_init(int *argc, char **argv)
                 "failed to register romfsExit() with archdep_vice_atexit().");
         archdep_vice_exit(1);
     }
-	archdep_vice_atexit((void *)gspLcdExit);
 
     return archdep_init_extra(argc, argv);
 }

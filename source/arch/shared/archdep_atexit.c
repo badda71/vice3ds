@@ -55,6 +55,6 @@ int archdep_vice_atexit(void (*function)(void))
  */
 void archdep_vice_exit(int excode)
 {
-	if (bottom_lcd_off) GSPLCD_PowerOnBacklight(GSPLCD_SCREEN_BOTTOM);
+	setBottomBacklight(1);
 	exit(excode);
 }

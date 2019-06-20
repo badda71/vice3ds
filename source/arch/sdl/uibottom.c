@@ -162,7 +162,7 @@ uikbd_key uikbd_keypos[] = {
 int uibottom_kbdactive = 1;
 enum bottom_action uibottom_must_redraw = UIB_NO;
 int uibottom_must_update_key = -1;
-int bottom_lcd_off=0;
+int bottom_lcd_on=1;
 
 // internal variables
 #define ICON_W 40
@@ -545,9 +545,8 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 			i=kb_activekey;
 			kb_activekey=-1;
 		} else {
-			if (bottom_lcd_off) {
-				GSPLCD_PowerOnBacklight(GSPLCD_SCREEN_BOTTOM);
-				bottom_lcd_off=0;
+			if (!bottom_lcd_on) {
+				setBottomBacklight(1);
 				kb_activekey=-1;
 				return 0; // do not further process the event
 			}
@@ -615,4 +614,16 @@ int toggle_keyboard_thread(void *data) {
 void toggle_keyboard() {
 	persistence_putInt("kbd_hidden",kb_y_pos >= 480 ? 0 : 1);
 	start_worker(toggle_keyboard_thread,NULL);
+}
+
+void setBottomBacklight (int on) {
+	if (on == bottom_lcd_on) return;
+	gspLcdInit();
+	bottom_lcd_on=on;
+	if (on) {
+		GSPLCD_PowerOnBacklight(GSPLCD_SCREEN_BOTTOM);
+	} else {
+		GSPLCD_PowerOffBacklight(GSPLCD_SCREEN_BOTTOM);
+	}
+	gspLcdExit();
 }
