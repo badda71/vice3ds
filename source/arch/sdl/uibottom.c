@@ -52,7 +52,7 @@ int uikbd_pos[4][4] = {
 };
 
 uikbd_key uikbd_keypos[] = {
-	{   0,-10,  36,  10, 255,   0,   0,   0,  0,  "ToggleKB"},
+	{   0,-15,  36,  15, 255,   0,   0,   0,  0,  "ToggleKB"},
 	//  x,  y,   w,   h, key, row, col, sticky, flags, name
 	// soft buttons
 	{   0,  0,  64,  60, 231,   0,   0,   0,  1,  "SButton1"},
