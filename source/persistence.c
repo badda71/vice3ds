@@ -81,7 +81,18 @@ getline(char **buf, size_t *bufsiz, FILE *fp)
 	return getdelim(buf, bufsiz, '\n', fp);
 }
 
+void persistence_save() {
+	// save persistence
+	FILE* f = fopen(filename, "w");
+	if (!f) return;
+	for (int i=0;i<numdata;i++) {
+		fprintf(f,"%s=%s\n",data[i*2],data[i*2+1]);
+	}
+	fclose(f);
+}
+
 static void persistence_fini() {
+	persistence_save();
 	for (int i=0;i<numdata;i++) {
 		free(data[i*2]);
 		free(data[i*2+1]);
@@ -179,13 +190,6 @@ int persistence_put(char *key, char *value) {
 		memcpy(data[numdata*2+1],value,strlen(value)+1);
 		++numdata;
 	} else return -1;
-
-	// save persistence
-	FILE* f = fopen(filename, "w");
-	for (i=0;i<numdata;i++) {
-		fprintf(f,"%s=%s\n",data[i*2],data[i*2+1]);
-	}
-	fclose(f);
 	return 0;
 }
 

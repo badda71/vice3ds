@@ -28,3 +28,4 @@ extern int persistence_getInt(char *key, int deflt);
 extern int persistence_put(char *key, char *value);
 extern int persistence_putInt(char *key, int value);
 extern int persistence_remove(char *key);
+extern void persistence_save(void);
