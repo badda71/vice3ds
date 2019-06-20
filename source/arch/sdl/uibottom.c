@@ -40,6 +40,7 @@
 #include "ui.h"
 #include "palette.h"
 #include "persistence.h"
+#include "3ds_threadworker.h"
 #include <SDL/SDL_image.h>
 #include <3ds.h>
 
@@ -594,13 +595,15 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 #define DELAY 10
 int toggle_keyboard_thread(void *data) {
 	if (kb_y_pos < 480) {
-		for (int i=kb_y_pos; i<=480; i+=STEP) {
+		// hide
+		for (int i=kb_y_pos - kb_y_pos % STEP + STEP; i<=480; i+=STEP) {
 			set_kb_y_pos=i;
 			uibottom_must_redraw |= UIB_REPAINT_ALL;
 			SDL_Delay(DELAY);
 		}
 	} else {
-		for (int i=kb_y_pos; i>=480-uikbd_pos[0][3]; i-=STEP) {
+		// show
+		for (int i=kb_y_pos - kb_y_pos % STEP - STEP; i>=480-uikbd_pos[0][3]; i-=STEP) {
 			set_kb_y_pos=i;
 			uibottom_must_redraw |= UIB_REPAINT_ALL;
 			SDL_Delay(DELAY);
@@ -611,5 +614,5 @@ int toggle_keyboard_thread(void *data) {
 
 void toggle_keyboard() {
 	persistence_putInt("kbd_hidden",kb_y_pos >= 480 ? 0 : 1);
-	SDL_CreateThread(toggle_keyboard_thread,NULL);
+	start_worker(toggle_keyboard_thread,NULL);
 }

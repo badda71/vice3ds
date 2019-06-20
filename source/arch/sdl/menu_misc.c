@@ -31,6 +31,7 @@
 #include "charset.h"
 #include "kbdbuf.h"
 #include "uibottom.h"
+#include "3ds_threadworker.h"
 #include <3ds.h>
 
 static int ui_key_press_sequence (void *param) {
@@ -42,6 +43,7 @@ static int ui_key_press_sequence (void *param) {
 		sdl_e.key.keysym.unicode = sdl_e.key.keysym.sym = keyseq[i][2];
 		SDL_PushEvent(&sdl_e);
 	}
+	SDL_Delay(50);
 	return 0;
 }
 
@@ -55,7 +57,7 @@ static void kb_feed(char *text) {
 static UI_MENU_CALLBACK(keystroke_callback)
 {
 	if (activated) {
-		SDL_CreateThread(ui_key_press_sequence, (int(*)[3])param);
+		start_worker(ui_key_press_sequence, (int(*)[3])param);
         return sdl_menu_text_exit_ui;
     }
     return NULL;
@@ -64,7 +66,7 @@ static UI_MENU_CALLBACK(keystroke_callback)
 static UI_MENU_CALLBACK(keystroke_callback_noexit)
 {
 	if (activated) {
-		SDL_CreateThread(ui_key_press_sequence, (int(*)[3])param);
+		start_worker(ui_key_press_sequence, (int(*)[3])param);
     }
     return NULL;
 }
@@ -127,42 +129,42 @@ const ui_menu_entry_t misc_menu[] = {
 		keystroke_callback,
 		(ui_callback_data_t)((int[][3]){
 		{0,   SDL_KEYDOWN,  3}, //R/S
-		{150, SDL_KEYUP,    3},
+		{50, SDL_KEYUP,    3},
 		{0,   0,            0}})},
 	{ "SPACE",
 		MENU_ENTRY_OTHER,
 		keystroke_callback,
 		(ui_callback_data_t)((int[][3]){
 		{0,   SDL_KEYDOWN,  32},
-		{150, SDL_KEYUP,    32},
+		{50, SDL_KEYUP,    32},
 		{0,   0,            0}})},
 	{ "RETURN",
 		MENU_ENTRY_OTHER,
 		keystroke_callback,
 		(ui_callback_data_t)((int[][3]){
 		{0,   SDL_KEYDOWN,  13},
-		{150, SDL_KEYUP,    13},
+		{50, SDL_KEYUP,    13},
 		{0,   0,            0}})},
 	{ "Y",
 		MENU_ENTRY_OTHER,
 		keystroke_callback,
 		(ui_callback_data_t)((int[][3]){
 		{0,   SDL_KEYDOWN, 121},
-		{150, SDL_KEYUP,   121},
+		{50, SDL_KEYUP,   121},
 		{0,   0,            0}})},
 	{ "N",
 		MENU_ENTRY_OTHER,
 		keystroke_callback,
 		(ui_callback_data_t)((int[][3]){
 		{0,   SDL_KEYDOWN, 121},
-		{150, SDL_KEYUP,   121},
+		{50, SDL_KEYUP,   121},
 		{0,   0,            0}})},
 	{ "0",
 		MENU_ENTRY_OTHER,
 		keystroke_callback,
 		(ui_callback_data_t)((int[][3]){
 		{0,   SDL_KEYDOWN,  48},
-		{150, SDL_KEYUP,    48},
+		{50, SDL_KEYUP,    48},
 		{0,   0,            0}})},
 	SDL_MENU_LIST_END
 };
