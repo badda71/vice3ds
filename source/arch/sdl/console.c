@@ -33,7 +33,7 @@
 
 #ifdef UNIX_COMPILE
 #define CONSOLE_ARCH_INCLUDED
-#include "console_unix.h"
+#include "console_unix-c.h"
 #endif
 
 #ifndef CONSOLE_ARCH_INCLUDED
