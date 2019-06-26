@@ -302,9 +302,6 @@ static int log_archdep(const char *logtxt, const char *fmt, va_list ap)
         beg = eol + 1;
     }
 	svcOutputDebugString(txt, strlen(txt));
-#ifdef UIBOTTOMOFF
-	printf("%s\n",txt);
-#endif
     lib_free(txt);
     return rc;
 }

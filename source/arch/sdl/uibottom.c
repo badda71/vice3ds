@@ -43,6 +43,7 @@
 #include "3ds_threadworker.h"
 #include <SDL/SDL_image.h>
 #include <3ds.h>
+#include <citro3d.h>
 
 int uikbd_pos[4][4] = {
 	{0,0,320,120},		// normal keys
@@ -171,17 +172,15 @@ int bottom_lcd_on=1;
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
+static SDL_Surface *bottoms=NULL;
 static SDL_Surface *vice_img=NULL;
 static SDL_Surface *kbd_img=NULL;
 static SDL_Surface *calcsb_img=NULL;
 static SDL_Surface *twistyup_img=NULL;
 static SDL_Surface *twistydn_img=NULL;
 
-static int kb_x_pos = 0;
 static int kb_y_pos = 0;
 static int set_kb_y_pos = -10000;
-static int bs_x_pos = 0;
-static int bs_y_pos = 0;
 static int kb_activekey;
 static int sticky=0;
 static int keypressed=-1;
@@ -189,50 +188,112 @@ static SDL_Surface *sbmask=NULL;
 static int lock_updates=0;
 
 static unsigned char keysPressed[256];
-static void sbutton_repaint(int);
+
+// SDL functions for bottom screen
+// ===============================
+extern C3D_RenderTarget *VideoSurface2;
+extern int uLoc_projection;
+extern C3D_Mtx projection2;
+extern void drawTexture( int x, int y, int width, int height, float left, float right, float top, float bottom);
+
+SDL_Surface *bottom_CreateSurface() {
+	SDL_Surface *s = SDL_CreateRGBSurface(SDL_SWSURFACE, 320, 240, 24,
+		0xFF0000,
+		0x00FF00,
+		0x0000FF,
+		0x000000);
+	free(s->pixels);
+	s->pixels=linearAlloc(s->h * s->pitch);
+	return s;
+}
+
+void bottom_Flip(SDL_Surface *s) {
+	static C3D_Tex bottom_spritesheet_tex;
+	static int isinit=0;
+
+	// init texture if necessary
+	if (!isinit) {
+		C3D_TexInit(&bottom_spritesheet_tex, 512, 256, GSP_BGR8_OES);
+		C3D_TexSetFilter(&bottom_spritesheet_tex, GPU_NEAREST, GPU_NEAREST);
+		isinit=1;
+	}
+
+	// transfer surface pixels to texture
+	GSPGPU_FlushDataCache(s->pixels, s->h * s->pitch);
+	C3D_SyncDisplayTransfer((u32*)s->pixels, GX_BUFFER_DIM(s->w, s->h), (u32*)bottom_spritesheet_tex.data, GX_BUFFER_DIM(512, 256),
+		GX_TRANSFER_FLIP_VERT(1) |
+		GX_TRANSFER_OUT_TILED(1) |
+		GX_TRANSFER_RAW_COPY(0) |
+		GX_TRANSFER_IN_FORMAT( s->format->BytesPerPixel == 4 ? GX_TRANSFER_FMT_RGBA8 : GX_TRANSFER_FMT_RGB8 ) |
+		GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGB8) |
+		GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO));
+	GSPGPU_FlushDataCache(bottom_spritesheet_tex.data, 512 * 256 * 3);
+	C3D_TexBind(0, &bottom_spritesheet_tex);
+	C3D_TexEnv* env = C3D_GetTexEnv(0);
+	C3D_TexEnvInit(env);
+	C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, 0, 0);
+	C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
+
+	// draw texture on botton screen (maybe this needs to be in a different thread)
+	if (C3D_FrameBegin(C3D_FRAME_NONBLOCK)){ 
+		C3D_RenderTargetClear(VideoSurface2, C3D_CLEAR_ALL, 0x00000000, 0);
+		C3D_FrameDrawOn(VideoSurface2);
+		C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, &projection2);
+		drawTexture(0, 0, 512, 256, 0.0f, 0.8f, 0.0f, 1.0f);
+		C3D_FrameEnd(0);
+	}
+}
+
+// bottom handling functions
+// =========================
+
+// paint sbutton to screen - if i==-1 then repaint all
+static void sbutton_repaint(int i) {
+	// blit background image part
+	SDL_BlitSurface(calcsb_img,
+		i == -1 ? NULL : &(SDL_Rect){.x = uikbd_keypos[i].x, .y=uikbd_keypos[i].y, .w=uikbd_keypos[i].w, .h=uikbd_keypos[i].h},
+		bottoms,
+		&(SDL_Rect){
+			.x = i == -1 ? 0 : uikbd_keypos[i].x,
+			.y = i == -1 ? 0 : uikbd_keypos[i].y});
+}
 
 static void pressKey(int key, int press) {
 	if (keysPressed[key]==press) return;
 	keysPressed[key]=press;
-	SDL_Surface *s=sdl_active_canvas->screen;
 	int x,y,w,h;
 
 	if (uikbd_keypos[key].flags==0) {
 		// keyboard key - negative the key
-		x=uikbd_keypos[key].x + kb_x_pos;
+		x=uikbd_keypos[key].x;
 		y=uikbd_keypos[key].y + kb_y_pos;
 		w=uikbd_keypos[key].w;
 		h=uikbd_keypos[key].h;
-		for (int yy = y; yy < MIN(y+h,s->h); yy++)
+		for (int yy = y; yy < MIN(y+h, bottoms->h); yy++)
 		{
 			for (int xx = x; xx < x+w; xx++)
 			{
-				unsigned char *pixel = s->pixels + s->format->BytesPerPixel * (yy * s->w + xx);  
+				unsigned char *pixel = bottoms->pixels + bottoms->format->BytesPerPixel * (yy * bottoms->w + xx);
 				pixel[1] = 255 - pixel[1];
 				pixel[2] = 255 - pixel[2];
 				pixel[3] = 255 - pixel[3];
 			}
 		}
 	} else {
-		// soft button - blit the mask image or background image onto the screen
-		x=uikbd_keypos[key].x + bs_x_pos;
-		y=uikbd_keypos[key].y + bs_y_pos;
-		w=sbmask->w;
-		h=sbmask->h;
 		// set a clipping rectangle to exlude the keyboard
-		SDL_SetClipRect(s, &(SDL_Rect){.x = bs_x_pos, .y=bs_y_pos, .w=320, .h=kb_y_pos-240});
+		SDL_SetClipRect(bottoms, &(SDL_Rect){.x = 0, .y=0, .w=320, .h=kb_y_pos});
 		if (press) {
 			// blit the mask image
-			SDL_BlitSurface(sbmask, NULL, s, &(SDL_Rect){
-				.x = bs_x_pos+uikbd_keypos[key].x,
-				.y = bs_y_pos+uikbd_keypos[key].y});
+			SDL_BlitSurface(sbmask, NULL, bottoms, &(SDL_Rect){
+				.x = uikbd_keypos[key].x,
+				.y = uikbd_keypos[key].y});
 		} else {
 			// blit the background + icon
 			sbutton_repaint(key);
 		}
-		SDL_SetClipRect(s, NULL);
+		SDL_SetClipRect(bottoms, NULL);
 	}
-	if (!lock_updates && (sdl_menu_state || ui_emulation_is_paused())) SDL_UpdateRect(s, x,y,w,h);
+	if (!lock_updates) bottom_Flip(bottoms);
 }
 
 static void updateKey(int key) {
@@ -260,7 +321,7 @@ static void updateKeys() {
 // paint the keyboard onto the background
 static void keyboard_paint() {
 	SDL_Rect rdest = {
-		.x = kb_x_pos,
+		.x = 0,
 		.y = kb_y_pos};
 	
 	// which keyboard for whick sticky keys?
@@ -283,13 +344,13 @@ static void keyboard_paint() {
 			u8 b=sdl_active_canvas->palette->entries[k].blue;
 
 			SDL_FillRect(
-				sdl_active_canvas->screen,
+				bottoms,
 				&(SDL_Rect){
-					.x = kb_x_pos+uikbd_keypos[i].x,
+					.x = uikbd_keypos[i].x,
 					.y = kb_y_pos+uikbd_keypos[i].y,
 					.w = uikbd_keypos[i].w,
 					.h = uikbd_keypos[i].h},
-				SDL_MapRGB(sdl_active_canvas->screen->format, r, g, b)
+				SDL_MapRGB(bottoms->format, r, g, b)
 			);
 		}
 	}
@@ -301,7 +362,7 @@ static void keyboard_paint() {
 		.w = uikbd_pos[kb][2],
 		.h = uikbd_pos[kb][3]};
 
-	SDL_BlitSurface(kbd_img, &rsrc, sdl_active_canvas->screen, &rdest);
+	SDL_BlitSurface(kbd_img, &rsrc, bottoms, &rdest);
 }
 
 typedef struct {
@@ -408,17 +469,6 @@ static void sbutton_update(int i) {
 		.y = uikbd_keypos[i].y + (uikbd_keypos[i].h - img->h)/2});
 }
 
-// paint sbutton to screen - if i==-1 then repaint all
-static void sbutton_repaint(int i) {
-	// blit background image part
-	SDL_BlitSurface(calcsb_img,
-		i == -1 ? NULL : &(SDL_Rect){.x = uikbd_keypos[i].x, .y=uikbd_keypos[i].y, .w=uikbd_keypos[i].w, .h=uikbd_keypos[i].h},
-		sdl_active_canvas->screen,
-		&(SDL_Rect){
-			.x = bs_x_pos + (i==-1?0:uikbd_keypos[i].x),
-			.y = bs_y_pos + (i==-1?0:uikbd_keypos[i].y)});
-}
-
 // init calcsb_img and update all soft buttons 
 static void sbuttons_recalc() {
 	SDL_FreeSurface(calcsb_img);
@@ -432,11 +482,11 @@ static void sbuttons_recalc() {
 // paint the right twisty at the right place
 void paint_twisty() {
 	SDL_BlitSurface(
-		kb_y_pos >= 480 ? twistyup_img: twistydn_img,
+		kb_y_pos >= 240 ? twistyup_img: twistydn_img,
 		NULL,
-		sdl_active_canvas->screen,
+		bottoms,
 		&(SDL_Rect){
-			.x = kb_x_pos,
+			.x = 0,
 			.y = kb_y_pos - twistyup_img->h}
 	);
 }
@@ -445,8 +495,9 @@ void paint_twisty() {
 static int uibottom_isinit=0;
 static void uibottom_init() {
 	uibottom_isinit=1;
-	SDL_Surface *s=sdl_active_canvas->screen;
-
+	
+	bottoms=bottom_CreateSurface();
+	
 	// pre-load some images
 	sbmask=IMG_Load("romfs:/sbmask.png");
 	vice_img = IMG_Load("romfs:/vice.png");
@@ -455,27 +506,20 @@ static void uibottom_init() {
 	twistydn_img = IMG_Load("romfs:/kbd_twistydn.png");
 
 	// calc global vars
-	kb_x_pos = (s->w - uikbd_pos[0][2]) / 2;
 	kb_y_pos = 
-		persistence_getInt("kbd_hidden",0) ? s->h : s->h - uikbd_pos[0][3];
-	bs_x_pos = (s->w - 320) / 2;
-	bs_y_pos = s->h - 240;
+		persistence_getInt("kbd_hidden",0) ? bottoms->h : bottoms->h - uikbd_pos[0][3];
 	uibottom_must_redraw = UIB_ALL;
 }
 
 // update the whole bottom screen
 void sdl_uibottom_draw(void)
 {	
-#ifndef UIBOTTOMOFF
-	
-	static void *olds = NULL;
-	SDL_Surface *s=sdl_active_canvas->screen;
 	enum bottom_action uibottom_must_redraw_local;
 
 	// init if needed
 	if (!uibottom_isinit) uibottom_init();
 
-	if (olds != s || uibottom_must_redraw) {
+	if (uibottom_must_redraw) {
 
 		// needed for mutithreading
 		uibottom_must_redraw_local = uibottom_must_redraw;
@@ -484,8 +528,6 @@ void sdl_uibottom_draw(void)
 			kb_y_pos=set_kb_y_pos;
 			set_kb_y_pos=-10000;
 		}
-		
-		olds=s;
 		uistatusbar_must_redraw |= uibottom_must_redraw_local & UIB_GET_REPAINT_SBUTTONS;
 
 		// recalc sbuttons if required
@@ -515,7 +557,7 @@ void sdl_uibottom_draw(void)
 		paint_twisty();
 
 		// update screen
-		if (sdl_menu_state || ui_emulation_is_paused()) SDL_UpdateRect(s, bs_x_pos, bs_y_pos, 320, 240);
+		bottom_Flip(bottoms);
 
 		uibottom_must_update_key = -1;
 
@@ -528,15 +570,14 @@ void sdl_uibottom_draw(void)
 	}
 	uistatusbar_draw();
 	//SDL_Flip(s);
-#endif
 }
 
 static SDL_Event sdl_e;
 int sdl_uibottom_mouseevent(SDL_Event *e) {
 
 	int f;
-	int x = e->button.x;
-	int y = e->button.y;
+	int x = e->button.x*320/sdl_active_canvas->screen->w;
+	int y = e->button.y*240/sdl_active_canvas->screen->h;
 
 	if (uibottom_kbdactive) {
 		int i;
@@ -554,14 +595,14 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 				if (uikbd_keypos[i].flags == 1) {
 					// soft button
 					if (y >= kb_y_pos) continue; // ignore soft buttons below keyboard
-					if (x >= uikbd_keypos[i].x + bs_x_pos &&
-						x <  uikbd_keypos[i].x + uikbd_keypos[i].w + bs_x_pos &&
-						y >= uikbd_keypos[i].y + bs_y_pos &&
-						y <  uikbd_keypos[i].y + uikbd_keypos[i].h + bs_y_pos) break;
+					if (x >= uikbd_keypos[i].x &&
+						x <  uikbd_keypos[i].x + uikbd_keypos[i].w  &&
+						y >= uikbd_keypos[i].y &&
+						y <  uikbd_keypos[i].y + uikbd_keypos[i].h) break;
 				} else {
 					// keyboard button
-					if (x >= uikbd_keypos[i].x + kb_x_pos &&
-						x <  uikbd_keypos[i].x + uikbd_keypos[i].w + kb_x_pos &&
+					if (x >= uikbd_keypos[i].x &&
+						x <  uikbd_keypos[i].x + uikbd_keypos[i].w &&
 						y >= uikbd_keypos[i].y + kb_y_pos &&
 						y <  uikbd_keypos[i].y + uikbd_keypos[i].h + kb_y_pos) break;
 				}
@@ -593,16 +634,16 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 #define STEP 5
 #define DELAY 10
 int toggle_keyboard_thread(void *data) {
-	if (kb_y_pos < 480) {
+	if (kb_y_pos < 240) {
 		// hide
-		for (int i=kb_y_pos - kb_y_pos % STEP + STEP; i<=480; i+=STEP) {
+		for (int i=kb_y_pos - kb_y_pos % STEP + STEP; i<=240; i+=STEP) {
 			set_kb_y_pos=i;
 			uibottom_must_redraw |= UIB_REPAINT_ALL;
 			SDL_Delay(DELAY);
 		}
 	} else {
 		// show
-		for (int i=kb_y_pos - kb_y_pos % STEP - STEP; i>=480-uikbd_pos[0][3]; i-=STEP) {
+		for (int i=kb_y_pos - kb_y_pos % STEP - STEP; i>=240-uikbd_pos[0][3]; i-=STEP) {
 			set_kb_y_pos=i;
 			uibottom_must_redraw |= UIB_REPAINT_ALL;
 			SDL_Delay(DELAY);
@@ -612,7 +653,7 @@ int toggle_keyboard_thread(void *data) {
 }
 
 void toggle_keyboard() {
-	persistence_putInt("kbd_hidden",kb_y_pos >= 480 ? 0 : 1);
+	persistence_putInt("kbd_hidden",kb_y_pos >= 240 ? 0 : 1);
 	start_worker(toggle_keyboard_thread,NULL);
 }
 

@@ -57,11 +57,9 @@
 #include "uimenu.h"
 #include "util.h"
 #include "videoarch.h"
-//#include "vkbd.h"
 #include "vsidui_sdl.h"
 #include "vsync.h"
 #include "uibottom.h"
-//#include "viceicon.h"
 
 #ifdef SDL_DEBUG
 #define DBG(x)  log_debug x
@@ -213,6 +211,8 @@ static const resource_string_t resources_string[] = {
 #endif
 
 #define SDLLIMITMODE_DEFAULT     SDL_LIMIT_MODE_OFF
+#define SDLCUSTOMWIDTH_DEFAULT   400
+#define SDLCUSTOMHEIGHT_DEFAULT  240
 
 static const resource_int_t resources_int[] = {
     { "SDLBitdepth", VICE_DEFAULT_BITDEPTH, RES_EVENT_NO, NULL,
@@ -399,11 +399,8 @@ static video_canvas_t *sdl_canvas_create(video_canvas_t *canvas, unsigned int *w
     int lightpen_updated = 0;
 
     DBG(("%s: %i,%i (%i)", __func__, *width, *height, canvas->index));
-#ifdef UIBOTTOMOFF
-	flags = SDL_SWSURFACE | SDL_CONSOLEBOTTOM | SDL_TOPSCR;
-#else
-	flags = SDL_SWSURFACE | SDL_DUALSCR;
-#endif
+
+    flags = SDL_SWSURFACE;
 
     new_width = *width;
     new_height = *height;
@@ -416,11 +413,7 @@ static video_canvas_t *sdl_canvas_create(video_canvas_t *canvas, unsigned int *w
     }
 
     if (fullscreen) {
-#ifdef UIBOTTOMOFF
-        flags = SDL_FULLSCREEN | SDL_SWSURFACE | SDL_CONSOLEBOTTOM | SDL_TOPSCR;
-#else
-		flags = SDL_FULLSCREEN | SDL_SWSURFACE | SDL_DUALSCR;
-#endif
+        flags = SDL_FULLSCREEN | SDL_SWSURFACE;
 
         if (canvas->fullscreenconfig->mode == FULLSCREEN_MODE_CUSTOM) {
             limit = SDL_LIMIT_MODE_FIXED;
@@ -517,8 +510,6 @@ video_canvas_t *video_canvas_create(video_canvas_t *canvas, unsigned int *width,
     return canvas;
 }
 
-int screen_shift=1000;
-
 void video_canvas_refresh(struct video_canvas_s *canvas, unsigned int xs, unsigned int ys, unsigned int xi, unsigned int yi, unsigned int w, unsigned int h)
 {
     uint8_t *backup;
@@ -533,15 +524,6 @@ void video_canvas_refresh(struct video_canvas_s *canvas, unsigned int xs, unsign
         sdl_vsid_draw();
     }
 
-//sdljoy_button_event: joynum 0, button
-//NTSC:
-//					w	h	xs ys xi yi					
-//render_32_1x1_04 384 247 104 28 0 0
-//render_32_1x1_04 320 200 136 51 32 23
-//PAL:
-//render_32_1x1_04 384 256 104 16 0 0
-//render_32_1x1_04 320 200 136 51 32 35
-
 
     xi *= canvas->videoconfig->scalex;
     w *= canvas->videoconfig->scalex;
@@ -550,15 +532,7 @@ void video_canvas_refresh(struct video_canvas_s *canvas, unsigned int xs, unsign
     h *= canvas->videoconfig->scaley;
 
     w = MIN(w, canvas->width);
-
-//    h = MIN(h, canvas->height);
-	// calc render size for 3DS topscreen
-	if (screen_shift == 1000) screen_shift = yi + h/2 - 120; // 120 = half upper screen size
-	if (screen_shift > yi) {
-		ys = ys + screen_shift - yi;
-		yi = 0;
-	} else yi = yi - screen_shift;
-	h=MIN(h, 240 - yi);
+    h = MIN(h, canvas->height);
 
     /* FIXME attempt to draw outside canvas */
     if ((xi + w > canvas->width) || (yi + h > canvas->height)) {
@@ -596,8 +570,8 @@ void video_canvas_refresh(struct video_canvas_s *canvas, unsigned int xs, unsign
     if (SDL_MUSTLOCK(canvas->screen)) {
         SDL_UnlockSurface(canvas->screen);
     }
-//    SDL_UpdateRect(canvas->screen, xi, yi, w, h);
-	SDL_Flip(canvas->screen);
+
+    SDL_UpdateRect(canvas->screen, xi, yi, w, h);
 }
 
 int video_canvas_set_palette(struct video_canvas_s *canvas, struct palette_s *palette)
@@ -649,12 +623,9 @@ int video_canvas_set_palette(struct video_canvas_s *canvas, struct palette_s *pa
 /* called from video_viewport_resize */
 void video_canvas_resize(struct video_canvas_s *canvas, char resize_canvas)
 {
-//    unsigned int width = canvas->draw_buffer->canvas_width;
-//    unsigned int height = canvas->draw_buffer->canvas_height;
-    unsigned int width = SDLCUSTOMWIDTH_DEFAULT;
-    unsigned int height = SDLCUSTOMHEIGHT_DEFAULT;
-
-	DBG(("%s: %ix%i (%i)", __func__, width, height, canvas->index));
+    unsigned int width = canvas->draw_buffer->canvas_width;
+    unsigned int height = canvas->draw_buffer->canvas_height;
+    DBG(("%s: %ix%i (%i)", __func__, width, height, canvas->index));
     /* Check if canvas needs to be resized to real size first */
     if (sdl_ui_finalized) {
         sdl_canvas_create(canvas, &width, &height); /* set the real canvas size */
@@ -800,10 +771,8 @@ char video_canvas_can_resize(video_canvas_t *canvas)
 
 void sdl_ui_init_finalize(void)
 {
-//    unsigned int width = sdl_active_canvas->draw_buffer->canvas_width;
-//    unsigned int height = sdl_active_canvas->draw_buffer->canvas_height;
-    unsigned int width = SDLCUSTOMWIDTH_DEFAULT;
-    unsigned int height = SDLCUSTOMHEIGHT_DEFAULT;
+    unsigned int width = sdl_active_canvas->draw_buffer->canvas_width;
+    unsigned int height = sdl_active_canvas->draw_buffer->canvas_height;
 
     sdl_canvas_create(sdl_active_canvas, &width, &height); /* set the real canvas size */
     sdl_ui_finalized = 1;

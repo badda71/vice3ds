@@ -42,12 +42,6 @@
 
 #define MAX_CANVAS_NUM 2
 
-// for 3ds
-#define SDLCUSTOMWIDTH_DEFAULT   384
-#define SDLCUSTOMHEIGHT_DEFAULT  480
-//#define UIBOTTOMOFF
-//#define SDLCUSTOMHEIGHT_DEFAULT  240
-
 typedef void (*video_refresh_func_t)(struct video_canvas_s *, int, int, int, int, unsigned int, unsigned int);
 
 struct video_canvas_s {
@@ -110,8 +104,6 @@ int sdl_ui_get_mouse_state(int *px, int *py, unsigned int *pbuttons);
 void sdl_ui_consume_mouse_event(SDL_Event *event);
 
 extern uint8_t *draw_buffer_vsid;
-
-extern int screen_shift;
 
 /* Modes of resolution limitation */
 #define SDL_LIMIT_MODE_OFF   0
