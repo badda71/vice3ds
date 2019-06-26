@@ -32,6 +32,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <malloc.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <3ds.h>
 
 #include "archdep.h"
 #include "cmdline.h"
@@ -39,7 +43,6 @@
 #include "log.h"
 #include "resources.h"
 #include "util.h"
-#include "3ds.h"
 #include "videoarch.h"
 
 #ifdef DBGLOGGING
@@ -271,6 +274,27 @@ void log_close_all(void)
     logs = NULL;
 }
 
+#define HOSTNAME "127.0.0.1"
+#define PORT 4000
+void udpSend(const char *msg){
+	static int init=0;
+	if (!init) {
+		socInit((u32*)memalign(0x1000, 0x128000), 0x128000);
+		init=1;
+	}
+	struct sockaddr_in servaddr;
+	int fd = socket(AF_INET,SOCK_DGRAM,0);
+	if(fd<0)return;
+
+	bzero(&servaddr,sizeof(servaddr));
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = inet_addr(HOSTNAME);
+	servaddr.sin_port = htons(PORT);
+	sendto(fd, msg, strlen(msg)+1, 0,
+		(struct sockaddr*)&servaddr, sizeof(servaddr));
+	close(fd);
+}
+
 static int log_archdep(const char *logtxt, const char *fmt, va_list ap)
 {
     /*
@@ -302,7 +326,10 @@ static int log_archdep(const char *logtxt, const char *fmt, va_list ap)
         beg = eol + 1;
     }
 	svcOutputDebugString(txt, strlen(txt));
-    lib_free(txt);
+    beg=util_concat(txt,"\n",NULL);
+	udpSend(beg);
+	lib_free(txt);
+	lib_free(beg);
     return rc;
 }
 
