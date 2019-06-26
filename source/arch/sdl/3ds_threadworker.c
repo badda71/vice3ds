@@ -28,12 +28,11 @@
 
 static SDL_Thread *worker=NULL;
 static SDL_sem *worker_sem=NULL;
-static int ((*worker_fn[MAXPENDING])(void *));
+static volatile int ((*worker_fn[MAXPENDING])(void *));
 static void *worker_data[MAXPENDING];
-static int p1=0;
-static int p2=0;
 
 static int worker_thread(void *data) {
+	int p2=0;
 	while( 1 ) {
 		SDL_SemWait(worker_sem);
 		(worker_fn[p2])(worker_data[p2]);
@@ -51,6 +50,7 @@ void worker_init() {
 }
 
 int start_worker(int (*fn)(void *), void *data) {
+	int p1=0;
 	if (!worker_sem) worker_init();
 	if (worker_fn[p1] != NULL) return -1;
 	worker_fn[p1]=fn;

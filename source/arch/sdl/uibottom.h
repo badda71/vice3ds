@@ -58,4 +58,4 @@ enum bottom_action {
 // exposed variables
 extern uikbd_key uikbd_keypos[];
 extern int uibottom_kbdactive;
-extern enum bottom_action uibottom_must_redraw;
+extern volatile enum bottom_action uibottom_must_redraw;

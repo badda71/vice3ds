@@ -161,7 +161,7 @@ uikbd_key uikbd_keypos[] = {
 
 // exposed variables
 int uibottom_kbdactive = 1;
-enum bottom_action uibottom_must_redraw = UIB_NO;
+volatile enum bottom_action uibottom_must_redraw = UIB_NO;
 int uibottom_must_update_key = -1;
 int bottom_lcd_on=1;
 
@@ -180,7 +180,7 @@ static SDL_Surface *twistyup_img=NULL;
 static SDL_Surface *twistydn_img=NULL;
 
 static int kb_y_pos = 0;
-static int set_kb_y_pos = -10000;
+static volatile int set_kb_y_pos = -10000;
 static int kb_activekey;
 static int sticky=0;
 static int keypressed=-1;
