@@ -16,7 +16,7 @@ BUILD_DIR := build
 OUTPUT_DIR := output
 SOURCE_DIRS := source
 ROMFS_DIR := romfs
-VICELIBS :=
+VICELIBS := VICE3DS_SDL
 VICELIBS_F := $(addprefix lib,$(addsuffix .a,$(VICELIBS)))
 VICEINC := $(addsuffix /include,$(VICELIBS))
 INCLUDE_DIRS := $(VICEINC) $(shell find $(SOURCE_DIRS) -type d) /opt/devkitpro/portlibs/3ds/include
@@ -33,7 +33,7 @@ endif
 
 #DEBUG_DEFINES := -DSDL_DEBUG=1 -DDEBUG=1 -DARCHDEP_EXTRA_LOG_CALL=1
 BUILD_FLAGS := -DVERSION3DS=\"$(VERSION)\" -O $(DEBUG_DEFINES)
-LIBRARIES := $(VICELIBS) SDL_image SDL png z citro3d ctru
+LIBRARIES := $(VICELIBS) SDL_image png z citro3d ctru
 
 # 3DS CONFIGURATION #
 
