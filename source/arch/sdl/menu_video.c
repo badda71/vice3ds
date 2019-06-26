@@ -563,6 +563,8 @@ UI_MENU_DEFINE_TOGGLE(VDCFullscreen)
 UI_MENU_DEFINE_TOGGLE(CrtcFullscreen)
 UI_MENU_DEFINE_TOGGLE(TEDFullscreen)
 UI_MENU_DEFINE_TOGGLE(VICFullscreen)
+UI_MENU_DEFINE_RADIO(SDLFullscreenStretch)
+
 
 /* Output Rendering Filter */
 /*
@@ -765,6 +767,20 @@ const ui_menu_entry_t c64_video_menu[] = {
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_VICIIFullscreen_callback,
       NULL },
+    SDL_MENU_ITEM_SEPARATOR,
+    SDL_MENU_ITEM_TITLE("Fullscreen stretch mode"),
+    { "Full",
+      MENU_ENTRY_RESOURCE_RADIO,
+      radio_SDLFullscreenStretch_callback,
+      (ui_callback_data_t)SDL_FULLSCREEN },
+    { "Height",
+      MENU_ENTRY_RESOURCE_RADIO,
+      radio_SDLFullscreenStretch_callback,
+      (ui_callback_data_t)SDL_FITHEIGHT },
+    { "Width",
+      MENU_ENTRY_RESOURCE_RADIO,
+      radio_SDLFullscreenStretch_callback,
+      (ui_callback_data_t)SDL_FITWIDTH },
 /*    { "Size settings",
       MENU_ENTRY_SUBMENU,
       submenu_callback,

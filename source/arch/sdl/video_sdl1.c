@@ -70,6 +70,7 @@
 static log_t sdlvideo_log = LOG_ERR;
 
 static int sdl_bitdepth;
+static int fullscreen_stretch;
 
 static int sdl_limit_mode;
 static int sdl_ui_finalized;
@@ -196,6 +197,16 @@ static int set_sdl_window_height(int h, void *param)
     return 0;
 }
 
+static int set_fullscreen_stretch(int val, void *param)
+{
+	fullscreen_stretch = val;
+    if (sdl_active_canvas && sdl_active_canvas->fullscreenconfig->enable) {
+        video_viewport_resize(sdl_active_canvas, 1);
+    }
+    return 0;
+}
+
+
 static const resource_string_t resources_string[] = {
 #if defined(HAVE_HWSCALE)
     { "AspectRatio", "1.0", RES_EVENT_NO, NULL,
@@ -227,6 +238,8 @@ static const resource_int_t resources_int[] = {
       &sdl_window_width, set_sdl_window_width, NULL },
     { "SDLWindowHeight", 0, RES_EVENT_NO, NULL,
       &sdl_window_height, set_sdl_window_height, NULL },
+    { "SDLFullscreenStretch", SDL_FULLSCREEN, RES_EVENT_NO, NULL,
+      &fullscreen_stretch, set_fullscreen_stretch, NULL },
     RESOURCE_INT_LIST_END
 };
 
@@ -413,7 +426,7 @@ static video_canvas_t *sdl_canvas_create(video_canvas_t *canvas, unsigned int *w
     }
 
     if (fullscreen) {
-        flags = SDL_FULLSCREEN | SDL_SWSURFACE;
+        flags = fullscreen_stretch | SDL_SWSURFACE;
 
         if (canvas->fullscreenconfig->mode == FULLSCREEN_MODE_CUSTOM) {
             limit = SDL_LIMIT_MODE_FIXED;
