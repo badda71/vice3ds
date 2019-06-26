@@ -641,8 +641,8 @@ void video_canvas_resize(struct video_canvas_s *canvas, char resize_canvas)
 	keyboard_key_clear();
     }
 }
-
-/* Resize window to w/h. */
+/* not necessary for 3DS
+// Resize window to w/h.
 static void sdl_video_resize(unsigned int w, unsigned int h)
 {
     DBG(("%s: %ix%i", __func__, w, h));
@@ -661,7 +661,7 @@ static void sdl_video_resize(unsigned int w, unsigned int h)
     }
 }
 
-/* Resize window to stored real size */
+// Resize window to stored real size
 void sdl_video_restore_size(void)
 {
     unsigned int w, h;
@@ -673,7 +673,7 @@ void sdl_video_restore_size(void)
     sdl_video_resize(w, h);
 }
 
-/* special case handling for the SDL window resize event */
+// special case handling for the SDL window resize event
 void sdl_video_resize_event(unsigned int w, unsigned int h)
 {
 #if defined(HAVE_HWSCALE)
@@ -689,9 +689,9 @@ void sdl_video_resize_event(unsigned int w, unsigned int h)
         resources_set_int("SDLWindowHeight", sdl_active_canvas->actual_height);
     }
 
-#endif /*  HAVE_HWSCALE */
+#endif //  HAVE_HWSCALE
 }
-
+*/
 void sdl_video_canvas_switch(int index)
 {
     struct video_canvas_s *canvas;

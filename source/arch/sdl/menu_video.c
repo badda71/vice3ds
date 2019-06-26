@@ -131,7 +131,7 @@ UI_MENU_DEFINE_TOGGLE(TEDAudioLeak)
 UI_MENU_DEFINE_TOGGLE(VICAudioLeak)
 
 /* CRT emulation menu */
-
+/*
 UI_MENU_DEFINE_SLIDER_VIDEO(VICPALScanLineShade, 0, 1000)
 UI_MENU_DEFINE_SLIDER_VIDEO(VICPALBlur, 0, 1000)
 UI_MENU_DEFINE_SLIDER_VIDEO(VICPALOddLinePhase, 0, 2000)
@@ -199,7 +199,7 @@ static const ui_menu_entry_t crtc_crt_controls_menu[] = {
     VICE_SDL_CRTEMU_MENU_ITEMS(Crtc),
     SDL_MENU_LIST_END
 };
-
+*/
 
 /* Color menu */
 
@@ -281,7 +281,7 @@ static const ui_menu_entry_t crtc_color_controls_menu[] = {
 };
 
 /* Size menu template */
-
+/*
 UI_MENU_DEFINE_INT(SDLCustomWidth)
 UI_MENU_DEFINE_INT(SDLCustomHeight)
 #ifndef USE_SDLUI2    
@@ -469,7 +469,7 @@ UI_MENU_DEFINE_TOGGLE(SDLGLFlipY)
 #endif
 
 
-/* VICII size menu */
+// VICII size menu
 
 UI_MENU_DEFINE_TOGGLE(VICIIDoubleSize)
 UI_MENU_DEFINE_TOGGLE(VICIIDoubleScan)
@@ -486,7 +486,7 @@ static const ui_menu_entry_t vicii_size_menu[] = {
 };
 
 
-/* VDC size menu */
+// VDC size menu
 
 UI_MENU_DEFINE_TOGGLE(VDCDoubleSize)
 UI_MENU_DEFINE_TOGGLE(VDCStretchVertical)
@@ -505,7 +505,7 @@ static const ui_menu_entry_t vdc_size_menu[] = {
 };
 
 
-/* Crtc size menu */
+// Crtc size menu
 
 UI_MENU_DEFINE_TOGGLE(CrtcFullscreen)
 UI_MENU_DEFINE_RADIO(CrtcSDLFullscreenMode)
@@ -524,7 +524,7 @@ static const ui_menu_entry_t crtc_size_menu[] = {
 };
 
 
-/* TED size menu */
+// TED size menu
 
 UI_MENU_DEFINE_TOGGLE(TEDDoubleSize)
 UI_MENU_DEFINE_TOGGLE(TEDDoubleScan)
@@ -541,7 +541,7 @@ static const ui_menu_entry_t ted_size_menu[] = {
 };
 
 
-/* VIC size menu */
+// VIC size menu
 
 UI_MENU_DEFINE_TOGGLE(VICDoubleSize)
 UI_MENU_DEFINE_TOGGLE(VICDoubleScan)
@@ -556,9 +556,16 @@ static const ui_menu_entry_t vic_size_menu[] = {
 #endif
     SDL_MENU_LIST_END
 };
+*/
 
+UI_MENU_DEFINE_TOGGLE(VICIIFullscreen)
+UI_MENU_DEFINE_TOGGLE(VDCFullscreen)
+UI_MENU_DEFINE_TOGGLE(CrtcFullscreen)
+UI_MENU_DEFINE_TOGGLE(TEDFullscreen)
+UI_MENU_DEFINE_TOGGLE(VICFullscreen)
 
 /* Output Rendering Filter */
+/*
 UI_MENU_DEFINE_RADIO(VICIIFilter)
 UI_MENU_DEFINE_RADIO(TEDFilter)
 UI_MENU_DEFINE_RADIO(VICFilter)
@@ -599,7 +606,7 @@ static const ui_menu_entry_t vdc_filter_menu[] = {
     VICE_SDL_FILTER_MENU_ITEMS(VDC),
     SDL_MENU_LIST_END
 };
-
+*/
 /* Misc. callbacks */
 UI_MENU_DEFINE_TOGGLE(VICIIVideoCache)
 UI_MENU_DEFINE_TOGGLE(VDCVideoCache)
@@ -615,6 +622,7 @@ UI_MENU_DEFINE_RADIO(MachineVideoStandard)
 UI_MENU_DEFINE_TOGGLE(VICIICheckSsColl)
 UI_MENU_DEFINE_TOGGLE(VICIICheckSbColl)
 
+/*
 static UI_MENU_CALLBACK(restore_size_callback)
 {
     if (activated) {
@@ -622,7 +630,7 @@ static UI_MENU_CALLBACK(restore_size_callback)
     }
     return NULL;
 }
-
+*/
 UI_MENU_DEFINE_FILE_STRING(VICIIPaletteFile)
 UI_MENU_DEFINE_FILE_STRING(VDCPaletteFile)
 UI_MENU_DEFINE_FILE_STRING(CrtcPaletteFile)
@@ -657,7 +665,15 @@ const ui_menu_entry_t c128_video_menu[] = {
       radio_VideoOutput_c128_callback,
       (ui_callback_data_t)1 },
     SDL_MENU_ITEM_SEPARATOR,
-    { "VICII size settings",
+    { "VICII Fullscreen",
+      MENU_ENTRY_RESOURCE_TOGGLE,
+      toggle_VICIIFullscreen_callback,
+      NULL },
+    { "VDC Fullscreen",
+      MENU_ENTRY_RESOURCE_TOGGLE,
+      toggle_VDCFullscreen_callback,
+      NULL },
+/*    { "VICII size settings",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)vicii_size_menu },
@@ -668,7 +684,7 @@ const ui_menu_entry_t c128_video_menu[] = {
     { "Restore window size",
       MENU_ENTRY_OTHER,
       restore_size_callback,
-      NULL },
+      NULL },*/
     SDL_MENU_ITEM_SEPARATOR,
     { "VICII Video cache",
       MENU_ENTRY_RESOURCE_TOGGLE,
@@ -678,14 +694,14 @@ const ui_menu_entry_t c128_video_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)vicii_color_controls_menu },
-    { "VICII CRT emulation controls",
+/*    { "VICII CRT emulation controls",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)vicii_crt_controls_menu },
     { "VICII render filter",
       MENU_ENTRY_SUBMENU,
       submenu_radio_callback,
-      (ui_callback_data_t)vicii_filter_menu },
+      (ui_callback_data_t)vicii_filter_menu },*/
     { "VICII colors",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
@@ -703,14 +719,14 @@ const ui_menu_entry_t c128_video_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)vdc_color_controls_menu },
-    { "VDC CRT emulation controls",
+/*    { "VDC CRT emulation controls",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)vdc_crt_controls_menu },
     { "VDC render filter",
       MENU_ENTRY_SUBMENU,
       submenu_radio_callback,
-      (ui_callback_data_t)vdc_filter_menu },
+      (ui_callback_data_t)vdc_filter_menu },*/
     { "VDC colors",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
@@ -745,14 +761,18 @@ const ui_menu_entry_t c128_video_menu[] = {
 /* C64 video menu */
 
 const ui_menu_entry_t c64_video_menu[] = {
-    { "Size settings",
+    { "Fullscreen",
+      MENU_ENTRY_RESOURCE_TOGGLE,
+      toggle_VICIIFullscreen_callback,
+      NULL },
+/*    { "Size settings",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)vicii_size_menu },
     { "Restore window size",
       MENU_ENTRY_OTHER,
       restore_size_callback,
-      NULL },
+      NULL },*/
     SDL_MENU_ITEM_SEPARATOR,
     { "Video cache",
       MENU_ENTRY_RESOURCE_TOGGLE,
@@ -768,14 +788,14 @@ const ui_menu_entry_t c64_video_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)vicii_color_controls_menu },
-    { "CRT emulation controls",
+/*    { "CRT emulation controls",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)vicii_crt_controls_menu },
     { "Render filter",
       MENU_ENTRY_SUBMENU,
       submenu_radio_callback,
-      (ui_callback_data_t)vicii_filter_menu },
+      (ui_callback_data_t)vicii_filter_menu },*/
     SDL_MENU_ITEM_SEPARATOR,
     { "VICII colors",
       MENU_ENTRY_SUBMENU,
@@ -801,14 +821,18 @@ const ui_menu_entry_t c64_video_menu[] = {
 /* C64SC video menu */
 
 const ui_menu_entry_t c64sc_video_menu[] = {
-    { "Size settings",
+    { "Fullscreen",
+      MENU_ENTRY_RESOURCE_TOGGLE,
+      toggle_VICIIFullscreen_callback,
+      NULL },
+/*    { "Size settings",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)vicii_size_menu },
     { "Restore window size",
       MENU_ENTRY_OTHER,
       restore_size_callback,
-      NULL },
+      NULL },*/
     SDL_MENU_ITEM_SEPARATOR,
     { "VICII border mode",
       MENU_ENTRY_SUBMENU,
@@ -819,14 +843,14 @@ const ui_menu_entry_t c64sc_video_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)vicii_color_controls_menu },
-    { "CRT emulation controls",
+/*    { "CRT emulation controls",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)vicii_crt_controls_menu },
     { "Render filter",
       MENU_ENTRY_SUBMENU,
       submenu_radio_callback,
-      (ui_callback_data_t)vicii_filter_menu },
+      (ui_callback_data_t)vicii_filter_menu },*/
     SDL_MENU_ITEM_SEPARATOR,
     { "VICII colors",
       MENU_ENTRY_SUBMENU,
@@ -856,14 +880,18 @@ const ui_menu_entry_t c64sc_video_menu[] = {
 /* C64DTV video menu */
 
 const ui_menu_entry_t c64dtv_video_menu[] = {
-    { "Size settings",
+    { "Fullscreen",
+      MENU_ENTRY_RESOURCE_TOGGLE,
+      toggle_VICIIFullscreen_callback,
+      NULL },
+/*    { "Size settings",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)vicii_size_menu },
     { "Restore window size",
       MENU_ENTRY_OTHER,
       restore_size_callback,
-      NULL },
+      NULL },*/
     SDL_MENU_ITEM_SEPARATOR,
     { "Video cache",
       MENU_ENTRY_RESOURCE_TOGGLE,
@@ -879,14 +907,14 @@ const ui_menu_entry_t c64dtv_video_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)vicii_color_controls_menu },
-    { "CRT emulation controls",
+/*    { "CRT emulation controls",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)vicii_crt_controls_menu },
     { "Render filter",
       MENU_ENTRY_SUBMENU,
       submenu_radio_callback,
-      (ui_callback_data_t)vicii_filter_menu },
+      (ui_callback_data_t)vicii_filter_menu },*/
 #if 0   /* disabled until there are external DTV palette files available */
     { "External palette",
       MENU_ENTRY_RESOURCE_TOGGLE,
@@ -926,14 +954,18 @@ const ui_menu_entry_t c64dtv_video_menu[] = {
 /* CBM-II 5x0 video menu */
 
 const ui_menu_entry_t cbm5x0_video_menu[] = {
-    { "Size settings",
+    { "Fullscreen",
+      MENU_ENTRY_RESOURCE_TOGGLE,
+      toggle_VICIIFullscreen_callback,
+      NULL },
+/*    { "Size settings",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)vicii_size_menu },
     { "Restore window size",
       MENU_ENTRY_OTHER,
       restore_size_callback,
-      NULL },
+      NULL },*/
     SDL_MENU_ITEM_SEPARATOR,
     { "Video cache",
       MENU_ENTRY_RESOURCE_TOGGLE,
@@ -949,14 +981,14 @@ const ui_menu_entry_t cbm5x0_video_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)vicii_color_controls_menu },
-    { "CRT emulation controls",
+/*    { "CRT emulation controls",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)vicii_crt_controls_menu },
     { "Render filter",
       MENU_ENTRY_SUBMENU,
       submenu_radio_callback,
-      (ui_callback_data_t)vicii_filter_menu },
+      (ui_callback_data_t)vicii_filter_menu },*/
     SDL_MENU_ITEM_SEPARATOR,
     { "VICII colors",
       MENU_ENTRY_SUBMENU,
@@ -992,14 +1024,18 @@ const ui_menu_entry_t cbm5x0_video_menu[] = {
 /* CBM-II 6x0/7x0 video menu */
 
 const ui_menu_entry_t cbm6x0_7x0_video_menu[] = {
-    { "Size settings",
+    { "Fullscreen",
+      MENU_ENTRY_RESOURCE_TOGGLE,
+      toggle_CrtcFullscreen_callback,
+      NULL },
+/*    { "Size settings",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)crtc_size_menu },
     { "Restore window size",
       MENU_ENTRY_OTHER,
       restore_size_callback,
-      NULL },
+      NULL },*/
     SDL_MENU_ITEM_SEPARATOR,
     { "Video cache",
       MENU_ENTRY_RESOURCE_TOGGLE,
@@ -1010,14 +1046,14 @@ const ui_menu_entry_t cbm6x0_7x0_video_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)crtc_color_controls_menu },
-    { "CRT emulation controls",
+/*    { "CRT emulation controls",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)crtc_crt_controls_menu },
     { "Render filter",
       MENU_ENTRY_SUBMENU,
       submenu_radio_callback,
-      (ui_callback_data_t)crtc_filter_menu },
+      (ui_callback_data_t)crtc_filter_menu },*/
     { "CRTC colors",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
@@ -1033,14 +1069,18 @@ const ui_menu_entry_t cbm6x0_7x0_video_menu[] = {
 /* PET video menu */
 
 const ui_menu_entry_t pet_video_menu[] = {
-    { "Size settings",
+    { "Fullscreen",
+      MENU_ENTRY_RESOURCE_TOGGLE,
+      toggle_CrtcFullscreen_callback,
+      NULL },
+/*    { "Size settings",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)crtc_size_menu },
     { "Restore window size",
       MENU_ENTRY_OTHER,
       restore_size_callback,
-      NULL },
+      NULL },*/
     SDL_MENU_ITEM_SEPARATOR,
     { "Video cache",
       MENU_ENTRY_RESOURCE_TOGGLE,
@@ -1051,14 +1091,14 @@ const ui_menu_entry_t pet_video_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)crtc_color_controls_menu },
-    { "CRT emulation controls",
+/*    { "CRT emulation controls",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)crtc_crt_controls_menu },
     { "Render filter",
       MENU_ENTRY_SUBMENU,
       submenu_radio_callback,
-      (ui_callback_data_t)crtc_filter_menu },
+      (ui_callback_data_t)crtc_filter_menu },*/
     { "CRTC colors",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
@@ -1074,14 +1114,18 @@ const ui_menu_entry_t pet_video_menu[] = {
 /* PLUS4 video menu */
 
 const ui_menu_entry_t plus4_video_menu[] = {
-    { "Size settings",
+    { "Fullscreen",
+      MENU_ENTRY_RESOURCE_TOGGLE,
+      toggle_TEDFullscreen_callback,
+      NULL },
+/*    { "Size settings",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)ted_size_menu },
     { "Restore window size",
       MENU_ENTRY_OTHER,
       restore_size_callback,
-      NULL },
+      NULL },*/
     SDL_MENU_ITEM_SEPARATOR,
     { "Video cache",
       MENU_ENTRY_RESOURCE_TOGGLE,
@@ -1096,14 +1140,14 @@ const ui_menu_entry_t plus4_video_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)ted_color_controls_menu },
-    { "CRT emulation controls",
+/*    { "CRT emulation controls",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)ted_crt_controls_menu },
     { "Render filter",
       MENU_ENTRY_SUBMENU,
       submenu_radio_callback,
-      (ui_callback_data_t)ted_filter_menu },
+      (ui_callback_data_t)ted_filter_menu },*/
     SDL_MENU_ITEM_SEPARATOR,
     { "TED colors",
       MENU_ENTRY_SUBMENU,
@@ -1141,14 +1185,18 @@ static UI_MENU_CALLBACK(radio_MachineVideoStandard_vic20_callback)
 }
 
 const ui_menu_entry_t vic20_video_menu[] = {
-    { "Size settings",
+    { "Fullscreen",
+      MENU_ENTRY_RESOURCE_TOGGLE,
+      toggle_VICFullscreen_callback,
+      NULL },
+/*    { "Size settings",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)vic_size_menu },
     { "Restore window size",
       MENU_ENTRY_OTHER,
       restore_size_callback,
-      NULL },
+      NULL },*/
     SDL_MENU_ITEM_SEPARATOR,
     { "Video cache",
       MENU_ENTRY_RESOURCE_TOGGLE,
@@ -1163,14 +1211,14 @@ const ui_menu_entry_t vic20_video_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)vic_color_controls_menu },
-    { "CRT emulation controls",
+/*    { "CRT emulation controls",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)vic_crt_controls_menu },
     { "Render filter",
       MENU_ENTRY_SUBMENU,
       submenu_radio_callback,
-      (ui_callback_data_t)vic_filter_menu },
+      (ui_callback_data_t)vic_filter_menu },*/
     SDL_MENU_ITEM_SEPARATOR,
     { "VIC colors",
       MENU_ENTRY_SUBMENU,
