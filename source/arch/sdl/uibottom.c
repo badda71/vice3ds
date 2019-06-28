@@ -191,57 +191,66 @@ static unsigned char keysPressed[256];
 
 // SDL functions for bottom screen
 // ===============================
-extern C3D_RenderTarget *VideoSurface2;
-extern int uLoc_projection;
 extern C3D_Mtx projection2;
+extern C3D_RenderTarget* VideoSurface2;
+extern int uLoc_projection;
 extern void drawTexture( int x, int y, int width, int height, float left, float right, float top, float bottom);
 
+#define CLEAR_COLOR 0x000000FF
+static C3D_Tex spritesheet_tex;
+static u8 *gpusrc;
+
 SDL_Surface *bottom_CreateSurface() {
-	SDL_Surface *s = SDL_CreateRGBSurface(SDL_SWSURFACE, 320, 240, 24,
-		0xFF0000,
-		0x00FF00,
-		0x0000FF,
-		0x000000);
-	free(s->pixels);
-	s->pixels=linearAlloc(s->h * s->pitch);
+	// setup main SDL surface
+	SDL_Surface *s = SDL_CreateRGBSurface(SDL_SWSURFACE, 512, 256, 32,
+		0xFF000000,
+		0x00FF0000,
+		0x0000FF00,
+		0x000000FF);
 	return s;
 }
 
-void bottom_Flip(SDL_Surface *s) {
-	static C3D_Tex bottom_spritesheet_tex;
-	static int isinit=0;
+static void bottom_Flip(SDL_Surface *s) {
+	static int isinit = 0;
 
-	// init texture if necessary
 	if (!isinit) {
-		C3D_TexInit(&bottom_spritesheet_tex, 512, 256, GSP_BGR8_OES);
-		C3D_TexSetFilter(&bottom_spritesheet_tex, GPU_NEAREST, GPU_NEAREST);
-		isinit=1;
+		// Init the texture
+		C3D_TexInit(&spritesheet_tex, 512, 256, GPU_RGBA8);
+		C3D_TexSetFilter(&spritesheet_tex, GPU_NEAREST, GPU_NEAREST);
+		// alloc the linear buffer
+		gpusrc = linearAlloc(s->h * s->pitch);
+		isinit = 1;
 	}
+	// copy pixels of surface to linear aligned buffer
+	memcpy(gpusrc, s->pixels, s->h * s->pitch);
 
-	// transfer surface pixels to texture
-	GSPGPU_FlushDataCache(s->pixels, s->h * s->pitch);
-	C3D_SyncDisplayTransfer((u32*)s->pixels, GX_BUFFER_DIM(s->w, s->h), (u32*)bottom_spritesheet_tex.data, GX_BUFFER_DIM(512, 256),
-		GX_TRANSFER_FLIP_VERT(1) |
-		GX_TRANSFER_OUT_TILED(1) |
-		GX_TRANSFER_RAW_COPY(0) |
-		GX_TRANSFER_IN_FORMAT( s->format->BytesPerPixel == 4 ? GX_TRANSFER_FMT_RGBA8 : GX_TRANSFER_FMT_RGB8 ) |
-		GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGB8) |
-		GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO));
-	GSPGPU_FlushDataCache(bottom_spritesheet_tex.data, 512 * 256 * 3);
-	C3D_TexBind(0, &bottom_spritesheet_tex);
+	// ensure data is in physical ram
+	GSPGPU_FlushDataCache(gpusrc, s->h*s->pitch);
+
+	// Convert image to 3DS tiled texture format
+	C3D_SyncDisplayTransfer ((u32*)gpusrc, GX_BUFFER_DIM(s->w,s->h), (u32*)spritesheet_tex.data, GX_BUFFER_DIM(512,256), 
+		(GX_TRANSFER_FLIP_VERT(1) | GX_TRANSFER_OUT_TILED(1) | GX_TRANSFER_RAW_COPY(0) |
+		GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGBA8))
+	);
+	GSPGPU_FlushDataCache(spritesheet_tex.data, 512*256*4 );
+
+	// Load the texture and bind it to the first texture unit
+	C3D_TexBind(0, &spritesheet_tex);
+
+	// Configure the first fragment shading substage to just pass through the texture color
+	// See https://www.opengl.org/sdk/docs/man2/xhtml/glTexEnv.xml for more insight
 	C3D_TexEnv* env = C3D_GetTexEnv(0);
 	C3D_TexEnvInit(env);
 	C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, 0, 0);
 	C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
 
-	// draw texture on botton screen (maybe this needs to be in a different thread)
-	if (C3D_FrameBegin(C3D_FRAME_NONBLOCK)){ 
-		C3D_RenderTargetClear(VideoSurface2, C3D_CLEAR_ALL, 0x00000000, 0);
+	// Render the scene
+	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+		C3D_RenderTargetClear(VideoSurface2, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
 		C3D_FrameDrawOn(VideoSurface2);
 		C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, &projection2);
 		drawTexture(0, 0, 512, 256, 0.0f, 0.8f, 0.0f, 1.0f);
-		C3D_FrameEnd(0);
-	}
+	C3D_FrameEnd(0);
 }
 
 // bottom handling functions
@@ -269,7 +278,7 @@ static void pressKey(int key, int press) {
 		y=uikbd_keypos[key].y + kb_y_pos;
 		w=uikbd_keypos[key].w;
 		h=uikbd_keypos[key].h;
-		for (int yy = y; yy < MIN(y+h, bottoms->h); yy++)
+		for (int yy = y; yy < MIN(y+h, 240); yy++)
 		{
 			for (int xx = x; xx < x+w; xx++)
 			{
@@ -507,7 +516,7 @@ static void uibottom_init() {
 
 	// calc global vars
 	kb_y_pos = 
-		persistence_getInt("kbd_hidden",0) ? bottoms->h : bottoms->h - uikbd_pos[0][3];
+		persistence_getInt("kbd_hidden",0) ? 240 : 240 - uikbd_pos[0][3];
 	uibottom_must_redraw = UIB_ALL;
 }
 
@@ -517,7 +526,11 @@ void sdl_uibottom_draw(void)
 	enum bottom_action uibottom_must_redraw_local;
 
 	// init if needed
-	if (!uibottom_isinit) uibottom_init();
+	if (!uibottom_isinit) {
+		uibottom_init();
+		SDL_FillRect(bottoms, NULL, SDL_MapRGBA(bottoms->format,0,0,0,255));
+		bottom_Flip(bottoms);
+	}
 
 	if (uibottom_must_redraw) {
 
