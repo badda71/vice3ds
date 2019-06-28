@@ -326,10 +326,19 @@ static int log_archdep(const char *logtxt, const char *fmt, va_list ap)
         beg = eol + 1;
     }
 	svcOutputDebugString(txt, strlen(txt));
-    beg=util_concat(txt,"\n",NULL);
+
+	// udp send	
+    time_t timer;
+    char buffer[26];
+    struct tm* tm_info;
+    time(&timer);
+    tm_info = localtime(&timer);
+    strftime(buffer, 26, "%H:%M:%S", tm_info);
+	beg=lib_msprintf("%s - %s\n", buffer, txt);
 	udpSend(beg);
-	lib_free(txt);
 	lib_free(beg);
+	
+	lib_free(txt);
     return rc;
 }
 

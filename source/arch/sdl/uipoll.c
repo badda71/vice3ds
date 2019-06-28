@@ -97,7 +97,6 @@ SDL_Event sdl_ui_poll_event(const char *what, const char *target, int options, i
             switch (e.type) {
                 case SDL_KEYDOWN:
 					if (e.key.keysym.sym == 255) {
-log_3ds("toggle keyboard");
 						toggle_keyboard();
 						break;
 					}
