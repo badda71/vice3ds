@@ -32,6 +32,9 @@
 #include "kbdbuf.h"
 #include "uibottom.h"
 #include "3ds_threadworker.h"
+#include "resources.h"
+#include "fullscreenarch.h"
+#include "videoarch.h"
 #include <3ds.h>
 
 static int ui_key_press_sequence (void *param) {
@@ -89,6 +92,45 @@ static UI_MENU_CALLBACK(bottomoff_callback)
     return NULL;
 }
 
+static UI_MENU_CALLBACK(toggle_MaxScreen_callback)
+{
+	static int s_fs=-1,s_fss=-1,s_fsm=-1;
+	int r=0, fs=0, fss=0, w=0, h=0, fsm=0;
+	
+	char c_fs[25],c_fsm[25];
+	snprintf(c_fs,25,"%sFullscreen",sdl_active_canvas->videoconfig->chip_name);
+	resources_get_int(c_fs, &fs); // 1?
+	snprintf(c_fsm,25,"%sSDLFullscreenMode",sdl_active_canvas->videoconfig->chip_name);
+	resources_get_int(c_fsm, &fsm); // FULLSCREEN_MODE_CUSTOM ?
+	resources_get_int("SDLCustomWidth", &w); // 320?
+	resources_get_int("SDLCustomHeight", &h); // 200?
+	resources_get_int("SDLFullscreenStretch", &fss); // SDL_FULLSCREEN?
+
+	if (fs==1 && w==320 && h==200 && fss==SDL_FULLSCREEN && fsm==FULLSCREEN_MODE_CUSTOM) r=1;
+
+	if (activated) {
+		if (r==0) {
+			r=1;
+			s_fs=fs; s_fss=fss; s_fsm=fsm;
+			resources_set_int("SDLCustomWidth", 320);
+			resources_set_int("SDLCustomHeight", 200);
+			resources_set_int("SDLFullscreenStretch", SDL_FULLSCREEN);
+			resources_set_int(c_fsm, FULLSCREEN_MODE_CUSTOM);
+			resources_set_int(c_fs, 1);
+		} else {
+			r=0;
+			resources_set_int(c_fs, s_fs);
+			resources_set_int(c_fsm, s_fsm);
+			resources_set_int("SDLFullscreenStretch", s_fss);
+			resources_set_int("SDLCustomWidth", 400);
+			resources_set_int("SDLCustomHeight", 240);
+		}	
+		// update keypresses on bottom screen in case we have anything mapped
+		uibottom_must_redraw |= UIB_REPAINT_SBUTTONS;
+	}
+	return r ? sdl_menu_text_tick : NULL;
+}
+
 const ui_menu_entry_t misc_menu[] = {
     SDL_MENU_ITEM_TITLE("3DS specific"),
     { "Power off bottom screen backlight",
@@ -102,7 +144,11 @@ const ui_menu_entry_t misc_menu[] = {
 		{0,  SDL_KEYDOWN,  255},
 		{50, SDL_KEYUP,    255},
 		{0,   0,            0}})},
-    SDL_MENU_ITEM_SEPARATOR,
+	{ "Hide Border / Fullscreen",
+		MENU_ENTRY_OTHER_TOGGLE,
+		toggle_MaxScreen_callback,
+		NULL},
+	SDL_MENU_ITEM_SEPARATOR,
     SDL_MENU_ITEM_TITLE("Commands"),
     { "LOAD\"*\",8,1 RUN",
 		MENU_ENTRY_OTHER,
