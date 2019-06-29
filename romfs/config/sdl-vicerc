@@ -44,6 +44,7 @@ VICIIVideoCache=0
 VICIIDoubleScan=0
 VICIIHwScale=0
 VICIIDoubleSize=0
+VICIISDLFullscreenMode=0
 VICIIFilter=0
 SidEngine=0
 SidModel=0
