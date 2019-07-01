@@ -189,6 +189,7 @@ ui_menu_action_t ui_dispatch_events(void)
 				break;
 #ifdef HAVE_SDL_NUMJOYSTICKS
             case SDL_JOYAXISMOTION:
+//log_3ds("Joyaxismotion %d %d",e.jaxis.axis, e.jaxis.value);
                 retval = sdljoy_axis_event(e.jaxis.which, e.jaxis.axis, e.jaxis.value);
                 break;
             case SDL_JOYBUTTONDOWN:

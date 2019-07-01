@@ -40,7 +40,7 @@
 #include "uistatusbar.h"
 #include "videoarch.h"
 #include "log.h"
-#include "3ds_led.h"
+#include "vice3ds.h"
 
 /* ----------------------------------------------------------------- */
 /* static functions/variables */

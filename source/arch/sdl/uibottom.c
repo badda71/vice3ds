@@ -40,7 +40,7 @@
 #include "ui.h"
 #include "palette.h"
 #include "persistence.h"
-#include "3ds_threadworker.h"
+#include "vice3ds.h"
 #include <SDL/SDL_image.h>
 #include <3ds.h>
 #include <citro3d.h>

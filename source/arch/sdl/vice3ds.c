@@ -1,10 +1,11 @@
 /*
- * 3ds_threadworker.c - 3DS small worker thread handling
+ * 3ds_led.c - Notification LED control functions for Nintendo 3DS
  *
  * Written by
  *  Sebastian Weber <me@badda.de>
  *
- * This file is part of VICE3DS
+ * This file is part of VICE, the Versatile Commodore Emulator.
+ * See README for copyright notice.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,8 +23,50 @@
  *  02111-1307  USA.
  *
  */
-#include <SDL/SDL.h>
 
+#include <3ds.h>
+#include <string.h>
+#include <SDL/SDL.h>
+#include "vice3ds.h"
+
+
+// LED-related vars / functions
+static Handle ptmsysmHandle = 0;
+static unsigned char ledpattern[100] =
+"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
+
+static int LED3DS_Init() {
+	if (ptmsysmHandle == 0) {
+		srvInit();
+		Result res = srvGetServiceHandle(&ptmsysmHandle, "ptm:sysm");
+		srvExit();
+		if (res < 0) return -1;
+	}
+	return 0;
+}
+
+int LED3DS_On(unsigned char r, unsigned char g, unsigned char b) {
+	int i;
+	for (i=0;i<4;++i) ledpattern[i]=0;
+	for (i=4;i<36;++i) ledpattern[i]=r;
+	for (i=36;i<68;++i) ledpattern[i]=g;
+	for (i=68;i<100;++i) ledpattern[i]=b;
+
+	if (LED3DS_Init() < 0) return -1;
+
+	u32* ipc = getThreadCommandBuffer();
+    ipc[0] = 0x8010640;
+    memcpy(&ipc[1], ledpattern, 0x64);
+    Result ret = svcSendSyncRequest(ptmsysmHandle);
+    if(ret < 0 || ipc[1]<0) return -1;
+	return 0;
+}
+
+int LED3DS_Off() {
+	return LED3DS_On(0,0,0);
+}
+
+// threadworker-related vars / functions
 #define MAXPENDING 10
 
 static SDL_Thread *worker=NULL;

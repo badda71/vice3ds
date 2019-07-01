@@ -180,6 +180,7 @@ int persistence_put(char *key, char *value) {
 				data[i2*2-2]=data[i2*2];
 				data[i2*2-1]=data[i2*2+1];
 			}
+			data=realloc(data, (numdata*2-2)*sizeof(*data));
 			--numdata;
 		}
 	} else if (value!=NULL) {

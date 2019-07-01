@@ -31,7 +31,7 @@
 #include "charset.h"
 #include "kbdbuf.h"
 #include "uibottom.h"
-#include "3ds_threadworker.h"
+#include "vice3ds.h"
 #include "resources.h"
 #include "fullscreenarch.h"
 #include "videoarch.h"

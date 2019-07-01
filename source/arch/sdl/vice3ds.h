@@ -1,10 +1,11 @@
 /*
- * 3ds_threadworker.h - 3DS small worker thread handling
+ * 3ds_led.h - Notification LED control functions for Nintendo 3DS
  *
  * Written by
  *  Sebastian Weber <me@badda.de>
  *
- * This file is part of VICE3DS
+ * This file is part of VICE, the Versatile Commodore Emulator.
+ * See README for copyright notice.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,5 +23,8 @@
  *  02111-1307  USA.
  *
  */
+
+extern int LED3DS_On(unsigned char r, unsigned char g, unsigned char b);
+extern int LED3DS_Off(void);
 
 int start_worker(int (*fn)(void *), void *data);
