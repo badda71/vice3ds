@@ -100,8 +100,8 @@ uikbd_key uikbd_keypos[] = {
 	{ 221, 21,  20,  20,  43,   5,   0,   0,  0,  "+"}, // + / +
 	{ 241, 21,  20,  20,  45,   5,   3,   0,  0,  "-"}, // - / |
 	{ 261, 21,  20,  20,  92,   6,   0,   0,  0,  "Pound"}, // Pound / ..
-	{ 281, 21,  20,  20,  19,   6,   3,   0,  0,  "CLR"}, // CLR/HOME
-	{ 301, 21,  19,  20,  20,   0,   0,   0,  0,  "INST"}, // INST/DEL
+	{ 281, 21,  20,  20,  19,   6,   3,   0,  0,  "CLR/HOME"}, // CLR/HOME
+	{ 301, 21,  19,  20,  20,   0,   0,   0,  0,  "INST/DEL"}, // INST/DEL
 	// 2nd row	
 	{   1, 41,  30,  20,  24,   7,   2,   4,  0,  "CTRL"}, // CTRL - sticky ctrl
 	{  31, 41,  20,  20, 113,   7,   6,   0,  0,  "Q"}, // Q
@@ -119,8 +119,8 @@ uikbd_key uikbd_keypos[] = {
 	{ 271, 41,  20,  20,  94,   6,   6,   0,  0,  "ArrowUp"}, // ^| / π
 	{ 291, 41,  29,  20,  25,  -3,   0,   0,  0,  "RESTORE"}, // RESTORE
 	// 3rd row	
-	{   1, 61,  20,  20,   3,   7,   7,   0,  0,  "R/S"}, // RUN/STOP
-	{  21, 61,  20,  20,  21,   1,   7,   1,  0,  "S/L"}, // SHIFT LOCK - sticky shift
+	{   1, 61,  20,  20,   3,   7,   7,   0,  0,  "RUN/STOP"}, // RUN/STOP
+	{  21, 61,  20,  20,  21,   1,   7,   1,  0,  "SHIFT"}, // SHIFT LOCK - sticky shift
 	{  41, 61,  20,  20,  97,   1,   2,   0,  0,  "A"}, // A
 	{  61, 61,  20,  20, 115,   1,   5,   0,  0,  "S"}, // S
 	{  81, 61,  20,  20, 100,   2,   2,   0,  0,  "D"}, // D
@@ -133,10 +133,10 @@ uikbd_key uikbd_keypos[] = {
 	{ 221, 61,  20,  20,  58,   5,   5,   0,  0,  ":"}, // : / [
 	{ 241, 61,  20,  20,  59,   6,   2,   0,  0,  ";"}, // ; / ]
 	{ 261, 61,  20,  20,  61,   6,   5,   0,  0,  "="}, // =
-	{ 281, 61,  39,  20,  13,   0,   1,   0,  0,  "CR"}, // RETURN
+	{ 281, 61,  39,  20,  13,   0,   1,   0,  0,  "RETURN"}, // RETURN
 	// 4th row	
 	{   1, 81,  20,  20,  23,   7,   5,   2,  0,  "C="}, // cbm - sticky cbm
-	{  21, 81,  30,  20,  21,   1,   7,   1,  0,  "LSHIFT"}, // LSHIFT - sticky shift
+	{  21, 81,  30,  20,  21,   1,   7,   1,  0,  "SHIFT"}, // LSHIFT - sticky shift
 	{  51, 81,  20,  20, 122,   1,   4,   0,  0,  "Z"}, // Z
 	{  71, 81,  20,  20, 120,   2,   7,   0,  0,  "X"}, // X
 	{  91, 81,  20,  20,  99,   2,   4,   0,  0,  "C"}, // C
@@ -147,7 +147,7 @@ uikbd_key uikbd_keypos[] = {
 	{ 191, 81,  20,  20,  44,   5,   7,   0,  0,  ","}, // ,
 	{ 211, 81,  20,  20,  46,   5,   4,   0,  0,  "."}, // .
 	{ 231, 81,  20,  20,  47,   6,   7,   0,  0,  "/"}, // /
-	{ 251, 81,  30,  20,  21,   6,   4,   1,  0,  "RSHIFT"}, // RSHIFT - sticky shift
+	{ 251, 81,  30,  20,  21,   6,   4,   1,  0,  "SHIFT"}, // RSHIFT - sticky shift
 	// SPACE	
 	{  61,101, 180,  19,  32,   7,   4,   0,  0,  "SPACE"},  // SPACE
 	// Cursor Keys
@@ -401,7 +401,9 @@ static void hash_put(char *key, void *val) {
 	while (iconHash[i].key!=NULL && strcmp(iconHash[i].key,key)!=0) {
 		++i; i %= 256;
 	}
-	iconHash[i].key=key;
+	if (iconHash[i].key != NULL)
+		lib_free(iconHash[i].key);
+	iconHash[i].key=lib_stralloc(key);
 	iconHash[i].val=val;
 }
 
@@ -423,6 +425,9 @@ static SDL_Surface *loadIcon(char *name) {
 static SDL_Surface *createIcon(char *name) {
 //log_3ds("createIcon: %s",name);
 	static SDL_Surface *chars=NULL;
+	static SDL_Surface *smallchars=NULL;
+	static SDL_Surface *keyimg;
+	int i,c;
 
 	if (chars==NULL) {
 		chars=IMG_Load("romfs:/charset.png");
@@ -431,37 +436,89 @@ static SDL_Surface *createIcon(char *name) {
 	SDL_Surface *icon=SDL_CreateRGBSurface(SDL_SWSURFACE,ICON_W,ICON_H,32,0xff000000,0x00ff0000,0x0000ff00,0x000000ff);
 //	SDL_FillRect(icon, NULL, SDL_MapRGBA(icon->format, 0, 0, 0, 0));
 
-	int maxw=ICON_W/8;
-	int maxh=ICON_H/8;
-	char *buf=malloc(maxw*maxh);
-	memset(buf,255,maxw*maxh);
-	int x=0,y=0,c,cx=0,cy=0;
-	char *t;
-	for (int i=0; name[i] != 0 && y < maxh; ++i) {
-		c=(name[i] & 0x7f)-32;
-		if (c<0) c=0;
-		if (c==0 && x==0) continue;
-		if (c==0 && (((t=strchr(name+i+1,' '))==NULL && y<=maxh-1) || t-name-i > maxw-x)) {
-			x=0;++y; continue;}
-		buf[x+y*maxw]=c & 0x7F;
-		if (cx<x) cx=x;
-		if (cy<y) cy=y;
-		++x;
-		if (x>=maxw) {
-			x=0;++y;
-			if ((t=strchr(name+i+1,' '))!=NULL && t-name-i-2<(maxw/2)) i=t-name;
+	if (strncmp("Key ",name,4)==0) {
+		// make a key icon
+		if (smallchars==NULL) {
+			smallchars=IMG_Load("romfs:/charset_small.png");
+			SDL_SetAlpha(smallchars, 0, 255);
+			keyimg=IMG_Load("romfs:/keyimg.png");
+			SDL_SetAlpha(keyimg, 0, 255);
 		}
-	}
-	int xoff = (ICON_W-(cx+1)*8)/2;
-	int yoff = (ICON_H-(cy+1)*8)/2;
-	for (int i=0; i<maxw*maxh; i++) {
-		c=buf[i];
-		if (c==255) continue;
-		SDL_BlitSurface(
-			chars,
-			&(SDL_Rect){.x=(c&0x0f)*8, .y=(c>>4)*8, .w=8, .h=8},
-			icon,
-			&(SDL_Rect){.x=xoff+(i % maxw)*8, .y=yoff+(i/maxw)*8});
+		// check width
+		int w,n;
+		char *p=NULL;
+		name+=4;
+		if (strlen(name)<=2) w=strlen(name)*8+7;
+		else if ((p=strchr(name,'/'))!=NULL) w=MAX(p-name,strlen(p+1))*4+1;
+		else w=strlen(name)*4+1;
+		if (w<15) w=15;
+		if (w>34) w=34;
+
+		// blit the empty key width the right size
+		SDL_BlitSurface(keyimg, &(SDL_Rect){.x=0, .y=0, .w=4, .h=21},
+			icon, &(SDL_Rect){.x=(34-w)/2 , .y=9 });
+		SDL_BlitSurface(keyimg, &(SDL_Rect){.x=38-w, .y=0, .w=w+2, .h=21},
+			icon, &(SDL_Rect){.x=(34-w)/2+4 , .y=9 });
+
+		// blit the characters
+		int xof,yof;
+		if (strlen(name)<=2) {
+			// big characters
+			xof=19-strlen(name)*4;
+			yof=15;
+			for (i=0;i<strlen(name);i++) {
+				c=(name[i] & 0x7f)-32;
+				SDL_BlitSurface(chars,&(SDL_Rect){.x=(c&0x0f)*8, .y=(c>>4)*8, .w=8, .h=8},
+					icon,&(SDL_Rect){.x=xof+i*8, .y=yof});
+			}
+		} else {
+			// small character, one or two lines
+			char *p1[3] = {name, p == NULL ? NULL: p+1, NULL};
+			if (p) *p=0;
+			for (i=0; p1[i] != NULL; i++) {
+				xof=20-MIN(w, strlen(p1[i])*4)/2;
+				yof=(p?13:16)+i*6;
+				for (n=0; n < strlen(p1[i]) && (n+1)*4 <= w; n++) {
+					c=(p1[i][n] & 0x7f)-32;
+					SDL_BlitSurface(smallchars,&(SDL_Rect){.x=(c&0x0f)*4, .y=(c>>4)*6, .w=4, .h=6},
+						icon,&(SDL_Rect){.x=xof+n*4, .y=yof});
+				}
+			}
+		}
+	} else {
+		// Just write the name on the surface
+		int maxw=ICON_W/8;
+		int maxh=ICON_H/8;
+		char *buf=malloc(maxw*maxh);
+		memset(buf,255,maxw*maxh);
+		int x=0,y=0,cx=0,cy=0;
+		char *t;
+		for (i=0; name[i] != 0 && y < maxh; ++i) {
+			c=(name[i] & 0x7f)-32;
+			if (c<0) c=0;
+			if (c==0 && x==0) continue;
+			if (c==0 && (((t=strchr(name+i+1,' '))==NULL && y<=maxh-1) || t-name-i > maxw-x)) {
+				x=0;++y; continue;}
+			buf[x+y*maxw]=c & 0x7F;
+			if (cx<x) cx=x;
+			if (cy<y) cy=y;
+			++x;
+			if (x>=maxw) {
+				x=0;++y;
+				if ((t=strchr(name+i+1,' '))!=NULL && t-name-i-2<(maxw/2)) i=t-name;
+			}
+		}
+		int xof = (ICON_W-(cx+1)*8)/2;
+		int yof = (ICON_H-(cy+1)*8)/2;
+		for (i=0; i<maxw*maxh; i++) {
+			c=buf[i];
+			if (c==255) continue;
+			SDL_BlitSurface(
+				chars,
+				&(SDL_Rect){.x=(c&0x0f)*8, .y=(c>>4)*8, .w=8, .h=8},
+				icon,
+				&(SDL_Rect){.x=xof+(i % maxw)*8, .y=yof+(i/maxw)*8});
+		}
 	}
 	return icon;
 }

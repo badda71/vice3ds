@@ -140,8 +140,6 @@ void set_3ds_mapping(int sym, SDL_Event *e) {
 		(e->type==SDL_JOYBUTTONDOWN ? 0x00040000 : (e->type==SDL_JOYAXISMOTION ? 0x00020000 : 0x00010000)) | //type
 		(e->type==SDL_KEYDOWN ? ((e->key.keysym.mod & 0xFF) << 8) : (e->type==SDL_JOYAXISMOTION ? (e->jaxis.value <0 ? 0x200 : 0x100 ) : 0)) | // mod
 		(e->type==SDL_JOYBUTTONDOWN ? e->jbutton.button : (e->type==SDL_JOYAXISMOTION ? e->jaxis.axis : e->key.keysym.sym))); //type
-	// recalc the soft buttons just in case the mapping was done there
-	uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
 }
 
 extern const char *get_3ds_keyname(int);
@@ -153,18 +151,18 @@ char *get_3ds_mapping_name(int i) {
 	k=keymap3ds[i];
 	switch(k & 0x00FF0000) {
 	case 0x00010000:	// key
-		snprintf(buf,20,"Key %s\n",get_3ds_keyname(k & 0xFF));
+		snprintf(buf,20,"Key %s",get_3ds_keyname(k & 0xFF));
 		break;
 	case 0x00020000:	// joy axis
 		a = k & 0xFF;
-		snprintf(buf,20,"Joy %s\n",
+		snprintf(buf,20,"Joy %s",
 			a == 1 ? "UP":(
 			a == 2 ? "DOWN":(
 			a == 3 ? "LEFT":
 			"RIGHT")));
 		break;
 	case 0x00040000:	// joy button
-		snprintf(buf,20,"Joy FIRE%d\n",k & 0xFF);
+		snprintf(buf,20,"Joy FIRE%d",k & 0xFF);
 		break;
 	default:
 		return NULL;

@@ -130,12 +130,15 @@ static UI_MENU_CALLBACK(add_keymapping_callback)
 {
 	SDL_Event e;
 	if (activated) {
-		SDL_Event s = sdl_ui_poll_event("key", "extra key mapping", SDL_POLL_KEYBOARD, 5);
+		SDL_Event s = sdl_ui_poll_event("key", "Key mapping", SDL_POLL_KEYBOARD, 5);
         if (s.type == SDL_KEYDOWN) {
 			while (SDL_PollEvent(&e)); // clear event queue
 			SDL_Event t = sdl_ui_poll_event("mapping target", get_3ds_keyname(s.key.keysym.sym),
 				(int)param, 5);
-			set_3ds_mapping(s.key.keysym.sym, t.type ? &t : NULL); // set or clear mapping
+			set_3ds_mapping(s.key.keysym.sym, t.type == SDL_USEREVENT ? NULL : &t); // set or clear mapping
+
+			// recalc the soft buttons just in case the mapping was done there
+			uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
 		}
 	}
 	return NULL;
@@ -153,7 +156,7 @@ static UI_MENU_CALLBACK(list_keymappings_callback)
 		buf[0]=0;
 
 		sprintf(buf+strlen(buf),
-			"Extra key mappings\n"
+			"Key mappings\n"
 			"~~~~~~~~~~~~~~~~~~\n"
 			"\n");
 
@@ -162,7 +165,7 @@ static UI_MENU_CALLBACK(list_keymappings_callback)
 		} else {
 			for (int i=1;i<254;i++) {
 				if (keymap3ds[i] == 0) continue;
-				sprintf(buf+strlen(buf),"%-12s-> %s",get_3ds_keyname(i), get_3ds_mapping_name(i));
+				sprintf(buf+strlen(buf),"%-12s-> %s\n",get_3ds_keyname(i), get_3ds_mapping_name(i));
 			}
 		}
 		ui_show_text(buf);
@@ -196,16 +199,16 @@ const ui_menu_entry_t misc_menu[] = {
 		toggle_MaxScreen_callback,
 		NULL},
 	SDL_MENU_ITEM_SEPARATOR,
-    SDL_MENU_ITEM_TITLE("Extra key mappings"),
-    { "Add extra key mapping (key -> key)",
+    SDL_MENU_ITEM_TITLE("Key mappings"),
+    { "Add key mapping (key -> key)",
 		MENU_ENTRY_OTHER,
 		add_keymapping_callback,
 		(ui_callback_data_t)(SDL_POLL_KEYBOARD | SDL_POLL_MODIFIER)},
-    { "Add extra key mapping (key -> joystick)",
+    { "Add key mapping (key -> joystick)",
 		MENU_ENTRY_OTHER,
 		add_keymapping_callback,
 		(ui_callback_data_t)SDL_POLL_JOYSTICK },
-    { "List extra key mappings",
+    { "List key mappings",
 		MENU_ENTRY_OTHER,
 		list_keymappings_callback,
 		NULL },
