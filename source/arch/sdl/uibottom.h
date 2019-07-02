@@ -28,6 +28,7 @@ extern void sdl_uibottom_draw(void);
 extern int sdl_uibottom_mouseevent(SDL_Event *);
 extern void toggle_keyboard(void);
 extern void setBottomBacklight (int on);
+extern int is_keyboard_hidden();
 
 // exposed definitions
 typedef struct {

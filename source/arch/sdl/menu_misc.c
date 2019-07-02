@@ -69,14 +69,6 @@ static UI_MENU_CALLBACK(keystroke_callback)
     return NULL;
 }
 
-static UI_MENU_CALLBACK(keystroke_callback_noexit)
-{
-	if (activated) {
-		start_worker(ui_key_press_sequence, (int(*)[3])param);
-    }
-    return NULL;
-}
-
 static UI_MENU_CALLBACK(command_callback)
 {
 	if (activated) {
@@ -179,19 +171,26 @@ static UI_MENU_CALLBACK(list_keymappings_callback)
 	return NULL;
 }
 
+static UI_MENU_CALLBACK(toggle_hidekeyboard_callback)
+{
+	int r=is_keyboard_hidden();
+	if (activated) {
+		toggle_keyboard();
+		r=!r;
+	}
+	return r ? sdl_menu_text_tick : NULL;
+}
+
 const ui_menu_entry_t misc_menu[] = {
     SDL_MENU_ITEM_TITLE("3DS specific"),
     { "Power off bottom screen backlight",
 		MENU_ENTRY_OTHER,
 		bottomoff_callback,
 		NULL },
-	{ "Toggle hide keyboard",
-		MENU_ENTRY_OTHER,
-		keystroke_callback_noexit,
-		(ui_callback_data_t)((int[][3]){
-		{0,  SDL_KEYDOWN,  255},
-		{50, SDL_KEYUP,    255},
-		{0,   0,            0}})},
+	{ "Hide keyboard",
+		MENU_ENTRY_OTHER_TOGGLE,
+		toggle_hidekeyboard_callback,
+		NULL},
 	{ "Hide Border / Fullscreen",
 		MENU_ENTRY_OTHER_TOGGLE,
 		toggle_MaxScreen_callback,

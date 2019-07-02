@@ -680,9 +680,16 @@ int toggle_keyboard_thread(void *data) {
 	}
 	return 0;
 }
+static int kb_hidden=-1;
+
+int is_keyboard_hidden() {
+	if (kb_hidden == -1)
+		kb_hidden= kb_y_pos >= 240 ? 1:0;
+	return kb_hidden;
+}
 
 void toggle_keyboard() {
-	persistence_putInt("kbd_hidden",kb_y_pos >= 240 ? 0 : 1);
+	persistence_putInt("kbd_hidden",kb_hidden=(kb_y_pos >= 240 ? 0 : 1));
 	start_worker(toggle_keyboard_thread,NULL);
 }
 
