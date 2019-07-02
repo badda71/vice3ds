@@ -55,6 +55,7 @@
 #include "uibottom.h"
 #include "autofire.h"
 #include "joystick.h"
+#include "vice3ds.h"
 
 /* #define SDL_DEBUG */
 
@@ -91,6 +92,8 @@ static int hotkey_file_set(const char *val, void *param)
 static resource_string_t resources_string[] = {
     { "HotkeyFile", NULL, RES_EVENT_NO, NULL,
       &hotkey_file, hotkey_file_set, (void *)0 },
+	{ "KeyMappings", "", RES_EVENT_NO, NULL,
+      &keymap3ds_resource, keymap3ds_resource_set, NULL },
     RESOURCE_STRING_LIST_END
 };
 

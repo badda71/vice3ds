@@ -29,8 +29,5 @@
 243 Video settings&Enable Sprite-Background collisions
 244 Misc&LOAD"*",8,1 RUN
 245 Misc&LOAD"$",8 LIST
-246 Misc&RUN/STOP
-247 Misc&SPACE
-248 Misc&RETURN
 249 Tape&Play
 250 Misc&Hide Border / Fullscreen

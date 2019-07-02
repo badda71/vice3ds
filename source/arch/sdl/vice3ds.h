@@ -1,5 +1,5 @@
 /*
- * 3ds_led.h - Notification LED control functions for Nintendo 3DS
+ * vice3ds.h - Function specific to vice3DS port
  *
  * Written by
  *  Sebastian Weber <me@badda.de>
@@ -30,6 +30,8 @@ extern int LED3DS_Off(void);
 extern int start_worker(int (*fn)(void *), void *data);
 
 extern int keymap3ds[256];
+extern char *keymap3ds_resource;
 extern int do_3ds_mapping(SDL_Event *e);
 extern void set_3ds_mapping(int sym, SDL_Event *e);
 extern char *get_3ds_mapping_name(int i);
+extern int keymap3ds_resource_set(const char *val, void *param);

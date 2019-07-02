@@ -23,14 +23,14 @@
 
 [C64]
 Directory=
+MenuKey=209
 MenuKeyUp=210
 MenuKeyDown=211
 MenuKeyLeft=212
 MenuKeyRight=213
 MenuKeyCancel=201
-MenuKeyMap=206
-MenuKey=209
 MenuKeyExit=209
+MenuKeyMap=206
 ConfirmOnExit=1
 DriveLED=1
 SoundDeviceName="ndsp"
@@ -66,6 +66,7 @@ JoyDev1Auto=205
 JoyDev2Auto=207
 JoyDevice1=4
 JoyDevice2=2
+KeyMappings="f6010003 f7010020 f801000d"
 Mouse=1
 DriveTrueEmulation=0
 Datasette=0

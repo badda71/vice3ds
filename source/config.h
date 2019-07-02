@@ -413,9 +413,6 @@
 /* Define to 1 if you have the <mpg123.h> header file. */
 /* #undef HAVE_MPG123_H */
 
-/* Use nanosleep instead of usleep */
-#define HAVE_NANOSLEEP /**/
-
 /* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
 /* #undef HAVE_NDIR_H */
 

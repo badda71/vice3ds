@@ -1,5 +1,5 @@
 /*
- * 3ds_led.c - Notification LED control functions for Nintendo 3DS
+ * vice3ds.c - Function specific to vice3DS port
  *
  * Written by
  *  Sebastian Weber <me@badda.de>
@@ -29,6 +29,8 @@
 #include <SDL/SDL.h>
 #include "vice3ds.h"
 #include "uibottom.h"
+#include "util.h"
+#include "kbd.h"
 
 // LED-related vars / functions
 static Handle ptmsysmHandle = 0;
@@ -104,7 +106,35 @@ int start_worker(int (*fn)(void *), void *data) {
 
 // additional input mapping functions
 
+char *keymap3ds_resource=NULL;
 int keymap3ds[256] = {0}; // active(1|0) - type (1|2|4) - (mod|value|0) - (sym|axis|button)
+
+static int load_3ds_mapping(char *s) {
+	char *p;
+	unsigned long int i;
+	memset(keymap3ds,0,sizeof(keymap3ds));
+	while((i=strtoul(s,&p,16))!=0) {
+		keymap3ds[i>>24] = (i & 0xFFFFFF) | 0x01000000;
+		s=p;
+	}
+	uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
+
+	return 0;
+}
+
+static int save_3ds_mapping() {
+	int i,c=0;
+	if (keymap3ds_resource != NULL) free(keymap3ds_resource);
+	for (i=1;i<255;i++)
+		if (keymap3ds[i]) ++c;
+	keymap3ds_resource=malloc(c*9+1);
+	c=0;
+	for (i=1;i<255;i++)
+		if (keymap3ds[i])
+			c+=sprintf(keymap3ds_resource+c,"%02x%06x ",i,keymap3ds[i] & 0xffffff);
+	keymap3ds_resource[c-1]=0;
+	return 0;
+}
 
 int do_3ds_mapping(SDL_Event *e) {
 	int i;
@@ -140,9 +170,9 @@ void set_3ds_mapping(int sym, SDL_Event *e) {
 		(e->type==SDL_JOYBUTTONDOWN ? 0x00040000 : (e->type==SDL_JOYAXISMOTION ? 0x00020000 : 0x00010000)) | //type
 		(e->type==SDL_KEYDOWN ? ((e->key.keysym.mod & 0xFF) << 8) : (e->type==SDL_JOYAXISMOTION ? (e->jaxis.value <0 ? 0x200 : 0x100 ) : 0)) | // mod
 		(e->type==SDL_JOYBUTTONDOWN ? e->jbutton.button : (e->type==SDL_JOYAXISMOTION ? e->jaxis.axis : e->key.keysym.sym))); //type
+	save_3ds_mapping();
 }
 
-extern const char *get_3ds_keyname(int);
 char buf[20];
 char *get_3ds_mapping_name(int i) {
 	int a,k,v;
@@ -171,10 +201,10 @@ char *get_3ds_mapping_name(int i) {
 	return buf;
 }
 
-int load_3ds_mapping() {
-	return 0;
-}
-
-int save_3ds_mapping() {
-	return 0;
+int keymap3ds_resource_set(const char *val, void *param)
+{
+	if (util_string_set(&keymap3ds_resource, val)) {
+		return 0;
+	}
+	return load_3ds_mapping(keymap3ds_resource);
 }

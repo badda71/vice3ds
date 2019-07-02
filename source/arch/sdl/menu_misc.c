@@ -233,48 +233,6 @@ const ui_menu_entry_t misc_menu[] = {
 		{100, SDL_KEYUP,   25},
 		{0,   SDL_KEYUP,    3},
 		{0,   0,            0}})},
-	{ "RUN/STOP",
-		MENU_ENTRY_OTHER,
-		keystroke_callback,
-		(ui_callback_data_t)((int[][3]){
-		{0,   SDL_KEYDOWN,  3}, //R/S
-		{50, SDL_KEYUP,    3},
-		{0,   0,            0}})},
-	{ "SPACE",
-		MENU_ENTRY_OTHER,
-		keystroke_callback,
-		(ui_callback_data_t)((int[][3]){
-		{0,   SDL_KEYDOWN,  32},
-		{50, SDL_KEYUP,    32},
-		{0,   0,            0}})},
-	{ "RETURN",
-		MENU_ENTRY_OTHER,
-		keystroke_callback,
-		(ui_callback_data_t)((int[][3]){
-		{0,   SDL_KEYDOWN,  13},
-		{50, SDL_KEYUP,    13},
-		{0,   0,            0}})},
-	{ "Y",
-		MENU_ENTRY_OTHER,
-		keystroke_callback,
-		(ui_callback_data_t)((int[][3]){
-		{0,   SDL_KEYDOWN, 121},
-		{50, SDL_KEYUP,   121},
-		{0,   0,            0}})},
-	{ "N",
-		MENU_ENTRY_OTHER,
-		keystroke_callback,
-		(ui_callback_data_t)((int[][3]){
-		{0,   SDL_KEYDOWN, 121},
-		{50, SDL_KEYUP,   121},
-		{0,   0,            0}})},
-	{ "0",
-		MENU_ENTRY_OTHER,
-		keystroke_callback,
-		(ui_callback_data_t)((int[][3]){
-		{0,   SDL_KEYDOWN,  48},
-		{50, SDL_KEYUP,    48},
-		{0,   0,            0}})},
 	SDL_MENU_LIST_END
 };
  
