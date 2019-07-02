@@ -427,7 +427,8 @@ static SDL_Surface *createIcon(char *name) {
 	static SDL_Surface *chars=NULL;
 	static SDL_Surface *smallchars=NULL;
 	static SDL_Surface *keyimg;
-	int i,c;
+	static SDL_Surface *joyimg;
+	int i,c,w,n,xof,yof;
 
 	if (chars==NULL) {
 		chars=IMG_Load("romfs:/charset.png");
@@ -436,7 +437,23 @@ static SDL_Surface *createIcon(char *name) {
 	SDL_Surface *icon=SDL_CreateRGBSurface(SDL_SWSURFACE,ICON_W,ICON_H,32,0xff000000,0x00ff0000,0x0000ff00,0x000000ff);
 //	SDL_FillRect(icon, NULL, SDL_MapRGBA(icon->format, 0, 0, 0, 0));
 
-	if (strncmp("Key ",name,4)==0) {
+	if (strncmp("Joy ",name,4)==0) {
+		// make a joy icon
+		if (joyimg==NULL) {
+			joyimg=IMG_Load("romfs:/joyimg.png");
+			SDL_SetAlpha(joyimg, 0, 255);
+		}
+		name+=4;
+		w=strlen(name);
+		if (w>5) w=5;
+		xof=20-w*4;
+		SDL_BlitSurface(joyimg,NULL,icon,NULL);
+		for(i=0;i<w;i++) {
+			c=(name[i] & 0x7f)-32;
+			SDL_BlitSurface(chars,&(SDL_Rect){.x=(c&0x0f)*8, .y=(c>>4)*8, .w=8, .h=8},
+				icon,&(SDL_Rect){.x=xof+i*8, .y=32});
+		}	
+	} else if (strncmp("Key ",name,4)==0) {
 		// make a key icon
 		if (smallchars==NULL) {
 			smallchars=IMG_Load("romfs:/charset_small.png");
@@ -445,7 +462,6 @@ static SDL_Surface *createIcon(char *name) {
 			SDL_SetAlpha(keyimg, 0, 255);
 		}
 		// check width
-		int w,n;
 		char *p=NULL;
 		name+=4;
 		if (strlen(name)<=2) w=strlen(name)*8+7;
@@ -461,7 +477,6 @@ static SDL_Surface *createIcon(char *name) {
 			icon, &(SDL_Rect){.x=(34-w)/2+4 , .y=9 });
 
 		// blit the characters
-		int xof,yof;
 		if (strlen(name)<=2) {
 			// big characters
 			xof=19-strlen(name)*4;
@@ -508,8 +523,8 @@ static SDL_Surface *createIcon(char *name) {
 				if ((t=strchr(name+i+1,' '))!=NULL && t-name-i-2<(maxw/2)) i=t-name;
 			}
 		}
-		int xof = (ICON_W-(cx+1)*8)/2;
-		int yof = (ICON_H-(cy+1)*8)/2;
+		xof = (ICON_W-(cx+1)*8)/2;
+		yof = (ICON_H-(cy+1)*8)/2;
 		for (i=0; i<maxw*maxh; i++) {
 			c=buf[i];
 			if (c==255) continue;

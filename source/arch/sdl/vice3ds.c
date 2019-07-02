@@ -145,7 +145,7 @@ void set_3ds_mapping(int sym, SDL_Event *e) {
 extern const char *get_3ds_keyname(int);
 char buf[20];
 char *get_3ds_mapping_name(int i) {
-	int a,k;
+	int a,k,v;
 	
 	if (!keymap3ds[i]) return NULL;
 	k=keymap3ds[i];
@@ -155,10 +155,11 @@ char *get_3ds_mapping_name(int i) {
 		break;
 	case 0x00020000:	// joy axis
 		a = k & 0xFF;
+		v = k>>8 &0xFF;
 		snprintf(buf,20,"Joy %s",
-			a == 1 ? "UP":(
-			a == 2 ? "DOWN":(
-			a == 3 ? "LEFT":
+			a == 1 && v==2 ? "UP":(
+			a == 1 && v==1 ? "DOWN":(
+			a == 0 && v==2 ? "LEFT":
 			"RIGHT")));
 		break;
 	case 0x00040000:	// joy button

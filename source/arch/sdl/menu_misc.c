@@ -157,7 +157,7 @@ static UI_MENU_CALLBACK(list_keymappings_callback)
 
 		sprintf(buf+strlen(buf),
 			"Key mappings\n"
-			"~~~~~~~~~~~~~~~~~~\n"
+			"~~~~~~~~~~~~\n"
 			"\n");
 
 		if (count == 0) {
