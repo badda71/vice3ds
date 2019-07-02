@@ -433,7 +433,9 @@ static SDL_Surface *createIcon(char *name) {
 
 	int maxw=ICON_W/8;
 	int maxh=ICON_H/8;
-	int x=0,y=0,c;
+	char *buf=malloc(maxw*maxh);
+	memset(buf,255,maxw*maxh);
+	int x=0,y=0,c,cx=0,cy=0;
 	char *t;
 	for (int i=0; name[i] != 0 && y < maxh; ++i) {
 		c=(name[i] & 0x7f)-32;
@@ -441,16 +443,25 @@ static SDL_Surface *createIcon(char *name) {
 		if (c==0 && x==0) continue;
 		if (c==0 && (((t=strchr(name+i+1,' '))==NULL && y<=maxh-1) || t-name-i > maxw-x)) {
 			x=0;++y; continue;}
-		SDL_BlitSurface(
-			chars,
-			&(SDL_Rect){.x=(c&0x0f)*8, .y=(c>>4)*8, .w=8, .h=8},
-			icon,
-			&(SDL_Rect){.x=x*8, .y=y*8});
+		buf[x+y*maxw]=c & 0x7F;
+		if (cx<x) cx=x;
+		if (cy<y) cy=y;
 		++x;
 		if (x>=maxw) {
 			x=0;++y;
 			if ((t=strchr(name+i+1,' '))!=NULL && t-name-i-2<(maxw/2)) i=t-name;
 		}
+	}
+	int xoff = (ICON_W-(cx+1)*8)/2;
+	int yoff = (ICON_H-(cy+1)*8)/2;
+	for (int i=0; i<maxw*maxh; i++) {
+		c=buf[i];
+		if (c==255) continue;
+		SDL_BlitSurface(
+			chars,
+			&(SDL_Rect){.x=(c&0x0f)*8, .y=(c>>4)*8, .w=8, .h=8},
+			icon,
+			&(SDL_Rect){.x=xoff+(i % maxw)*8, .y=yoff+(i/maxw)*8});
 	}
 	return icon;
 }
