@@ -469,10 +469,15 @@ static SDL_Surface *sbuttons_getIcon(char *name) {
 static void sbutton_update(int i) {
 	ui_menu_entry_t *item;
 	SDL_Surface *img;
+	char *name=NULL;
 
 	// blit icon
-	if ((item=sdlkbd_ui_hotkeys[uikbd_keypos[i].key]) == NULL) return;	
-	if ((img = sbuttons_getIcon(item->string)) == NULL) return;
+	name = get_3ds_mapping_name(uikbd_keypos[i].key);
+	if (name == NULL) {
+		if ((item=sdlkbd_ui_hotkeys[uikbd_keypos[i].key]) == NULL) return;
+		name = item->string;
+	}
+	if ((img = sbuttons_getIcon(name)) == NULL) return;
 	SDL_BlitSurface(img, NULL, calcsb_img, &(SDL_Rect){
 		.x = uikbd_keypos[i].x + (uikbd_keypos[i].w - img->w)/2,
 		.y = uikbd_keypos[i].y + (uikbd_keypos[i].h - img->h)/2});

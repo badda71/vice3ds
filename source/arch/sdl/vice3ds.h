@@ -27,4 +27,9 @@
 extern int LED3DS_On(unsigned char r, unsigned char g, unsigned char b);
 extern int LED3DS_Off(void);
 
-int start_worker(int (*fn)(void *), void *data);
+extern int start_worker(int (*fn)(void *), void *data);
+
+extern int keymap3ds[256];
+extern int do_3ds_mapping(SDL_Event *e);
+extern void set_3ds_mapping(int sym, SDL_Event *e);
+extern char *get_3ds_mapping_name(int i);

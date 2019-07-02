@@ -28,12 +28,11 @@
 #include <string.h>
 #include <SDL/SDL.h>
 #include "vice3ds.h"
-
+#include "uibottom.h"
 
 // LED-related vars / functions
 static Handle ptmsysmHandle = 0;
-static unsigned char ledpattern[100] =
-"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
+static unsigned char ledpattern[100] = {0};
 
 static int LED3DS_Init() {
 	if (ptmsysmHandle == 0) {
@@ -100,5 +99,83 @@ int start_worker(int (*fn)(void *), void *data) {
 	worker_data[p1]=data;
 	SDL_SemPost(worker_sem);	
 	p1=(p1+1)%MAXPENDING;
+	return 0;
+}
+
+// additional input mapping functions
+
+int keymap3ds[256] = {0}; // active(1|0) - type (1|2|4) - (mod|value|0) - (sym|axis|button)
+
+int do_3ds_mapping(SDL_Event *e) {
+	int i;
+	if (e->type != SDL_KEYDOWN && e->type != SDL_KEYUP) return 0; // not the right event type
+	if (!((i=keymap3ds[e->key.keysym.sym]) & 0x01000000)) return 0; // not mapped
+	switch (i & 0x00FF0000) {
+		case 0x00010000:
+			e->key.keysym.unicode = e->key.keysym.sym = i & 0x000000FF;
+			e->key.keysym.mod = (i & 0x0000FF00) >> 8;
+			break;
+		case 0x00020000:
+			e->jaxis.which = 0;
+			e->jaxis.axis = i & 0x000000FF;
+			e->jaxis.value = e->type == SDL_KEYUP ? 0:
+				((i & 0x0000FF00) == 0x100 ? 32760 : -32760);
+			e->type = SDL_JOYAXISMOTION;
+			break;
+		case 0x00040000:
+			e->jbutton.which = 0;
+			e->jbutton.button = i & 0x000000FF;
+			e->jbutton.state = e->type == SDL_KEYDOWN ? SDL_PRESSED : SDL_RELEASED;
+			e->type = e->type == SDL_KEYDOWN ? SDL_JOYBUTTONDOWN : SDL_JOYBUTTONUP;
+			break;
+	}
+	return 1;
+}
+
+void set_3ds_mapping(int sym, SDL_Event *e) {
+	if (!sym) return;
+	keymap3ds[sym]=
+		e==NULL ? 0 :
+		(0x01000000 |	// active
+		(e->type==SDL_JOYBUTTONDOWN ? 0x00040000 : (e->type==SDL_JOYAXISMOTION ? 0x00020000 : 0x00010000)) | //type
+		(e->type==SDL_KEYDOWN ? ((e->key.keysym.mod & 0xFF) << 8) : (e->type==SDL_JOYAXISMOTION ? (e->jaxis.value <0 ? 0x200 : 0x100 ) : 0)) | // mod
+		(e->type==SDL_JOYBUTTONDOWN ? e->jbutton.button : (e->type==SDL_JOYAXISMOTION ? e->jaxis.axis : e->key.keysym.sym))); //type
+	// recalc the soft buttons just in case the mapping was done there
+	uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
+}
+
+extern const char *get_3ds_keyname(int);
+char buf[20];
+char *get_3ds_mapping_name(int i) {
+	int a,k;
+	
+	if (!keymap3ds[i]) return NULL;
+	k=keymap3ds[i];
+	switch(k & 0x00FF0000) {
+	case 0x00010000:	// key
+		snprintf(buf,20,"Key %s\n",get_3ds_keyname(k & 0xFF));
+		break;
+	case 0x00020000:	// joy axis
+		a = k & 0xFF;
+		snprintf(buf,20,"Joy %s\n",
+			a == 1 ? "UP":(
+			a == 2 ? "DOWN":(
+			a == 3 ? "LEFT":
+			"RIGHT")));
+		break;
+	case 0x00040000:	// joy button
+		snprintf(buf,20,"Joy FIRE%d\n",k & 0xFF);
+		break;
+	default:
+		return NULL;
+	}
+	return buf;
+}
+
+int load_3ds_mapping() {
+	return 0;
+}
+
+int save_3ds_mapping() {
 	return 0;
 }

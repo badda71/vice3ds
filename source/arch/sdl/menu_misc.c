@@ -35,6 +35,9 @@
 #include "resources.h"
 #include "fullscreenarch.h"
 #include "videoarch.h"
+#include "uipoll.h"
+#include "kbd.h"
+#include "ui.h"
 #include <3ds.h>
 
 static int ui_key_press_sequence (void *param) {
@@ -131,6 +134,51 @@ static UI_MENU_CALLBACK(toggle_MaxScreen_callback)
 	return r ? sdl_menu_text_tick : NULL;
 }
 
+static UI_MENU_CALLBACK(add_keymapping_callback)
+{
+	SDL_Event e;
+	if (activated) {
+		SDL_Event s = sdl_ui_poll_event("key", "extra key mapping", SDL_POLL_KEYBOARD, 5);
+        if (s.type == SDL_KEYDOWN) {
+			while (SDL_PollEvent(&e)); // clear event queue
+			SDL_Event t = sdl_ui_poll_event("mapping target", get_3ds_keyname(s.key.keysym.sym),
+				(int)param, 5);
+			set_3ds_mapping(s.key.keysym.sym, t.type ? &t : NULL); // set or clear mapping
+		}
+	}
+	return NULL;
+}
+
+static UI_MENU_CALLBACK(list_keymappings_callback)
+{
+	int i,count=0;
+	char *buf;
+	if (activated) {
+		for (i=1;i<255;i++)
+			if (keymap3ds[i]!=0) count++;
+
+		buf=malloc(40*(count+3));
+		buf[0]=0;
+
+		sprintf(buf+strlen(buf),
+			"Extra key mappings\n"
+			"~~~~~~~~~~~~~~~~~~\n"
+			"\n");
+
+		if (count == 0) {
+			sprintf(buf+strlen(buf),"-- NONE --");
+		} else {
+			for (int i=1;i<254;i++) {
+				if (keymap3ds[i] == 0) continue;
+				sprintf(buf+strlen(buf),"%-12s-> %s",get_3ds_keyname(i), get_3ds_mapping_name(i));
+			}
+		}
+		ui_show_text(buf);
+		free(buf);
+	}
+	return NULL;
+}
+
 const ui_menu_entry_t misc_menu[] = {
     SDL_MENU_ITEM_TITLE("3DS specific"),
     { "Power off bottom screen backlight",
@@ -148,6 +196,20 @@ const ui_menu_entry_t misc_menu[] = {
 		MENU_ENTRY_OTHER_TOGGLE,
 		toggle_MaxScreen_callback,
 		NULL},
+	SDL_MENU_ITEM_SEPARATOR,
+    SDL_MENU_ITEM_TITLE("Extra key mappings"),
+    { "Add extra key mapping (key -> key)",
+		MENU_ENTRY_OTHER,
+		add_keymapping_callback,
+		(ui_callback_data_t)(SDL_POLL_KEYBOARD | SDL_POLL_MODIFIER)},
+    { "Add extra key mapping (key -> joystick)",
+		MENU_ENTRY_OTHER,
+		add_keymapping_callback,
+		(ui_callback_data_t)SDL_POLL_JOYSTICK },
+    { "List extra key mappings",
+		MENU_ENTRY_OTHER,
+		list_keymappings_callback,
+		NULL },
 	SDL_MENU_ITEM_SEPARATOR,
     SDL_MENU_ITEM_TITLE("Commands"),
     { "LOAD\"*\",8,1 RUN",
