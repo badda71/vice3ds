@@ -186,6 +186,7 @@ static int sticky=0;
 static int keypressed=-1;
 static SDL_Surface *sbmask=NULL;
 static int lock_updates=0;
+static int fastupdate=0;
 
 static unsigned char keysPressed[256];
 
@@ -256,15 +257,26 @@ static void bottom_Flip(SDL_Surface *s) {
 // bottom handling functions
 // =========================
 
+static void set_kb_clip() {
+	// set a clipping rectangle to exlude the keyboard
+	SDL_SetClipRect(bottoms, &(SDL_Rect){.x = 0, .y=0, .w=320, .h=kb_y_pos});
+}
+
+static void remove_clip() {
+	SDL_SetClipRect(bottoms, NULL);
+}
+
 // paint sbutton to screen - if i==-1 then repaint all
 static void sbutton_repaint(int i) {
 	// blit background image part
+	set_kb_clip();
 	SDL_BlitSurface(calcsb_img,
 		i == -1 ? NULL : &(SDL_Rect){.x = uikbd_keypos[i].x, .y=uikbd_keypos[i].y, .w=uikbd_keypos[i].w, .h=uikbd_keypos[i].h},
 		bottoms,
 		&(SDL_Rect){
 			.x = i == -1 ? 0 : uikbd_keypos[i].x,
 			.y = i == -1 ? 0 : uikbd_keypos[i].y});
+	remove_clip();
 }
 
 static void pressKey(int key, int press) {
@@ -290,7 +302,7 @@ static void pressKey(int key, int press) {
 		}
 	} else {
 		// set a clipping rectangle to exlude the keyboard
-		SDL_SetClipRect(bottoms, &(SDL_Rect){.x = 0, .y=0, .w=320, .h=kb_y_pos});
+		set_kb_clip();
 		if (press) {
 			// blit the mask image
 			SDL_BlitSurface(sbmask, NULL, bottoms, &(SDL_Rect){
@@ -300,7 +312,7 @@ static void pressKey(int key, int press) {
 			// blit the background + icon
 			sbutton_repaint(key);
 		}
-		SDL_SetClipRect(bottoms, NULL);
+		remove_clip();
 	}
 	if (!lock_updates) bottom_Flip(bottoms);
 }
@@ -309,14 +321,21 @@ static void updateKey(int key) {
 	const char *s;
 	if (key<0 || uikbd_keypos[key].key==0) return;
 	int state=0;
-	if (key == keypressed) state=1;
-	else if (uikbd_keypos[key].sticky & sticky) state=1;
-	else if (uikbd_keypos[key].flags==1) {
-		ui_menu_entry_t *item;
-		if ((item=sdlkbd_ui_hotkeys[uikbd_keypos[key].key]) != NULL &&
-			(s=item->callback(0, item->data)) != NULL &&
-			s[0]==UIFONT_CHECKMARK_CHECKED_CHAR)
-			state=1;
+
+	if (fastupdate) {// only updates based on keypress cache
+		state=keysPressed[key];
+		if (!state) return;
+		keysPressed[key]=0;
+	} else {
+		if (key == keypressed) state=1;
+		else if (uikbd_keypos[key].sticky & sticky) state=1;
+		else if (uikbd_keypos[key].flags==1) {
+			ui_menu_entry_t *item;
+			if ((item=sdlkbd_ui_hotkeys[uikbd_keypos[key].key]) != NULL &&
+				(s=item->callback(0, item->data)) != NULL &&
+				s[0]==UIFONT_CHECKMARK_CHECKED_CHAR)
+				state=1;
+		}
 	}
 	pressKey(key,state);
 }
@@ -639,19 +658,23 @@ void sdl_uibottom_draw(void)
 		if (uibottom_must_redraw_local & UIB_GET_REPAINT_SBUTTONS) {
 			sbutton_repaint(-1);
 		}
-
+		
 		// repaint keyboard if required
-		if (uibottom_must_redraw_local & UIB_GET_REPAINT_KEYBOARD)
+		if (uibottom_must_redraw_local & UIB_GET_REPAINT_KEYBOARD) {
 			keyboard_paint();
+		}
 
 		// zero keypress status if we updated anything
-		if (uibottom_must_redraw_local & (UIB_GET_REPAINT_KEYBOARD | UIB_GET_REPAINT_SBUTTONS)) {
+		if (uibottom_must_redraw_local & (UIB_GET_REPAINT_KEYBOARD | UIB_GET_REPAINT_SBUTTONS) &&
+			!(uibottom_must_redraw_local & UIB_FAST)) {
 			memset(keysPressed,0,sizeof(keysPressed));
 		}
 
 		// press the right keys
 		lock_updates=1;
+		if (uibottom_must_redraw_local & UIB_FAST) fastupdate=1;
 		updateKeys();
+		fastupdate=0;
 		lock_updates=0;
 
 		// paint the twisty
@@ -739,14 +762,14 @@ int toggle_keyboard_thread(void *data) {
 		// hide
 		for (int i=kb_y_pos - kb_y_pos % STEP + STEP; i<=240; i+=STEP) {
 			set_kb_y_pos=i;
-			uibottom_must_redraw |= UIB_REPAINT_ALL;
+			uibottom_must_redraw |= UIB_REPAINT_ALL | UIB_FAST;
 			SDL_Delay(DELAY);
 		}
 	} else {
 		// show
 		for (int i=kb_y_pos - kb_y_pos % STEP - STEP; i>=240-uikbd_pos[0][3]; i-=STEP) {
 			set_kb_y_pos=i;
-			uibottom_must_redraw |= UIB_REPAINT_ALL;
+			uibottom_must_redraw |= UIB_REPAINT_ALL | UIB_FAST;
 			SDL_Delay(DELAY);
 		}
 	}
