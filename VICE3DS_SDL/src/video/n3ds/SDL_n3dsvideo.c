@@ -674,10 +674,12 @@ void N3DS_VideoQuit(_THIS)
 static void sceneInit(GSPGPU_FramebufferFormats mode, bool scale) {
 //---------------------------------------------------------------------------------
 	// Load the vertex shader, create a shader program and bind it
-	vshader_dvlb = DVLB_ParseFile((u32*)vshader_shbin, vshader_shbin_size);
-	shaderProgramInit(&program);
-	shaderProgramSetVsh(&program, &vshader_dvlb->DVLE[0]);
-	C3D_BindProgram(&program);
+	if (setVideoModecount <= 1) {
+		vshader_dvlb = DVLB_ParseFile((u32*)vshader_shbin, vshader_shbin_size);
+		shaderProgramInit(&program);
+		shaderProgramSetVsh(&program, &vshader_dvlb->DVLE[0]);
+		C3D_BindProgram(&program);
+	}
 
 	// Get the location of the uniforms
 	uLoc_projection = shaderInstanceGetUniformLocation(program.vertexShader, "projection");
@@ -739,8 +741,10 @@ static void sceneExit(void) {
 	if(VideoSurface1) C3D_RenderTargetDelete(VideoSurface1);
 	if (VideoSurface2) C3D_RenderTargetDelete(VideoSurface2);
 	// Free the shader program
-	shaderProgramFree(&program);
-	DVLB_Free(vshader_dvlb);
+	if (setVideoModecount <= 1) {
+		shaderProgramFree(&program);
+		DVLB_Free(vshader_dvlb);
+	}
 }
 
 //---------------------------------------------------------------------------------
