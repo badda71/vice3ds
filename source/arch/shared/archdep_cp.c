@@ -41,6 +41,7 @@
 
 struct stat path_stat;
 int overwrite=1;
+static void *callback=NULL;
 
 static int mkpath(char* file_path, int complete) {
 	char* p;
@@ -112,7 +113,7 @@ static int dircopy(char *src, char *dest)
 		if (newdest[strlen(newdest)-1] != PATH_SEP_CHAR)
 			strcat(newdest, PATH_SEP_STRING);
 		strcat(newdest, direntp->d_name);
-		if (xcopy(newsrc, newdest, overwrite)!=0) {
+		if (xcopy(newsrc, newdest, overwrite, callback)!=0) {
 			free(newdest);free(newsrc);
 			goto dircopy_err;
 		}
@@ -125,8 +126,10 @@ dircopy_err:
 
 
 // copy src to dest, returns 0 on success, -1 on error
-int xcopy(char *src, char *dest, int overwrt)
+int xcopy(char *src, char *dest, int overwrt,  void (*call)())
 {
+	callback=call;
+	
 	overwrite=overwrt;
 	
 	// copy dir or file
@@ -135,6 +138,7 @@ int xcopy(char *src, char *dest, int overwrt)
 		if (dircopy(src,dest)!= 0) goto err_xcopy;
 	} else {
 		if (filecopy(src,dest)!=0) goto err_xcopy;
+		if (call!=NULL) call();
 	}
 
 	return 0;

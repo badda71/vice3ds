@@ -31,4 +31,4 @@
 // destination: destination file or directory
 // overwrite: 1 = overwrite existing files, 0 = leave existing files untouched
 
-extern int xcopy(char *source, char *destination, int overwrite);
+extern int xcopy(char *source, char *destination, int overwrite, void (*callback)());

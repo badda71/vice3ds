@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <3ds.h>
 
 #include "lib.h"
 #include "log.h"
@@ -51,6 +52,20 @@
 #include "archdep_xdg.h"
 
 
+static int copied=0;
+static void copy_callback() {
+	if (copied==0) {
+	    gfxInitDefault();
+	    consoleInit(GFX_BOTTOM, NULL);
+	}
+	int i=(40*++copied)/NUMFILES;
+	printf("\x1b[0;0H\x1b[47;30m%*s", i, "");	
+	if (copied==NUMFILES) {
+		copied=0;
+		gfxExit();
+	}
+}
+
 void archdep_create_user_config_dir(void)
 {
     // create user config directory and unpack default config files
@@ -59,15 +74,15 @@ void archdep_create_user_config_dir(void)
 	char *cfg = archdep_user_config_path();
 	int i;
 
-	i=xcopy("romfs:/config",cfg,0);
+	i=xcopy("romfs:/config",cfg,0, &copy_callback);
     if (i != 0) {
         log_error(LOG_ERR, "failed to copy user config dir '%s': %d: %s.",
                 cfg, errno, strerror(errno));
         archdep_vice_exit(1);
 	}		
-    
+   
 	cfg=archdep_join_paths(archdep_xdg_data_home(),"icons",NULL);
-	i=xcopy("romfs:/icons",cfg,0);
+	i=xcopy("romfs:/icons",cfg,0, &copy_callback);
 	lib_free(cfg);
     if (i != 0) {
         log_error(LOG_ERR, "failed to copy icons dir '%s': %d: %s.",

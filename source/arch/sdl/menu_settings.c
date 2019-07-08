@@ -125,7 +125,7 @@ static UI_MENU_CALLBACK(default_settings_callback)
 	    char *cfg = archdep_user_config_path();
 	    char *f = archdep_join_paths(cfg, "sdl-vicerc", NULL);
 
-		if (xcopy("romfs:/config/sdl-vicerc", f, 1)==0) {
+		if (xcopy("romfs:/config/sdl-vicerc", f, 1, NULL)==0) {
 			ui_message("Default settings restored - please restart VICE");
 			archdep_vice_exit(0);
 		} else {
@@ -144,7 +144,7 @@ static UI_MENU_CALLBACK(all_default_settings_callback)
             return NULL;
         }
 
-		if (xcopy("romfs:/config", archdep_user_config_path(), 1)==0) {
+		if (xcopy("romfs:/config", archdep_user_config_path(), 1, NULL)==0) {
 			ui_message("All default settings restored - please restart VICE");
 			archdep_vice_exit(0);
 		} else {
