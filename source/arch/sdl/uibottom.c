@@ -430,7 +430,7 @@ static SDL_Surface *loadIcon(char *name) {
 	char s[100];
 	int i;
 	for(i=0; i<95 && name[i]!=0; ++i) {
-		s[i]=isalnum(name[i])?name[i]:'_';
+		s[i]=isalnum((int)(name[i]))?name[i]:'_';
 	}
 	strcpy(s+i,".png");
 	
