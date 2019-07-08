@@ -693,7 +693,9 @@ void sdl_uibottom_draw(void)
 		uibottom_must_update_key=-1;
 	}
 	uistatusbar_draw();
-	//SDL_Flip(s);
+	// check if my internal state matches the SDL state
+	if (keypressed != -1 && !SDL_GetMouseState(NULL, NULL))
+		SDL_PushEvent( &(SDL_Event){ .type = SDL_MOUSEBUTTONUP });
 }
 
 static SDL_Event sdl_e;
@@ -745,11 +747,11 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 			} else { // ... on a normal key
 				sdl_e.type = e->button.type == SDL_MOUSEBUTTONDOWN ? SDL_KEYDOWN : SDL_KEYUP;
 				sdl_e.key.keysym.unicode = sdl_e.key.keysym.sym = uikbd_keypos[i].key;
-				keypressed = (e->button.type == SDL_MOUSEBUTTONDOWN) ? i : -1;
 				uibottom_must_update_key=i;
 				uibottom_must_redraw |= UIB_KEYPRESS_ALL;
 				SDL_PushEvent(&sdl_e);
 			}
+			keypressed = (e->button.type == SDL_MOUSEBUTTONDOWN) ? i : -1;
 		}
 	}
 	return 0;
