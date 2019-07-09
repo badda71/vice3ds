@@ -27,16 +27,6 @@
 #include <string.h>
 #include <3ds.h>
 
-
-//#define DEBUG_SOUND 1
-
-/* Debugging stuff.  */
-#ifdef DEBUG_SOUND
-#define DBG(x)  log_debug x
-#else
-#define DBG(x)
-#endif
-
 #define CHANNEL 0x08
 #define WAVBUFNR 10
 
@@ -51,7 +41,7 @@ ndspWaveBuf	ndsp_waveBuf[WAVBUFNR];
    used */
 static int ndsp_init(const char *param, int *speed, int *fragsize, int *fragnr, int *channels)
 {
-	DBG(("NDSP driver initialization: speed = %d, fragsize = %d, fragnr = %d, channels = %d", *speed, *fragsize, *fragnr, *channels));
+//log_3ds("enter %s: speed = %d, fragsize = %d, fragnr = %d, channels = %d", __func__, *speed, *fragsize, *fragnr, *channels);
 
 	// Init ndsp and init variables
 	if(ndspInit() < 0) return -1;
@@ -84,7 +74,7 @@ static int ndsp_init(const char *param, int *speed, int *fragsize, int *fragnr, 
 /* send number of bytes to the soundcard. it is assumed to block if kernel buffer is full */
 static int ndsp_write(int16_t *pbuf, size_t nr)
 {
-	//DBG(("NDSP write: %d samples", nr));
+//log_3ds("enter %s: %d samples", __func__, nr);
 
 	// block until the active buffer is done playing
 	while (ndsp_waveBuf[ndsp_activeBuf].status != NDSP_WBUF_DONE)
@@ -104,21 +94,21 @@ static int ndsp_write(int16_t *pbuf, size_t nr)
 
 static int ndsp_suspend()
 {
-	DBG(("NDSP suspend"));
+//log_3ds("enter %s",__func__);
 	ndspChnSetPaused(CHANNEL, true);
 	return 0;
 }
 
 static int ndsp_resume()
 {
-	DBG(("NDSP resume"));
+//log_3ds("enter %s",__func__);
 	ndspChnSetPaused(CHANNEL, false);
 	return 0;
 }
 
 static void ndsp_close(void)
 {
-	DBG(("NDSP close"));	
+//log_3ds("enter %s",__func__);
 	if(ndsp_isinit == true)
 	{
 		ndspChnWaveBufClear(CHANNEL);
@@ -133,16 +123,39 @@ static void ndsp_close(void)
 
 static sound_device_t ndsp_device =
 {
+    // name of the device 
     "ndsp",
+    // init -routine to be called at device initialization. Should use
+    // suggested values if possible or return new values if they cannot be
+    // used 
+    // int (*init)(const char *param, int *speed, int *fragsize, int *fragnr, int *channels);
 	ndsp_init,
+    // send number of bytes to the soundcard. it is assumed to block if kernel buffer is full 
+    // int (*write)(int16_t *pbuf, size_t nr);
     ndsp_write,
+    // dump-routine to be called for every write to SID 
+    //int (*dump)(uint16_t addr, uint8_t byte, CLOCK clks);
     NULL,
+    // flush-routine to be called every frame 
+    // int (*flush)(char *state);
     NULL,
+    // return number of samples currently available in the kernel buffer 
+    // int (*bufferspace)(void);
     NULL,
+    // close and cleanup device 
+    // void (*close)(void);
     ndsp_close,
+    // suspend device 
+    // int (*suspend)(void);
     ndsp_suspend,
+    // resume device 
+    // int (*resume)(void);
     ndsp_resume,
+    // is attenuation needed on suspend or not 
+    // int need_attenuation;
     0,
+    // maximum amount of channels 
+    // int max_channels;
 	2
 };
 
