@@ -33,7 +33,6 @@
 #include "mousedrv.h"
 #include "log.h"
 #include "videoarch.h"
-#include "uistatusbar.h"
 #include "kbd.h"
 #include "uifonts.h"
 #include "menu_misc.h"
@@ -648,7 +647,6 @@ void sdl_uibottom_draw(void)
 			kb_y_pos=set_kb_y_pos;
 			set_kb_y_pos=-10000;
 		}
-		uistatusbar_must_redraw |= uibottom_must_redraw_local & UIB_GET_REPAINT_SBUTTONS;
 
 		// recalc sbuttons if required
 		if (uibottom_must_redraw_local & UIB_GET_RECALC_SBUTTONS)
@@ -692,7 +690,6 @@ void sdl_uibottom_draw(void)
 		}
 		uibottom_must_update_key=-1;
 	}
-	uistatusbar_draw();
 	// check if my internal state matches the SDL state
 	if (keypressed != -1 && !SDL_GetMouseState(NULL, NULL))
 		SDL_PushEvent( &(SDL_Event){ .type = SDL_MOUSEBUTTONUP });

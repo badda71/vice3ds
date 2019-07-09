@@ -39,8 +39,8 @@
 #include "uimenu.h"
 #include "uistatusbar.h"
 #include "videoarch.h"
-#include "log.h"
 #include "vice3ds.h"
+#include "fullscreenarch.h"
 
 /* ----------------------------------------------------------------- */
 /* static functions/variables */
@@ -63,6 +63,30 @@ static char statusbar_text[MAX_STATUSBAR_LEN] = "                               
 static char kbdstatusbar_text[MAX_STATUSBAR_LEN] = "                                       ";
 
 static menufont_t *menufont = NULL;
+static int pitch;
+static int draw_offset;
+
+static inline void uistatusbar_putchar(uint8_t c, int pos_x, int pos_y, uint8_t color_f, uint8_t color_b)
+{
+    int x, y;
+    uint8_t fontchar;
+    uint8_t *font_pos;
+    uint8_t *draw_pos;
+
+    font_pos = &(menufont->font[menufont->translate[(int)c]]);
+    draw_pos = &(sdl_active_canvas->draw_buffer->draw_buffer[pos_x * menufont->w + pos_y * menufont->h * pitch]);
+
+    draw_pos += draw_offset;
+
+    for (y = 0; y < menufont->h; ++y) {
+        fontchar = *font_pos;
+        for (x = 0; x < menufont->w; ++x) {
+            draw_pos[x] = (fontchar & (0x80 >> x)) ? color_f : color_b;
+        }
+        ++font_pos;
+        draw_pos += pitch;
+    }
+}
 
 static int tape_counter = 0;
 static int tape_enabled = 0;
@@ -80,8 +104,8 @@ static void display_tape(void)
     }
     statusbar_text[STATUSBAR_TAPE_POS + len] = ' ';
 
-    if (sdl_statusbar) {
-        uistatusbar_must_redraw=1;
+    if (uistatusbar_state & UISTATUSBAR_ACTIVE) {
+        uistatusbar_state |= UISTATUSBAR_REPAINT;
     }
 }
 
@@ -98,8 +122,8 @@ static void display_speed(void)
     len = sprintf(&(statusbar_text[STATUSBAR_SPEED_POS]), "%3d%%%c%2dfps", per, sep, fps);
     statusbar_text[STATUSBAR_SPEED_POS + len] = ' ';
 
-    if (sdl_statusbar) {
-        uistatusbar_must_redraw=1;
+    if (uistatusbar_state & UISTATUSBAR_ACTIVE) {
+        uistatusbar_state |= UISTATUSBAR_REPAINT;
     }
 }
 
@@ -181,8 +205,8 @@ void ui_enable_drive_status(ui_drive_enable_t state, int *drive_led_color)
         drive_state >>= 1;
     }
 
-    if (sdl_statusbar) {
-        uistatusbar_must_redraw=1;
+    if (uistatusbar_state & UISTATUSBAR_ACTIVE) {
+        uistatusbar_state |= UISTATUSBAR_REPAINT;
     }
 }
 
@@ -214,8 +238,8 @@ void ui_display_drive_track(unsigned int drive_number, unsigned int drive_base, 
             break;
     }
 
-    if (sdl_statusbar) {
-        uistatusbar_must_redraw=1;
+    if (uistatusbar_state & UISTATUSBAR_ACTIVE) {
+        uistatusbar_state |= UISTATUSBAR_REPAINT;
     }
 }
 
@@ -265,15 +289,14 @@ void ui_display_drive_led(int drive_number, unsigned int pwm1, unsigned int led_
         statusbar_text[offset] = low;
         statusbar_text[offset + 1] = 'T';
     } else {
-
         statusbar_text[offset] = high;
         statusbar_text[offset + 1] = low;
         statusbar_text[offset + 2] = 'T';
     }
 
 
-    if (sdl_statusbar) {
-        uistatusbar_must_redraw=1;
+    if (uistatusbar_state & UISTATUSBAR_ACTIVE) {
+        uistatusbar_state |= UISTATUSBAR_REPAINT;
     }
 }
 
@@ -361,95 +384,125 @@ void ui_display_volume(int vol)
 #endif
 }
 
+/* ----------------------------------------------------------------- */
+/* resources */
+
+static int statusbar_enabled, kbdstatusbar_enabled;
+
+static int set_statusbar(int val, void *param)
+{
+	statusbar_enabled = val ? 1 : 0;
+
+    if (statusbar_enabled) {
+        uistatusbar_open();
+    } else {
+        uistatusbar_close();
+    }
+
+    return 0;
+}
+
+static int set_kbdstatusbar(int val, void *param)
+{
+    kbdstatusbar_enabled = val ? 1 : 0;
+
+    return 0;
+}
+
+static const resource_int_t resources_int[] = {
+    { "SDLStatusbar", 0, RES_EVENT_NO, NULL,
+      &statusbar_enabled, set_statusbar, NULL },
+    { "SDLKbdStatusbar", 0, RES_EVENT_NO, NULL,
+      &kbdstatusbar_enabled, set_kbdstatusbar, NULL },
+    RESOURCE_INT_LIST_END
+};
+
+int uistatusbar_init_resources(void)
+{
+#ifdef SDL_DEBUG
+    fprintf(stderr, "%s\n", __func__);
+#endif
+    return resources_register_int(resources_int);
+}
+
 
 /* ----------------------------------------------------------------- */
 /* uistatusbar.h */
 
-int uistatusbar_must_redraw = 0;
+int uistatusbar_state = 0;
+
+void uistatusbar_open(void)
+{
+    uistatusbar_state = UISTATUSBAR_ACTIVE | UISTATUSBAR_REPAINT;
+}
+
+void uistatusbar_close(void)
+{
+    uistatusbar_state = UISTATUSBAR_REPAINT;
+}
 
 #define KBDSTATUSENTRYLEN   15
 
-// ypos of statusbar top
-#define SB_Y	240
-
-static inline void uistatusbar_putchar(uint8_t c, int pos_x, int pos_y, int color_f, int color_b)
-{
-    int x, y;
-//    uint8_t fontchar;
-    uint8_t *font_pos;
-    uint8_t *offset;
-
-	
-	SDL_Surface *s = sdl_active_canvas->screen;
-	int bpp = s->format->BytesPerPixel;
-	
-	offset = s->pixels + bpp * ((SB_Y + pos_y * menufont->h) * s->w + (s->w - 320)/2 + pos_x * menufont->w);
-	font_pos = &(menufont->font[menufont->translate[(int)c]]);
-
-	int col;
-	for (y = 0; y < menufont->h; ++y) {
-        for (x = 0; x < menufont->w; ++x) {
-			col=(font_pos[y] & (0x80 >> x)) ? color_f : color_b;
-			unsigned char *pixel = offset + bpp * (y * s->w + x);
-			pixel[1]=(col & 0xff0000)>>16;
-			pixel[2]=(col & 0xff00)>>8;
-			pixel[3]=col & 0xff;
-		}
-	}
-}
-
 void uistatusbar_draw(void)
 {
-    int i, color_f, color_b;
-    uint8_t c;
+    int i;
+    uint8_t c, color_f, color_b;
+    unsigned int line;
+    menu_draw_t *limits = NULL;
+    menufont = sdl_ui_get_menu_font();
 
-	if (sdl_statusbar && uistatusbar_must_redraw) {
+    sdl_ui_init_draw_params();
+    limits = sdl_ui_get_menu_param();
 
-	    if (menufont == NULL) menufont = sdl_ui_get_menu_font();
-		color_f = 0xffffff;
-		color_b = 0x000000;
+    color_f = limits->color_default_front;
+    color_b = limits->color_default_back;
+    pitch = limits->pitch;
 
-		for (i = 0; i < MAX_STATUSBAR_LEN; ++i) {
-			c = statusbar_text[i];
+	if (sdl_active_canvas->fullscreenconfig->enable) 
+	    line = MIN(sdl_active_canvas->viewport->last_line, sdl_active_canvas->geometry->last_displayed_line);
+	else
+		line=(sdl_active_canvas->viewport->last_line-240)/2+248;
 
-			if (c == 0) {
-				break;
-			}
+    draw_offset = (line - menufont->h + 1) * pitch
+                  + sdl_active_canvas->geometry->extra_offscreen_border_left
+                  + sdl_active_canvas->viewport->first_x;
 
-			if (c & 0x80) {
-				uistatusbar_putchar((uint8_t)(c & 0x7f), i, 0, color_b, color_f);
-			} else {
-				uistatusbar_putchar(c, i, 0, color_f, color_b);
-			}
-		}
+    if (kbdstatusbar_enabled) {
+        for (i = 0; i < MAX_STATUSBAR_LEN; ++i) {
+            c = kbdstatusbar_text[i];
 
-		if (sdl_kbd_statusbar) {
-			for (i = 0; i < MAX_STATUSBAR_LEN; ++i) {
-				c = kbdstatusbar_text[i];
+            if (c == 0) {
+                break;
+            }
 
-				if (c == 0) {
-					break;
-				}
+            if (((i / KBDSTATUSENTRYLEN) & 1) == 1) {
+                uistatusbar_putchar(c, i, -1, color_b, color_f);
+            } else {
+                uistatusbar_putchar(c, i, -1, color_f, color_b);
+            }
+        }
+    }
 
-				if (((i / KBDSTATUSENTRYLEN) & 1) == 1) {
-					uistatusbar_putchar(c, i, 1, color_b, color_f);
-				} else {
-					uistatusbar_putchar(c, i, 1, color_f, color_b);
-				}
-			}
-		}
+    for (i = 0; i < MAX_STATUSBAR_LEN; ++i) {
+        c = statusbar_text[i];
 
-		if (sdl_menu_state || ui_emulation_is_paused())
-			SDL_UpdateRect(sdl_active_canvas->screen, 0, SB_Y, sdl_active_canvas->screen->w, menufont->h*(sdl_kbd_statusbar?2:1));
-		uistatusbar_must_redraw = 0;
-	}
+        if (c == 0) {
+            break;
+        }
+
+        if (c & 0x80) {
+            uistatusbar_putchar((uint8_t)(c & 0x7f), i, 0, color_b, color_f);
+        } else {
+            uistatusbar_putchar(c, i, 0, color_f, color_b);
+        }
+    }
 }
 
 void ui_display_kbd_status(SDL_Event *e)
 {
     char *p = &kbdstatusbar_text[KBDSTATUSENTRYLEN * 2];
 
-    if (sdl_kbd_statusbar) {
+    if (kbdstatusbar_enabled) {
         memmove(kbdstatusbar_text, &kbdstatusbar_text[KBDSTATUSENTRYLEN], 40);
         sprintf(p, "%c%03d>%03d %c%04x    ", 
                 (e->type == SDL_KEYUP) ? 'U' : 'D',
@@ -457,8 +510,13 @@ void ui_display_kbd_status(SDL_Event *e)
                 SDL2x_to_SDL1x_Keys(e->key.keysym.sym),
                 ((e->key.keysym.sym & 0xffff0000) == 0x40000000) ? 'M' : ((e->key.keysym.sym & 0xffff0000) != 0x00000000) ? 'E' : ' ',
                 e->key.keysym.mod);
-		
-		uistatusbar_must_redraw=1;
-	}
+    }
 }
 
+
+#ifdef ANDROID_COMPILE
+void loader_set_statusbar(int val)
+{
+    set_statusbar(val, 0);
+}
+#endif

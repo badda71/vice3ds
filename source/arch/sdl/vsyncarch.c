@@ -87,11 +87,11 @@ void vsyncarch_presync(void)
 {
 	ui_dispatch_events();
 
-    if (uistatusbar_must_redraw || (sdl_vsid_state & SDL_VSID_REPAINT)) {
+    if ((uistatusbar_state & UISTATUSBAR_REPAINT) || (sdl_vsid_state & SDL_VSID_REPAINT)) {
         if (!console_mode) {
             raster_force_repaint(sdl_active_canvas->parent_raster);
         }
-        uistatusbar_must_redraw = 0;
+        uistatusbar_state &= ~UISTATUSBAR_REPAINT;
     }
 
     sdl_lightpen_update();
