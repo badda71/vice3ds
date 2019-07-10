@@ -131,7 +131,9 @@ static UI_MENU_CALLBACK(add_keymapping_callback)
 {
 	SDL_Event e;
 	if (activated) {
-		SDL_Event s = sdl_ui_poll_event("key", "Key mapping", SDL_POLL_KEYBOARD, 5);
+		SDL_Event s = sdl_ui_poll_event("source key", 
+			(int)param & SDL_POLL_JOYSTICK ? "Key->Joystick mapping" : "Key->Key mapping",
+			SDL_POLL_KEYBOARD, 5);
         if (s.type == SDL_KEYDOWN) {
 			while (SDL_PollEvent(&e)); // clear event queue
 			SDL_Event t = sdl_ui_poll_event("mapping target", get_3ds_keyname(s.key.keysym.sym),
