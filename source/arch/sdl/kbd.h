@@ -31,6 +31,7 @@
 #include "vice_sdl.h"
 #include "uimenu.h"
 
+extern char *hotkey_file;
 extern void kbd_arch_init(void);
 extern int kbd_arch_get_host_mapping(void);
 
@@ -61,9 +62,8 @@ extern ui_menu_action_t sdlkbd_release(SDLKey key, SDLMod mod);
 
 extern void sdlkbd_set_hotkey(SDLKey key, SDLMod mod, ui_menu_entry_t *value);
 
-extern int sdlkbd_hotkeys_load(const char *filename);
-extern int sdlkbd_hotkeys_load(const char *filename);
-extern int sdlkbd_hotkeys_dump(const char *filename);
+extern int sdlkbd_hotkeys_load(char *file);
+extern int sdlkbd_hotkeys_dump(FILE *fp);
 
 extern int sdlkbd_init_resources(void);
 extern void sdlkbd_resources_shutdown(void);

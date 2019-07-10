@@ -62,7 +62,7 @@
 static log_t sdlkbd_log = LOG_ERR;
 
 /* Hotkey filename */
-static char *hotkey_file = NULL;
+char *hotkey_file = NULL;
 
 /* Menu keys */
 int sdl_ui_menukeys[MENU_ACTION_NUM];
@@ -75,7 +75,7 @@ ui_menu_entry_t *sdlkbd_ui_hotkeys[SDLKBD_UI_HOTKEYS_MAX];
 /* ------------------------------------------------------------------------ */
 
 /* Resources.  */
-
+/*
 static int hotkey_file_set(const char *val, void *param)
 {
 #ifdef SDL_DEBUG
@@ -88,10 +88,12 @@ static int hotkey_file_set(const char *val, void *param)
 
     return sdlkbd_hotkeys_load(hotkey_file);
 }
-
+*/
 static resource_string_t resources_string[] = {
-    { "HotkeyFile", NULL, RES_EVENT_NO, NULL,
+/*
+	{ "HotkeyFile", NULL, RES_EVENT_NO, NULL,
       &hotkey_file, hotkey_file_set, (void *)0 },
+*/
 	{ "KeyMappings", "", RES_EVENT_NO, NULL,
       &keymap3ds_resource, keymap3ds_resource_set, NULL },
     RESOURCE_STRING_LIST_END
@@ -99,8 +101,6 @@ static resource_string_t resources_string[] = {
 
 int sdlkbd_init_resources(void)
 {
-    resources_string[0].factory_value = archdep_default_hotkey_file_name();
-
     if (resources_register_string(resources_string) < 0) {
         return -1;
     }
@@ -109,8 +109,6 @@ int sdlkbd_init_resources(void)
 
 void sdlkbd_resources_shutdown(void)
 {
-    lib_free(resources_string[0].factory_value);
-    resources_string[0].factory_value = NULL;
     lib_free(hotkey_file);
     hotkey_file = NULL;
 }
@@ -351,42 +349,35 @@ static void sdlkbd_parse_entry(char *buffer)
     }
 }
 
-int sdlkbd_hotkeys_load(const char *filename)
+int sdlkbd_hotkeys_load(char *file)
 {
-    FILE *fp;
-    char *complete_path = NULL;
-    char buffer[1000];
+    char buffer[1024];
 
     /* Silently ignore keymap load on resource & cmdline init */
     if (sdlkbd_log == LOG_ERR) {
         return 0;
     }
 
-    if (filename == NULL) {
-        log_warning(sdlkbd_log, "Failed to open NULL.");
+	if (file == NULL) {
         return -1;
     }
 
-    fp = sysfile_open(filename, &complete_path, MODE_READ_TEXT);
+    log_message(sdlkbd_log, "Loading hotkey map.");
 
-    if (fp == NULL) {
-        log_warning(sdlkbd_log, "Failed to open `%s'.", filename);
-        return -1;
-    }
-
-    log_message(sdlkbd_log, "Loading hotkey map `%s'.", complete_path);
-
-    lib_free(complete_path);
-
+	
+	char *e,*b=file;
     do {
         buffer[0] = 0;
-        if (fgets(buffer, 999, fp)) {
-
-            if (strlen(buffer) == 0) {
+        e=strchr(b,'\n');
+		if (e != NULL) {
+			*e=0;
+			strncpy(buffer,b,1023);
+			*e='\n';
+			
+            if (*buffer == '[') {
                 break;
             }
-            buffer[strlen(buffer) - 1] = 0; /* remove newline */
-
+        
             /* remove comments */
             if (buffer[0] == '#') {
                 buffer[0] = 0;
@@ -405,31 +396,21 @@ int sdlkbd_hotkeys_load(const char *filename)
                     break;
             }
         }
-    } while (!feof(fp));
-    fclose(fp);
-
+		b=e+1;
+    } while (e != NULL);
     return 0;
 }
 
-int sdlkbd_hotkeys_dump(const char *filename)
+int sdlkbd_hotkeys_dump(FILE *fp)
 {
-    FILE *fp;
     int i;
     char *hotkey_path;
 
-    if (filename == NULL) {
+	if (fp == NULL) {
         return -1;
     }
 
-    fp = fopen(filename, MODE_WRITE_TEXT);
-
-    if (fp == NULL) {
-        return -1;
-    }
-
-    fprintf(fp, "# VICE hotkey mapping file\n"
-            "#\n"
-            "# A hotkey map is read in as a patch to the current map.\n"
+    fprintf(fp, "# VICE3DS hotkey mapping\n"
             "#\n"
             "# File format:\n"
             "# - comment lines start with '#'\n"
@@ -450,8 +431,6 @@ int sdlkbd_hotkeys_dump(const char *filename)
             lib_free(hotkey_path);
         }
     }
-
-    fclose(fp);
 
     return 0;
 }
@@ -539,12 +518,7 @@ void kbd_arch_init(void)
 
     sdlkbd_keyword_clear();
     /* first load the defaults, then patch them with the user defined hotkeys */
-    if (machine_class == VICE_MACHINE_VSID) {
-        sdlkbd_hotkeys_load("sdl_hotkeys_vsid.vkm");
-    } else {
-        sdlkbd_hotkeys_load("sdl_hotkeys.vkm");
-    }
-    sdlkbd_hotkeys_load(hotkey_file);
+	sdlkbd_hotkeys_load(hotkey_file);
 }
 
 signed long kbd_arch_keyname_to_keynum(char *keyname)

@@ -58,6 +58,7 @@
 #include "sysfile.h"
 #include "archdep_defs.h"
 #include "archdep_user_config_path.h"
+#include "kbd.h"
 
 #ifdef VICE_DEBUG_RESOURCES
 #define DBG(x)  printf x
@@ -975,6 +976,7 @@ int resources_touch(const char *name)
 /* ------------------------------------------------------------------------- */
 
 /* Check whether `buf' is the emulator ID for the machine we are emulating.  */
+/*
 static int check_emu_id(const char *buf)
 {
     size_t machine_id_len, buf_len;
@@ -999,7 +1001,7 @@ static int check_emu_id(const char *buf)
         return 0;
     }
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 /* Read one resource line from the file descriptor `f'.
@@ -1025,8 +1027,8 @@ int resources_read_item_from_file(FILE *f)
         return 0;
     }
 
-    /* Ignore empty lines.  */
-    if (*buf == '\0') {
+    /* Ignore empty lines or comments.  */
+    if (*buf == '\0' || *buf == '#') {
         return 1;
     }
 
@@ -1094,6 +1096,21 @@ int resources_read_item_from_file(FILE *f)
     }
 }
 
+static char *read_section(FILE *f, char *name) {
+	char *ret=malloc(1);
+	ret[0]=0;
+	char buffer[1024];
+	rewind(f);
+	while (fgets(buffer,1024,f))
+		if (strncmp(buffer,name,strlen(name))==0) break;
+	while (fgets(buffer,1024,f)) {
+		if (*buffer == '[') break;
+		ret=realloc(ret, strlen(ret) + strlen(buffer) + 1);
+		strcpy(ret+strlen(ret),buffer);
+	}
+	return ret;
+}
+
 /* Load the resources from file `fname'.  If `fname' is NULL, load them from
    the default resource file.  */
 int resources_load(const char *fname)
@@ -1123,20 +1140,23 @@ int resources_load(const char *fname)
     log_message(LOG_DEFAULT, "Reading configuration file `%s'.", fname);
 
     /* Find the start of the configuration section for this emulator.  */
-    for (line_num = 1;; line_num++) {
+	char *section_name = util_concat("[",machine_id,"]",NULL);
+	for (line_num = 1;; line_num++) {
         char buf[1024];
 
         if (util_get_line(buf, 1024, f) < 0) {
             lib_free(default_name);
             fclose(f);
+			lib_free(section_name);
             return RESERR_READ_ERROR;
         }
 
-        if (check_emu_id(buf)) {
+        if (strcmp(buf,section_name)==0) {
             line_num++;
             break;
         }
     }
+	lib_free(section_name);
 
     do {
         retval = resources_read_item_from_file(f);
@@ -1155,6 +1175,17 @@ int resources_load(const char *fname)
         }
         line_num++;
     } while (retval != 0);
+
+	// load hotkeys as well
+	if (hotkey_file != NULL) lib_free(hotkey_file);
+	section_name = util_concat("[",machine_id,"-hotkeys]",NULL);
+	lib_free(hotkey_file);
+	hotkey_file = read_section(f, section_name);
+	lib_free(section_name);
+	if (hotkey_file == NULL) {
+		log_warning(LOG_DEFAULT, "%s: Hotkeys could not be loaded.", fname);
+	}
+	sdlkbd_hotkeys_load(hotkey_file);
 
     fclose(f);
     lib_free(default_name);
@@ -1309,22 +1340,22 @@ int resources_save(const char *fname)
 
     setbuf(out_file, NULL);
 
-    /* Copy the configuration for the other emulators.  */
-    if (in_file != NULL) {
-        while (1) {
-            char buf[1024];
-
-            if (util_get_line(buf, 1024, in_file) < 0) {
-                break;
-            }
-
-            if (check_emu_id(buf)) {
-                break;
-            }
-
-            fprintf(out_file, "%s\n", buf);
-        }
-    }
+	char buf[1024];
+	if (in_file != NULL) {
+		/* Copy the other config sections */
+		char *section_name = util_concat("[",machine_id,NULL);
+		int copying=1;
+		while (util_get_line(buf, 1024, in_file) >= 0) {
+			if (*buf == '[') {
+				copying=1;
+				if (strncmp(buf, section_name, strlen(section_name)) == 0)
+					copying=0;
+			}
+			if (copying)
+				fprintf(out_file, "%s\n", buf);
+		}
+		lib_free(section_name);
+	}
 
     /* Write our current configuration.  */
     fprintf(out_file, "[%s]\n", machine_id);
@@ -1336,28 +1367,12 @@ int resources_save(const char *fname)
     }
     fprintf(out_file, "\n");
 
-    if (in_file != NULL) {
-        char buf[1024];
+	/* Write our hotkeys. */
+	fprintf(out_file,"[%s-hotkeys]\n", machine_id);
+	sdlkbd_hotkeys_dump(out_file);
+    fprintf(out_file, "\n");
 
-        /* Skip the old configuration for this emulator.  */
-        while (1) {
-            if (util_get_line(buf, 1024, in_file) < 0) {
-                break;
-            }
-
-            /* Check if another emulation section starts.  */
-            if (*buf == '[') {
-                fprintf(out_file, "%s\n", buf);
-                break;
-            }
-        }
-
-        if (!feof(in_file)) {
-            /* Copy the configuration for the other emulators.  */
-            while (util_get_line(buf, 1024, in_file) >= 0) {
-                fprintf(out_file, "%s\n", buf);
-            }
-        }
+	if (in_file != NULL) {
         fclose(in_file);
         /* remove the backup */
         ioutil_remove(backup_name);
