@@ -747,8 +747,8 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 				uibottom_must_update_key=i;
 				uibottom_must_redraw |= UIB_KEYPRESS_ALL;
 				SDL_PushEvent(&sdl_e);
+				keypressed = (e->button.type == SDL_MOUSEBUTTONDOWN) ? i : -1;
 			}
-			keypressed = (e->button.type == SDL_MOUSEBUTTONDOWN) ? i : -1;
 		}
 	}
 	return 0;
