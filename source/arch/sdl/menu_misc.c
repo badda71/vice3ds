@@ -35,6 +35,7 @@
 #include "resources.h"
 #include "fullscreenarch.h"
 #include "videoarch.h"
+#include "uihotkey.h"
 #include "uipoll.h"
 #include "kbd.h"
 #include "ui.h"
@@ -165,7 +166,8 @@ static UI_MENU_CALLBACK(list_keymappings_callback)
 		} else {
 			for (int i=1;i<254;i++) {
 				if (keymap3ds[i] == 0) continue;
-				sprintf(buf+strlen(buf),"%-12s-> %s\n",get_3ds_keyname(i), get_3ds_mapping_name(i));
+				snprintf(buf+strlen(buf),41,"%-12s-> %s",get_3ds_keyname(i), get_3ds_mapping_name(i));
+				sprintf(buf+strlen(buf),"\n");
 			}
 		}
 		ui_show_text(buf);
@@ -182,6 +184,52 @@ static UI_MENU_CALLBACK(toggle_hidekeyboard_callback)
 		r=!r;
 	}
 	return r ? sdl_menu_text_tick : NULL;
+}
+
+static UI_MENU_CALLBACK(list_hotkeys_callback)
+{
+	int i,count=0,k;
+	char *hotkey_path,*p;
+
+	char *buf;
+	if (activated) {
+		for (i = 0; i < SDLKBD_UI_HOTKEYS_MAX; ++i) {
+			if (sdlkbd_ui_hotkeys[i]) count++;
+		}
+
+		buf=malloc(40*(count+3));
+		buf[0]=0;
+
+		sprintf(buf+strlen(buf),
+			"Hotkeys\n"
+			"~~~~~~~\n"
+			"\n");
+
+		if (count == 0) {
+			sprintf(buf+strlen(buf),"-- NONE --");
+		} else {
+			for (i = 0; i < SDLKBD_UI_HOTKEYS_MAX; ++i) {
+				if (sdlkbd_ui_hotkeys[i]) {
+					p = hotkey_path = sdl_ui_hotkey_path(sdlkbd_ui_hotkeys[i]);
+					k=strlen(get_3ds_keyname(i));
+					if(k<9) k=9;
+					while( strlen(p) > 38-k && strchr(p,'&')) p=strchr(p,'&')+1;
+					snprintf(buf+strlen(buf),41,"%-9s: %s",get_3ds_keyname(i), p);
+					sprintf(buf+strlen(buf),"\n");
+					lib_free(hotkey_path);
+				}
+			}
+		}
+		ui_show_text(buf);
+		free(buf);
+	}
+	return NULL;
+}
+
+static UI_MENU_CALLBACK(unmap_hotkey_callback)
+{
+	if (activated) sdl_ui_hotkey_map((void*)1, 1);
+	return NULL;
 }
 
 const ui_menu_entry_t misc_menu[] = {
@@ -211,6 +259,16 @@ const ui_menu_entry_t misc_menu[] = {
     { "List key mappings",
 		MENU_ENTRY_OTHER,
 		list_keymappings_callback,
+		NULL },
+	SDL_MENU_ITEM_SEPARATOR,
+    SDL_MENU_ITEM_TITLE("Hotkeys"),
+    { "Unmap hotkey",
+		MENU_ENTRY_OTHER,
+		unmap_hotkey_callback,
+		NULL },
+    { "List hotkeys",
+		MENU_ENTRY_OTHER,
+		list_hotkeys_callback,
 		NULL },
 	SDL_MENU_ITEM_SEPARATOR,
     SDL_MENU_ITEM_TITLE("Commands"),

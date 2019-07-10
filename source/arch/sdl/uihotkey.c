@@ -106,7 +106,7 @@ ui_menu_entry_t *sdl_ui_hotkey_action(char *path)
     return NULL;
 }
 
-int sdl_ui_hotkey_map(ui_menu_entry_t *item)
+int sdl_ui_hotkey_map(ui_menu_entry_t *item, int unmap)
 {
     SDL_Event e;
 
@@ -114,8 +114,7 @@ int sdl_ui_hotkey_map(ui_menu_entry_t *item)
         return -1;
     }
 
-    /* Use text item for unsetting hotkeys */
-    if (item->type == MENU_ENTRY_TEXT) {
+    if (unmap) {
         item = NULL;
     }
 

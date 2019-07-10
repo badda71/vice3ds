@@ -645,7 +645,7 @@ static ui_menu_retval_t sdl_ui_menu_display(ui_menu_entry_t *menu, const char *t
                 in_menu = 0;
                 break;
             case MENU_ACTION_MAP:
-                if (allow_mapping && sdl_ui_hotkey_map(&(menu[cur + cur_offset]))) {
+                if (allow_mapping && sdl_ui_hotkey_map(&(menu[cur + cur_offset]),0)) {
                     sdl_ui_menu_redraw(menu, title, cur_offset, value_offsets, cur);
                 }
                 break;

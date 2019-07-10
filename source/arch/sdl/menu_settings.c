@@ -522,7 +522,8 @@ UI_MENU_DEFINE_TOGGLE(SDLKbdStatusbar)
 UI_MENU_DEFINE_TOGGLE(SDLStatusbar)
 
 ui_menu_entry_t settings_manager_menu[] = {
-    { "Save current settings",
+     SDL_MENU_ITEM_TITLE("VICE Settings"),
+   { "Save current settings",
       MENU_ENTRY_OTHER,
       save_settings_callback,
       NULL },
@@ -546,16 +547,16 @@ ui_menu_entry_t settings_manager_menu[] = {
       MENU_ENTRY_OTHER,
       all_default_settings_callback,
       NULL },
+    SDL_MENU_ITEM_SEPARATOR,
+    SDL_MENU_ITEM_TITLE("Actions on exit"),
     { "Save settings on exit",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_SaveResourcesOnExit_callback,
       NULL },
-    SDL_MENU_ITEM_SEPARATOR,
     { "Confirm on exit",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_ConfirmOnExit_callback,
       NULL },
-    SDL_MENU_ITEM_SEPARATOR,
 /* 3DS
 	{ "Active keymap",
       MENU_ENTRY_SUBMENU,
@@ -579,6 +580,8 @@ ui_menu_entry_t settings_manager_menu[] = {
       save_keymap_callback,
       NULL },
 */
+    SDL_MENU_ITEM_SEPARATOR,
+    SDL_MENU_ITEM_TITLE("Statusbar"),
     { "Show statusbar",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_SDLStatusbar_callback,
@@ -635,6 +638,7 @@ ui_menu_entry_t settings_manager_menu[] = {
 
 /* vsid setting menu */
 ui_menu_entry_t settings_manager_menu_vsid[] = {
+    SDL_MENU_ITEM_TITLE("VICE Settings"),
     { "Save current settings",
       MENU_ENTRY_OTHER,
       save_settings_callback,
@@ -659,11 +663,12 @@ ui_menu_entry_t settings_manager_menu_vsid[] = {
       MENU_ENTRY_OTHER,
       all_default_settings_callback,
       NULL },
+    SDL_MENU_ITEM_SEPARATOR,
+    SDL_MENU_ITEM_TITLE("Actions on exit"),
     { "Save settings on exit",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_SaveResourcesOnExit_callback,
       NULL },
-    SDL_MENU_ITEM_SEPARATOR,
     { "Confirm on exit",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_ConfirmOnExit_callback,

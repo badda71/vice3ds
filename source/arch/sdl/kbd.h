@@ -54,6 +54,8 @@ extern void kbd_initialize_numpad_joykeys(int *joykeys);
 #define VICE_SDLK_ESCAPE      201 //b-button
 #define VICE_SDLK_RETURN      13 //OSK return
 
+#define SDLKBD_UI_HOTKEYS_MAX (SDL_NUM_SCANCODES * (1 << 4))
+
 extern SDLKey SDL2x_to_SDL1x_Keys(SDLKey key);
 extern SDLKey SDL1x_to_SDL2x_Keys(SDLKey key);
 
