@@ -64,8 +64,9 @@ extern ui_menu_action_t sdlkbd_release(SDLKey key, SDLMod mod);
 
 extern void sdlkbd_set_hotkey(SDLKey key, SDLMod mod, ui_menu_entry_t *value);
 
-extern int sdlkbd_hotkeys_load(char *file);
-extern int sdlkbd_hotkeys_dump(FILE *fp);
+extern void sdlkbd_hotkeys_clear(void);
+extern void sdlkbd_parse_hotkey_entry(char *buffer);
+extern ui_menu_entry_t *sdlkbd_ui_hotkeys[SDLKBD_UI_HOTKEYS_MAX];
 
 extern int sdlkbd_init_resources(void);
 extern void sdlkbd_resources_shutdown(void);

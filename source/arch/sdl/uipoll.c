@@ -91,6 +91,9 @@ SDL_Event sdl_ui_poll_event(const char *what, const char *target, int options, i
         sdl_poll_print_timeout(0, 2, timeout);
     }
 
+	// empty event queue first
+	while (SDL_PollEvent(&e));
+
     /* TODO check if key/event is suitable */
     while (polling) {
         while (polling && SDL_PollEvent(&e)) {

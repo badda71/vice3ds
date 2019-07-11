@@ -62,14 +62,14 @@
 static log_t sdlkbd_log = LOG_ERR;
 
 /* Hotkey filename */
-char *hotkey_file = NULL;
+char *hotkeys_buffer = NULL;
 
 /* Menu keys */
 int sdl_ui_menukeys[MENU_ACTION_NUM];
 
 /* UI hotkeys: index is the key(combo), value is a pointer to the menu item.
    4 is the number of the supported modifiers: shift, alt, control, meta. */
-ui_menu_entry_t *sdlkbd_ui_hotkeys[SDLKBD_UI_HOTKEYS_MAX];
+ui_menu_entry_t *sdlkbd_ui_hotkeys[SDLKBD_UI_HOTKEYS_MAX] = {NULL};
 
 /* ------------------------------------------------------------------------ */
 
@@ -108,8 +108,8 @@ int sdlkbd_init_resources(void)
 
 void sdlkbd_resources_shutdown(void)
 {
-    lib_free(hotkey_file);
-    hotkey_file = NULL;
+    lib_free(hotkeys_buffer);
+    hotkeys_buffer = NULL;
 }
 
 /* ------------------------------------------------------------------------ */
@@ -299,34 +299,36 @@ void sdlkbd_set_hotkey(SDLKey key, SDLMod mod, ui_menu_entry_t *value)
 	uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
 }
 
-static void sdlkbd_keyword_clear(void)
+void sdlkbd_hotkeys_clear(void)
 {
     int i;
 
     for (i = 0; i < SDLKBD_UI_HOTKEYS_MAX; ++i) {
-        sdlkbd_ui_hotkeys[i] = NULL;
+       sdlkbd_ui_hotkeys[i] = NULL;
     }
 }
 
-static void sdlkbd_parse_keyword(char *buffer)
-{
-    char *key;
-
-    key = strtok(buffer + 1, " \t:");
-
-    if (!strcmp(key, "CLEAR")) {
-        sdlkbd_keyword_clear();
-    }
-}
-
-static void sdlkbd_parse_entry(char *buffer)
+void sdlkbd_parse_hotkey_entry(char *buffer)
 {
     char *p;
     char *full_path;
     int keynum;
     ui_menu_entry_t *action;
 
-    p = strtok(buffer, " \t:");
+	// If resource & cmdline init, buffer the entry for later consumption
+	if (sdlkbd_log == LOG_ERR) {
+		if (hotkeys_buffer)
+			hotkeys_buffer=realloc(hotkeys_buffer,strlen(hotkeys_buffer)+strlen(buffer)+2);
+		else { 
+			hotkeys_buffer=malloc(strlen(buffer)+2);
+			*hotkeys_buffer=0;
+		}
+		sprintf(hotkeys_buffer+strlen(hotkeys_buffer),"%s\n",buffer);
+		return;
+	}
+
+	// parse and consume the entry
+	p = strtok(buffer, " \t:");
 
     keynum = atoi(p);
 
@@ -342,96 +344,24 @@ static void sdlkbd_parse_entry(char *buffer)
         if (action == NULL) {
             log_warning(sdlkbd_log, "Cannot find menu item \"%s\"!", full_path);
         } else {
-            sdlkbd_ui_hotkeys[keynum] = action;
+           sdlkbd_set_hotkey(keynum,0,action);
         }
         lib_free(full_path);
     }
 }
 
-int sdlkbd_hotkeys_load(char *file)
-{
-    char buffer[1024];
-
-    /* Silently ignore keymap load on resource & cmdline init */
-    if (sdlkbd_log == LOG_ERR) {
-        return 0;
-    }
-
-	if (file == NULL) {
-        return -1;
-    }
-
-    log_message(sdlkbd_log, "Loading hotkey map.");
-
-	
-	char *e,*b=file;
-    do {
-        buffer[0] = 0;
-        e=strchr(b,'\n');
-		if (e != NULL) {
-			*e=0;
-			strncpy(buffer,b,1023);
-			*e='\n';
-			
-            if (*buffer == '[') {
-                break;
-            }
-        
-            /* remove comments */
-            if (buffer[0] == '#') {
-                buffer[0] = 0;
-            }
-
-            switch (*buffer) {
-                case 0:
-                    break;
-                case '!':
-                    /* keyword handling */
-                    sdlkbd_parse_keyword(buffer);
-                    break;
-                default:
-                    /* table entry handling */
-                    sdlkbd_parse_entry(buffer);
-                    break;
-            }
-        }
+static void sdlkbd_hotkeys_load_from_buf() {
+	char *e,*b=hotkeys_buffer;
+	if (!b) return;
+	sdlkbd_hotkeys_clear();
+	while ((e=strchr(b,'\n'))!=NULL) {
+		*e=0;
+		sdlkbd_parse_hotkey_entry(b);
+		*e='\n';
 		b=e+1;
-    } while (e != NULL);
-    return 0;
-}
-
-int sdlkbd_hotkeys_dump(FILE *fp)
-{
-    int i;
-    char *hotkey_path;
-
-	if (fp == NULL) {
-        return -1;
-    }
-
-    fprintf(fp, "# VICE3DS hotkey mapping\n"
-            "#\n"
-            "# File format:\n"
-            "# - comment lines start with '#'\n"
-            "# - keyword lines start with '!keyword'\n"
-            "# - normal line has 'keynum path&to&menuitem'\n"
-            "#\n"
-            "# Keywords and their lines are:\n"
-            "# '!CLEAR'    clear all mappings\n"
-            "#\n\n"
-            );
-
-    fprintf(fp, "!CLEAR\n\n");
-
-    for (i = 0; i < SDLKBD_UI_HOTKEYS_MAX; ++i) {
-        if (sdlkbd_ui_hotkeys[i]) {
-            hotkey_path = sdl_ui_hotkey_path(sdlkbd_ui_hotkeys[i]);
-            fprintf(fp, "%i %s\n", i, hotkey_path);
-            lib_free(hotkey_path);
-        }
-    }
-
-    return 0;
+	}
+	free(hotkeys_buffer);
+	hotkeys_buffer=NULL;
 }
 
 /* ------------------------------------------------------------------------ */
@@ -515,9 +445,8 @@ void kbd_arch_init(void)
 
     sdlkbd_log = log_open("SDLKeyboard");
 
-    sdlkbd_keyword_clear();
-    /* first load the defaults, then patch them with the user defined hotkeys */
-	sdlkbd_hotkeys_load(hotkey_file);
+	// load hotkeys
+	sdlkbd_hotkeys_load_from_buf();
 }
 
 signed long kbd_arch_keyname_to_keynum(char *keyname)

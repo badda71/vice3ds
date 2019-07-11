@@ -118,7 +118,8 @@ static int cmdline_config(const char *param, void *extra_param)
 
 static int cmdline_dumpconfig(const char *param, void *extra_param)
 {
-    return resources_dump(param);
+	return 0;
+//    return resources_dump(param);
 }
 
 static int cmdline_default(const char *param, void *extra_param)

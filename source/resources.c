@@ -59,6 +59,7 @@
 #include "archdep_defs.h"
 #include "archdep_user_config_path.h"
 #include "kbd.h"
+#include "uihotkey.h"
 
 #ifdef VICE_DEBUG_RESOURCES
 #define DBG(x)  printf x
@@ -116,6 +117,8 @@ static char *machine_id = NULL;
 
 static void write_resource_item(FILE *f, int num);
 static char *string_resource_item(int num, const char *delim);
+
+char *resources_buffer = NULL;
 
 /* use a hash table with 1024 entries */
 static const unsigned int logHashSize = 10;
@@ -1013,25 +1016,17 @@ static int check_emu_id(const char *buf)
    RESERR_UNKNOWN_RESOURCE on unknown resource error
 */
 /* FIXME: make event safe */
-int resources_read_item_from_file(FILE *f)
+int resources_read_item_from_string(char *buf)
 {
-    char buf[1024];
     char *arg_ptr;
-    int line_len, resname_len;
+    int resname_len;
     size_t arg_len;
     resource_ram_t *r;
 
-    line_len = util_get_line(buf, 1024, f);
-
-    if (line_len < 0) {
-        return 0;
-    }
-
-    /* Ignore empty lines or comments.  */
+	/* Ignore empty lines or comments.  */
     if (*buf == '\0' || *buf == '#') {
         return 1;
     }
-
     if (*buf == '[') {
         /* End of emulator-specific section.  */
         return 0;
@@ -1054,7 +1049,11 @@ int resources_read_item_from_file(FILE *f)
 
     *(buf + resname_len) = '\0';
 
-    {
+    if (strcmp("Hotkey",buf)==0) {
+		sdlkbd_parse_hotkey_entry(arg_ptr);
+		return 1;
+	
+	} else {
         int result;
 
         r = lookup(buf);
@@ -1096,19 +1095,63 @@ int resources_read_item_from_file(FILE *f)
     }
 }
 
+int resources_read_item_from_file(FILE *f)
+{
+    char buf[1024];
+    if (util_get_line(buf, 1024, f) <0) return 0;
+
+	return resources_read_item_from_string(buf);
+}
+
 static char *read_section(FILE *f, char *name) {
+	char *section_name = util_concat("[",name,"]",NULL);
 	char *ret=malloc(1);
 	ret[0]=0;
 	char buffer[1024];
 	rewind(f);
 	while (fgets(buffer,1024,f))
-		if (strncmp(buffer,name,strlen(name))==0) break;
+		if (strncmp(buffer,section_name,strlen(section_name))==0) break;
 	while (fgets(buffer,1024,f)) {
 		if (*buffer == '[') break;
 		ret=realloc(ret, strlen(ret) + strlen(buffer) + 1);
 		strcpy(ret+strlen(ret),buffer);
 	}
+	lib_free(section_name);
 	return ret;
+}
+
+int resources_load_from_buf() {
+
+	int err=0,retval;
+	char *e,*b=resources_buffer;
+	if (!b) return 0;
+
+	// prepare for loading config
+	sdlkbd_hotkeys_clear();	
+	
+	while ((e=strchr(b,'\n'))!=NULL) {
+		*e=0;		
+		retval = resources_read_item_from_string(b);
+        switch (retval) {
+            case RESERR_TYPE_INVALID:
+                    log_error(LOG_DEFAULT, "Invalid resource specification: %s",b);
+                    err = 1;
+                break;
+            case RESERR_UNKNOWN_RESOURCE:
+                    log_warning(LOG_DEFAULT, "Unknown resource specification: %s",b);
+                break;
+        }
+		*e='\n';
+		b=e+1;
+	}
+	free(resources_buffer);
+	resources_buffer=NULL;
+
+    if (resource_modified_callback != NULL) {
+        resources_exec_callback_chain(resource_modified_callback, NULL);
+    }
+
+    return err ? RESERR_FILE_INVALID : 0;
 }
 
 /* Load the resources from file `fname'.  If `fname' is NULL, load them from
@@ -1116,9 +1159,6 @@ static char *read_section(FILE *f, char *name) {
 int resources_load(const char *fname)
 {
     FILE *f;
-    int retval;
-    int line_num;
-    int err = 0;
     char *default_name = NULL;
 
     if (fname == NULL) {
@@ -1139,64 +1179,15 @@ int resources_load(const char *fname)
 
     log_message(LOG_DEFAULT, "Reading configuration file `%s'.", fname);
 
-    /* Find the start of the configuration section for this emulator.  */
-	char *section_name = util_concat("[",machine_id,"]",NULL);
-	for (line_num = 1;; line_num++) {
-        char buf[1024];
-
-        if (util_get_line(buf, 1024, f) < 0) {
-            lib_free(default_name);
-            fclose(f);
-			lib_free(section_name);
-            return RESERR_READ_ERROR;
-        }
-
-        if (strcmp(buf,section_name)==0) {
-            line_num++;
-            break;
-        }
-    }
-	lib_free(section_name);
-
-    do {
-        retval = resources_read_item_from_file(f);
-        switch (retval) {
-            case RESERR_TYPE_INVALID:
-                    log_error(LOG_DEFAULT,
-                            "%s: Invalid resource specification at line %d.",
-                            fname, line_num);
-                    err = 1;
-                break;
-            case RESERR_UNKNOWN_RESOURCE:
-                    log_warning(LOG_DEFAULT,
-                                "%s: Unknown resource specification at line %d.",
-                                fname, line_num);
-                break;
-        }
-        line_num++;
-    } while (retval != 0);
-
-	// load hotkeys as well
-	if (hotkey_file != NULL) lib_free(hotkey_file);
-	section_name = util_concat("[",machine_id,"-hotkeys]",NULL);
-	lib_free(hotkey_file);
-	hotkey_file = read_section(f, section_name);
-	lib_free(section_name);
-	if (hotkey_file == NULL) {
-		log_warning(LOG_DEFAULT, "%s: Hotkeys could not be loaded.", fname);
-	}
-	sdlkbd_hotkeys_load(hotkey_file);
-
-    fclose(f);
+    // read section into memory
+	free(resources_buffer);
+	resources_buffer=read_section(f, machine_id);
+	fclose(f);
     lib_free(default_name);
 
-    if (resource_modified_callback != NULL) {
-        resources_exec_callback_chain(resource_modified_callback, NULL);
-    }
-
-    return err ? RESERR_FILE_INVALID : 0;
+	// parse file in memory
+	return resources_load_from_buf();
 }
-
 
 static char *string_resource_item(int num, const char *delim)
 {
@@ -1272,14 +1263,45 @@ static int resource_item_isdefault(int num)
     return 0;
 }
 
+void resources_save_to_buf() {
+	char *line;
+	int i;
+
+	if (resources_buffer) free (resources_buffer);
+	resources_buffer=malloc(2);
+	*resources_buffer=0;
+
+	/* Write our current configuration.  */
+	for (i = 0; i < num_resources; i++) {
+		/* only dump into the file what is different to the default config */
+		if (!resource_item_isdefault(i)) {
+			line = string_resource_item(i, "\n");
+			if (line != NULL) {
+				resources_buffer=realloc(resources_buffer, strlen(resources_buffer) + strlen (line) + 1);
+				memcpy(resources_buffer + strlen(resources_buffer), line, strlen(line)+1);
+				lib_free(line);
+			}
+		}
+	}
+	// write the hotkeys
+	for (i = 0; i < SDLKBD_UI_HOTKEYS_MAX; ++i) {
+		if (sdlkbd_ui_hotkeys[i]) {
+			char *hotkey_path = sdl_ui_hotkey_path(sdlkbd_ui_hotkeys[i]);
+			resources_buffer=realloc(resources_buffer, strlen(resources_buffer) + strlen (hotkey_path) + 17);
+			sprintf(resources_buffer + strlen(resources_buffer), "Hotkey=%d %s\n", i, hotkey_path);
+			lib_free(hotkey_path);
+		}
+	}
+}
+
 /* Save all the resources into file `fname'.  If `fname' is NULL, save them
    in the default resource file.  Writing the resources does not destroy the
    resources for the other emulators.  */
 int resources_save(const char *fname)
 {
-    char *backup_name = NULL;
+    char buf[1024];
+	char *backup_name = NULL;
     FILE *in_file = NULL, *out_file;
-    unsigned int i;
     char *default_name = NULL;
 
     /* get name for config file */
@@ -1287,7 +1309,7 @@ int resources_save(const char *fname)
 	    char *cfg = archdep_user_config_path();
 	    default_name = archdep_join_paths(cfg, ARCHDEP_VICERC_NAME, NULL);
         fname = default_name;
-    }
+	}
 
     /* make a backup of an existing config, open it */
     if (util_file_exists(fname) != 0) {
@@ -1340,39 +1362,51 @@ int resources_save(const char *fname)
 
     setbuf(out_file, NULL);
 
-	char buf[1024];
+    /* Copy the configuration for the other emulators.  */
+	char *section_name = util_concat("[",machine_id,"]",NULL);
 	if (in_file != NULL) {
-		/* Copy the other config sections */
-		char *section_name = util_concat("[",machine_id,NULL);
-		int copying=1;
-		while (util_get_line(buf, 1024, in_file) >= 0) {
-			if (*buf == '[') {
-				copying=1;
-				if (strncmp(buf, section_name, strlen(section_name)) == 0)
-					copying=0;
-			}
-			if (copying)
-				fprintf(out_file, "%s\n", buf);
-		}
-		lib_free(section_name);
-	}
+        while (1) {
 
-    /* Write our current configuration.  */
-    fprintf(out_file, "[%s]\n", machine_id);
-    for (i = 0; i < num_resources; i++) {
-        /* only dump into the file what is different to the default config */
-        if (!resource_item_isdefault(i)) {
-            write_resource_item(out_file, i);
+            if (util_get_line(buf, 1024, in_file) < 0) {
+                break;
+            }
+
+            if (strcmp(buf,section_name)==0) {
+                break;
+            }
+
+            fprintf(out_file, "%s\n", buf);
         }
     }
-    fprintf(out_file, "\n");
+	lib_free(section_name);
 
-	/* Write our hotkeys. */
-	fprintf(out_file,"[%s-hotkeys]\n", machine_id);
-	sdlkbd_hotkeys_dump(out_file);
-    fprintf(out_file, "\n");
+	fprintf(out_file, "[%s]\n", machine_id);
+	resources_save_to_buf();
+    fprintf(out_file, "%s\n",resources_buffer);
+	free(resources_buffer);
+	resources_buffer=NULL;
 
-	if (in_file != NULL) {
+    if (in_file != NULL) {
+
+        /* Skip the old configuration for this emulator.  */
+        while (1) {
+            if (util_get_line(buf, 1024, in_file) < 0) {
+                break;
+            }
+
+            /* Check if another emulation section starts.  */
+            if (*buf == '[') {
+                fprintf(out_file, "%s\n", buf);
+                break;
+            }
+        }
+
+        if (!feof(in_file)) {
+            /* Copy the configuration for the other emulators.  */
+            while (util_get_line(buf, 1024, in_file) >= 0) {
+                fprintf(out_file, "%s\n", buf);
+            }
+        }
         fclose(in_file);
         /* remove the backup */
         ioutil_remove(backup_name);
@@ -1381,32 +1415,6 @@ int resources_save(const char *fname)
     fclose(out_file);
     lib_free(backup_name);
     lib_free(default_name);
-    return 0;
-}
-
-/* dump ALL resources of the current machine into a file */
-int resources_dump(const char *fname)
-{
-    FILE *out_file;
-    unsigned int i;
-
-    log_message(LOG_DEFAULT, "Dumping %d resources to file `%s'.", num_resources, fname);
-
-    out_file = fopen(fname, MODE_WRITE_TEXT);
-    if (!out_file) {
-        return RESERR_CANNOT_CREATE_FILE;
-    }
-
-    setbuf(out_file, NULL);
-
-    /* Write our current configuration.  */
-    fprintf(out_file, "[%s]\n", machine_id);
-    for (i = 0; i < num_resources; i++) {
-        write_resource_item(out_file, i);
-    }
-    fprintf(out_file, "\n");
-
-    fclose(out_file);
     return 0;
 }
 
