@@ -43,6 +43,9 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <signal.h>
+#include <3ds.h>
+#include <malloc.h>
+#include <arpa/inet.h>
 
 #ifdef HAVE_VFORK_H
 #include <vfork.h>
@@ -110,19 +113,51 @@ char *archdep_default_joymap_file_name(void)
 	return util_concat("sdl-joymap-", machine_get_name(), ".vjm", NULL);
 }
 
+#define HOSTNAME "127.0.0.1"
+#define PORT 4000
+void udpSend(const char *msg){
+	static int init=0;
+	if (!init) {
+		socInit((u32*)memalign(0x1000, 0x128000), 0x128000);
+		init=1;
+	}
+	struct sockaddr_in servaddr;
+	int fd = socket(AF_INET,SOCK_DGRAM,0);
+	if(fd<0)return;
+
+	bzero(&servaddr,sizeof(servaddr));
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = inet_addr(HOSTNAME);
+	servaddr.sin_port = htons(PORT);
+	sendto(fd, msg, strlen(msg)+1, 0,
+		(struct sockaddr*)&servaddr, sizeof(servaddr));
+	close(fd);
+}
 
 int archdep_default_logger(const char *level_string, const char *txt)
 {
-    if (fputs(level_string, stdout) == EOF || fprintf(stdout, "%s", txt) < 0 || fputc('\n', stdout) == EOF) {
-        return -1;
-    }
-    return 0;
+	char *beg;
+    time_t timer;
+    char buffer[26];
+    struct tm* tm_info;
+    time(&timer);
+    tm_info = localtime(&timer);
+    strftime(buffer, 26, "%H:%M:%S", tm_info);
+	beg=lib_msprintf("%s - %s\n", buffer, txt);
+
+	// citra log
+	svcOutputDebugString(txt, strlen(txt));
+
+	// udp send	
+	udpSend(beg);
+	lib_free(beg);
+	return 0;
 }
 
 int archdep_spawn(const char *name, char **argv, char **pstdout_redir, const char *stderr_redir)
 {
 #ifdef _3DS
-	log_3ds("function archdep_spawn not supported");
+	log_error(LOG_DEFAULT, "function archdep_spawn not supported");
 	return -1;
 #else
     pid_t child_pid;

@@ -123,7 +123,7 @@ static struct sigaction ignore;
 int fork_coproc(int *fd_wr, int *fd_rd, char *cmd)
 {
 #ifdef _3DS
-	log_3ds("function fork-coproc not supported");
+	log_error(LOG_DEFAULT, "function fork-coproc not supported");
 	return -1;
 #else
     int fd1[2], fd2[2];

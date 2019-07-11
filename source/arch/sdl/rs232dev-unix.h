@@ -225,7 +225,7 @@ void rs232dev_close(int fd);
 void rs232dev_init(void)
 {
 #ifdef _3DS
-	log_3ds("function rs232dev_init not supported");
+	log_error(LOG_DEFAULT, "function rs232dev_init not supported");
 #else
 	int i;
 
@@ -242,7 +242,7 @@ void rs232dev_init(void)
 static void unset_tty(int i)
 {
 #ifdef _3DS
-	log_3ds("function unset_tty not supported");
+	log_error(LOG_DEFAULT, "function unset_tty not supported");
 #else
     tcsetattr(fds[i].fd_r, TCSAFLUSH, &fds[i].saved);
 #endif
@@ -271,7 +271,7 @@ static void set_tty(int i, int baud)
 {
 
 #ifdef _3DS
-	log_3ds("function set_tty not supported");
+	log_error(LOG_DEFAULT, "function set_tty not supported");
 #else
 	
 	//
@@ -326,7 +326,7 @@ static void set_tty(int i, int baud)
 void rs232dev_reset(void)
 {
 #ifdef _3DS
-	log_3ds("function rs232dev_reset not supported");
+	log_error(LOG_DEFAULT, "function rs232dev_reset not supported");
 #else
     int i;
 
@@ -342,7 +342,7 @@ void rs232dev_reset(void)
 int rs232dev_open(int device)
 {
 #ifdef _3DS
-	log_3ds("function rs232dev_open not supported");
+	log_error(LOG_DEFAULT, "function rs232dev_open not supported");
 	return -1;
 #else
     int i, fd;
@@ -402,7 +402,7 @@ int rs232dev_open(int device)
 void rs232dev_close(int fd)
 {
 #ifdef _3DS
-	log_3ds("function rs232dev_close not supported");
+	log_error(LOG_DEFAULT, "function rs232dev_close not supported");
 #else
 
 #ifdef DEBUG
@@ -433,7 +433,7 @@ void rs232dev_close(int fd)
 int rs232dev_putc(int fd, uint8_t b)
 {
 #ifdef _3DS
-	log_3ds("function rs232dev_putc not supported");
+	log_error(LOG_DEFAULT, "function rs232dev_putc not supported");
 	return -1;
 #else
     ssize_t n;
@@ -468,7 +468,7 @@ int rs232dev_putc(int fd, uint8_t b)
 int rs232dev_getc(int fd, uint8_t * b)
 {
 #ifdef _3DS
-	log_3ds("function rs232dev_getc not supported");
+	log_error(LOG_DEFAULT, "function rs232dev_getc not supported");
 	return -1;
 #else
     int ret;

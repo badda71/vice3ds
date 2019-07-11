@@ -54,6 +54,5 @@ extern int log_warning(log_t log, const char *format, ...);
 extern int log_error(log_t log, const char *format, ...);
 extern int log_debug(const char *format, ...);
 extern int log_verbose(const char *format, ...);
-extern int log_3ds(const char *format, ...);
 
 #endif
