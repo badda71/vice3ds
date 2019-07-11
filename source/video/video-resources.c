@@ -735,7 +735,32 @@ int video_resources_chip_init(const char *chipname,
     if (video_chip_cap->fullscreen.device_num > 0) {
         video_resource_chip_mode_t *resource_chip_mode;
 
-        if (machine_class != VICE_MACHINE_VSID) {
+        for (i = 0; i < video_chip_cap->fullscreen.device_num; i++) {
+            resource_chip_mode = get_resource_chip_mode();
+            resource_chip_mode->resource_chip = *canvas;
+            resource_chip_mode->device = i;
+
+            if (machine_class != VICE_MACHINE_VSID) {
+                resources_chip_fullscreen_mode[0].name
+                    = util_concat(chipname,
+                                  video_chip_cap->fullscreen.device_name[i],
+                                  vname_chip_fullscreen_mode[0], NULL);
+                resources_chip_fullscreen_mode[0].value_ptr
+                    = &((*canvas)->videoconfig->fullscreen_mode[i]);
+                resources_chip_fullscreen_mode[0].param
+                    = (void *)resource_chip_mode;
+
+                if (resources_register_int(resources_chip_fullscreen_mode) < 0) {
+                    return -1;
+                }
+
+                lib_free(resources_chip_fullscreen_mode[0].name);
+            } else {
+                set_fullscreen_mode(0, (void *)resource_chip_mode);
+            }
+        }
+
+		if (machine_class != VICE_MACHINE_VSID) {
             resources_chip_fullscreen_int[0].name
                 = util_concat(chipname, vname_chip_fullscreen[0], NULL);
             resources_chip_fullscreen_int[0].value_ptr
@@ -771,31 +796,6 @@ int video_resources_chip_init(const char *chipname,
             set_fullscreen_enabled(0, (void *)*canvas);
             set_fullscreen_statusbar(0, (void *)*canvas);
             set_fullscreen_device(video_chip_cap->fullscreen.device_name[0], (void *)*canvas);
-        }
-
-        for (i = 0; i < video_chip_cap->fullscreen.device_num; i++) {
-            resource_chip_mode = get_resource_chip_mode();
-            resource_chip_mode->resource_chip = *canvas;
-            resource_chip_mode->device = i;
-
-            if (machine_class != VICE_MACHINE_VSID) {
-                resources_chip_fullscreen_mode[0].name
-                    = util_concat(chipname,
-                                  video_chip_cap->fullscreen.device_name[i],
-                                  vname_chip_fullscreen_mode[0], NULL);
-                resources_chip_fullscreen_mode[0].value_ptr
-                    = &((*canvas)->videoconfig->fullscreen_mode[i]);
-                resources_chip_fullscreen_mode[0].param
-                    = (void *)resource_chip_mode;
-
-                if (resources_register_int(resources_chip_fullscreen_mode) < 0) {
-                    return -1;
-                }
-
-                lib_free(resources_chip_fullscreen_mode[0].name);
-            } else {
-                set_fullscreen_mode(0, (void *)resource_chip_mode);
-            }
         }
     }
 

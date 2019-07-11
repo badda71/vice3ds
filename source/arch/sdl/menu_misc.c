@@ -90,7 +90,7 @@ static UI_MENU_CALLBACK(bottomoff_callback)
 
 static UI_MENU_CALLBACK(toggle_MaxScreen_callback)
 {
-	static int s_fs=-1,s_fss=-1,s_fsm=-1;
+	static int s_fs=0, s_fss=SDL_FULLSCREEN, s_fsm=FULLSCREEN_MODE_AUTO;
 	int r=0, fs=0, fss=0, w=0, h=0, fsm=0;
 	
 	char c_fs[25],c_fsm[25];

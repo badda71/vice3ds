@@ -71,38 +71,21 @@ Mouse=1
 DriveTrueEmulation=0
 Datasette=0
 Acia1Base=56832
-
-[C64-hotkeys]
-# VICE hotkey mapping file
-#
-# A hotkey map is read in as a patch to the current map.
-#
-# File format:
-# - comment lines start with '#'
-# - keyword lines start with '!keyword'
-# - normal line has 'keynum path&to&menuitem'
-#
-# Keywords and their lines are:
-# '!CLEAR'    clear all mappings
-#
-
-!CLEAR
-
-208 Quit emulator
-231 Autostart image
-232 Misc&RUN/STOP + RESTORE
-233 Machine settings&Joystick settings&Swap joystick ports
-234 Speed settings&Warp mode
-235 Reset&Hard
-236 Snapshot&Quickload snapshot.vsf
-237 Snapshot&Quicksave snapshot.vsf
-238 Drive&True drive emulation
-239 Misc&Power off bottom screen backlight
-240 Pause
-241 Drive&Attach disk image to drive 8
-242 Video settings&Enable Sprite-Sprite collisions
-243 Video settings&Enable Sprite-Background collisions
-244 Misc&LOAD"*",8,1 RUN
-245 Misc&LOAD"$",8 LIST
-249 Tape&Play
-250 Misc&Hide Border / Fullscreen
+Hotkey=208 Quit emulator
+Hotkey=231 Autostart image
+Hotkey=232 Misc&RUN/STOP + RESTORE
+Hotkey=233 Machine settings&Joystick settings&Swap joystick ports
+Hotkey=234 Speed settings&Warp mode
+Hotkey=235 Reset&Hard
+Hotkey=236 Snapshot&Quickload snapshot.vsf
+Hotkey=237 Snapshot&Quicksave snapshot.vsf
+Hotkey=238 Drive&True drive emulation
+Hotkey=239 Misc&Power off bottom screen backlight
+Hotkey=240 Pause
+Hotkey=241 Drive&Attach disk image to drive 8
+Hotkey=242 Video settings&Enable Sprite-Sprite collisions
+Hotkey=243 Video settings&Enable Sprite-Background collisions
+Hotkey=244 Misc&LOAD"*",8,1 RUN
+Hotkey=245 Misc&LOAD"$",8 LIST
+Hotkey=249 Tape&Play
+Hotkey=250 Misc&Hide Border / Fullscreen
