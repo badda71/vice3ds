@@ -60,6 +60,7 @@
 #include "archdep_user_config_path.h"
 #include "kbd.h"
 #include "uihotkey.h"
+#include "snapshot.h"
 
 #ifdef VICE_DEBUG_RESOURCES
 #define DBG(x)  printf x
@@ -1263,7 +1264,7 @@ static int resource_item_isdefault(int num)
     return 0;
 }
 
-void resources_save_to_buf() {
+void resources_save_to_buf(char *name) {
 	char *line;
 	int i;
 
@@ -1274,7 +1275,8 @@ void resources_save_to_buf() {
 	/* Write our current configuration.  */
 	for (i = 0; i < num_resources; i++) {
 		/* only dump into the file what is different to the default config */
-		if (!resource_item_isdefault(i)) {
+		if ((!resource_item_isdefault(i) && name==NULL) ||
+			(name != NULL && strcmp(name, resources[i].name)==0)) {
 			line = string_resource_item(i, "\n");
 			if (line != NULL) {
 				resources_buffer=realloc(resources_buffer, strlen(resources_buffer) + strlen (line) + 1);
@@ -1381,7 +1383,7 @@ int resources_save(const char *fname)
 	lib_free(section_name);
 
 	fprintf(out_file, "[%s]\n", machine_id);
-	resources_save_to_buf();
+	resources_save_to_buf(NULL);
     fprintf(out_file, "%s\n",resources_buffer);
 	free(resources_buffer);
 	resources_buffer=NULL;
@@ -1435,4 +1437,66 @@ int resources_register_callback(const char *name,
         }
     }
     return -1;
+}
+
+static const char snap_res_module_name[] = "SETTIN";
+#define SNAP_MAJOR 0
+#define SNAP_MINOR 1
+
+int resources_snapshot_write_module(snapshot_t *s, int save_settings)
+{
+    snapshot_module_t *m;
+
+    if (save_settings) {
+	    m = snapshot_module_create(s, snap_res_module_name, SNAP_MAJOR, SNAP_MINOR);
+
+	    if (m == NULL) {
+	        return -1;
+	    }
+
+    	// only save key mapping and hotkeys
+		resources_save_to_buf("KeyMappings");
+		
+		if (SMW_STR(m, resources_buffer) < 0) {
+			lib_free(resources_buffer);
+			resources_buffer = NULL;
+			snapshot_module_close(m);
+			return -1;
+		}
+		lib_free(resources_buffer);
+		resources_buffer = NULL;
+
+		if (snapshot_module_close(m) < 0) {
+			return -1;
+		}
+	}
+	return 0;
+}
+
+int resources_snapshot_read_module(snapshot_t *s)
+{
+    uint8_t major_version, minor_version;
+    snapshot_module_t *m;
+ 
+    m = snapshot_module_open(s, snap_res_module_name, &major_version, &minor_version);
+
+    if (m == NULL) {
+        /* this module is optional */
+        return 0;
+    }
+
+    if (resources_buffer) lib_free(resources_buffer);
+
+	if (SMR_STR(m, &resources_buffer) < 0) {
+	    snapshot_module_close(m);
+		return -1;
+    }
+
+    if (snapshot_module_close(m) < 0) {
+        return -1;
+    }
+
+	resources_load_from_buf();
+
+    return 0;
 }

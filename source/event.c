@@ -678,7 +678,7 @@ static void event_record_start_trap(uint16_t addr, void *data)
     switch (event_start_mode) {
         case EVENT_START_MODE_FILE_SAVE:
             if (machine_write_snapshot(event_snapshot_path(event_start_snapshot),
-                                       1, 1, 0) < 0) {
+                                       1, 1, 0, 0) < 0) {
                 ui_error("Could not create start snapshot file %s.", event_snapshot_path(event_start_snapshot));
                 ui_display_recording(0);
                 return;
@@ -755,7 +755,7 @@ int event_record_start(void)
 
 static void event_record_stop_trap(uint16_t addr, void *data)
 {
-    if (machine_write_snapshot(event_snapshot_path(event_end_snapshot), 1, 1, 1) < 0) {
+    if (machine_write_snapshot(event_snapshot_path(event_end_snapshot), 1, 1, 0, 1) < 0) {
         ui_error("Could not create end snapshot file %s.", event_snapshot_path(event_end_snapshot));
         return;
     }
@@ -929,7 +929,7 @@ int event_playback_stop(void)
 
 static void event_record_set_milestone_trap(uint16_t addr, void *data)
 {
-    if (machine_write_snapshot(event_snapshot_path(event_end_snapshot), 1, 1, 1) < 0) {
+    if (machine_write_snapshot(event_snapshot_path(event_end_snapshot), 1, 1, 0, 1) < 0) {
         ui_error("Could not create end snapshot file %s.", event_snapshot_path(event_end_snapshot));
     } else {
         milestone_timestamp_alarm = next_timestamp_clk;

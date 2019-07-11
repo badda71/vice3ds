@@ -52,11 +52,12 @@
 #include "userport.h"
 #include "vice-event.h"
 #include "vicii.h"
+#include "resources.h"
 
 #define SNAP_MAJOR 1
 #define SNAP_MINOR 1
 
-int c64_snapshot_write(const char *name, int save_roms, int save_disks, int event_mode)
+int c64_snapshot_write(const char *name, int save_roms, int save_disks, int save_settings, int event_mode)
 {
     snapshot_t *s;
 
@@ -84,7 +85,8 @@ int c64_snapshot_write(const char *name, int save_roms, int save_disks, int even
         || keyboard_snapshot_write_module(s) < 0
         || joyport_snapshot_write_module(s, JOYPORT_1) < 0
         || joyport_snapshot_write_module(s, JOYPORT_2) < 0
-        || userport_snapshot_write_module(s) < 0) {
+        || userport_snapshot_write_module(s) < 0
+		|| resources_snapshot_write_module(s, save_settings) < 0) {
         snapshot_close(s);
         ioutil_remove(name);
         return -1;
@@ -128,7 +130,8 @@ int c64_snapshot_read(const char *name, int event_mode)
         || keyboard_snapshot_read_module(s) < 0
         || joyport_snapshot_read_module(s, JOYPORT_1) < 0
         || joyport_snapshot_read_module(s, JOYPORT_2) < 0
-        || userport_snapshot_read_module(s) < 0) {
+        || userport_snapshot_read_module(s) < 0
+		|| resources_snapshot_read_module(s) < 0) {
         goto fail;
     }
 

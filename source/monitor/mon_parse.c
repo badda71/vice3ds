@@ -2473,7 +2473,7 @@ yyreduce:
 
   case 36:
 #line 255 "mon_parse.y" /* yacc.c:1646  */
-    { machine_write_snapshot((yyvsp[-1].str),0,0,0); /* FIXME */ }
+    { machine_write_snapshot((yyvsp[-1].str),0,0,0,0); /* FIXME */ }
 #line 2478 "mon_parse.c" /* yacc.c:1646  */
     break;
 

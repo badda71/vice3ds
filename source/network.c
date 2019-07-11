@@ -464,7 +464,7 @@ static void network_server_connect_trap(uint16_t addr, void *data)
 
     /* Create snapshot and send it */
     snapshotfilename = archdep_tmpnam();
-    if (machine_write_snapshot(snapshotfilename, 1, 1, 0) == 0) {
+    if (machine_write_snapshot(snapshotfilename, 1, 1, 0, 0) == 0) {
         f = fopen(snapshotfilename, MODE_READ);
         if (f == NULL) {
             ui_error("Cannot load snapshot file for transfer");

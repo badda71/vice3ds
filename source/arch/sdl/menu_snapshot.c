@@ -46,6 +46,7 @@
 
 static int save_disks = 1;
 static int save_roms = 0;
+static int save_settings = 1;
 
 UI_MENU_DEFINE_RADIO(EventStartMode)
 
@@ -73,6 +74,18 @@ static UI_MENU_CALLBACK(toggle_save_rom_images_callback)
     return NULL;
 }
 
+static UI_MENU_CALLBACK(toggle_save_settings_callback)
+{
+    if (activated) {
+        save_settings = !save_settings;
+    } else {
+        if (save_settings) {
+            return sdl_menu_text_tick;
+        }
+    }
+    return NULL;
+}
+
 static UI_MENU_CALLBACK(save_snapshot_callback)
 {
     char *name;
@@ -81,7 +94,7 @@ static UI_MENU_CALLBACK(save_snapshot_callback)
         name = sdl_ui_file_selection_dialog("Choose snapshot file to save", FILEREQ_MODE_SAVE_FILE);
         if (name != NULL) {
             util_add_extension(&name, "vsf");
-            if (machine_write_snapshot(name, save_roms, save_disks, 0) < 0) {
+            if (machine_write_snapshot(name, save_roms, save_disks, save_settings, 0) < 0) {
                 snapshot_display_error();
             }
             lib_free(name);
@@ -100,7 +113,7 @@ static UI_MENU_CALLBACK(save_snapshot_slot_callback)
         name = sdl_ui_slot_selection_dialog("Choose snapshot slot to save", SLOTREQ_MODE_SAVE_SLOT);
         if (name != NULL) {
             util_add_extension(&name, "vsf");
-            if (machine_write_snapshot(name, save_roms, save_disks, 0) < 0) {
+            if (machine_write_snapshot(name, save_roms, save_disks, save_settings, 0) < 0) {
                 snapshot_display_error();
             }
             lib_free(name);
@@ -136,7 +149,7 @@ static UI_MENU_CALLBACK(quicksave_snapshot_callback)
 {
     if (!quick_fname) fill_quick_fname();
     if (activated) {
-        if (machine_write_snapshot(quick_fname, save_roms, save_disks, 0) < 0) {
+        if (machine_write_snapshot(quick_fname, save_roms, save_disks, save_settings, 0) < 0) {
             snapshot_display_error();
         }
     }
@@ -258,6 +271,10 @@ static const ui_menu_entry_t save_snapshot_menu[] = {
       MENU_ENTRY_OTHER,
       toggle_save_rom_images_callback,
       NULL },
+    { "Save key mappings and hotkeys",
+      MENU_ENTRY_OTHER,
+      toggle_save_settings_callback,
+      NULL },
     SDL_MENU_ITEM_SEPARATOR,
     { "Select filename and save snapshot",
       MENU_ENTRY_DIALOG,
@@ -336,7 +353,7 @@ void loader_load_snapshot(char *name)
 
 void loader_save_snapshot(char *name)
 {
-    if (machine_write_snapshot(name, save_roms, save_disks, 0) < 0) {
+    if (machine_write_snapshot(name, save_roms, save_disks, save_settings, 0) < 0) {
         snapshot_display_error();
     }
 }

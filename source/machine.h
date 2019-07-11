@@ -137,7 +137,7 @@ extern void machine_get_line_cycle(unsigned int *line, unsigned int *cycle, int 
 
 /* Write a snapshot.  */
 extern int machine_write_snapshot(const char *name, int save_roms,
-                                  int save_disks, int even_mode);
+                                  int save_disks, int save_settings, int even_mode);
 
 /* Read a snapshot.  */
 extern int machine_read_snapshot(const char *name, int even_mode);

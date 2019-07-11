@@ -170,5 +170,8 @@ extern void resources_get_event_safe_list(struct event_list_state_s *list);
    Global callbacks may be called with NULL as resource name if many resources changed. */
 extern int resources_register_callback(const char *name, resource_callback_func_t *callback,
                                        void *callback_param);
+struct snapshot_s;
+extern int resources_snapshot_write_module(struct snapshot_s *s, int save_settings);
+extern int resources_snapshot_read_module(struct snapshot_s *s);
 
 #endif /* _RESOURCES_H */

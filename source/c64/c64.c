@@ -1309,9 +1309,9 @@ void machine_change_timing(int timeval, int border_mode)
 
 /* ------------------------------------------------------------------------- */
 
-int machine_write_snapshot(const char *name, int save_roms, int save_disks, int event_mode)
+int machine_write_snapshot(const char *name, int save_roms, int save_disks, int save_settings, int event_mode)
 {
-    return c64_snapshot_write(name, save_roms, save_disks, event_mode);
+    return c64_snapshot_write(name, save_roms, save_disks, save_settings, event_mode);
 }
 
 int machine_read_snapshot(const char *name, int event_mode)
