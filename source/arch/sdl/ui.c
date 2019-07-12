@@ -749,15 +749,17 @@ ui_menu_action_t ui_dispatch_events(void)
                 retval = sdljoy_hat_event(e.jhat.which, e.jhat.hat, e.jhat.value);
                 break;
 #endif
-            /*case SDL_MOUSEMOTION:
-                sdl_ui_consume_mouse_event(&e);
-                mouse_move((int)(e.motion.xrel), (int)(e.motion.yrel));
-                break;*/
+            case SDL_MOUSEMOTION:
+                if (_mouse_enabled) {
+                    mouse_move((int)(e.motion.xrel), (int)(e.motion.yrel));
+                }
+                break;
             case SDL_MOUSEBUTTONDOWN:
             case SDL_MOUSEBUTTONUP:
-//log_3ds("Mousebutton %s",e.type==SDL_MOUSEBUTTONDOWN?"down":"up");
 				retval = sdl_uibottom_mouseevent(&e);
-				//mouse_button((int)(e.button.button), (e.button.state == SDL_PRESSED));
+                if (_mouse_enabled) {
+                    mouse_button((int)(e.button.button), (e.button.state == SDL_PRESSED));
+                }
                 break;
             default:
                 /* SDL_EventState(SDL_VIDEORESIZE, SDL_IGNORE); */
