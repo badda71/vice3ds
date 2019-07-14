@@ -31,6 +31,7 @@
 #include "uibottom.h"
 #include "util.h"
 #include "kbd.h"
+#include "mousedrv.h"
 
 // LED-related vars / functions
 static Handle ptmsysmHandle = 0;
@@ -158,6 +159,14 @@ int do_3ds_mapping(SDL_Event *e) {
 			e->jbutton.state = e->type == SDL_KEYDOWN ? SDL_PRESSED : SDL_RELEASED;
 			e->type = e->type == SDL_KEYDOWN ? SDL_JOYBUTTONDOWN : SDL_JOYBUTTONUP;
 			break;
+		case 0x00080000:
+			e->button.which = 1; // mouse 0 is the touchpad, mouse 1 is the mapped mouse keys
+			e->button.button = i & 0x000000FF;
+			e->button.state = e->type == SDL_KEYDOWN ? SDL_PRESSED : SDL_RELEASED;
+			e->type = e->type == SDL_KEYDOWN ? SDL_MOUSEBUTTONDOWN : SDL_MOUSEBUTTONUP;
+			e->button.x = mousedrv_get_x();
+			e->button.y = mousedrv_get_x();
+			break;
 	}
 	return 1;
 }
@@ -167,9 +176,9 @@ void set_3ds_mapping(int sym, SDL_Event *e) {
 	keymap3ds[sym]=
 		e==NULL ? 0 :
 		(0x01000000 |	// active
-		(e->type==SDL_JOYBUTTONDOWN ? 0x00040000 : (e->type==SDL_JOYAXISMOTION ? 0x00020000 : 0x00010000)) | //type
+		(e->type==SDL_JOYBUTTONDOWN ? 0x00040000 : (e->type==SDL_JOYAXISMOTION ? 0x00020000 : (e->type==SDL_KEYDOWN ? 0x00010000 : 0x00080000))) | //type
 		(e->type==SDL_KEYDOWN ? ((e->key.keysym.mod & 0xFF) << 8) : (e->type==SDL_JOYAXISMOTION ? (e->jaxis.value <0 ? 0x200 : 0x100 ) : 0)) | // mod
-		(e->type==SDL_JOYBUTTONDOWN ? e->jbutton.button : (e->type==SDL_JOYAXISMOTION ? e->jaxis.axis : e->key.keysym.sym))); //type
+		(e->type==SDL_JOYBUTTONDOWN ? e->jbutton.button : (e->type==SDL_JOYAXISMOTION ? e->jaxis.axis : (e->type==SDL_KEYDOWN ? e->key.keysym.sym : e->button.button)))); //type
 	save_3ds_mapping();
 }
 
@@ -194,6 +203,9 @@ char *get_3ds_mapping_name(int i) {
 		break;
 	case 0x00040000:	// joy button
 		snprintf(buf,20,"Joy FIRE%d",k & 0xFF);
+		break;
+	case 0x00080000:	// joy button
+		snprintf(buf,20,"Mousebutton %s", (k & 0xFF) == SDL_BUTTON_LEFT ?"LEFT":"RIGHT");
 		break;
 	default:
 		return NULL;

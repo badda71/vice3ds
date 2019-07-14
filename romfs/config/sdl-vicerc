@@ -66,8 +66,7 @@ JoyDev1Auto=205
 JoyDev2Auto=207
 JoyDevice1=4
 JoyDevice2=2
-KeyMappings="f6010003 f7010020 f801000d"
-Mouse=1
+KeyMappings="cc080001 ce080003 f6010003 f7010020 f801000d"
 DriveTrueEmulation=0
 Datasette=0
 Acia1Base=56832
@@ -87,5 +86,6 @@ Hotkey=242 Video settings&Enable Sprite-Sprite collisions
 Hotkey=243 Video settings&Enable Sprite-Background collisions
 Hotkey=244 Misc&LOAD"*",8,1 RUN
 Hotkey=245 Misc&LOAD"$",8 LIST
-Hotkey=249 Tape&Play
+Hotkey=249 Machine settings&Mouse emulation&Grab mouse events
 Hotkey=250 Misc&Hide Border / Fullscreen
+

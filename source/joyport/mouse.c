@@ -61,6 +61,7 @@
 #include "vsyncapi.h"
 #include "clkguard.h"
 #include "ds1202_1302.h"
+#include "uimsgbox.h"
 
 /* Control port <--> mouse/paddles/pad connections:
 
@@ -947,11 +948,25 @@ static int mouse_joyport_register(void)
 /* --------------------------------------------------------- */
 /* Resources & cmdline */
 
-static int set_mouse_enabled(int val, void *param)
+extern joyport_t joyport_device[JOYPORT_MAX_DEVICES];
+extern int joy_port[JOYPORT_MAX_PORTS];
+
+int set_mouse_enabled(int val, void *param)
 {
     if (_mouse_enabled == val) {
         return 0;
     }
+
+	// check if a mouse if connected to a joyport when turning on the mouse
+	if (val) {
+		int i;
+		for (i = 0; i < JOYPORT_MAX_PORTS; ++i) {
+			if (joyport_device[joy_port[i]].resource_id == JOYPORT_RES_ID_MOUSE) break;
+		}
+		if (i == JOYPORT_MAX_PORTS) {
+			message_box("VICE WARNING", "No mouse is connected to a joyport. Please map a mouse to a joyport in VICE menu under 'Machine settings' -> 'Joyport settings'.", MESSAGE_OK);
+        }
+	}
 
     _mouse_enabled = val ? 1 : 0;
     mousedrv_mouse_changed();

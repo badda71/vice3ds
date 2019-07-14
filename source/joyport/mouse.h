@@ -45,6 +45,7 @@ extern int mouse_resources_init(void);
 extern int mouse_cmdline_options_init(void);
 extern void mouse_init(void);
 extern void mouse_shutdown(void);
+extern int set_mouse_enabled(int val, void *param);
 
 extern int _mouse_enabled;
 extern int mouse_type;

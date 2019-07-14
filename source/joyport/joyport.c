@@ -35,10 +35,10 @@
 #include "uiapi.h"
 #include "util.h"
 
-static joyport_t joyport_device[JOYPORT_MAX_DEVICES];
+joyport_t joyport_device[JOYPORT_MAX_DEVICES]; // 3DS take out static
 static uint8_t joyport_display[6] = { 0, 0, 0, 0, 0, 0};
 
-static int joy_port[JOYPORT_MAX_PORTS];
+int joy_port[JOYPORT_MAX_PORTS]; // 3DS take out static
 static joyport_port_props_t port_props[JOYPORT_MAX_PORTS];
 static int pot_port_mask = 1;
 

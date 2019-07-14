@@ -30,7 +30,6 @@
 #include "archdep_xdg.h"
 #include "lib.h"
 #include "keyboard.h"
-#include "mousedrv.h"
 #include "log.h"
 #include "videoarch.h"
 #include "kbd.h"
@@ -40,6 +39,8 @@
 #include "palette.h"
 #include "persistence.h"
 #include "vice3ds.h"
+#include "mouse.h"
+#include "menu_common.h"
 #include <SDL/SDL_image.h>
 #include <3ds.h>
 #include <citro3d.h>
@@ -177,6 +178,7 @@ static SDL_Surface *kbd_img=NULL;
 static SDL_Surface *calcsb_img=NULL;
 static SDL_Surface *twistyup_img=NULL;
 static SDL_Surface *twistydn_img=NULL;
+static SDL_Surface *touchpad_img=NULL;
 
 static int kb_y_pos = 0;
 static volatile int set_kb_y_pos = -10000;
@@ -648,12 +650,21 @@ void sdl_uibottom_draw(void)
 			set_kb_y_pos=-10000;
 		}
 
+		if (_mouse_enabled && ( uibottom_must_redraw_local & UIB_GET_REPAINT_SBUTTONS)) {
+			if (touchpad_img == NULL)
+				touchpad_img = IMG_Load("romfs:/touchpad.png");
+			SDL_BlitSurface(touchpad_img, NULL, bottoms, NULL);
+			bottom_Flip(bottoms);
+			return;
+		}
+
 		// recalc sbuttons if required
 		if (uibottom_must_redraw_local & UIB_GET_RECALC_SBUTTONS)
 			sbuttons_recalc();
 		
 		// repaint sbuttons if required
 		if (uibottom_must_redraw_local & UIB_GET_REPAINT_SBUTTONS) {
+			if (!calcsb_img) sbuttons_recalc();
 			sbutton_repaint(-1);
 		}
 		
@@ -691,12 +702,25 @@ void sdl_uibottom_draw(void)
 		uibottom_must_update_key=-1;
 	}
 	// check if my internal state matches the SDL state
-	if (keypressed != -1 && !SDL_GetMouseState(NULL, NULL))
+	// (actually a stupid workaround for the issue that fullscreen sbutton does not unstick)
+	if (!_mouse_enabled && keypressed != -1 && !SDL_GetMouseState(NULL, NULL))
 		SDL_PushEvent( &(SDL_Event){ .type = SDL_MOUSEBUTTONUP });
 }
 
+void touchpad_on() {
+	set_mouse_enabled(1, NULL);
+	uibottom_must_redraw = UIB_REPAINT_ALL;
+}
+
+void touchpad_off() {
+	set_mouse_enabled(0, NULL);
+	uibottom_must_redraw = UIB_REPAINT_ALL;
+}
+
 static SDL_Event sdl_e;
-int sdl_uibottom_mouseevent(SDL_Event *e) {
+void sdl_uibottom_mouseevent(SDL_Event *e) {
+
+	if (_mouse_enabled || e->button.which == 1) return;
 
 	int f;
 	int x = e->button.x*320/sdl_active_canvas->screen->w;
@@ -712,7 +736,7 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 			if (!bottom_lcd_on) {
 				setBottomBacklight(1);
 				kb_activekey=-1;
-				return 0; // do not further process the event
+				return; // do not further process the event
 			}
 			for (i = 0; uikbd_keypos[i].key != 0 ; ++i) {
 				if (uikbd_keypos[i].flags == 1) {
@@ -751,7 +775,6 @@ int sdl_uibottom_mouseevent(SDL_Event *e) {
 			}
 		}
 	}
-	return 0;
 }
 
 #define STEP 5

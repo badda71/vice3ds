@@ -147,6 +147,22 @@ static UI_MENU_CALLBACK(add_keymapping_callback)
 	return NULL;
 }
 
+static UI_MENU_CALLBACK(add_keymousemapping_callback)
+{
+	if (activated) {
+		SDL_Event s = sdl_ui_poll_event("source key", 
+			(int)param == SDL_BUTTON_LEFT ? "Key->Mousebutton LEFT mapping" : "Key->Mousebutton RIGHT mapping",
+			SDL_POLL_KEYBOARD, 5);
+		set_3ds_mapping(s.key.keysym.sym,
+			s.type != SDL_KEYDOWN ? NULL :
+			&(SDL_Event){
+				.type = SDL_MOUSEBUTTONDOWN,
+				.button.button = (int)param
+			}); // set or clear mapping
+	}
+	return NULL;
+}
+
 static UI_MENU_CALLBACK(list_keymappings_callback)
 {
 	int i,count=0;
@@ -258,6 +274,14 @@ const ui_menu_entry_t misc_menu[] = {
 		MENU_ENTRY_OTHER,
 		add_keymapping_callback,
 		(ui_callback_data_t)SDL_POLL_JOYSTICK },
+    { "Add key mapping (key -> MouseB LEFT)",
+		MENU_ENTRY_OTHER,
+		add_keymousemapping_callback,
+		(ui_callback_data_t)SDL_BUTTON_LEFT },
+    { "Add key mapping (key -> MouseB RIGHT)",
+		MENU_ENTRY_OTHER,
+		add_keymousemapping_callback,
+		(ui_callback_data_t)SDL_BUTTON_RIGHT },
     { "List key mappings",
 		MENU_ENTRY_OTHER,
 		list_keymappings_callback,

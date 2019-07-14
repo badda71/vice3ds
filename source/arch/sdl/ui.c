@@ -64,6 +64,7 @@
 #include "vsync.h"
 #include "uibottom.h"
 #include "vice3ds.h"
+#include "menu_common.h"
 
 #ifndef SDL_DISABLE
 #define SDL_DISABLE SDL_IGNORE
@@ -711,6 +712,12 @@ ui_menu_action_t ui_dispatch_events(void)
 	// check event queue
 	while (SDL_PollEvent(&e)) {
 
+		// deactivate touchscreen if applicable
+		if (_mouse_enabled && e.type == SDL_KEYDOWN && e.key.keysym.sym == 208) {
+			touchpad_off();
+			continue;
+		}
+
 		if (!sdl_menu_state) do_3ds_mapping(&e); // apply 3ds-specific extra key mappings
 
 		switch (e.type) {
@@ -722,7 +729,6 @@ ui_menu_action_t ui_dispatch_events(void)
 					}
 					ui_display_kbd_status(&e);
 	                retval = sdlkbd_press(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod);
-//log_3ds("Keydown %d",e.key.keysym.sym);
 				}
                 break;
             case SDL_KEYUP:
@@ -750,15 +756,21 @@ ui_menu_action_t ui_dispatch_events(void)
                 break;
 #endif
             case SDL_MOUSEMOTION:
+//log_debug("Mousemotion state %d x %d y %d xrel %d yrel %d",e.motion.state, e.motion.x, e.motion.y, e.motion.xrel, e.motion.yrel);
                 if (_mouse_enabled) {
-                    mouse_move((int)(e.motion.xrel), (int)(e.motion.yrel));
+                    if (e.motion.state == 1) {	// 3DS only: pass mouse motion events only if the button is pressed
+						mouse_move((int)(e.motion.xrel), (int)(e.motion.yrel));
+					}
                 }
                 break;
             case SDL_MOUSEBUTTONDOWN:
             case SDL_MOUSEBUTTONUP:
-				retval = sdl_uibottom_mouseevent(&e);
+//log_debug("Mousebutton %s, which %d, button %d, x %d, y %d",e.type==SDL_MOUSEBUTTONDOWN?"down":"up",e.button.which, e.button.button, e.button.x, e.button.y);
+				sdl_uibottom_mouseevent(&e);
                 if (_mouse_enabled) {
-                    mouse_button((int)(e.button.button), (e.button.state == SDL_PRESSED));
+                    if (e.button.which != 0) {	// 3DS only: only pass mouse button events that are not sent from the touch screen
+						mouse_button((int)(e.button.button), (e.button.state == SDL_PRESSED));
+					}
                 }
                 break;
             default:

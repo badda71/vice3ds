@@ -53,6 +53,7 @@
 #include "vsidui_sdl.h"
 #include "vsync.h"
 #include "uibottom.h"
+#include "mouse.h"
 
 #ifdef ANDROID_COMPILE
 #include "loader.h"
@@ -762,6 +763,12 @@ static int sdl_ui_readline_input(SDLKey *key, SDLMod *mod, Uint16 *c_uni)
 
     do {
 		if (SDL_PollEvent(&e)) {
+			// deactivate touchscreen if applicable
+			if (_mouse_enabled && e.type == SDL_KEYDOWN && e.key.keysym.sym == 208) {
+				touchpad_off();
+				continue;
+			}
+
 	        action = MENU_ACTION_NONE;
 			switch (e.type) {
 				case SDL_KEYDOWN:

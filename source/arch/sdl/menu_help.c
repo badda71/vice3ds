@@ -93,7 +93,7 @@ const char info_usage_text[] =
 	"- Hit RUN/STOP\n"
 	"- Hit SPACE\n"
 	"- Hit RETURN\n"
-	"- Press PLAY on tape drive\n"
+	"- Enable Mousepad\n"
 	"- Toggle No borders / Fullscreen\n"
 	"\n"
 	"This (and a lot of other things) can be changed in Vice menu. To change the mapping of a soft button (or actually any other button incl. all the 3DS- and soft keyboard buttons) to a menu item in Vice menu, press the L-button when the menu item is selected, then touch/press the button. This button will now be mapped to the selected menu entry.\n";

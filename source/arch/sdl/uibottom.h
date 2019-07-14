@@ -25,10 +25,12 @@
 
 // exposed function
 extern void sdl_uibottom_draw(void);
-extern int sdl_uibottom_mouseevent(SDL_Event *);
+extern void sdl_uibottom_mouseevent(SDL_Event *);
 extern void toggle_keyboard(void);
 extern void setBottomBacklight (int on);
 extern int is_keyboard_hidden();
+void touchpad_on(void);
+void touchpad_off(void);
 
 // exposed definitions
 typedef struct {
@@ -46,7 +48,7 @@ enum bottom_action {
 	UIB_REPAINT_SBUTTONS =		0x17,	// 0x10
 	UIB_RECALC_SBUTTONS =		0x37,	// 0x20
 	UIB_REPAINT_ALL =			UIB_REPAINT_KEYBOARD | UIB_REPAINT_SBUTTONS,
-	UIB_ALL =					0x3f,
+	UIB_ALL =					0x3f, 
 	UIB_FAST =					0x40,
 	UIB_GET_KEYPRESS_SBUTTONS =		0x01,
 	UIB_GET_KEYPRESS_KEYBOARD =		0x02,

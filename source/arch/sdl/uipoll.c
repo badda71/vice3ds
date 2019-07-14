@@ -38,6 +38,8 @@
 #include "uipoll.h"
 #include "uibottom.h"
 #include "log.h"
+#include "mouse.h"
+#include "menu_common.h"
 
 /* ------------------------------------------------------------------ */
 /* static functions */
@@ -97,7 +99,12 @@ SDL_Event sdl_ui_poll_event(const char *what, const char *target, int options, i
     /* TODO check if key/event is suitable */
     while (polling) {
         while (polling && SDL_PollEvent(&e)) {
-            switch (e.type) {
+			// deactivate touchscreen if applicable
+			if (_mouse_enabled && e.type == SDL_KEYDOWN && e.key.keysym.sym == 208) {
+				touchpad_off();
+				continue;
+			}
+			switch (e.type) {
                 case SDL_KEYDOWN:
 					if (e.key.keysym.sym == 255) {
 						toggle_keyboard();
