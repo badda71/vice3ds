@@ -159,6 +159,7 @@ static void mouse_button_down(int pressed);
 /* extern variables */
 
 int _mouse_enabled = 0;
+int _mouse_sensitivity = 100;
 
 /* Use xvic defaults, if resources get registered the factory
    default will overwrite these */
@@ -951,6 +952,12 @@ static int mouse_joyport_register(void)
 extern joyport_t joyport_device[JOYPORT_MAX_DEVICES];
 extern int joy_port[JOYPORT_MAX_PORTS];
 
+int set_mouse_sensitivity(int val, void *param)
+{
+	_mouse_sensitivity=val;
+	return 0;
+}
+
 int set_mouse_enabled(int val, void *param)
 {
     if (_mouse_enabled == val) {
@@ -1000,6 +1007,8 @@ static int set_smart_mouse_rtc_save(int val, void *param)
 static const resource_int_t resources_int[] = {
     { "Mouse", ARCHDEP_MOUSE_ENABLE_DEFAULT, RES_EVENT_SAME, NULL,
       &_mouse_enabled, set_mouse_enabled, NULL },
+    { "MouseSensitivity", 100, RES_EVENT_SAME, NULL,
+      &_mouse_sensitivity, set_mouse_sensitivity, NULL },
     RESOURCE_INT_LIST_END
 };
 

@@ -39,7 +39,7 @@
 #ifdef ANDROID_COMPILE
 int mouse_x, mouse_y;
 #else
-static int mouse_x, mouse_y;
+static float mouse_x, mouse_y;
 #endif
 
 static unsigned long mouse_timestamp = 0;
@@ -103,18 +103,18 @@ void mouse_button(int bnumber, int state)
 
 int mousedrv_get_x(void)
 {
-    return mouse_x;
+    return (int)mouse_x;
 }
 
 int mousedrv_get_y(void)
 {
-    return mouse_y;
+    return (int)mouse_y;
 }
 
 void mouse_move(int x, int y)
 {
-    mouse_x += x;
-    mouse_y -= y;
+    mouse_x += (x * _mouse_sensitivity) / 100.0;
+    mouse_y -= (y * _mouse_sensitivity) / 100.0;
     mouse_timestamp = vsyncarch_gettime();
 }
 

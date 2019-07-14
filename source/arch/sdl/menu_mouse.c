@@ -35,17 +35,41 @@
 #include "menu_common.h"
 #include "mouse.h"
 #include "uimenu.h"
+#include "resources.h"
 
 UI_MENU_DEFINE_TOGGLE(Mouse)
 UI_MENU_DEFINE_TOGGLE(SmartMouseRTCSave)
+
+static UI_MENU_CALLBACK(custom_MouseSensitivity_callback)
+{
+    static char buf[20];
+    int previous, new_value;
+
+    resources_get_int("MouseSensitivity", &previous);
+
+    if (activated) {
+        new_value = sdl_ui_slider_input_dialog("Select mouse sensitivity", previous, 10, 300);
+        if (new_value != previous) {
+            resources_set_int("MouseSensitivity", new_value);
+        }
+    } else {
+        sprintf(buf, "%3i%%", previous);
+        return buf;
+    }
+    return NULL;
+}
 
 const ui_menu_entry_t mouse_menu[] = {
     { "Grab mouse events",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_Mouse_callback,
       NULL },
+    { "Mouse sensitivity",
+      MENU_ENTRY_DIALOG,
+      custom_MouseSensitivity_callback,
+      NULL },
     SDL_MENU_ITEM_SEPARATOR,
-    { "Save Smart Mouse RTC data when changed",
+	{ "Save Smart Mouse RTC data when changed",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_SmartMouseRTCSave_callback,
       NULL },

@@ -48,6 +48,7 @@ extern void mouse_shutdown(void);
 extern int set_mouse_enabled(int val, void *param);
 
 extern int _mouse_enabled;
+extern int _mouse_sensitivity;
 extern int mouse_type;
 
 extern void neos_mouse_set_machine_parameter(long clock_rate);
