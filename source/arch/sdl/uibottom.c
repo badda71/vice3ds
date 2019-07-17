@@ -200,7 +200,7 @@ extern void drawTexture( int x, int y, int width, int height, float left, float 
 
 #define CLEAR_COLOR 0x000000FF
 static C3D_Tex spritesheet_tex;
-static u8 *gpusrc;
+static u8 *gpusrc=NULL;
 
 SDL_Surface *bottom_CreateSurface() {
 	// setup main SDL surface
@@ -399,19 +399,20 @@ typedef struct {
 	void *val;
 } hash_item;
 
-static hash_item iconHash[256];
+#define HASHSIZE 256
+static hash_item iconHash[HASHSIZE]={{0,NULL}};
 
 static unsigned char hashKey(char *key) {
 	int i=0;
 	while (*key!=0) i ^= *(key++);
-	return i % 256;
+	return i % HASHSIZE;
 }
 
 static void *hash_get(char *key) {
 	int i=hashKey(key);
 	while (iconHash[i].key != NULL) {
 		if (strcmp(key,iconHash[i].key)==0) return iconHash[i].val;
-		++i; i %= 256;
+		++i; i %= HASHSIZE;
 	}
 	return NULL;
 }
@@ -419,7 +420,7 @@ static void *hash_get(char *key) {
 static void hash_put(char *key, void *val) {
 	int i=hashKey(key);
 	while (iconHash[i].key!=NULL && strcmp(iconHash[i].key,key)!=0) {
-		++i; i %= 256;
+		++i; i %= HASHSIZE;
 	}
 	if (iconHash[i].key != NULL)
 		lib_free(iconHash[i].key);
@@ -554,6 +555,7 @@ static SDL_Surface *createIcon(char *name) {
 				icon,
 				&(SDL_Rect){.x=xof+(i % maxw)*8, .y=yof+(i/maxw)*8});
 		}
+		free(buf);
 	}
 	return icon;
 }
@@ -820,4 +822,11 @@ void setBottomBacklight (int on) {
 		GSPLCD_PowerOffBacklight(GSPLCD_SCREEN_BOTTOM);
 	}
 	gspLcdExit();
+}
+
+void uibottom_shutdown() {
+	// free the hash
+	for (int i=0; i<HASHSIZE;++i)
+		free(iconHash[i].key);
+	linearFree(gpusrc);
 }

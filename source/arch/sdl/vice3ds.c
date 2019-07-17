@@ -220,3 +220,7 @@ int keymap3ds_resource_set(const char *val, void *param)
 	}
 	return load_3ds_mapping(keymap3ds_resource);
 }
+
+void vice3ds_shutdown() {
+	free(keymap3ds_resource);
+}

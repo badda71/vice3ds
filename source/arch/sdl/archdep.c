@@ -28,6 +28,7 @@
 
 #include "vice_sdl.h"
 #include <stdio.h>
+#include <3ds.h>
 
 /* These functions are defined in the files included below and
    used lower down. */
@@ -66,7 +67,8 @@ static void archdep_shutdown_extra(void);
  */
 #include "archdep_atexit.h"
 #include "archdep_create_user_config_dir.h"
-#include <3ds.h>
+#include "uibottom.h"
+#include "vice3ds.h"
 
 sdl_3dsbuttons buttons3ds[] = {
 	//  x,  y, name
@@ -142,7 +144,10 @@ int archdep_init(int *argc, char **argv)
 
 void archdep_shutdown(void)
 {
-    archdep_program_name_free();
+    uibottom_shutdown();
+	vice3ds_shutdown();
+	
+	archdep_program_name_free();
     archdep_program_path_free();
     archdep_boot_path_free();
     archdep_home_path_free();

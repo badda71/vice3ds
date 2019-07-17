@@ -108,7 +108,7 @@ int sdlkbd_init_resources(void)
 
 void sdlkbd_resources_shutdown(void)
 {
-    lib_free(hotkeys_buffer);
+    free(hotkeys_buffer);
     hotkeys_buffer = NULL;
 }
 

@@ -98,6 +98,7 @@ static void persistence_fini() {
 		free(data[i*2+1]);
 	}
 	if (data) free(data);
+	free(filename);
 }
 
 static void persistence_init() {

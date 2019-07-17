@@ -35,3 +35,5 @@ extern int do_3ds_mapping(SDL_Event *e);
 extern void set_3ds_mapping(int sym, SDL_Event *e);
 extern char *get_3ds_mapping_name(int i);
 extern int keymap3ds_resource_set(const char *val, void *param);
+
+extern void vice3ds_shutdown(void);
