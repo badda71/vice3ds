@@ -112,7 +112,7 @@ char *archdep_default_joymap_file_name(void)
 {
 	return util_concat("sdl-joymap-", machine_get_name(), ".vjm", NULL);
 }
-
+/*
 #define HOSTNAME "127.0.0.1"
 #define PORT 4000
 void udpSend(const char *msg){
@@ -133,9 +133,11 @@ void udpSend(const char *msg){
 		(struct sockaddr*)&servaddr, sizeof(servaddr));
 	close(fd);
 }
-
+*/
 int archdep_default_logger(const char *level_string, const char *txt)
 {
+/*
+	// udp send	
 	char *beg;
     time_t timer;
     char buffer[26];
@@ -144,13 +146,12 @@ int archdep_default_logger(const char *level_string, const char *txt)
     tm_info = localtime(&timer);
     strftime(buffer, 26, "%H:%M:%S", tm_info);
 	beg=lib_msprintf("%s - %s\n", buffer, txt);
-
+	udpSend(beg);
+	lib_free(beg);
+*/
 	// citra log
 	svcOutputDebugString(txt, strlen(txt));
 
-	// udp send	
-	udpSend(beg);
-	lib_free(beg);
 	return 0;
 }
 

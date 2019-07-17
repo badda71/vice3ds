@@ -180,6 +180,10 @@ static SDL_Surface *calcsb_img=NULL;
 static SDL_Surface *twistyup_img=NULL;
 static SDL_Surface *twistydn_img=NULL;
 static SDL_Surface *touchpad_img=NULL;
+static SDL_Surface *chars=NULL;
+static SDL_Surface *smallchars=NULL;
+static SDL_Surface *keyimg=NULL;
+static SDL_Surface *joyimg=NULL;
 
 static int kb_y_pos = 0;
 static volatile int set_kb_y_pos = -10000;
@@ -273,7 +277,6 @@ static void sbutton_repaint(int i) {
 	// blit background image part
 	set_kb_clip();
 	if (_mouse_enabled) {
-		if (touchpad_img == NULL) touchpad_img = IMG_Load("romfs:/touchpad.png");
 		SDL_BlitSurface(touchpad_img, NULL, bottoms, NULL);
 	} else {
 		SDL_BlitSurface(calcsb_img,
@@ -451,25 +454,13 @@ static SDL_Surface *loadIcon(char *name) {
 
 static SDL_Surface *createIcon(char *name) {
 //log_3ds("createIcon: %s",name);
-	static SDL_Surface *chars=NULL;
-	static SDL_Surface *smallchars=NULL;
-	static SDL_Surface *keyimg;
-	static SDL_Surface *joyimg;
 	int i,c,w,n,xof,yof;
 
-	if (chars==NULL) {
-		chars=IMG_Load("romfs:/charset.png");
-		SDL_SetAlpha(chars, 0, 255);
-	}
 	SDL_Surface *icon=SDL_CreateRGBSurface(SDL_SWSURFACE,ICON_W,ICON_H,32,0xff000000,0x00ff0000,0x0000ff00,0x000000ff);
 //	SDL_FillRect(icon, NULL, SDL_MapRGBA(icon->format, 0, 0, 0, 0));
 
 	if (strncmp("Joy ",name,4)==0) {
 		// make a joy icon
-		if (joyimg==NULL) {
-			joyimg=IMG_Load("romfs:/joyimg.png");
-			SDL_SetAlpha(joyimg, 0, 255);
-		}
 		name+=4;
 		w=strlen(name);
 		if (w>5) w=5;
@@ -482,12 +473,6 @@ static SDL_Surface *createIcon(char *name) {
 		}	
 	} else if (strncmp("Key ",name,4)==0) {
 		// make a key icon
-		if (smallchars==NULL) {
-			smallchars=IMG_Load("romfs:/charset_small.png");
-			SDL_SetAlpha(smallchars, 0, 255);
-			keyimg=IMG_Load("romfs:/keyimg.png");
-			SDL_SetAlpha(keyimg, 0, 255);
-		}
 		// check width
 		char *p=NULL;
 		name+=4;
@@ -594,11 +579,11 @@ static void sbutton_update(int i) {
 		.y = uikbd_keypos[i].y + (uikbd_keypos[i].h - img->h)/2});
 }
 
-// init calcsb_img and update all soft buttons 
 static void sbuttons_recalc() {
+	// init calcsb_img and update all soft buttons 
 	SDL_FreeSurface(calcsb_img);
 	calcsb_img = SDL_ConvertSurface(vice_img, vice_img->format, SDL_SWSURFACE);
-
+	// recalc soft buttons surface
 	for (int i = 0; uikbd_keypos[i].key != 0 ; ++i) {
 		if (uikbd_keypos[i].flags == 1) sbutton_update(i);
 	}
@@ -629,6 +614,15 @@ static void uibottom_init() {
 	kbd_img = IMG_Load("romfs:/keyboard.png");
 	twistyup_img = IMG_Load("romfs:/kbd_twistyup.png");
 	twistydn_img = IMG_Load("romfs:/kbd_twistydn.png");
+	smallchars=IMG_Load("romfs:/charset_small.png");
+	SDL_SetAlpha(smallchars, 0, 255);
+	keyimg=IMG_Load("romfs:/keyimg.png");
+	SDL_SetAlpha(keyimg, 0, 255);
+	joyimg=IMG_Load("romfs:/joyimg.png");
+	SDL_SetAlpha(joyimg, 0, 255);
+	chars=IMG_Load("romfs:/charset.png");
+	SDL_SetAlpha(chars, 0, 255);
+	touchpad_img = IMG_Load("romfs:/touchpad.png");
 
 	// calc global vars
 	kb_y_pos = 
@@ -659,12 +653,11 @@ void sdl_uibottom_draw(void)
 		}
 
 		// recalc sbuttons if required
-		if (uibottom_must_redraw_local & UIB_GET_RECALC_SBUTTONS)
+		if (uibottom_must_redraw_local & UIB_GET_RECALC_SBUTTONS || !calcsb_img)
 			sbuttons_recalc();
 
 		if (uibottom_must_redraw_local & UIB_GET_REPAINT_SBUTTONS) {
 			// repaint sbuttons if required
-			if (!calcsb_img) sbuttons_recalc();
 			sbutton_repaint(-1);
 		}
 			
@@ -709,12 +702,12 @@ void sdl_uibottom_draw(void)
 
 void touchpad_on() {
 	set_mouse_enabled(1, NULL);
-	uibottom_must_redraw = UIB_REPAINT_ALL;
+	uibottom_must_redraw = UIB_ALL;
 }
 
 void touchpad_off() {
 	set_mouse_enabled(0, NULL);
-	uibottom_must_redraw = UIB_REPAINT_ALL;
+	uibottom_must_redraw = UIB_ALL;
 }
 
 static SDL_Event sdl_e;
