@@ -159,6 +159,8 @@ static UI_MENU_CALLBACK(add_keymousemapping_callback)
 				.type = SDL_MOUSEBUTTONDOWN,
 				.button.button = (int)param
 			}); // set or clear mapping
+		// recalc the soft buttons just in case the mapping was done there
+		uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
 	}
 	return NULL;
 }
