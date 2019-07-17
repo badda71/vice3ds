@@ -248,18 +248,18 @@ static UI_MENU_CALLBACK(JoyPort5Device_dynmenu_callback)
 
 ui_menu_entry_t joyport_menu[JOYPORT_MAX_PORTS + 2];
 
-UI_MENU_DEFINE_TOGGLE(BBRTCSave)
+//UI_MENU_DEFINE_TOGGLE(BBRTCSave)
 
 void uijoyport_menu_create(int port1, int port2, int port3, int port4, int port5)
 {
     int j = 0;
-
+/*
     joyport_menu[j].string = "Save BBRTC data when changed";
     joyport_menu[j].type = MENU_ENTRY_RESOURCE_TOGGLE;
     joyport_menu[j].callback = toggle_BBRTCSave_callback;
     joyport_menu[j].data = NULL;
     ++j;
-
+*/
     if (port1) {
         joyport_menu[j].string = joyport_get_port_name(JOYPORT_1);
         joyport_menu[j].type = MENU_ENTRY_DYNAMIC_SUBMENU;
