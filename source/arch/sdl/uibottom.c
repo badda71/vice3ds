@@ -41,6 +41,7 @@
 #include "vice3ds.h"
 #include "mouse.h"
 #include "menu_common.h"
+#include "mousedrv.h"
 #include <SDL/SDL_image.h>
 #include <3ds.h>
 #include <citro3d.h>
@@ -271,12 +272,17 @@ static void remove_clip() {
 static void sbutton_repaint(int i) {
 	// blit background image part
 	set_kb_clip();
-	SDL_BlitSurface(calcsb_img,
-		i == -1 ? NULL : &(SDL_Rect){.x = uikbd_keypos[i].x, .y=uikbd_keypos[i].y, .w=uikbd_keypos[i].w, .h=uikbd_keypos[i].h},
-		bottoms,
-		&(SDL_Rect){
-			.x = i == -1 ? 0 : uikbd_keypos[i].x,
-			.y = i == -1 ? 0 : uikbd_keypos[i].y});
+	if (_mouse_enabled) {
+		if (touchpad_img == NULL) touchpad_img = IMG_Load("romfs:/touchpad.png");
+		SDL_BlitSurface(touchpad_img, NULL, bottoms, NULL);
+	} else {
+		SDL_BlitSurface(calcsb_img,
+			i == -1 ? NULL : &(SDL_Rect){.x = uikbd_keypos[i].x, .y=uikbd_keypos[i].y, .w=uikbd_keypos[i].w, .h=uikbd_keypos[i].h},
+			bottoms,
+			&(SDL_Rect){
+				.x = i == -1 ? 0 : uikbd_keypos[i].x,
+				.y = i == -1 ? 0 : uikbd_keypos[i].y});
+	}
 	remove_clip();
 }
 
@@ -301,7 +307,7 @@ static void pressKey(int key, int press) {
 				pixel[3] = 255 - pixel[3];
 			}
 		}
-	} else {
+	} else if (!_mouse_enabled) { // do not paint sbuttons if mousepad is active
 		// set a clipping rectangle to exlude the keyboard
 		set_kb_clip();
 		if (press) {
@@ -652,24 +658,16 @@ void sdl_uibottom_draw(void)
 			set_kb_y_pos=-10000;
 		}
 
-		if (_mouse_enabled && ( uibottom_must_redraw_local & UIB_GET_REPAINT_SBUTTONS)) {
-			if (touchpad_img == NULL)
-				touchpad_img = IMG_Load("romfs:/touchpad.png");
-			SDL_BlitSurface(touchpad_img, NULL, bottoms, NULL);
-			bottom_Flip(bottoms);
-			return;
-		}
-
 		// recalc sbuttons if required
 		if (uibottom_must_redraw_local & UIB_GET_RECALC_SBUTTONS)
 			sbuttons_recalc();
-		
-		// repaint sbuttons if required
+
 		if (uibottom_must_redraw_local & UIB_GET_REPAINT_SBUTTONS) {
+			// repaint sbuttons if required
 			if (!calcsb_img) sbuttons_recalc();
 			sbutton_repaint(-1);
 		}
-		
+			
 		// repaint keyboard if required
 		if (uibottom_must_redraw_local & UIB_GET_REPAINT_KEYBOARD) {
 			keyboard_paint();
@@ -722,12 +720,25 @@ void touchpad_off() {
 static SDL_Event sdl_e;
 void sdl_uibottom_mouseevent(SDL_Event *e) {
 
-	if (_mouse_enabled || e->button.which == 1) return;
+	// mousmotion
+	if (e->type==SDL_MOUSEMOTION) {
+		if (sdl_menu_state || !_mouse_enabled || e->motion.state!=1) return;
+		mouse_move((int)(e->motion.xrel), (int)(e->motion.yrel));
+		return;
+	}
 
+	// mouse press from mouse 1: comes from mapped mouse buttons
+	if (e->button.which == 1) {
+		if (sdl_menu_state || !_mouse_enabled) return;
+		mouse_button((int)(e->button.button), (e->button.state == SDL_PRESSED));
+		return;
+	}
+	
 	int f;
 	int x = e->button.x*320/sdl_active_canvas->screen->w;
 	int y = e->button.y*240/sdl_active_canvas->screen->h;
 
+	// ignore mouse button presses above keyboard if the mouse if active
 	if (uibottom_kbdactive) {
 		int i;
 		// check which button was pressed
@@ -741,9 +752,9 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 				return; // do not further process the event
 			}
 			for (i = 0; uikbd_keypos[i].key != 0 ; ++i) {
-				if (uikbd_keypos[i].flags == 1) {
+				if (uikbd_keypos[i].flags) {
 					// soft button
-					if (y >= kb_y_pos) continue; // ignore soft buttons below keyboard
+					if (y >= kb_y_pos || _mouse_enabled) continue; // ignore soft buttons below keyboard or if mousepad is enabled
 					if (x >= uikbd_keypos[i].x &&
 						x <  uikbd_keypos[i].x + uikbd_keypos[i].w  &&
 						y >= uikbd_keypos[i].y &&

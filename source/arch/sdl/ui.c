@@ -48,7 +48,6 @@
 #include "log.h"
 #include "machine.h"
 #include "mouse.h"
-#include "mousedrv.h"
 #include "resources.h"
 #include "types.h"
 #include "ui.h"
@@ -756,22 +755,10 @@ ui_menu_action_t ui_dispatch_events(void)
                 break;
 #endif
             case SDL_MOUSEMOTION:
-//log_debug("Mousemotion state %d x %d y %d xrel %d yrel %d",e.motion.state, e.motion.x, e.motion.y, e.motion.xrel, e.motion.yrel);
-                if (_mouse_enabled) {
-                    if (e.motion.state == 1) {	// 3DS only: pass mouse motion events only if the button is pressed
-						mouse_move((int)(e.motion.xrel), (int)(e.motion.yrel));
-					}
-                }
-                break;
             case SDL_MOUSEBUTTONDOWN:
             case SDL_MOUSEBUTTONUP:
 //log_debug("Mousebutton %s, which %d, button %d, x %d, y %d",e.type==SDL_MOUSEBUTTONDOWN?"down":"up",e.button.which, e.button.button, e.button.x, e.button.y);
 				sdl_uibottom_mouseevent(&e);
-                if (_mouse_enabled) {
-                    if (e.button.which != 0) {	// 3DS only: only pass mouse button events that are not sent from the touch screen
-						mouse_button((int)(e.button.button), (e.button.state == SDL_PRESSED));
-					}
-                }
                 break;
             default:
                 /* SDL_EventState(SDL_VIDEORESIZE, SDL_IGNORE); */
