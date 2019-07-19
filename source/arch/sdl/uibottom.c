@@ -579,13 +579,60 @@ static void sbutton_update(int i) {
 		.y = uikbd_keypos[i].y + (uikbd_keypos[i].h - img->h)/2});
 }
 
+static void printstring(SDL_Surface *s, const char *str, int x, int y, SDL_Color col) {
+	int c;
+	SDL_SetPalette(chars, SDL_LOGPAL, &col, 1, 1);
+	for (int i=0; str[i]!=0 ; i++) {
+		c=(str[i] & 0x7f)-32;
+		if (c<0) c=0;
+		SDL_BlitSurface(
+			chars,
+			&(SDL_Rect){.x=(c&0x0f)*8, .y=(c>>4)*8, .w=8, .h=8},
+			s,
+			&(SDL_Rect){.x = x+i*8, .y = y});
+	}
+	SDL_SetPalette(chars, SDL_LOGPAL, &(SDL_Color){0xff,0xff,0xff,0}, 1, 1);
+}
+
 static void sbuttons_recalc() {
-	// init calcsb_img and update all soft buttons 
-	SDL_FreeSurface(calcsb_img);
-	calcsb_img = SDL_ConvertSurface(vice_img, vice_img->format, SDL_SWSURFACE);
-	// recalc soft buttons surface
-	for (int i = 0; uikbd_keypos[i].key != 0 ; ++i) {
-		if (uikbd_keypos[i].flags == 1) sbutton_update(i);
+	int i,x,y;
+	if (!_mouse_enabled) {
+		// init calcsb_img and update all soft buttons 
+		SDL_FreeSurface(calcsb_img);
+		calcsb_img = SDL_ConvertSurface(vice_img, vice_img->format, SDL_SWSURFACE);
+		SDL_SetAlpha(calcsb_img, 0, 255);
+		// recalc soft buttons surface
+		for (i = 0; uikbd_keypos[i].key != 0 ; ++i) {
+			if (uikbd_keypos[i].flags == 1) sbutton_update(i);
+		}
+	} else {
+		// recalc touchpad image
+		// check which buttons are mapped to mouse buttons
+		const char *buf[2];
+		int mask[2]={0x01080001, 0x01080003};
+		for (x=0;x<2;x++) {
+			for (i=1; i<255; i++) {
+				if (keymap3ds[i] == mask[x]) {
+					buf[x]=get_3ds_keyname(i);
+					break;
+				}
+			}
+			if (i==255)	buf[x]="not mapped";
+		}
+		// print info to screen
+		x=154,y=148;
+		i=strlen(buf[0]);
+		SDL_FillRect(touchpad_img, &(SDL_Rect){
+			.x = 0,	.y = y, .w = x+1, .h = 9},
+			SDL_MapRGB(touchpad_img->format, 0, 0, 0));
+		printstring(touchpad_img, buf[0], x-i*8,y, (SDL_Color){0x5d,0x5d,0x5d,0});
+
+		x=167,y=148;
+		i=strlen(buf[1]);
+		SDL_FillRect(touchpad_img, &(SDL_Rect) {
+			.x = x-1,.y = y, .w = 321-x, .h = 9},
+			SDL_MapRGB(touchpad_img->format, 0, 0, 0));
+		printstring(touchpad_img, buf[1], x, y, (SDL_Color){0x5d,0x5d,0x5d,0});
 	}
 }
 
@@ -614,20 +661,23 @@ static void uibottom_init() {
 	kbd_img = IMG_Load("romfs:/keyboard.png");
 	twistyup_img = IMG_Load("romfs:/kbd_twistyup.png");
 	twistydn_img = IMG_Load("romfs:/kbd_twistydn.png");
-	smallchars=IMG_Load("romfs:/charset_small.png");
-	SDL_SetAlpha(smallchars, 0, 255);
+	touchpad_img = IMG_Load("romfs:/touchpad.png");
+	SDL_SetAlpha(touchpad_img, 0, 255);
+
 	keyimg=IMG_Load("romfs:/keyimg.png");
 	SDL_SetAlpha(keyimg, 0, 255);
 	joyimg=IMG_Load("romfs:/joyimg.png");
 	SDL_SetAlpha(joyimg, 0, 255);
+	
 	chars=IMG_Load("romfs:/charset.png");
-	SDL_SetAlpha(chars, 0, 255);
-	touchpad_img = IMG_Load("romfs:/touchpad.png");
+	SDL_SetColorKey(chars, SDL_SRCCOLORKEY, 0x00000000);
+	smallchars=IMG_Load("romfs:/charset_small.png");
+	SDL_SetColorKey(smallchars, SDL_SRCCOLORKEY, 0x00000000);
 
 	// calc global vars
 	kb_y_pos = 
 		persistence_getInt("kbd_hidden",0) ? 240 : 240 - uikbd_pos[0][3];
-	uibottom_must_redraw = UIB_ALL;
+	uibottom_must_redraw |= UIB_ALL;
 }
 
 // update the whole bottom screen
@@ -643,7 +693,6 @@ void sdl_uibottom_draw(void)
 	}
 
 	if (uibottom_must_redraw) {
-
 		// needed for mutithreading
 		uibottom_must_redraw_local = uibottom_must_redraw;
 		uibottom_must_redraw = UIB_NO;
@@ -698,16 +747,6 @@ void sdl_uibottom_draw(void)
 	// (actually a stupid workaround for the issue that fullscreen sbutton does not unstick)
 	if (!_mouse_enabled && keypressed != -1 && !SDL_GetMouseState(NULL, NULL))
 		SDL_PushEvent( &(SDL_Event){ .type = SDL_MOUSEBUTTONUP });
-}
-
-void touchpad_on() {
-	set_mouse_enabled(1, NULL);
-	uibottom_must_redraw = UIB_ALL;
-}
-
-void touchpad_off() {
-	set_mouse_enabled(0, NULL);
-	uibottom_must_redraw = UIB_ALL;
 }
 
 static SDL_Event sdl_e;

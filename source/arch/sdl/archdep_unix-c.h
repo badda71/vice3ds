@@ -155,6 +155,17 @@ int archdep_default_logger(const char *level_string, const char *txt)
 	return 0;
 }
 
+void log_citra(const char *format, ...)
+{
+    va_list ap;
+
+    va_start(ap, format);
+	char *txt = lib_mvsprintf(format, ap);
+	svcOutputDebugString(txt, strlen(txt));
+	lib_free(txt);
+    va_end(ap);
+}
+
 int archdep_spawn(const char *name, char **argv, char **pstdout_redir, const char *stderr_redir)
 {
 #ifdef _3DS

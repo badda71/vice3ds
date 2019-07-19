@@ -138,7 +138,7 @@ static UI_MENU_CALLBACK(add_keymapping_callback)
 			while (SDL_PollEvent(&e)); // clear event queue
 			SDL_Event t = sdl_ui_poll_event("mapping target", get_3ds_keyname(s.key.keysym.sym),
 				(int)param, 5);
-			set_3ds_mapping(s.key.keysym.sym, t.type == SDL_USEREVENT ? NULL : &t); // set or clear mapping
+			set_3ds_mapping(s.key.keysym.sym, t.type == SDL_USEREVENT ? NULL : &t, 0); // set or clear mapping
 
 			// recalc the soft buttons just in case the mapping was done there
 			uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
@@ -153,12 +153,14 @@ static UI_MENU_CALLBACK(add_keymousemapping_callback)
 		SDL_Event s = sdl_ui_poll_event("source key", 
 			(int)param == SDL_BUTTON_LEFT ? "Key->Mousebutton LEFT mapping" : "Key->Mousebutton RIGHT mapping",
 			SDL_POLL_KEYBOARD, 5);
-		set_3ds_mapping(s.key.keysym.sym,
-			s.type != SDL_KEYDOWN ? NULL :
-			&(SDL_Event){
-				.type = SDL_MOUSEBUTTONDOWN,
-				.button.button = (int)param
-			}); // set or clear mapping
+		if (s.type == SDL_KEYDOWN) {
+			// delete previous mapping if applicable
+			set_3ds_mapping(s.key.keysym.sym,
+				&(SDL_Event){
+					.type = SDL_MOUSEBUTTONDOWN,
+					.button.button = (int)param
+				}, 1); // set mapping
+		}
 		// recalc the soft buttons just in case the mapping was done there
 		uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
 	}

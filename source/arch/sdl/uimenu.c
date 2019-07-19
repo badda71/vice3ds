@@ -765,7 +765,7 @@ static int sdl_ui_readline_input(SDLKey *key, SDLMod *mod, Uint16 *c_uni)
 		if (SDL_PollEvent(&e)) {
 			// deactivate touchscreen if applicable
 			if (_mouse_enabled && e.type == SDL_KEYDOWN && e.key.keysym.sym == 208) {
-				touchpad_off();
+				set_mouse_enabled(0, NULL);
 				continue;
 			}
 

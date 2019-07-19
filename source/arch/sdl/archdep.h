@@ -48,6 +48,8 @@ extern char *archdep_get_current_drive(void);
 /* sets the current drive to the given string */
 extern void archdep_set_current_drive(const char *drive);
 
+extern void log_citra(const char *format, ...);
+
 /* Virtual keyboard handling */
 //extern int archdep_require_vkbd(void);
 

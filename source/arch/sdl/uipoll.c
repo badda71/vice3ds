@@ -101,7 +101,7 @@ SDL_Event sdl_ui_poll_event(const char *what, const char *target, int options, i
         while (polling && SDL_PollEvent(&e)) {
 			// deactivate touchscreen if applicable
 			if (_mouse_enabled && e.type == SDL_KEYDOWN && e.key.keysym.sym == 208) {
-				touchpad_off();
+				set_mouse_enabled(0, NULL);
 				continue;
 			}
 			switch (e.type) {

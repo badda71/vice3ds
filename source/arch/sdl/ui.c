@@ -713,7 +713,7 @@ ui_menu_action_t ui_dispatch_events(void)
 
 		// deactivate touchscreen if applicable
 		if (_mouse_enabled && e.type == SDL_KEYDOWN && e.key.keysym.sym == 208) {
-			touchpad_off();
+			set_mouse_enabled(0, NULL);
 			continue;
 		}
 

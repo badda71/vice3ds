@@ -171,14 +171,19 @@ int do_3ds_mapping(SDL_Event *e) {
 	return 1;
 }
 
-void set_3ds_mapping(int sym, SDL_Event *e) {
+void set_3ds_mapping(int sym, SDL_Event *e, int overwrite) {
 	if (!sym) return;
-	keymap3ds[sym]=
+	int m=
 		e==NULL ? 0 :
 		(0x01000000 |	// active
 		(e->type==SDL_JOYBUTTONDOWN ? 0x00040000 : (e->type==SDL_JOYAXISMOTION ? 0x00020000 : (e->type==SDL_KEYDOWN ? 0x00010000 : 0x00080000))) | //type
 		(e->type==SDL_KEYDOWN ? ((e->key.keysym.mod & 0xFF) << 8) : (e->type==SDL_JOYAXISMOTION ? (e->jaxis.value <0 ? 0x200 : 0x100 ) : 0)) | // mod
 		(e->type==SDL_JOYBUTTONDOWN ? e->jbutton.button : (e->type==SDL_JOYAXISMOTION ? e->jaxis.axis : (e->type==SDL_KEYDOWN ? e->key.keysym.sym : e->button.button)))); //type
+	if (overwrite) {
+		for (int i=1; i<255; i++)
+			if (keymap3ds[i]==m) keymap3ds[i]=0;
+	}
+	keymap3ds[sym]=m;
 	save_3ds_mapping();
 }
 
