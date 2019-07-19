@@ -42,12 +42,19 @@
 #include "menu_edit.h"
 #include "menu_ethernet.h"
 #include "menu_ethernetcart.h"
+//#include "menu_ffmpeg.h"
+#include "menu_help.h"
 #include "menu_jam.h"
 #include "menu_joyport.h"
+//#include "menu_media.h"
 #include "menu_midi.h"
+//#include "menu_monitor.h"
+//#include "menu_network.h"
+//#include "menu_printer.h"
 #include "menu_reset.h"
 #include "menu_misc.h"
 #include "menu_sampler.h"
+//#include "menu_screenshot.h"
 #include "menu_settings.h"
 #include "menu_sid.h"
 #include "menu_snapshot.h"
@@ -55,7 +62,6 @@
 #include "menu_speed.h"
 #include "menu_tape.h"
 #include "menu_video.h"
-#include "menu_help.h"
 #include "ui.h"
 #include "uifonts.h"
 #include "uimenu.h"
@@ -131,10 +137,10 @@ static const ui_menu_entry_t x64_main_menu[] = {
       MENU_ENTRY_OTHER_TOGGLE,
       pause_callback,
       NULL },
-/*    { "Advance Frame",
+    { "Advance Frame",
       MENU_ENTRY_OTHER,
       advance_frame_callback,
-      NULL },*/
+      NULL },
 /*    { "Monitor",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
@@ -214,7 +220,6 @@ int c64ui_init(void)
 
     sdl_ui_set_menu_params = c64ui_set_menu_params;
 
-//    uijoyport_menu_create(1, 1, 1, 1, 0);
     uijoyport_menu_create(1, 1, 0, 0, 0); // disable userport config
     uisampler_menu_create();
     uicart_menu_create();
