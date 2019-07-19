@@ -516,7 +516,7 @@
 /* #undef HAVE_RS232DEV */
 
 /* Enable RS232 network support */
-#define HAVE_RS232NET /**/
+/* #undef HAVE_RS232NET */
 
 /* Enable SDLmain replacement */
 #define HAVE_SDLMAIN /**/
