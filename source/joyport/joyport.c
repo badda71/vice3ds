@@ -398,8 +398,7 @@ joyport_desc_t *joyport_get_valid_devices(int port)
 
     for (i = 0; i < JOYPORT_MAX_DEVICES; ++i) {
         if (joyport_device[i].name) {
-            if (check_valid_lightpen(port, i) && check_valid_pot(port, i) && 
-				joyport_device[i].resource_id <= JOYPORT_RES_ID_MOUSE) {
+            if (check_valid_lightpen(port, i) && check_valid_pot(port, i)) {
                 ++valid;
             }
         }
@@ -408,8 +407,7 @@ joyport_desc_t *joyport_get_valid_devices(int port)
     retval = lib_malloc(((size_t)valid + 1) * sizeof(joyport_desc_t));
     for (i = 0; i < JOYPORT_MAX_DEVICES; ++i) {
         if (joyport_device[i].name) {
-            if (check_valid_lightpen(port, i) && check_valid_pot(port, i) && 
-				joyport_device[i].resource_id <= JOYPORT_RES_ID_MOUSE) {
+            if (check_valid_lightpen(port, i) && check_valid_pot(port, i)) {
                 retval[j].name = joyport_device[i].name;
                 retval[j].id = i;
                 ++j;

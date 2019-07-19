@@ -47,6 +47,7 @@
 #include "menu_midi.h"
 #include "menu_reset.h"
 #include "menu_misc.h"
+#include "menu_sampler.h"
 #include "menu_settings.h"
 #include "menu_sid.h"
 #include "menu_snapshot.h"
@@ -93,10 +94,10 @@ static const ui_menu_entry_t x64_main_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)sound_output_menu },
-/*    { "Sampler settings",
+    { "Sampler settings",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
-      (ui_callback_data_t)sampler_menu },*/
+      (ui_callback_data_t)sampler_menu },
     { "Snapshot",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
@@ -215,7 +216,7 @@ int c64ui_init(void)
 
 //    uijoyport_menu_create(1, 1, 1, 1, 0);
     uijoyport_menu_create(1, 1, 0, 0, 0); // disable userport config
-//    uisampler_menu_create();
+    uisampler_menu_create();
     uicart_menu_create();
     uidrive_menu_create();
     uikeyboard_menu_create();
