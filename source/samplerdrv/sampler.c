@@ -35,16 +35,9 @@
 #include "sampler.h"
 #include "uiapi.h"
 #include "util.h"
+#include "n3dsaudio_drv.h"
 
-#ifdef USE_PORTAUDIO
-#include "portaudio_drv.h"
-#endif
-
-#ifdef USE_PORTAUDIO
-#define DEFAULT_DEVICE SAMPLER_DEVICE_PORTAUDIO
-#else
-#define DEFAULT_DEVICE SAMPLER_DEVICE_FILE
-#endif
+#define DEFAULT_DEVICE SAMPLER_DEVICE_N3DSAUDIO
 
 /* used to build a resource string via lib_stralloc() and util_concat() calls,
  * gets free'd in sampler_resources_shutdown() */
@@ -71,10 +64,8 @@ static void sampler_init(void)
     memset(devices, 0, sizeof(devices));
 
     fileaudio_init();
+    n3dsaudio_init();
 
-#ifdef USE_PORTAUDIO
-    portaudio_init();
-#endif
 }
 
 /* ------------------------------------------------------------------------- */
