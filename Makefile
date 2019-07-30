@@ -60,6 +60,7 @@ PRODUCT_CODE	:=	CTR-P-VICE
 UNIQUE_ID		:=	0xFF4BA
 CPU_SPEED		:=	804MHz
 ENABLE_L2_CACHE :=	true
+SYSTEM_MODE_EXT :=	124MB
 BANNER_AUDIO	:=	$(TOPDIR)/$(META)/audio_3ds.wav
 BANNER_IMAGE	:=	$(TOPDIR)/$(META)/banner_3ds.cgfx
 LOGO			:=	$(TOPDIR)/$(META)/logo-padded.lz11
@@ -106,17 +107,11 @@ SYSTEM_MODE_EXT ?= Legacy
 CPU_SPEED ?= 268MHz
 ENABLE_L2_CACHE ?= false
 
-COMMON_MAKEROM_FLAGS	:=	-rsf $(TOPDIR)/$(META)/template.rsf -target t -exefslogo -icon icon.icn -banner banner.bnr -major $(VERSION_MAJOR) -minor $(VERSION_MINOR) -micro $(VERSION_MICRO) -DAPP_TITLE="$(APP_TITLE)" -DAPP_PRODUCT_CODE="$(PRODUCT_CODE)" -DAPP_UNIQUE_ID="$(UNIQUE_ID)" -DAPP_SYSTEM_MODE="$(SYSTEM_MODE)" -DAPP_SYSTEM_MODE_EXT="$(SYSTEM_MODE_EXT)" -DAPP_CATEGORY="$(CATEGORY)" -DAPP_USE_ON_SD="$(USE_ON_SD)" -DAPP_MEMORY_TYPE="$(MEMORY_TYPE)" -DAPP_CPU_SPEED="$(CPU_SPEED)" -DAPP_ENABLE_L2_CACHE="$(ENABLE_L2_CACHE)" -DAPP_VERSION_MAJOR="$(VERSION_MAJOR)"
+COMMON_MAKEROM_FLAGS	:=	-rsf $(TOPDIR)/$(META)/template.rsf -target t -exefslogo -icon icon.icn -banner banner.bnr -major $(VERSION_MAJOR) -minor $(VERSION_MINOR) -micro $(VERSION_MICRO) -DAPP_TITLE="$(APP_TITLE)" -DAPP_PRODUCT_CODE="$(PRODUCT_CODE)" -DAPP_UNIQUE_ID="$(UNIQUE_ID)" -DAPP_SYSTEM_MODE="$(SYSTEM_MODE)" -DAPP_SYSTEM_MODE_EXT="$(SYSTEM_MODE_EXT)" -DAPP_CATEGORY="$(CATEGORY)" -DAPP_USE_ON_SD="$(USE_ON_SD)" -DAPP_MEMORY_TYPE="$(MEMORY_TYPE)" -DAPP_CPU_SPEED="$(CPU_SPEED)" -DAPP_ENABLE_L2_CACHE="$(ENABLE_L2_CACHE)" -DAPP_VERSION_MAJOR="$(VERSION_MAJOR)" -logo "$(LOGO)"
 
-ifneq ("$(wildcard $(ROMFS_DIR))","")
-	_3DSXTOOL_FLAGS += --romfs=$(ROMFS_DIR)
-	COMMON_MAKEROM_FLAGS += -DAPP_ROMFS="$(ROMFS_DIR)"
-endif
-
-ifneq ("$(wildcard $(LOGO))","")
-	COMMON_MAKEROM_FLAGS += -logo "$(LOGO)"
-else ifneq ($(LOGO),plain)
-	COMMON_MAKEROM_FLAGS += -logo "$(BUILDTOOLS_DIR)/3ds/logo.bcma.lz"
+ifneq ("$(wildcard $(TOPDIR)/$(ROMFS))","")
+	_3DSXTOOL_FLAGS += --romfs=$(TOPDIR)/$(ROMFS)
+	COMMON_MAKEROM_FLAGS += -DAPP_ROMFS="$(TOPDIR)/$(ROMFS)"
 endif
 
 ifeq ($(suffix $(BANNER_IMAGE)),.cgfx)
@@ -286,9 +281,13 @@ else
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
-all	:	$(OUTPUT).3dsx $(OUTPUT).cia $(OUTPUT).3ds
+all	:	$(OUTPUT).3dsx
 
-$(OUTPUT).3dsx	:	$(OUTPUT).elf $(_3DSXDEPS)
+$(OUTPUT).3dsx	:	$(OUTPUT).elf $(_3DSXDEPS) banner.bnr icon.icn
+	@makerom -f cia -o $(OUTPUT).cia -elf $< -DAPP_ENCRYPTED=false $(COMMON_MAKEROM_FLAGS)
+	@echo built ... $(notdir $(OUTPUT).cia)
+	@makerom -f cci -o $(OUTPUT).3ds -elf $< -DAPP_ENCRYPTED=true $(COMMON_MAKEROM_FLAGS)
+	@echo built ... $(notdir $(OUTPUT).3ds)
 
 $(OFILES_SOURCES) : $(HFILES)
 
@@ -303,14 +302,6 @@ icon.icn: $(APP_ICON)
 
 banner.bnr: $(BANNER_IMAGE) $(BANNER_AUDIO)
 	@bannertool makebanner $(BANNER_IMAGE_ARG) $(BANNER_IMAGE) $(BANNER_AUDIO_ARG) $(BANNER_AUDIO) -o $@
-	@echo built ... $(notdir $@)
-
-$(OUTPUT).3ds: $(OUTPUT).elf banner.bnr icon.icn
-	@makerom -f cci -o $@ -elf $< -DAPP_ENCRYPTED=true $(COMMON_MAKEROM_FLAGS)
-	@echo built ... $(notdir $@)
-
-$(OUTPUT).cia: $(OUTPUT).elf banner.bnr icon.icn
-	@makerom -f cia -o $@ -elf $< -DAPP_ENCRYPTED=false $(COMMON_MAKEROM_FLAGS)
 	@echo built ... $(notdir $@)
 
 #---------------------------------------------------------------------------------
