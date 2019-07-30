@@ -1,55 +1,68 @@
+#---------------------------------------------------------------------------------
+.SUFFIXES:
+#---------------------------------------------------------------------------------
+
 ifeq ($(strip $(DEVKITARM)),)
 $(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
 endif
 
-include $(DEVKITARM)/base_tools
+TOPDIR ?= $(CURDIR)
+include $(DEVKITARM)/3ds_rules
 
-# TARGET #
-
-TARGET := 3DS
-
-# COMMON CONFIGURATION #
-
-NAME := vice3DS
-
-BUILD_DIR := build
-OUTPUT_DIR := output
-SOURCE_DIRS := source
-ROMFS_DIR := romfs
-NUMFILES := $(shell find $(ROMFS_DIR)/icons $(ROMFS_DIR)/config -type f | wc -l)
-VICELIBS := VICE3DS_SDL
-VICELIBS_F := $(addprefix lib,$(addsuffix .a,$(VICELIBS)))
-VICEINC := $(addsuffix /include,$(VICELIBS))
-INCLUDE_DIRS := $(VICEINC) $(shell find $(SOURCE_DIRS) -type d) /opt/devkitpro/portlibs/3ds/include
-LIBRARY_DIRS := $(VICELIBS) /opt/devkitpro/portlibs/3ds $(DEVKITPRO)/libctru
-
-VERSION_MAJOR := 1
-VERSION_MINOR := 4
-VERSION_MICRO := 0
+#---------------------------------------------------------------------------------
+# TARGET is the name of the output
+# BUILD is the directory where object files & intermediate files will be placed
+# SOURCES is a list of directories containing source code
+# DATA is a list of directories containing data files
+# INCLUDES is a list of directories containing header files
+# GRAPHICS is a list of directories containing graphics files
+# GFXBUILD is the directory where converted graphics files will be placed
+#   If set to $(BUILD), it will statically link in the converted
+#   files as if they were data files.
+#
+# NO_SMDH: if set to anything, no SMDH file is generated.
+# ROMFS is the directory which contains the RomFS, relative to the Makefile (Optional)
+# APP_TITLE is the name of the app stored in the SMDH file (Optional)
+# APP_DESCRIPTION is the description of the app stored in the SMDH file (Optional)
+# APP_AUTHOR is the author of the app stored in the SMDH file (Optional)
+# ICON is the filename of the icon (.png), relative to the project folder.
+#   If not set, it attempts to use one of the following (in this order):
+#     - <Project name>.png
+#     - icon.png
+#     - <libctru folder>/default_icon.png
+#---------------------------------------------------------------------------------
+TARGET		:=	$(notdir $(CURDIR))
+BUILD		:=	build
+SOURCES		:=	$(shell find source -type d 2> /dev/null)
+DATA		:=	data
+META		:=	meta
+INCLUDES	:=	$(SOURCES)
+GRAPHICS	:=	gfx
+GFXBUILD	:=	$(BUILD)
+ROMFS		:=	romfs
+#GFXBUILD	:=	$(ROMFS)/gfx
+APP_TITLE	:=	vice3DS
+APP_DESCRIPTION	:=	Vice C64 emulator for Nintendo 3DS
+APP_AUTHOR	:=	badda71 <me@badda.de>
+ICON		:=	$(META)/icon_3ds.png
+NUMFILES	:=	$(shell find $(TOPDIR)/$(ROMFS)/icons $(TOPDIR)/$(ROMFS)/config -type f | wc -l)
+VERSION_MAJOR :=	1
+VERSION_MINOR :=	4
+VERSION_MICRO :=	0
 ifeq ($(VERSION_MICRO),0)
-	VERSION := $(VERSION_MAJOR).$(VERSION_MINOR)
+	VERSION	:=	$(VERSION_MAJOR).$(VERSION_MINOR)
 else
-	VERSION := $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_MICRO)
+	VERSION	:=	$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_MICRO)
 endif
 
-#DEBUG_DEFINES := -DSDL_DEBUG=1 -DDEBUG=1 -DARCHDEP_EXTRA_LOG_CALL=1 
-BUILD_FLAGS := -DNUMFILES=$(NUMFILES) -DVERSION3DS=\"$(VERSION)\" -O2 $(DEBUG_DEFINES)
-LIBRARIES := $(VICELIBS) SDL_image png z citro3d ctru
-
-# 3DS CONFIGURATION #
-
-AUTHOR := badda71 <me@badda.de>
-DESCRIPTION := Vice C64 emulator for Nintendo 3DS
-PRODUCT_CODE := CTR-P-VICE
-UNIQUE_ID := 0xFF4BA
-
-BANNER_AUDIO := meta/audio_3ds.wav
-BANNER_IMAGE := meta/banner_3ds.cgfx
-LOGO := meta/logo-padded.lz11
-ICON := meta/icon_3ds.png
-Category := Application
-CPU_MODE := 804MHz
-ENABLE_L2_CACHE := true
+# CIA Build options
+PRODUCT_CODE	:=	CTR-P-VICE
+UNIQUE_ID		:=	0xFF4BA
+CPU_SPEED		:=	804MHz
+ENABLE_L2_CACHE :=	true
+BANNER_AUDIO	:=	$(TOPDIR)/$(META)/audio_3ds.wav
+BANNER_IMAGE	:=	$(TOPDIR)/$(META)/banner_3ds.cgfx
+LOGO			:=	$(TOPDIR)/$(META)/logo-padded.lz11
 
 ifeq (, $(shell which gm))
 	MKKBDPNG := cp -f
@@ -61,18 +74,295 @@ else
 		-font "Arial-Narrow" -draw "font-size 8;text 1,478 'badda71';" -font "Arial" -draw "font-size 9;text 1,469 '$(NAME) $(VERSION)';"
 endif
 
-# TARGET #
-vice3ds: $(ROMFS_DIR)/keyboard.png $(VICELIBS_F) all
+#---------------------------------------------------------------------------------
+# options for code generation
+#---------------------------------------------------------------------------------
+ARCH		:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-lib%.a: %/lib/lib%.a
+CFLAGS		:=	-g -Wall -O2 -mword-relocations \
+			-fomit-frame-pointer -ffunction-sections \
+			$(ARCH)
 
-%.a:
-	rm -rf output
-	$(MAKE) -C $(subst lib,,$(notdir $*))
+CFLAGS		+=	$(INCLUDE) -DARM11 -D_3DS -DVERSION3DS=\"$(VERSION)\" -DNUMFILES=$(NUMFILES)
 
-$(ROMFS_DIR)/keyboard.png: meta/keyboard.png Makefile
-	$(MKKBDPNG) $< $@
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 
-# INTERNAL #
+ASFLAGS		:=	-g $(ARCH)
+LDFLAGS		=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-include buildtools/make_base
+SUBLIBS		:=  VICE3DS_SDL
+
+LIBS		:=	-lSDL_image -lpng -lz -lcitro3d -lctru -lm
+
+#---------------------------------------------------------------------------------
+# makerom options (cia/3ds build)
+#---------------------------------------------------------------------------------
+
+CATEGORY ?= Application
+USE_ON_SD ?= true
+MEMORY_TYPE ?= Application
+SYSTEM_MODE ?= 64MB
+SYSTEM_MODE_EXT ?= Legacy
+CPU_SPEED ?= 268MHz
+ENABLE_L2_CACHE ?= false
+
+COMMON_MAKEROM_FLAGS	:=	-rsf $(TOPDIR)/$(META)/template.rsf -target t -exefslogo -icon icon.icn -banner banner.bnr -major $(VERSION_MAJOR) -minor $(VERSION_MINOR) -micro $(VERSION_MICRO) -DAPP_TITLE="$(APP_TITLE)" -DAPP_PRODUCT_CODE="$(PRODUCT_CODE)" -DAPP_UNIQUE_ID="$(UNIQUE_ID)" -DAPP_SYSTEM_MODE="$(SYSTEM_MODE)" -DAPP_SYSTEM_MODE_EXT="$(SYSTEM_MODE_EXT)" -DAPP_CATEGORY="$(CATEGORY)" -DAPP_USE_ON_SD="$(USE_ON_SD)" -DAPP_MEMORY_TYPE="$(MEMORY_TYPE)" -DAPP_CPU_SPEED="$(CPU_SPEED)" -DAPP_ENABLE_L2_CACHE="$(ENABLE_L2_CACHE)" -DAPP_VERSION_MAJOR="$(VERSION_MAJOR)"
+
+ifneq ("$(wildcard $(ROMFS_DIR))","")
+	_3DSXTOOL_FLAGS += --romfs=$(ROMFS_DIR)
+	COMMON_MAKEROM_FLAGS += -DAPP_ROMFS="$(ROMFS_DIR)"
+endif
+
+ifneq ("$(wildcard $(LOGO))","")
+	COMMON_MAKEROM_FLAGS += -logo "$(LOGO)"
+else ifneq ($(LOGO),plain)
+	COMMON_MAKEROM_FLAGS += -logo "$(BUILDTOOLS_DIR)/3ds/logo.bcma.lz"
+endif
+
+ifeq ($(suffix $(BANNER_IMAGE)),.cgfx)
+	BANNER_IMAGE_ARG := -ci
+else
+	BANNER_IMAGE_ARG := -i
+endif
+
+ifeq ($(suffix $(BANNER_AUDIO)),.cwav)
+	BANNER_AUDIO_ARG := -ca
+else
+	BANNER_AUDIO_ARG := -a
+endif
+
+#---------------------------------------------------------------------------------
+# list of directories containing libraries, this must be the top level containing
+# include and lib
+#---------------------------------------------------------------------------------
+LIBDIRS	:= $(CTRULIB) $(PORTLIBS)
+
+#---------------------------------------------------------------------------------
+# no real need to edit anything past this point unless you need to add additional
+# rules for different file extensions
+#---------------------------------------------------------------------------------
+
+LIBS	:=	$(addprefix -l,$(SUBLIBS)) $(LIBS)
+LIBDIRS	:=	$(addprefix $(TOPDIR)/,$(SUBLIBS)) $(LIBDIRS)
+
+##################################################################################
+ifneq ($(BUILD),$(notdir $(CURDIR)))
+##################################################################################
+
+export OUTPUT	:=	$(CURDIR)/$(TARGET)
+export TOPDIR	:=	$(CURDIR)
+
+export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
+			$(foreach dir,$(GRAPHICS),$(CURDIR)/$(dir)) \
+			$(foreach dir,$(DATA),$(CURDIR)/$(dir))
+
+export DEPSDIR	:=	$(CURDIR)/$(BUILD)
+
+CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
+CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
+SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
+PICAFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.v.pica)))
+SHLISTFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.shlist)))
+GFXFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.t3s)))
+BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
+
+#---------------------------------------------------------------------------------
+# use CXX for linking C++ projects, CC for standard C
+#---------------------------------------------------------------------------------
+ifeq ($(strip $(CPPFILES)),)
+#---------------------------------------------------------------------------------
+	export LD	:=	$(CC)
+#---------------------------------------------------------------------------------
+else
+#---------------------------------------------------------------------------------
+	export LD	:=	$(CXX)
+#---------------------------------------------------------------------------------
+endif
+#---------------------------------------------------------------------------------
+
+#---------------------------------------------------------------------------------
+ifeq ($(GFXBUILD),$(BUILD))
+#---------------------------------------------------------------------------------
+export T3XFILES :=  $(GFXFILES:.t3s=.t3x)
+#---------------------------------------------------------------------------------
+else
+#---------------------------------------------------------------------------------
+export ROMFS_T3XFILES	:=	$(patsubst %.t3s, $(GFXBUILD)/%.t3x, $(GFXFILES))
+export T3XHFILES		:=	$(patsubst %.t3s, $(BUILD)/%.h, $(GFXFILES))
+#---------------------------------------------------------------------------------
+endif
+#---------------------------------------------------------------------------------
+
+export OFILES_SOURCES 	:=	$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
+
+export OFILES_BIN	:=	$(addsuffix .o,$(BINFILES)) \
+			$(PICAFILES:.v.pica=.shbin.o) $(SHLISTFILES:.shlist=.shbin.o) \
+			$(addsuffix .o,$(T3XFILES))
+
+export OFILES := $(OFILES_BIN) $(OFILES_SOURCES)
+
+export HFILES	:=	$(PICAFILES:.v.pica=_shbin.h) $(SHLISTFILES:.shlist=_shbin.h) \
+			$(addsuffix .h,$(subst .,_,$(BINFILES))) \
+			$(GFXFILES:.t3s=.h)
+
+export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
+			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+			-I$(CURDIR)/$(BUILD)
+
+export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
+
+export _3DSXDEPS	:=	$(if $(NO_SMDH),,$(OUTPUT).smdh)
+
+ifeq ($(strip $(ICON)),)
+	icons := $(wildcard *.png)
+	ifneq (,$(findstring $(TARGET).png,$(icons)))
+		export APP_ICON := $(TOPDIR)/$(TARGET).png
+	else
+		ifneq (,$(findstring icon.png,$(icons)))
+			export APP_ICON := $(TOPDIR)/icon.png
+		endif
+	endif
+else
+	export APP_ICON := $(TOPDIR)/$(ICON)
+endif
+
+ifeq ($(strip $(NO_SMDH)),)
+	export _3DSXFLAGS += --smdh=$(CURDIR)/$(TARGET).smdh
+endif
+
+ifneq ($(ROMFS),)
+	export _3DSXFLAGS += --romfs=$(CURDIR)/$(ROMFS)
+endif
+
+SUBLIBS_CLEAN := $(SUBLIBS:%=clean-%)
+
+.PHONY: all clean
+.PHONY: subdirs $(SUBLIBS)
+.PHONY: subdirs $(SUBLIBS_CLEAN)
+
+#---------------------------------------------------------------------------------
+all: $(SUBLIBS) $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES) $(ROMFS)/keyboard.png
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+
+$(SUBLIBS):
+	@$(MAKE) -C $@
+
+$(BUILD):
+	@mkdir -p $@
+
+ifneq ($(GFXBUILD),$(BUILD))
+$(GFXBUILD):
+	@mkdir -p $@
+endif
+
+ifneq ($(DEPSDIR),$(BUILD))
+$(DEPSDIR):
+	@mkdir -p $@
+endif
+
+$(ROMFS)/keyboard.png: $(META)/keyboard.png Makefile
+	@echo $<
+	@$(MKKBDPNG) $< $@
+
+#---------------------------------------------------------------------------------
+clean: $(SUBLIBS_CLEAN)
+	@echo cleaning $(TARGET) 
+	@rm -fr $(BUILD) $(TARGET).3dsx $(TARGET).cia $(TARGET).3ds $(OUTPUT).smdh $(TARGET).elf $(GFXBUILD) $(ROMFS)/keyboard.png
+
+$(SUBLIBS_CLEAN):
+	@echo cleaning $(@:clean-%=%)
+	@$(MAKE) --no-print-directory -C $(@:clean-%=%) clean
+
+#---------------------------------------------------------------------------------
+$(GFXBUILD)/%.t3x	$(BUILD)/%.h	:	%.t3s
+#---------------------------------------------------------------------------------
+	@echo $<
+	@tex3ds -i $< -H $(BUILD)/$*.h -d $(DEPSDIR)/$*.d -o $(GFXBUILD)/$*.t3x
+
+##################################################################################
+else 
+##################################################################################
+
+#---------------------------------------------------------------------------------
+# main targets
+#---------------------------------------------------------------------------------
+all	:	$(OUTPUT).3dsx $(OUTPUT).cia $(OUTPUT).3ds
+
+$(OUTPUT).3dsx	:	$(OUTPUT).elf $(_3DSXDEPS)
+
+$(OFILES_SOURCES) : $(HFILES)
+
+$(OUTPUT).elf	:	$(OFILES)
+
+#---------------------------------------------------------------------------------
+# cia/3ds generation targets
+#---------------------------------------------------------------------------------
+icon.icn: $(APP_ICON)
+	@bannertool makesmdh -s "$(APP_TITLE)" -l "$(APP_TITLE) - $(APP_DESCRIPTION)" -p "$(APP_AUTHOR)" -i $(APP_ICON) -o $@
+	@echo built ... $(notdir $@)
+
+banner.bnr: $(BANNER_IMAGE) $(BANNER_AUDIO)
+	@bannertool makebanner $(BANNER_IMAGE_ARG) $(BANNER_IMAGE) $(BANNER_AUDIO_ARG) $(BANNER_AUDIO) -o $@
+	@echo built ... $(notdir $@)
+
+$(OUTPUT).3ds: $(OUTPUT).elf banner.bnr icon.icn
+	@makerom -f cci -o $@ -elf $< -DAPP_ENCRYPTED=true $(COMMON_MAKEROM_FLAGS)
+	@echo built ... $(notdir $@)
+
+$(OUTPUT).cia: $(OUTPUT).elf banner.bnr icon.icn
+	@makerom -f cia -o $@ -elf $< -DAPP_ENCRYPTED=false $(COMMON_MAKEROM_FLAGS)
+	@echo built ... $(notdir $@)
+
+#---------------------------------------------------------------------------------
+# you need a rule like this for each extension you use as binary data
+#---------------------------------------------------------------------------------
+%.bin.o	%_bin.h :	%.bin
+#---------------------------------------------------------------------------------
+	@echo $<
+	@$(bin2o)
+
+#---------------------------------------------------------------------------------
+.PRECIOUS	:	%.t3x
+#---------------------------------------------------------------------------------
+%.t3x.o	%_t3x.h :	%.t3x
+#---------------------------------------------------------------------------------
+	@echo $<
+	@$(bin2o)
+
+#---------------------------------------------------------------------------------
+# rules for assembling GPU shaders
+#---------------------------------------------------------------------------------
+define shader-as
+	$(eval CURBIN := $*.shbin)
+	$(eval DEPSFILE := $(DEPSDIR)/$*.shbin.d)
+	echo "$(CURBIN).o: $< $1" > $(DEPSFILE)
+	echo "extern const u8" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end[];" > `(echo $(CURBIN) | tr . _)`.h
+	echo "extern const u8" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"[];" >> `(echo $(CURBIN) | tr . _)`.h
+	echo "extern const u32" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size";" >> `(echo $(CURBIN) | tr . _)`.h
+	picasso -o $(CURBIN) $1
+	bin2s $(CURBIN) | $(AS) -o $*.shbin.o
+endef
+
+%.shbin.o %_shbin.h : %.v.pica %.g.pica
+	@echo $<
+	@$(call shader-as,$^)
+
+%.shbin.o %_shbin.h : %.v.pica
+	@echo $<
+	@$(call shader-as,$<)
+
+%.shbin.o %_shbin.h : %.shlist
+	@echo $<
+	@$(call shader-as,$(foreach file,$(shell cat $<),$(dir $<)$(file)))
+
+#---------------------------------------------------------------------------------
+%.t3x	%.h	:	%.t3s
+#---------------------------------------------------------------------------------
+	@echo $<
+	@tex3ds -i $< -H $*.h -d $*.d -o $*.t3x
+
+-include $(DEPSDIR)/*.d
+
+##################################################################################
+endif
+##################################################################################

@@ -30,22 +30,25 @@ POSTCOMPILE = @mv -f $(ODIR)/$*.Td $(ODIR)/$*.d && touch $@
 # TARGETS
 
 $(LDIR)/lib$(NAME).a: $(OBJ)
-	$(AR) crus $@ $^
+	@echo building $@
+	@$(AR) crus $@ $^
 
 $(ODIR)/%.d: ;
 .PRECIOUS: $(ODIR)/%.d
 
 .SECONDEXPANSION:
 $(ODIR)/%.o: $$(subst .,/,$$*).c $(ODIR)/%.d
-	$(CC) $(CFLAGS) $(INCLUDES) $(DEPFLAGS) -c -o $@ $<
+	@echo $<
+	@$(CC) $(CFLAGS) $(INCLUDES) $(DEPFLAGS) -c -o $@ $<
 	$(POSTCOMPILE)
 
 $(ODIR)/%.o: $$(subst .,/,$$*).s
-	$(AS) -o $@ $<
+	@echo $<
+	@$(AS) -o $@ $<
 
 include $(wildcard $(patsubst %,%.d,$(basename $(OBJ))))
 
 .PHONY: clean
 clean:
-	rm -rf $(ODIR)
-	rm -rf $(LDIR)
+	@rm -rf $(ODIR)
+	@rm -rf $(LDIR)
