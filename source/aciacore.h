@@ -304,16 +304,17 @@ static void acia_set_int(int aciairq, unsigned int int_num, int value)
    This function is called whenever the resource
    MYACIA "Irq" is changed.
 */
+/*
 #if (ACIA_MODE_HIGHEST == ACIA_MODE_TURBO232)
 static int acia_set_irq(int new_irq_res, void *param)
 {
     enum cpu_int new_irq;
     static const enum cpu_int irq_tab[] = { IK_NONE, IK_IRQ, IK_NMI };
 
-    /*
-     * if an invalid interrupt type has been given, return
-     * with an error.
-     */
+    //
+    // if an invalid interrupt type has been given, return
+    // with an error.
+    //
     switch (new_irq_res) {
         case IK_NONE:
         case IK_NMI:
@@ -337,7 +338,7 @@ static int acia_set_irq(int new_irq_res, void *param)
     return 0;
 }
 #endif
-
+*/
 /*! \internal \brief get the bps rate ("baud rate") of the ACIA
 
  \return
@@ -453,6 +454,7 @@ static void set_acia_ticks(void)
    This function is called whenever the resource
    MYACIA "Mode" is changed.
 */
+/*
 #if (ACIA_MODE_HIGHEST == ACIA_MODE_TURBO232)
 static int acia_set_mode(int new_mode, void *param)
 {
@@ -469,7 +471,7 @@ static int acia_set_mode(int new_mode, void *param)
     return 0;
 }
 #endif
-
+*/
 /*! \brief integer resources used by the ACIA module */
 static const resource_int_t resources_int[] = {
     { MYACIA "Dev", MyDevice, RES_EVENT_NO, NULL,
