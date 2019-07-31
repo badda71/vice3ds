@@ -69,10 +69,10 @@ ifeq (, $(shell which gm))
 	MKKBDPNG := cp -f
 else
 	MKKBDPNG := gm convert -fill white\
-		-font "Arial-Narrow" -draw "font-size 8;text 1,118 'badda71';" -font "Arial" -draw "font-size 9;text 1,109 '$(NAME) $(VERSION)';"\
-		-font "Arial-Narrow" -draw "font-size 8;text 1,238 'badda71';" -font "Arial" -draw "font-size 9;text 1,229 '$(NAME) $(VERSION)';"\
-		-font "Arial-Narrow" -draw "font-size 8;text 1,358 'badda71';" -font "Arial" -draw "font-size 9;text 1,349 '$(NAME) $(VERSION)';"\
-		-font "Arial-Narrow" -draw "font-size 8;text 1,478 'badda71';" -font "Arial" -draw "font-size 9;text 1,469 '$(NAME) $(VERSION)';"
+		-font "Arial-Narrow" -draw "font-size 8;text 1,118 'badda71';" -font "Arial" -draw "font-size 9;text 1,109 '$(APP_TITLE) $(VERSION)';"\
+		-font "Arial-Narrow" -draw "font-size 8;text 1,238 'badda71';" -font "Arial" -draw "font-size 9;text 1,229 '$(APP_TITLE) $(VERSION)';"\
+		-font "Arial-Narrow" -draw "font-size 8;text 1,358 'badda71';" -font "Arial" -draw "font-size 9;text 1,349 '$(APP_TITLE) $(VERSION)';"\
+		-font "Arial-Narrow" -draw "font-size 8;text 1,478 'badda71';" -font "Arial" -draw "font-size 9;text 1,469 '$(APP_TITLE) $(VERSION)';"
 endif
 
 #---------------------------------------------------------------------------------
@@ -237,6 +237,7 @@ SUBLIBS_CLEAN := $(SUBLIBS:%=clean-%)
 
 #---------------------------------------------------------------------------------
 all: $(SUBLIBS) $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES) $(ROMFS)/keyboard.png
+	@echo building $(APP_TITLE)
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 $(SUBLIBS):
@@ -256,8 +257,9 @@ $(DEPSDIR):
 endif
 
 $(ROMFS)/keyboard.png: $(META)/keyboard.png Makefile
-	@echo $<
+	@echo -n generating $@ ...
 	@$(MKKBDPNG) $< $@
+	@echo OK
 
 #---------------------------------------------------------------------------------
 clean: $(SUBLIBS_CLEAN)
@@ -281,13 +283,9 @@ else
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
-all	:	$(OUTPUT).3dsx
+all	:	$(OUTPUT).3dsx $(OUTPUT).cia $(OUTPUT).3ds
 
-$(OUTPUT).3dsx	:	$(OUTPUT).elf $(_3DSXDEPS) banner.bnr icon.icn
-	@makerom -f cia -o $(OUTPUT).cia -elf $< -DAPP_ENCRYPTED=false $(COMMON_MAKEROM_FLAGS)
-	@echo built ... $(notdir $(OUTPUT).cia)
-	@makerom -f cci -o $(OUTPUT).3ds -elf $< -DAPP_ENCRYPTED=true $(COMMON_MAKEROM_FLAGS)
-	@echo built ... $(notdir $(OUTPUT).3ds)
+$(OUTPUT).3dsx	:	$(OUTPUT).elf $(_3DSXDEPS)
 
 $(OFILES_SOURCES) : $(HFILES)
 
@@ -297,12 +295,24 @@ $(OUTPUT).elf	:	$(OFILES)
 # cia/3ds generation targets
 #---------------------------------------------------------------------------------
 icon.icn: $(APP_ICON)
+	@echo -n generating $(notdir $@) ...
 	@bannertool makesmdh -s "$(APP_TITLE)" -l "$(APP_TITLE) - $(APP_DESCRIPTION)" -p "$(APP_AUTHOR)" -i $(APP_ICON) -o $@
-	@echo built ... $(notdir $@)
+	@echo OK
 
 banner.bnr: $(BANNER_IMAGE) $(BANNER_AUDIO)
+	@echo -n generating $(notdir $@) ...
 	@bannertool makebanner $(BANNER_IMAGE_ARG) $(BANNER_IMAGE) $(BANNER_AUDIO_ARG) $(BANNER_AUDIO) -o $@
-	@echo built ... $(notdir $@)
+	@echo OK
+
+$(OUTPUT).3ds: $(OUTPUT).elf banner.bnr icon.icn
+	@echo -n building $(notdir $(OUTPUT).3ds) ... 
+	@makerom -f cci -o $@ -elf $< -DAPP_ENCRYPTED=true $(COMMON_MAKEROM_FLAGS) 2> /dev/null
+	@echo OK
+
+$(OUTPUT).cia: $(OUTPUT).elf banner.bnr icon.icn
+	@echo -n building $(notdir $(OUTPUT).cia) ... 
+	@makerom -f cia -o $@ -elf $< -DAPP_ENCRYPTED=false $(COMMON_MAKEROM_FLAGS)
+	@echo OK
 
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data
