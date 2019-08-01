@@ -38,43 +38,39 @@
 #include "sampler.h"
 
 static log_t n3dsaudio_log = LOG_ERR;
-
 static int stream_started = 0;
-static unsigned int sound_frames_per_sec;
-static unsigned int sound_cycles_per_frame;
-static unsigned int sound_samples_per_frame;
-u32 micbuf_size = 0;
+u32 micbuf_size = 0x30000;
 u8* micbuf = NULL;
-u32 micbuf_datasize =0;
+u32 micbuf_datasize = 0;
 
 static void n3dsaudio_start_sampling(int channels)
 {
-log_citra("enter %s",__func__);
     if (stream_started) {
         log_error(n3dsaudio_log, "Attempted to start n3dsaudio twice");
     } else {
         // init
-		sound_cycles_per_frame = machine_get_cycles_per_frame();
-        sound_frames_per_sec = machine_get_cycles_per_second() / sound_cycles_per_frame;
-        sound_samples_per_frame = 10910 / sound_frames_per_sec;
-		micbuf_size = sound_samples_per_frame * 2; // 16 bit
 		micbuf = memalign(0x1000, micbuf_size);
-		memset(micbuf, 0, micbuf_size);
+		if (!micbuf) {
+            log_error(n3dsaudio_log, "Could not allocate microphone buffer");
+			return;
+		}
 
-log_citra("allc micbuf: %d, size: %d",micbuf, micbuf_size);
-		Result rc = micInit(micbuf, micbuf_size);
-		if (rc) {
+		if (R_FAILED(micInit(micbuf, micbuf_size)))
+		{
             log_error(n3dsaudio_log, "Could not init n3dsaudio");
-log_citra("error");
+			free(micbuf);
+			micbuf=NULL;
 			return;
 		}
 		micbuf_datasize = micGetSampleDataSize();
 
 		// start the stream
-log_citra("start sampling: %d",micbuf_datasize);
-		rc=MICU_StartSampling(MICU_ENCODING_PCM16_SIGNED, MICU_SAMPLE_RATE_10910, 0, micbuf_datasize, true);
-		if (rc) {
-            log_error(n3dsaudio_log, "Could not start sampling with n3dsaudio");
+		if (R_FAILED(MICU_StartSampling(MICU_ENCODING_PCM16_SIGNED, MICU_SAMPLE_RATE_16360, 0, micbuf_datasize, true)))
+		{
+			log_error(n3dsaudio_log, "Could not start sampling with n3dsaudio");
+			free(micbuf);
+			micbuf=NULL;
+			micExit();
 			return;
 		}
 		stream_started=1;
@@ -83,33 +79,28 @@ log_citra("start sampling: %d",micbuf_datasize);
 
 static void n3dsaudio_stop_sampling(void)
 {
-	MICU_StopSampling();
-	if (micbuf) {
+	if (stream_started) {
+		MICU_StopSampling();
 		free (micbuf);
 		micbuf=NULL;
+		micExit();
+		stream_started = 0;
 	}
-	stream_started = 0;
-	micExit();
 }
 
 static uint8_t n3dsaudio_get_sample(int channel)
 {
-    if (!micbuf) {
-        return 0x80;
-    }
+    if (!stream_started) return 0x80;
 
 	// just return the latest sample, converted to u8
-	u32 o = micGetLastSampleOffset();
-	uint8_t i = (uint8_t)(micbuf[o] + 0x80);
-log_citra("sample: %d at offset %d",i,o);
+	int i = ((signed char*)micbuf)[micGetLastSampleOffset()-1] + 0x80;
+
 	return i;
 }
 
 static void n3dsaudio_shutdown(void)
 {
-    if (stream_started) {
-        n3dsaudio_stop_sampling();
-    }
+    n3dsaudio_stop_sampling();
 }
 
 static sampler_device_t n3dsaudio_device =

@@ -232,8 +232,8 @@ endif
 SUBLIBS_CLEAN := $(SUBLIBS:%=clean-%)
 
 .PHONY: all clean
-.PHONY: subdirs $(SUBLIBS)
-.PHONY: subdirs $(SUBLIBS_CLEAN)
+.PHONY: $(SUBLIBS)
+.PHONY: $(SUBLIBS_CLEAN)
 
 #---------------------------------------------------------------------------------
 all: $(SUBLIBS) $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES) $(ROMFS)/keyboard.png
