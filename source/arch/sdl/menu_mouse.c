@@ -60,7 +60,7 @@ static UI_MENU_CALLBACK(custom_MouseSensitivity_callback)
 }
 
 const ui_menu_entry_t mouse_menu[] = {
-    { "Grab mouse events",
+    { "Enable mouse",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_Mouse_callback,
       NULL },
@@ -77,7 +77,7 @@ const ui_menu_entry_t mouse_menu[] = {
 };
 
 const ui_menu_entry_t mouse_grab_menu[] = {
-    { "Grab mouse events",
+    { "Enable mouse",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_Mouse_callback,
       NULL },

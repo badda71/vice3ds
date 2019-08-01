@@ -86,6 +86,6 @@ Hotkey=242 Video settings&Enable Sprite-Sprite collisions
 Hotkey=243 Video settings&Enable Sprite-Background collisions
 Hotkey=244 Misc&LOAD"*",8,1 RUN
 Hotkey=245 Misc&LOAD"$",8 LIST
-Hotkey=249 Machine settings&Mouse emulation&Grab mouse events
+Hotkey=249 Machine settings&Mouse emulation&Enable mouse
 Hotkey=250 Misc&Hide Border / Fullscreen
 
