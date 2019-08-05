@@ -46,14 +46,20 @@
 
 static inline int is_not_modifier(SDLKey k)
 {
-    return ((k != SDLK_RSHIFT) &&
+	return ((k != 24) &&	// CTRL
+			(k != 21) &&	// SHIFT
+			(k != 23)		// CBM
+			) ? 1 : 0;
+
+/* 3DS
+	return ((k != SDLK_RSHIFT) &&
             (k != SDLK_LSHIFT) &&
             (k != SDLK_RMETA) &&
             (k != SDLK_LMETA) &&
             (k != SDLK_RCTRL) &&
             (k != SDLK_LCTRL) &&
             (k != SDLK_RALT) &&
-            (k != SDLK_LALT)) ? 1 : 0;
+            (k != SDLK_LALT)) ? 1 : 0;*/
 }
 
 static void sdl_poll_print_timeout(int x, int y, int time)

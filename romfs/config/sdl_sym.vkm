@@ -91,6 +91,7 @@
 !RSHIFT 6 4
 !VSHIFT RSHIFT
 
+# map 3ds soft keyboard to C64 keyboard
 133 0 4 0		/* F1 */
 137 0 4 1		/* F2 */
 134 0 5 0		/* F3 */

@@ -33,7 +33,7 @@ extern void uibottom_shutdown(void);
 
 // exposed definitions
 typedef struct {
-	int x,y,w,h,key,row,col,sticky,flags;
+	int x,y,w,h,key,shift,sticky,flags;
 	char *name;
 } uikbd_key;
 
