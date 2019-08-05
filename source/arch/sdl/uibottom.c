@@ -562,19 +562,21 @@ static SDL_Surface *sbuttons_getIcon(char *name) {
 	return img;
 }
 
+char *get_key_help(int key) {
+	ui_menu_entry_t *item;
+	char *r;
+	r = get_3ds_mapping_name(key);
+	if (r == NULL && (item=sdlkbd_ui_hotkeys[key]) != NULL)
+		r = item->string;
+	return r ? r : "n/a";
+}
+
 // paint one soft button onto my calcsb_img
 static void sbutton_update(int i) {
-	ui_menu_entry_t *item;
 	SDL_Surface *img;
-	char *name=NULL;
 
 	// blit icon
-	name = get_3ds_mapping_name(uikbd_keypos[i].key);
-	if (name == NULL) {
-		if ((item=sdlkbd_ui_hotkeys[uikbd_keypos[i].key]) == NULL) return;
-		name = item->string;
-	}
-	if ((img = sbuttons_getIcon(name)) == NULL) return;
+	if ((img = sbuttons_getIcon(get_key_help(uikbd_keypos[i].key))) == NULL) return;
 	SDL_BlitSurface(img, NULL, calcsb_img, &(SDL_Rect){
 		.x = uikbd_keypos[i].x + (uikbd_keypos[i].w - img->w)/2,
 		.y = uikbd_keypos[i].y + (uikbd_keypos[i].h - img->h)/2});
@@ -680,7 +682,14 @@ static void uibottom_init() {
 		persistence_getInt("kbd_hidden",0) ? 240 : 240 - uikbd_pos[0][3];
 	uibottom_must_redraw |= UIB_ALL;
 }
-
+/*
+void show_help()
+{
+	for(int i=200;i<222;i++) {
+		log_citra("%s : %s", get_3ds_keyname(i), get_key_help(i));
+	}
+}
+*/
 // update the whole bottom screen
 void sdl_uibottom_draw(void)
 {	
@@ -802,6 +811,7 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 			}
 			kb_activekey=i;
 		}
+//if (i==1) {show_help();return;}
 		if (i != -1 && uikbd_keypos[i].key != 0) { // got a hit
 			if ((f=uikbd_keypos[i].sticky)>0) {	// ... on a sticky key
 				if (e->button.type == SDL_MOUSEBUTTONDOWN) {
