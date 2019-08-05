@@ -165,12 +165,6 @@
 30 0 7 1		/* UP (4 cursor keys) */
 31 0 2 1		/* LEFT (4 cursor keys) */
 
-# map 3ds c-stick to cursor keys
-214 0 7 1		/* UP */
-215 0 7 0		/* DOWN */
-216 0 2 1		/* LEFT */
-217 0 2 0		/* RIGHT */
-
 #27 7 7 8               /*          ESC -> Run/Stop     */
 #49 7 0 8               /*            1 -> 1            */
 #50 7 3 32              /*            2 -> 2            */
