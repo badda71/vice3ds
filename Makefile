@@ -59,9 +59,17 @@ APP_TITLE	:=	vice3DS-$(VICETARGET)
 APP_DESCRIPTION	:=	Vice $(VICETARGET) emulator for Nintendo 3DS
 APP_AUTHOR	:=	badda71 <me@badda.de>
 ICON		:=	$(META)/icon_3ds_$(VICETARGET).png
-VERSION_MAJOR :=	1
-VERSION_MINOR :=	5
-VERSION_MICRO :=	0
+
+ifeq ($(VICETARGET), C64)
+	VERSION_MAJOR :=	1
+	VERSION_MINOR :=	5
+	VERSION_MICRO :=	0
+else
+	VERSION_MAJOR :=	0
+	VERSION_MINOR :=	1
+	VERSION_MICRO :=	0
+endif
+
 ifeq ($(VERSION_MICRO),0)
 	VERSION	:=	$(VERSION_MAJOR).$(VERSION_MINOR)
 else
@@ -82,10 +90,10 @@ ifeq (, $(shell which gm))
 	MKKBDPNG := cp -f
 else
 	MKKBDPNG := gm convert -fill white\
-		-font "Arial-Narrow" -draw "font-size 8;text 1,118 'badda71';" -font "Arial" -draw "font-size 9;text 1,109 'vice3DS $(VERSION)';"\
-		-font "Arial-Narrow" -draw "font-size 8;text 1,238 'badda71';" -font "Arial" -draw "font-size 9;text 1,229 'vice3DS $(VERSION)';"\
-		-font "Arial-Narrow" -draw "font-size 8;text 1,358 'badda71';" -font "Arial" -draw "font-size 9;text 1,349 'vice3DS $(VERSION)';"\
-		-font "Arial-Narrow" -draw "font-size 8;text 1,478 'badda71';" -font "Arial" -draw "font-size 9;text 1,469 'vice3DS $(VERSION)';"
+		-font "Arial-Narrow" -draw "font-size 8;text 0,118 'v $(VERSION) by badda71';" -font "Arial" -draw "font-size 9;text 0,109 'vice3DS-$(VICETARGET)';"\
+		-font "Arial-Narrow" -draw "font-size 8;text 0,238 'v $(VERSION) by badda71';" -font "Arial" -draw "font-size 9;text 0,229 'vice3DS-$(VICETARGET)';"\
+		-font "Arial-Narrow" -draw "font-size 8;text 0,358 'v $(VERSION) by badda71';" -font "Arial" -draw "font-size 9;text 0,349 'vice3DS-$(VICETARGET)';"\
+		-font "Arial-Narrow" -draw "font-size 8;text 0,478 'v $(VERSION) by badda71';" -font "Arial" -draw "font-size 9;text 0,469 'vice3DS-$(VICETARGET)';"
 endif
 
 #---------------------------------------------------------------------------------
@@ -252,7 +260,7 @@ SUBLIBS_CLEAN := $(SUBLIBS:%=clean-%)
 #---------------------------------------------------------------------------------
 all: $(SUBLIBS) $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES) $(ROMFS)/keyboard.png
 	@echo building $(APP_TITLE)
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile VICETARGET=$(VICETARGET)
 
 $(SUBLIBS):
 	@$(MAKE) -C $@
