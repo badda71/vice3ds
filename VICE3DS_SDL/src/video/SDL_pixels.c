@@ -226,6 +226,7 @@ SDL_PixelFormat *SDL_ReallocFormat(SDL_Surface *surface, int bpp,
 {
 	if ( surface->format ) {
 		SDL_FreeFormat(surface->format);
+		surface->format=NULL;
 		SDL_FormatChanged(surface);
 	}
 	surface->format = SDL_AllocFormat(bpp, Rmask, Gmask, Bmask, Amask);
@@ -254,8 +255,10 @@ void SDL_FreeFormat(SDL_PixelFormat *format)
 		if ( format->palette ) {
 			if ( format->palette->colors ) {
 				SDL_free(format->palette->colors);
+				format->palette->colors=NULL;
 			}
 			SDL_free(format->palette);
+			format->palette=NULL;
 		}
 		SDL_free(format);
 	}
@@ -620,7 +623,9 @@ void SDL_FreeBlitMap(SDL_BlitMap *map)
 		SDL_InvalidateMap(map);
 		if ( map->sw_data != NULL ) {
 			SDL_free(map->sw_data);
+			map->sw_data=NULL;
 		}
 		SDL_free(map);
+		map=NULL;
 	}
 }

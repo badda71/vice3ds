@@ -31,21 +31,34 @@ include $(DEVKITARM)/3ds_rules
 #     - icon.png
 #     - <libctru folder>/default_icon.png
 #---------------------------------------------------------------------------------
-TARGET		:=	$(notdir $(CURDIR))
+ifndef VICETARGET
+
+.PHONY: topall
+
+all:
+	@$(MAKE) VICETARGET=C128
+	@$(MAKE) VICETARGET=C64
+
+clean:
+	@$(MAKE) VICETARGET=C128 clean
+	@$(MAKE) VICETARGET=C64 clean
+
+else
+
+TARGET		:=	vice3DS-$(VICETARGET)
 BUILD		:=	build
-SOURCES		:=	$(shell find source -type d 2> /dev/null)
+SOURCES		:=	$(shell find source/common source/$(VICETARGET) -type d 2> /dev/null)
 DATA		:=	data
 META		:=	meta
 INCLUDES	:=	$(SOURCES)
 GRAPHICS	:=	gfx
 GFXBUILD	:=	$(BUILD)
-ROMFS		:=	romfs
+ROMFS		:=	romfs-$(VICETARGET)
 #GFXBUILD	:=	$(ROMFS)/gfx
-APP_TITLE	:=	vice3DS
-APP_DESCRIPTION	:=	Vice C64 emulator for Nintendo 3DS
+APP_TITLE	:=	vice3DS-$(VICETARGET)
+APP_DESCRIPTION	:=	Vice $(VICETARGET) emulator for Nintendo 3DS
 APP_AUTHOR	:=	badda71 <me@badda.de>
-ICON		:=	$(META)/icon_3ds.png
-NUMFILES	:=	$(shell find $(TOPDIR)/$(ROMFS)/icons $(TOPDIR)/$(ROMFS)/config -type f | wc -l)
+ICON		:=	$(META)/icon_3ds_$(VICETARGET).png
 VERSION_MAJOR :=	1
 VERSION_MINOR :=	4
 VERSION_MICRO :=	0
@@ -61,18 +74,18 @@ UNIQUE_ID		:=	0xFF4BA
 CPU_SPEED		:=	804MHz
 ENABLE_L2_CACHE :=	true
 SYSTEM_MODE_EXT :=	124MB
-BANNER_AUDIO	:=	$(TOPDIR)/$(META)/audio_3ds.wav
-BANNER_IMAGE	:=	$(TOPDIR)/$(META)/banner_3ds.cgfx
+BANNER_AUDIO	:=	$(TOPDIR)/$(META)/audio_3ds_$(VICETARGET).wav
+BANNER_IMAGE	:=	$(TOPDIR)/$(META)/banner_3ds_$(VICETARGET).cgfx
 LOGO			:=	$(TOPDIR)/$(META)/logo-padded.lz11
 
 ifeq (, $(shell which gm))
 	MKKBDPNG := cp -f
 else
 	MKKBDPNG := gm convert -fill white\
-		-font "Arial-Narrow" -draw "font-size 8;text 1,118 'badda71';" -font "Arial" -draw "font-size 9;text 1,109 '$(APP_TITLE) $(VERSION)';"\
-		-font "Arial-Narrow" -draw "font-size 8;text 1,238 'badda71';" -font "Arial" -draw "font-size 9;text 1,229 '$(APP_TITLE) $(VERSION)';"\
-		-font "Arial-Narrow" -draw "font-size 8;text 1,358 'badda71';" -font "Arial" -draw "font-size 9;text 1,349 '$(APP_TITLE) $(VERSION)';"\
-		-font "Arial-Narrow" -draw "font-size 8;text 1,478 'badda71';" -font "Arial" -draw "font-size 9;text 1,469 '$(APP_TITLE) $(VERSION)';"
+		-font "Arial-Narrow" -draw "font-size 8;text 1,118 'badda71';" -font "Arial" -draw "font-size 9;text 1,109 'vice3DS $(VERSION)';"\
+		-font "Arial-Narrow" -draw "font-size 8;text 1,238 'badda71';" -font "Arial" -draw "font-size 9;text 1,229 'vice3DS $(VERSION)';"\
+		-font "Arial-Narrow" -draw "font-size 8;text 1,358 'badda71';" -font "Arial" -draw "font-size 9;text 1,349 'vice3DS $(VERSION)';"\
+		-font "Arial-Narrow" -draw "font-size 8;text 1,478 'badda71';" -font "Arial" -draw "font-size 9;text 1,469 'vice3DS $(VERSION)';"
 endif
 
 #---------------------------------------------------------------------------------
@@ -84,7 +97,7 @@ CFLAGS		:=	-g -Wall -O2 -mword-relocations \
 			-fomit-frame-pointer -ffunction-sections \
 			$(ARCH)
 
-CFLAGS		+=	$(INCLUDE) -DARM11 -D_3DS -DVERSION3DS=\"$(VERSION)\" -DNUMFILES=$(NUMFILES)
+CFLAGS		+=	$(INCLUDE) -DARM11 -D_3DS -DVERSION3DS=\"$(VERSION)\"
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 
@@ -107,7 +120,7 @@ SYSTEM_MODE_EXT ?= Legacy
 CPU_SPEED ?= 268MHz
 ENABLE_L2_CACHE ?= false
 
-COMMON_MAKEROM_FLAGS	:=	-rsf $(TOPDIR)/$(META)/template.rsf -target t -exefslogo -icon icon.icn -banner banner.bnr -major $(VERSION_MAJOR) -minor $(VERSION_MINOR) -micro $(VERSION_MICRO) -DAPP_TITLE="$(APP_TITLE)" -DAPP_PRODUCT_CODE="$(PRODUCT_CODE)" -DAPP_UNIQUE_ID="$(UNIQUE_ID)" -DAPP_SYSTEM_MODE="$(SYSTEM_MODE)" -DAPP_SYSTEM_MODE_EXT="$(SYSTEM_MODE_EXT)" -DAPP_CATEGORY="$(CATEGORY)" -DAPP_USE_ON_SD="$(USE_ON_SD)" -DAPP_MEMORY_TYPE="$(MEMORY_TYPE)" -DAPP_CPU_SPEED="$(CPU_SPEED)" -DAPP_ENABLE_L2_CACHE="$(ENABLE_L2_CACHE)" -DAPP_VERSION_MAJOR="$(VERSION_MAJOR)" -logo "$(LOGO)"
+COMMON_MAKEROM_FLAGS	:=	-rsf $(TOPDIR)/$(META)/template.rsf -target t -exefslogo -icon icon_$(VICETARGET).icn -banner banner_$(VICETARGET).bnr -major $(VERSION_MAJOR) -minor $(VERSION_MINOR) -micro $(VERSION_MICRO) -DAPP_TITLE="$(APP_TITLE)" -DAPP_PRODUCT_CODE="$(PRODUCT_CODE)" -DAPP_UNIQUE_ID="$(UNIQUE_ID)" -DAPP_SYSTEM_MODE="$(SYSTEM_MODE)" -DAPP_SYSTEM_MODE_EXT="$(SYSTEM_MODE_EXT)" -DAPP_CATEGORY="$(CATEGORY)" -DAPP_USE_ON_SD="$(USE_ON_SD)" -DAPP_MEMORY_TYPE="$(MEMORY_TYPE)" -DAPP_CPU_SPEED="$(CPU_SPEED)" -DAPP_ENABLE_L2_CACHE="$(ENABLE_L2_CACHE)" -DAPP_VERSION_MAJOR="$(VERSION_MAJOR)" -logo "$(LOGO)"
 
 ifneq ("$(wildcard $(TOPDIR)/$(ROMFS))","")
 	_3DSXTOOL_FLAGS += --romfs=$(TOPDIR)/$(ROMFS)
@@ -147,6 +160,7 @@ ifneq ($(BUILD),$(notdir $(CURDIR)))
 export OUTPUT	:=	$(CURDIR)/$(TARGET)
 export TOPDIR	:=	$(CURDIR)
 
+export VICETARGET := $(VICETARGET)
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 			$(foreach dir,$(GRAPHICS),$(CURDIR)/$(dir)) \
 			$(foreach dir,$(DATA),$(CURDIR)/$(dir))
@@ -256,7 +270,7 @@ $(DEPSDIR):
 	@mkdir -p $@
 endif
 
-$(ROMFS)/keyboard.png: $(META)/keyboard.png Makefile
+$(ROMFS)/keyboard.png: $(META)/keyboard_$(VICETARGET).png Makefile
 	@echo -n generating $@ ...
 	@$(MKKBDPNG) $< $@
 	@echo OK
@@ -294,22 +308,22 @@ $(OUTPUT).elf	:	$(OFILES)
 #---------------------------------------------------------------------------------
 # cia/3ds generation targets
 #---------------------------------------------------------------------------------
-icon.icn: $(APP_ICON)
+icon_$(VICETARGET).icn: $(APP_ICON)
 	@echo -n generating $(notdir $@) ...
 	@bannertool makesmdh -s "$(APP_TITLE)" -l "$(APP_TITLE) - $(APP_DESCRIPTION)" -p "$(APP_AUTHOR)" -i $(APP_ICON) -o $@
 	@echo OK
 
-banner.bnr: $(BANNER_IMAGE) $(BANNER_AUDIO)
+banner_$(VICETARGET).bnr: $(BANNER_IMAGE) $(BANNER_AUDIO)
 	@echo -n generating $(notdir $@) ...
 	@bannertool makebanner $(BANNER_IMAGE_ARG) $(BANNER_IMAGE) $(BANNER_AUDIO_ARG) $(BANNER_AUDIO) -o $@
 	@echo OK
 
-$(OUTPUT).3ds: $(OUTPUT).elf banner.bnr icon.icn
+$(OUTPUT).3ds: $(OUTPUT).elf banner_$(VICETARGET).bnr icon_$(VICETARGET).icn
 	@echo -n building $(notdir $(OUTPUT).3ds) ... 
 	@makerom -f cci -o $@ -elf $< -DAPP_ENCRYPTED=true $(COMMON_MAKEROM_FLAGS) 2> /dev/null
 	@echo OK
 
-$(OUTPUT).cia: $(OUTPUT).elf banner.bnr icon.icn
+$(OUTPUT).cia: $(OUTPUT).elf banner_$(VICETARGET).bnr icon_$(VICETARGET).icn
 	@echo -n building $(notdir $(OUTPUT).cia) ... 
 	@makerom -f cia -o $@ -elf $< -DAPP_ENCRYPTED=false $(COMMON_MAKEROM_FLAGS)
 	@echo OK
@@ -367,3 +381,4 @@ endef
 ##################################################################################
 endif
 ##################################################################################
+endif

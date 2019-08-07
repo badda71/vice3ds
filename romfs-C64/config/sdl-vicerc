@@ -1,0 +1,160 @@
+# KEY_A, 200
+# KEY_B, 201
+# KEY_X, 202
+# KEY_Y, 203
+# KEY_L, 204
+# KEY_R, 205
+# KEY_ZL, 206
+# KEY_ZR, 207
+# KEY_START, 208
+# KEY_SELECT, 209
+# KEY_UP, 210
+# KEY_DOWN, 211
+# KEY_LEFT, 212
+# KEY_RIGHT, 213
+# KEY_CSTICK_UP, 214
+# KEY_CSTICK_DOWN, 215
+# KEY_CSTICK_LEFT, 216
+# KEY_CSTICK_RIGHT, 217
+# KEY_CPAD_UP, 218
+# KEY_CPAD_DOWN, 219
+# KEY_CPAD_LEFT, 220
+# KEY_CPAD_RIGHT, 221
+
+[C64]
+Directory=
+MenuKey=209
+MenuKeyUp=210
+MenuKeyDown=211
+MenuKeyLeft=212
+MenuKeyRight=213
+MenuKeyCancel=201
+MenuKeyExit=209
+MenuKeyMap=204
+ConfirmOnExit=1
+DriveLED=1
+SoundDeviceName="ndsp"
+SoundBufferSize=100
+SDLBitdepth=32
+SDLWindowWidth=400
+SDLWindowHeight=240
+VirtualDevices=1
+IECReset=1
+CIA1Model=0
+CIA2Model=0
+VICIIVideoCache=0
+VICIIDoubleScan=0
+VICIIHwScale=0
+VICIIDoubleSize=0
+VICIISDLFullscreenMode=0
+VICIIFilter=0
+SidEngine=0
+SidModel=0
+JoyPort4Device=0
+JoyPort3Device=0
+KeySet1North=210
+KeySet1East=213
+KeySet1South=211
+KeySet1West=212
+KeySet1Fire=202
+KeySet2North=214
+KeySet2East=217
+KeySet2South=215
+KeySet2West=216
+KeySet2Fire=203
+JoyDev1Auto=205
+JoyDev2Auto=207
+JoyDevice1=4
+JoyDevice2=2
+KeyMappings="cc080001 ce080003 d601001e d7010011 d801001f d901001d f6010003 f7010020 f801000d"
+DriveTrueEmulation=0
+Datasette=0
+Acia1Base=56832
+Hotkey=208 Quit emulator
+Hotkey=231 Autostart image
+Hotkey=232 Misc&RUN/STOP + RESTORE
+Hotkey=233 Machine settings&Joystick settings&Swap joystick ports
+Hotkey=234 Speed settings&Warp mode
+Hotkey=235 Reset&Hard
+Hotkey=236 Snapshot&Quickload snapshot.vsf
+Hotkey=237 Snapshot&Quicksave snapshot.vsf
+Hotkey=238 Drive&True drive emulation
+Hotkey=239 Misc&Power off bottom screen backlight
+Hotkey=240 Pause
+Hotkey=241 Drive&Attach disk image to drive 8
+Hotkey=242 Video settings&Enable Sprite-Sprite collisions
+Hotkey=243 Video settings&Enable Sprite-Background collisions
+Hotkey=244 Misc&LOAD"*",8,1 RUN
+Hotkey=245 Misc&LOAD"$",8 LIST
+Hotkey=249 Machine settings&Mouse emulation&Enable mouse
+Hotkey=250 Misc&Hide Border / Fullscreen
+
+[C128]
+Directory=
+MenuKey=209
+MenuKeyUp=210
+MenuKeyDown=211
+MenuKeyLeft=212
+MenuKeyRight=213
+MenuKeyCancel=201
+MenuKeyExit=209
+MenuKeyMap=204
+ConfirmOnExit=1
+DriveLED=1
+SoundDeviceName="ndsp"
+SoundBufferSize=100
+SDLBitdepth=32
+SDLCustomWidth=640
+SDLCustomHeight=400
+VirtualDevices=1
+VICIIVideoCache=0
+VICIIDoubleScan=0
+VICIIHwScale=0
+VICIIDoubleSize=0
+VICIISDLFullscreenMode=0
+VICIIFilter=0
+VDCVideoCache=0
+VDCHwScale=0
+VDCSDLFullscreenMode=1
+VDCFullscreen=1
+SidEngine=0
+SidModel=1
+JoyPort4Device=0
+JoyPort3Device=0
+KeySet1North=210
+KeySet1East=213
+KeySet1South=211
+KeySet1West=212
+KeySet1Fire=202
+KeySet2North=214
+KeySet2East=217
+KeySet2South=215
+KeySet2West=216
+KeySet2Fire=203
+JoyDev1Auto=205
+JoyDev2Auto=207
+JoyDevice1=4
+JoyDevice2=2
+KeyMappings="cc080001 ce080003 d601001e d7010011 d801001f d901001d f6010003 f7010020"
+DriveTrueEmulation=0
+Datasette=0
+Acia1Base=56832
+Hotkey=208 Quit emulator
+Hotkey=231 Autostart image
+Hotkey=232 Misc&RUN/STOP + RESTORE
+Hotkey=233 Machine settings&Joystick settings&Swap joystick ports
+Hotkey=234 Speed settings&Warp mode
+Hotkey=235 Reset&Hard
+Hotkey=236 Snapshot&Quickload snapshot.vsf
+Hotkey=237 Snapshot&Quicksave snapshot.vsf
+Hotkey=238 Drive&True drive emulation
+Hotkey=239 Misc&Power off bottom screen backlight
+Hotkey=240 Video settings&Toggle VDC (80 cols)
+Hotkey=241 Drive&Attach disk image to drive 8
+Hotkey=242 Video settings&Enable Sprite-Sprite collisions
+Hotkey=243 Video settings&Enable Sprite-Background collisions
+Hotkey=244 Misc&LOAD"*",8,1 RUN
+Hotkey=245 Misc&LOAD"$",8 LIST
+Hotkey=248 Pause
+Hotkey=249 Machine settings&Mouse emulation&Enable mouse
+Hotkey=250 Misc&Hide Border / Fullscreen

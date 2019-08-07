@@ -938,4 +938,5 @@ void SDL_FreeSurface (SDL_Surface *surface)
 #ifdef CHECK_LEAKS
 	--surfaces_allocated;
 #endif
+
 }
