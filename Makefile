@@ -36,12 +36,12 @@ ifndef VICETARGET
 .PHONY: topall
 
 all:
-	@$(MAKE) VICETARGET=C128
 	@$(MAKE) VICETARGET=C64
+	@$(MAKE) VICETARGET=C128
 
 clean:
-	@$(MAKE) VICETARGET=C128 clean
 	@$(MAKE) VICETARGET=C64 clean
+	@$(MAKE) VICETARGET=C128 clean
 
 else
 
@@ -90,10 +90,7 @@ ifeq (, $(shell which gm))
 	MKKBDPNG := cp -f
 else
 	MKKBDPNG := gm convert -fill white\
-		-font "Arial-Narrow" -draw "font-size 8;text 0,118 'v $(VERSION) by badda71';" -font "Arial" -draw "font-size 9;text 0,109 'vice3DS-$(VICETARGET)';"\
-		-font "Arial-Narrow" -draw "font-size 8;text 0,238 'v $(VERSION) by badda71';" -font "Arial" -draw "font-size 9;text 0,229 'vice3DS-$(VICETARGET)';"\
-		-font "Arial-Narrow" -draw "font-size 8;text 0,358 'v $(VERSION) by badda71';" -font "Arial" -draw "font-size 9;text 0,349 'vice3DS-$(VICETARGET)';"\
-		-font "Arial-Narrow" -draw "font-size 8;text 0,478 'v $(VERSION) by badda71';" -font "Arial" -draw "font-size 9;text 0,469 'vice3DS-$(VICETARGET)';"
+		-font "Arial-Narrow" -draw "font-size 8;text 0,118 'v $(VERSION) by badda71';" -font "Arial" -draw "font-size 9;text 0,109 'vice3DS-$(VICETARGET)';"
 endif
 
 #---------------------------------------------------------------------------------
@@ -258,7 +255,7 @@ SUBLIBS_CLEAN := $(SUBLIBS:%=clean-%)
 .PHONY: $(SUBLIBS_CLEAN)
 
 #---------------------------------------------------------------------------------
-all: $(SUBLIBS) $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES) $(ROMFS)/keyboard.png
+all: $(SUBLIBS) $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES) $(ROMFS)/kbd1.png $(ROMFS)/kbd2.png $(ROMFS)/kbd3.png $(ROMFS)/kbd4.png
 	@echo building $(APP_TITLE)
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile VICETARGET=$(VICETARGET)
 
@@ -278,7 +275,7 @@ $(DEPSDIR):
 	@mkdir -p $@
 endif
 
-$(ROMFS)/keyboard.png: $(META)/keyboard_$(VICETARGET).png Makefile
+$(ROMFS)/kbd%.png: $(META)/kbd%_$(VICETARGET).png Makefile
 	@echo -n generating $@ ...
 	@$(MKKBDPNG) $< $@
 	@echo OK
