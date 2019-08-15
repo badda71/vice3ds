@@ -43,6 +43,9 @@
 #include "mouse.h"
 #include "menu_common.h"
 #include "mousedrv.h"
+#include "util.h"
+#include "resources.h"
+#include "lib.h"
 #include <SDL/SDL_image.h>
 #include <3ds.h>
 #include <citro3d.h>
@@ -310,6 +313,7 @@ static DS3_Image kbd3_spr;
 static DS3_Image kbd4_spr;
 static DS3_Image background_spr;
 static DS3_Image sbmask_spr;
+static DS3_Image sbdrag_spr;
 static DS3_Image keymask_spr;
 // dynamic sprites
 static DS3_Image touchpad_spr;
@@ -326,6 +330,13 @@ static SDL_Surface *keyimg=NULL;
 static SDL_Surface *joyimg=NULL;
 static SDL_Surface *touchpad_img=NULL;
 
+// variables for draging sbuttons
+static int dragging;
+static int drag_over;
+static int dragx,dragy;
+static int sb_paintlast;
+
+// other stuff
 static int kb_y_pos = 0;
 static volatile int set_kb_y_pos = -10000;
 static int kb_activekey;
@@ -448,9 +459,46 @@ static int loadImage(DS3_Image *img, char *fname) {
 
 // bottom handling functions
 // =========================
+static char *soft_button_positions=NULL;
+
+static int soft_button_positions_load() {
+	if (soft_button_positions == NULL) return 0;
+	char *p=soft_button_positions;
+	for (int i = 0; uikbd_keypos[i].key != 0; ++i) {
+		if (uikbd_keypos[i].flags != 1) continue;	// not a soft button
+		if (strlen(p)==0) break;
+		uikbd_keypos[i].x=(int)strtoul(p,&p,10);
+		uikbd_keypos[i].y=(int)strtoul(p,&p,10);
+	}
+	uibottom_must_redraw |= UIB_REPAINT;
+	return 0;
+}
+
+static int soft_button_positions_save(void *p) {
+	char s[256]={0};
+	for (int i = 0; uikbd_keypos[i].key != 0; ++i) {
+		if (uikbd_keypos[i].flags == 1) {
+			sprintf(s+strlen(s)," %d %d",uikbd_keypos[i].x,uikbd_keypos[i].y);
+		}
+	}
+	lib_free(soft_button_positions);
+	soft_button_positions=lib_stralloc(s);
+	return 0;
+}
+
+static int soft_button_positions_set(const char *val, void *param) {
+	if (util_string_set(&soft_button_positions, val)) {
+		return 0;
+	}
+	return soft_button_positions_load();
+}
+
 static void uibottom_repaint() {
 	int i;
 	uikbd_key *k;
+	int drag_i=-1;
+	int last_i=-1;
+
 	// Render the scene
 	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 	C3D_RenderTargetClear(VideoSurface2, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
@@ -466,12 +514,32 @@ static void uibottom_repaint() {
 		drawImage(&background_spr, 0, 0, 0, 0);
 		// second, all sbuttons w/ selection mask if applicable
 		for (i=0;i<20;i++) {
+			if (sbutton_nr[i] == sb_paintlast) {
+				last_i=i;
+				continue;
+			}
+			if (dragging && sbutton_nr[i] == kb_activekey) {
+				drag_i=i;
+				continue;
+			}
+
 			k=&(uikbd_keypos[sbutton_nr[i]]);
+			
 			drawImage(&(sbutton_spr[i]),k->x,k->y,0,0);
 			if (keysPressed[sbutton_nr[i]])
 				drawImage(&(sbmask_spr),k->x,k->y,0,0);
+			if (dragging && sbutton_nr[i] != kb_activekey && sbutton_nr[i] == drag_over)
+				drawImage(&(sbdrag_spr),k->x,k->y,0,0);
 		}
+	}
 
+	if (last_i!=-1) {
+		k=&(uikbd_keypos[sbutton_nr[last_i]]);
+		drawImage(&(sbutton_spr[last_i]),k->x,k->y,0,0);
+		if (keysPressed[sbutton_nr[last_i]])
+			drawImage(&(sbmask_spr),k->x,k->y,0,0);
+		if (dragging && sbutton_nr[last_i] != kb_activekey && sbutton_nr[last_i] == drag_over)
+			drawImage(&(sbdrag_spr),k->x,k->y,0,0);
 	}
 	// color sprites for keyboard
 	for (i=0;i<8;i++) {
@@ -494,6 +562,17 @@ static void uibottom_repaint() {
 		if (k->flags==1 || keysPressed[i]==0) continue;
 		drawImage(&(keymask_spr),k->x,k->y+kb_y_pos,k->w,k->h);
 	}
+	// dragged icon (if applicable)
+	if (drag_i!=-1) {
+		int x=dragx-sb_img->w / 2;
+		int y=dragy-sb_img->h / 2;
+		int w=sb_img->w * 1.125;
+		int h=sb_img->h * 1.125;
+		drawImage(&(sbutton_spr[drag_i]),x,y,w,h);
+		if (keysPressed[sbutton_nr[drag_i]])
+			drawImage(&(sbmask_spr),x,y,w,h);
+	}
+	
 	C3D_FrameEnd(0);
 }
 
@@ -730,6 +809,9 @@ static void printstring(SDL_Surface *s, const char *str, int x, int y, SDL_Color
 	SDL_SetPalette(chars, SDL_LOGPAL, &(SDL_Color){0xff,0xff,0xff,0}, 1, 1);
 }
 
+#define LMASK 0x01080001
+#define RMASK 0x01080003
+
 static void sbuttons_recalc() {
 	int i,x,y;
 	char *name;
@@ -756,24 +838,22 @@ static void sbuttons_recalc() {
 	}
 
 	// recalc touchpad image
-	const int lmask=0x01080001;
-	const int rmask=0x01080003;
 	const char *lbuf=NULL,*rbuf=NULL;
 
 	// first check, if we have to update at all
 	if (lbut == 0 ||
 		rbut == 0 ||
-		keymap3ds[lbut] != lmask ||
-		keymap3ds[rbut] != rmask) {
+		keymap3ds[lbut] != LMASK ||
+		keymap3ds[rbut] != RMASK) {
 	
 		// check which buttons are mapped to mouse buttons
 		for (i=1; i<255; i++) {
 			switch (keymap3ds[i]) {
-				case lmask:
+				case (LMASK):
 					lbuf=get_3ds_keyname(i);
 					lbut=i;
 					break;
-				case rmask:
+				case (RMASK):
 					rbuf=get_3ds_keyname(i);
 					rbut=i;
 					break;
@@ -806,11 +886,6 @@ static void sbuttons_recalc() {
 static int uibottom_isinit=0;
 static void uibottom_init() {
 	uibottom_isinit=1;
-	if (strcmp("C64", machine_get_name())==0) {
-		uikbd_keypos = uikbd_keypos_C64;
-	} else {
-		uikbd_keypos = uikbd_keypos_C128;
-	}
 
 	// pre-load images
 	sb_img=IMG_Load("romfs:/sb.png");
@@ -835,19 +910,14 @@ static void uibottom_init() {
 	loadImage(&kbd4_spr, "romfs:/kbd4.png");
 	loadImage(&background_spr, "romfs:/background.png");
 	loadImage(&sbmask_spr, "romfs:/sbmask.png");
+	loadImage(&sbdrag_spr, "romfs:/sbdrag.png");
 	makeImage(&keymask_spr, (u8[]){0x00, 0x00, 0x00, 0x80},1,1,0);
-
-	// calc global vars
-	kb_y_pos = 
-		persistence_getInt("kbd_hidden",0) ? 240 : 240 - uikbd_pos[0][3];
-	uibottom_must_redraw |= UIB_ALL;
-
-	for (int i = 0; uikbd_keypos[i].key != 0 ; ++i)
-		if (uikbd_keypos[i].flags==1) sbutton_nr[uikbd_keypos[i].key-231]=i;
 
 	// setup c3d texture environment
 	// Configure depth test to overwrite pixels with the same depth (needed to draw overlapping sprites)
 	C3D_DepthTest(true, GPU_GEQUAL, GPU_WRITE_ALL);
+
+	uibottom_must_redraw |= UIB_ALL;
 }
 
 /*
@@ -900,13 +970,93 @@ void sdl_uibottom_draw(void)
 		SDL_PushEvent( &(SDL_Event){ .type = SDL_MOUSEBUTTONUP });
 }
 
+typedef struct animation {
+	int *var;
+	int from;
+	int to;
+} animation;
+
+typedef struct animation_set {
+	int steps;
+	int delay;
+	int nr;
+	void (*callback)(void *);
+	void *callback_data;
+	animation anim[];
+} animation_set;
+
+int animate(void *data){
+	animation_set *a=data;
+	int steps = a->steps != 0 ? a->steps : 24 ;
+	int delay = a->delay != 0 ? a->delay : 10 ;
+	for (int s=0; s <= steps; s++) {
+		for (int i=0; i < a->nr; i++) {
+			*(a->anim[i].var)=
+				a->anim[i].from +
+				(((a->anim[i].to - a->anim[i].from) * s ) / steps);
+		}
+		(a->callback)(a->callback_data);
+		if (s != steps) SDL_Delay(delay);
+	}
+	free(data);
+	return 0;
+}
+
+void anim_callback(void *param) {
+	uibottom_must_redraw |= UIB_REPAINT;
+}
+
+void *alloc_copy(void *p, size_t s) {
+	void *d=malloc(s);
+	memcpy(d,p,s);
+	return d;
+}
+
 static SDL_Event sdl_e;
 void sdl_uibottom_mouseevent(SDL_Event *e) {
+	static int mdownx=0,mdowny=0;
+	int x = e->button.x*320/sdl_active_canvas->screen->w;
+	int y = e->button.y*240/sdl_active_canvas->screen->h;
+	uikbd_key *k;
+	int i;
 
 	// mousmotion
 	if (e->type==SDL_MOUSEMOTION) {
-		if (sdl_menu_state || !_mouse_enabled || e->motion.state!=1) return;
-		mouse_move((int)(e->motion.xrel), (int)(e->motion.yrel));
+		if (e->motion.state!=1) return;
+		if (!_mouse_enabled) {
+			// handle softbutton dragndrop
+			if (kb_activekey == -1 || uikbd_keypos[kb_activekey].flags !=1 || mdowny >= kb_y_pos) return;
+			if (!dragging && pow(mdownx-x,2)+pow(mdowny-y,2) > 100) {
+//log_citra("start sb drag at %d, %d",mdownx, mdowny);
+				// start sbutton drag
+				dragging=1;
+				drag_over=kb_activekey;
+				dragx = x; dragy = y;
+				uibottom_must_redraw |= UIB_REPAINT;
+			}
+			if (dragging) {
+				// drag sbutton
+				if (y>=kb_y_pos) y=kb_y_pos-1;
+				dragx = x; dragy = y;
+				for (i=0;i<20;i++) {
+					k=&(uikbd_keypos[sbutton_nr[i]]);
+					if (sbutton_nr[i] != drag_over &&
+						x >= k->x &&
+						x <  k->x + k->w  &&
+						y >= k->y &&
+						y <  k->y + k->h) {
+//log_citra("drag button %d to sbutton %d",kb_activekey,sbutton_nr[i]);
+						drag_over=sbutton_nr[i];
+						break;
+					}
+				}
+				uibottom_must_redraw |= UIB_REPAINT;
+			}
+		} else {
+			// forward to emulation
+			if (!sdl_menu_state)
+				mouse_move((int)(e->motion.xrel), (int)(e->motion.yrel));
+		}
 		return;
 	}
 
@@ -916,19 +1066,38 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 		mouse_button((int)(e->button.button), (e->button.state == SDL_PRESSED));
 		return;
 	}
-	
-	int f;
-	int x = e->button.x*320/sdl_active_canvas->screen->w;
-	int y = e->button.y*240/sdl_active_canvas->screen->h;
 
 	// ignore mouse button presses above keyboard if the mouse if active
 	if (uibottom_kbdactive) {
-		int i;
 		// check which button was pressed
-		if (e->button.type != SDL_MOUSEBUTTONDOWN) {
+		if (e->button.type == SDL_MOUSEBUTTONUP) {
+			if (dragging) {
+				// softbutton drop
+//log_citra("dropped sb at %d, %d", x, y);
+				dragging=0;
+				// swap icons: kb_activekey <-> drag_over
+				void *p=alloc_copy(&(int[]){
+					0, 0, 2, // steps, delay, nr
+					(int)anim_callback, 0, // callback, callback_data
+					(int)(&(uikbd_keypos[drag_over].x)),
+						uikbd_keypos[drag_over].x,
+						uikbd_keypos[kb_activekey].x,
+					(int)(&(uikbd_keypos[drag_over].y)),
+						uikbd_keypos[drag_over].y,
+						uikbd_keypos[kb_activekey].y
+				}, 11*sizeof(int));
+
+				uikbd_keypos[kb_activekey].x = uikbd_keypos[drag_over].x;
+				uikbd_keypos[kb_activekey].y = uikbd_keypos[drag_over].y;
+				start_worker(animate, p);
+				start_worker(soft_button_positions_save, NULL);
+				sb_paintlast=drag_over;
+				uibottom_must_redraw |= UIB_REPAINT;
+			}
 			i=kb_activekey;
 			kb_activekey=-1;
 		} else {
+			mdownx=x; mdowny=y;
 			if (!bottom_lcd_on) {
 				setBottomBacklight(1);
 				kb_activekey=-1;
@@ -954,7 +1123,7 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 		}
 //if (i==1) {show_help();return;}
 		if (i != -1 && uikbd_keypos[i].key != 0) { // got a hit
-			if ((f=uikbd_keypos[i].sticky)>0) {	// ... on a sticky key
+			if (uikbd_keypos[i].sticky>0) {	// ... on a sticky key
 				if (e->button.type == SDL_MOUSEBUTTONDOWN) {
 					sticky = sticky ^ uikbd_keypos[i].sticky;
 					sdl_e.type = sticky & uikbd_keypos[i].sticky ? SDL_KEYDOWN : SDL_KEYUP;
@@ -979,28 +1148,7 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 	}
 }
 
-#define STEP 5
-#define DELAY 10
-int toggle_keyboard_thread(void *data) {
-	if (kb_y_pos < 240) {
-		// hide
-		for (int i=kb_y_pos - kb_y_pos % STEP + STEP; i<=240; i+=STEP) {
-			set_kb_y_pos=i;
-			uibottom_must_redraw |= UIB_REPAINT;
-			SDL_Delay(DELAY);
-		}
-	} else {
-		// show
-		for (int i=kb_y_pos - kb_y_pos % STEP - STEP; i>=240-uikbd_pos[0][3]; i-=STEP) {
-			set_kb_y_pos=i;
-			uibottom_must_redraw |= UIB_REPAINT;
-			SDL_Delay(DELAY);
-		}
-	}
-	return 0;
-}
 static int kb_hidden=-1;
-
 int is_keyboard_hidden() {
 	if (kb_hidden == -1)
 		kb_hidden= kb_y_pos >= 240 ? 1:0;
@@ -1009,7 +1157,11 @@ int is_keyboard_hidden() {
 
 void toggle_keyboard() {
 	persistence_putInt("kbd_hidden",kb_hidden=(kb_y_pos >= 240 ? 0 : 1));
-	start_worker(toggle_keyboard_thread,NULL);
+	start_worker(animate, alloc_copy(&(int[]){
+		0, 0, 1, // steps, delay, nr
+		(int)anim_callback, 0, // callback, callback_data
+		(int)(&set_kb_y_pos), kb_y_pos < 240 ? 120 : 240, kb_y_pos < 240 ? 240 : 120
+	}, 8*sizeof(int)));
 }
 
 void setBottomBacklight (int on) {
@@ -1028,4 +1180,38 @@ void uibottom_shutdown() {
 	// free the hash
 	for (int i=0; i<HASHSIZE;++i)
 		free(iconHash[i].key);
+}
+
+static resource_string_t resources_string[] = {
+	{ "SoftButtonPositions",
+		"0 0 64 0 128 0 192 0 256 0 0 60 64 60 128 60 192 60 256 60 0 120 64 120 128 120 192 120 256 0 0 180 64 180 128 180 192 180 256 180",
+		RES_EVENT_NO, NULL,
+		&soft_button_positions,
+		soft_button_positions_set, NULL },
+	RESOURCE_STRING_LIST_END
+};
+
+int uibottom_resources_init() {
+	if (strcmp("C64", machine_get_name())==0) {
+		uikbd_keypos = uikbd_keypos_C64;
+	} else {
+		uikbd_keypos = uikbd_keypos_C128;
+	}
+
+	// calc global vars
+	kb_y_pos = 
+		persistence_getInt("kbd_hidden",0) ? 240 : 240 - uikbd_pos[0][3];
+
+	for (int i = 0; uikbd_keypos[i].key != 0 ; ++i)
+		if (uikbd_keypos[i].flags==1) sbutton_nr[uikbd_keypos[i].key-231]=i;
+
+	if (resources_register_string(resources_string) < 0) {
+		return -1;
+	}
+	return 0;
+}
+
+void uibottom_resources_shutdown() {
+	lib_free(soft_button_positions);
+	soft_button_positions=NULL;
 }

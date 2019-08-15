@@ -140,7 +140,7 @@ static UI_MENU_CALLBACK(all_default_settings_callback)
 {
 	if (activated) {
 		// copy the complete config directory to SD-card and restart
-		if (message_box("VICE QUESTION", "Do you really want to restore all the default settings?\nThis will overwrite all your config files including keymaps, joymaps, hotkeys and vicerc.", MESSAGE_YESNO) != 0) {
+		if (message_box("VICE QUESTION", "Do you really want to restore all the default settings?\nThis will overwrite all your config files including keymaps, joymaps and vicerc.", MESSAGE_YESNO) != 0) {
             return NULL;
         }
 

@@ -397,6 +397,10 @@ int video_arch_resources_init(void)
         }
     }
 
+	if (uibottom_resources_init() < 0 ) {
+		return -1;
+	}
+
     if (resources_register_string(resources_string) < 0) {
         return -1;
     }
@@ -411,6 +415,8 @@ void video_arch_resources_shutdown(void)
     if (machine_class == VICE_MACHINE_VSID) {
         joy_arch_resources_shutdown();
     }
+
+	uibottom_resources_shutdown();
 
 #if defined(HAVE_HWSCALE)
     lib_free(aspect_ratio_s);

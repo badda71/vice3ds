@@ -230,5 +230,6 @@ int keymap3ds_resource_set(const char *val, void *param)
 }
 
 void vice3ds_shutdown() {
-	free(keymap3ds_resource);
+	lib_free(keymap3ds_resource);
+	keymap3ds_resource=NULL;
 }
