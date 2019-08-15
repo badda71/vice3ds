@@ -371,43 +371,43 @@ DEFINE_SET_KEYSET(2)
 static const resource_int_t joykeys_resources_int[] = {
     { "KeySet1NorthWest", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
       &joykeys[JOYSTICK_KEYSET_IDX_A][JOYSTICK_KEYSET_NW], set_keyset1, (void *)JOYSTICK_KEYSET_NW },
-    { "KeySet1North", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
+    { "KeySet1North", 210, RES_EVENT_NO, NULL, // 3ds dpad up
       &joykeys[JOYSTICK_KEYSET_IDX_A][JOYSTICK_KEYSET_N], set_keyset1, (void *)JOYSTICK_KEYSET_N },
     { "KeySet1NorthEast", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
       &joykeys[JOYSTICK_KEYSET_IDX_A][JOYSTICK_KEYSET_NE], set_keyset1, (void *)JOYSTICK_KEYSET_NE },
-    { "KeySet1East", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
+    { "KeySet1East", 213, RES_EVENT_NO, NULL, // 3ds dpad right
       &joykeys[JOYSTICK_KEYSET_IDX_A][JOYSTICK_KEYSET_E], set_keyset1, (void *)JOYSTICK_KEYSET_E },
     { "KeySet1SouthEast", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
       &joykeys[JOYSTICK_KEYSET_IDX_A][JOYSTICK_KEYSET_SE], set_keyset1, (void *)JOYSTICK_KEYSET_SE },
-    { "KeySet1South", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
+    { "KeySet1South", 211, RES_EVENT_NO, NULL,  // 3ds dpad down
       &joykeys[JOYSTICK_KEYSET_IDX_A][JOYSTICK_KEYSET_S], set_keyset1, (void *)JOYSTICK_KEYSET_S },
     { "KeySet1SouthWest", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
       &joykeys[JOYSTICK_KEYSET_IDX_A][JOYSTICK_KEYSET_SW], set_keyset1, (void *)JOYSTICK_KEYSET_SW },
-    { "KeySet1West", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
+    { "KeySet1West", 212, RES_EVENT_NO, NULL,  // 3ds dpad leftt
       &joykeys[JOYSTICK_KEYSET_IDX_A][JOYSTICK_KEYSET_W], set_keyset1, (void *)JOYSTICK_KEYSET_W },
-    { "KeySet1Fire", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
+    { "KeySet1Fire", 202, RES_EVENT_NO, NULL, // 3ds X button
       &joykeys[JOYSTICK_KEYSET_IDX_A][JOYSTICK_KEYSET_FIRE], set_keyset1, (void *)JOYSTICK_KEYSET_FIRE },
     { "KeySet2NorthWest", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
       &joykeys[JOYSTICK_KEYSET_IDX_B][JOYSTICK_KEYSET_NW], set_keyset2, (void *)JOYSTICK_KEYSET_NW },
-    { "KeySet2North", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
+    { "KeySet2North", 214, RES_EVENT_NO, NULL,	// 3ds cpad up
       &joykeys[JOYSTICK_KEYSET_IDX_B][JOYSTICK_KEYSET_N], set_keyset2, (void *)JOYSTICK_KEYSET_N },
     { "KeySet2NorthEast", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
       &joykeys[JOYSTICK_KEYSET_IDX_B][JOYSTICK_KEYSET_NE], set_keyset2, (void *)JOYSTICK_KEYSET_NE },
-    { "KeySet2East", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
+    { "KeySet2East", 217, RES_EVENT_NO, NULL, 	// 3ds cpad right
       &joykeys[JOYSTICK_KEYSET_IDX_B][JOYSTICK_KEYSET_E], set_keyset2, (void *)JOYSTICK_KEYSET_E },
     { "KeySet2SouthEast", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
       &joykeys[JOYSTICK_KEYSET_IDX_B][JOYSTICK_KEYSET_SE], set_keyset2, (void *)JOYSTICK_KEYSET_SE },
-    { "KeySet2South", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
+    { "KeySet2South", 215, RES_EVENT_NO, NULL, 	// 3ds cpad down
       &joykeys[JOYSTICK_KEYSET_IDX_B][JOYSTICK_KEYSET_S], set_keyset2, (void *)JOYSTICK_KEYSET_S },
     { "KeySet2SouthWest", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
       &joykeys[JOYSTICK_KEYSET_IDX_B][JOYSTICK_KEYSET_SW], set_keyset2, (void *)JOYSTICK_KEYSET_SW },
-    { "KeySet2West", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
+    { "KeySet2West", 216, RES_EVENT_NO, NULL, 	// 3ds cpad left
       &joykeys[JOYSTICK_KEYSET_IDX_B][JOYSTICK_KEYSET_W], set_keyset2, (void *)JOYSTICK_KEYSET_W },
-    { "KeySet2Fire", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
+    { "KeySet2Fire", 203, RES_EVENT_NO, NULL,	// 3ds Y button
       &joykeys[JOYSTICK_KEYSET_IDX_B][JOYSTICK_KEYSET_FIRE], set_keyset2, (void *)JOYSTICK_KEYSET_FIRE },
-	{ "JoyDev1Auto", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
+	{ "JoyDev1Auto", 205, RES_EVENT_NO, NULL,	// 3ds R button
       &joykeys_autofire[0], set_joykeys_autofire1, NULL },
-    { "JoyDev2Auto", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
+    { "JoyDev2Auto", 207, RES_EVENT_NO, NULL,	// 3ds ZR button
       &joykeys_autofire[1], set_joykeys_autofire2, NULL },
 	{ "JoyAutoSpeed", 10, RES_EVENT_NO, (resource_value_t)10,
       &joy_auto_speed, set_joy_auto_speed, NULL },
@@ -603,13 +603,13 @@ static const resource_int_t joyopposite_resources_int[] = {
 };
 
 static resource_int_t joy1_resources_int[] = {
-    { "JoyDevice1", JOYDEV_NONE, RES_EVENT_NO, NULL,
+    { "JoyDevice1", JOYDEV_JOYSTICK, RES_EVENT_NO, NULL,
       &joystick_port_map[JOYPORT_1], set_joystick_device, (void *)JOYPORT_1 },
     RESOURCE_INT_LIST_END
 };
 
 static resource_int_t joy2_resources_int[] = {
-    { "JoyDevice2", JOYDEV_NONE, RES_EVENT_NO, NULL,
+    { "JoyDevice2", JOYDEV_KEYSET1, RES_EVENT_NO, NULL,
       &joystick_port_map[JOYPORT_2], set_joystick_device, (void *)JOYPORT_2 },
     RESOURCE_INT_LIST_END
 };
@@ -655,6 +655,7 @@ int joystick_resources_init(void)
         case VICE_MACHINE_C128:
         case VICE_MACHINE_C64DTV:
         case VICE_MACHINE_SCPU64:
+            joy1_resources_int[0].factory_value = JOYDEV_KEYSET1;
             joy2_resources_int[0].factory_value = JOYDEV_DEFAULT;
             break;
         case VICE_MACHINE_PLUS4:

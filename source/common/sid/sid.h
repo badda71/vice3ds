@@ -45,14 +45,14 @@ struct sid_snapshot_state_s;
 #define SID_ENGINE_HARDSID        3
 #define SID_ENGINE_PARSID         4
 #define SID_ENGINE_SSI2001        5
-#define SID_ENGINE_DEFAULT       99
+#define SID_ENGINE_DEFAULT       0
 
 #define SID_MODEL_6581           0
 #define SID_MODEL_8580           1
 #define SID_MODEL_8580D          2
 #define SID_MODEL_6581R4         3
 #define SID_MODEL_DTVSID         4
-#define SID_MODEL_DEFAULT       99
+#define SID_MODEL_DEFAULT       1
 
 /* these definitions are the only valid combinations of
    software SID engines and model, and are used in the

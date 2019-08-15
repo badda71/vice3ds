@@ -32,6 +32,7 @@
 #include "util.h"
 #include "kbd.h"
 #include "mousedrv.h"
+#include "lib.h"
 
 // LED-related vars / functions
 static Handle ptmsysmHandle = 0;

@@ -928,28 +928,28 @@ static int set_native_monitor(int val, void *param)
 # ifdef MACOSX_SUPPORT
 #  define DEFAULT_MENU_KEY SDLK_F10
 # else
-#  define DEFAULT_MENU_KEY SDLK_F12
+#  define DEFAULT_MENU_KEY 209 // 3ds select button
 # endif
 #endif
 
 static const resource_int_t resources_int[] = {
     { "MenuKey", DEFAULT_MENU_KEY, RES_EVENT_NO, NULL,
       &sdl_ui_menukeys[0], set_ui_menukey, (void *)MENU_ACTION_NONE },
-    { "MenuKeyUp", SDLK_UP, RES_EVENT_NO, NULL,
+    { "MenuKeyUp", 210, RES_EVENT_NO, NULL,		// 3ds dpad up
       &sdl_ui_menukeys[1], set_ui_menukey, (void *)MENU_ACTION_UP },
-    { "MenuKeyDown", SDLK_DOWN, RES_EVENT_NO, NULL,
+    { "MenuKeyDown", 211, RES_EVENT_NO, NULL,	// 3ds dpad down
       &sdl_ui_menukeys[2], set_ui_menukey, (void *)MENU_ACTION_DOWN },
-    { "MenuKeyLeft", SDLK_LEFT, RES_EVENT_NO, NULL,
+    { "MenuKeyLeft", 212, RES_EVENT_NO, NULL,	// 3ds dpad left
       &sdl_ui_menukeys[3], set_ui_menukey, (void *)MENU_ACTION_LEFT },
-    { "MenuKeyRight", SDLK_RIGHT, RES_EVENT_NO, NULL,
+    { "MenuKeyRight", 213, RES_EVENT_NO, NULL,	// 3ds dpad right
       &sdl_ui_menukeys[4], set_ui_menukey, (void *)MENU_ACTION_RIGHT },
     { "MenuKeySelect", SDLK_RETURN, RES_EVENT_NO, NULL,
       &sdl_ui_menukeys[5], set_ui_menukey, (void *)MENU_ACTION_SELECT },
-    { "MenuKeyCancel", SDLK_BACKSPACE, RES_EVENT_NO, NULL,
+    { "MenuKeyCancel", 201, RES_EVENT_NO, NULL,	// 3ds B button
       &sdl_ui_menukeys[6], set_ui_menukey, (void *)MENU_ACTION_CANCEL },
-    { "MenuKeyExit", SDLK_ESCAPE, RES_EVENT_NO, NULL,
+    { "MenuKeyExit", 209, RES_EVENT_NO, NULL,	// 3ds select button
       &sdl_ui_menukeys[7], set_ui_menukey, (void *)MENU_ACTION_EXIT },
-    { "MenuKeyMap", SDLK_m, RES_EVENT_NO, NULL,
+    { "MenuKeyMap", 204, RES_EVENT_NO, NULL,	// 3ds L button
       &sdl_ui_menukeys[8], set_ui_menukey, (void *)MENU_ACTION_MAP },
     { "MenuKeyPageUp", SDLK_PAGEUP, RES_EVENT_NO, NULL,
       &sdl_ui_menukeys[9], set_ui_menukey, (void *)MENU_ACTION_PAGEUP },
@@ -961,9 +961,9 @@ static const resource_int_t resources_int[] = {
       &sdl_ui_menukeys[12], set_ui_menukey, (void *)MENU_ACTION_END },
     { "SaveResourcesOnExit", 0, RES_EVENT_NO, NULL,
       &save_resources_on_exit, set_save_resources_on_exit, NULL },
-    { "ConfirmOnExit", 0, RES_EVENT_NO, NULL,
+    { "ConfirmOnExit", 1, RES_EVENT_NO, NULL,
       &confirm_on_exit, set_confirm_on_exit, NULL },
-    { "DriveLED", 0, RES_EVENT_NO, NULL,
+    { "DriveLED", 1, RES_EVENT_NO, NULL,
       &drive_led, set_drive_led, NULL },
     { "DriveLEDBrightness", 40, RES_EVENT_NO, (resource_value_t)40,
       &drive_led_brightness, set_drive_led_brightness, NULL },

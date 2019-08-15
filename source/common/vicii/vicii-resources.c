@@ -115,7 +115,7 @@ static const resource_int_t resources_int_dtv[] =
 
 int vicii_resources_init(void)
 {
-    video_chip_cap.dsize_allowed = ARCHDEP_VICII_DSIZE;
+    video_chip_cap.dsize_allowed = ARCHDEP_VICII_DSIZE_ALLOW;
     video_chip_cap.dsize_default = ARCHDEP_VICII_DSIZE;
     video_chip_cap.dsize_limit_width = 0;
     video_chip_cap.dsize_limit_height = 0;

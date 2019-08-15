@@ -343,10 +343,10 @@ static const resource_string_t resources_string[] = {
     RESOURCE_STRING_LIST_END
 };
 
-#if defined(WATCOM_COMPILE)
+#if defined(WATCOM_COMPILE) 
 #define VICE_DEFAULT_BITDEPTH 32
 #else
-#define VICE_DEFAULT_BITDEPTH 0
+#define VICE_DEFAULT_BITDEPTH 32
 #endif
 
 #ifdef ANDROID_COMPILE
@@ -368,9 +368,9 @@ static const resource_int_t resources_int[] = {
       &sdl_custom_width, set_sdl_custom_width, NULL },
     { "SDLCustomHeight", SDLCUSTOMHEIGHT_DEFAULT, RES_EVENT_NO, NULL,
       &sdl_custom_height, set_sdl_custom_height, NULL },
-    { "SDLWindowWidth", 0, RES_EVENT_NO, NULL,
+    { "SDLWindowWidth", 384, RES_EVENT_NO, NULL,
       &sdl_window_width, set_sdl_window_width, NULL },
-    { "SDLWindowHeight", 0, RES_EVENT_NO, NULL,
+    { "SDLWindowHeight", 272, RES_EVENT_NO, NULL,
       &sdl_window_height, set_sdl_window_height, NULL },
     { "SDLFullscreenStretch", SDL_FULLSCREEN, RES_EVENT_NO, NULL,
       &fullscreen_stretch, set_fullscreen_stretch, NULL },

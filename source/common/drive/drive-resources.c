@@ -332,7 +332,7 @@ static int set_drive_rtc_save(int val, void *param)
 }
 
 static const resource_int_t resources_int[] = {
-    { "DriveTrueEmulation", 1, RES_EVENT_STRICT, (resource_value_t)1,
+    { "DriveTrueEmulation", 0, RES_EVENT_STRICT, (resource_value_t)1,
       &drive_true_emulation, set_drive_true_emulation, NULL },
     { "DriveSoundEmulation", 0, RES_EVENT_NO, (resource_value_t)0,
       &drive_sound_emulation, set_drive_sound_emulation, NULL },

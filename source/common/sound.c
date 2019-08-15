@@ -521,7 +521,7 @@ static int set_volume(int val, void *param)
 }
 
 static const resource_string_t resources_string[] = {
-    { "SoundDeviceName", "", RES_EVENT_NO, NULL,
+    { "SoundDeviceName", "ndsp", RES_EVENT_NO, NULL,
       &device_name, set_device_name, NULL },
     { "SoundDeviceArg", "", RES_EVENT_NO, NULL,
       &device_arg, set_device_arg, NULL },
@@ -537,7 +537,7 @@ static const resource_int_t resources_int[] = {
       (void *)&playback_enabled, set_playback_enabled, NULL },
     { "SoundSampleRate", SOUND_SAMPLE_RATE, RES_EVENT_NO, NULL,
       (void *)&sample_rate, set_sample_rate, NULL },
-    { "SoundBufferSize", 0, RES_EVENT_NO, NULL,
+    { "SoundBufferSize", 100, RES_EVENT_NO, NULL,
       (void *)&buffer_size, set_buffer_size, NULL },
     { "SoundFragmentSize", ARCHDEP_SOUND_FRAGMENT_SIZE, RES_EVENT_NO, NULL,
       (void *)&fragment_size, set_fragment_size, NULL },

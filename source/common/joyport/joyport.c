@@ -492,13 +492,13 @@ static const resource_int_t resources_int_port2[] = {
 };
 
 static const resource_int_t resources_int_port3[] = {
-    { "JoyPort3Device", JOYPORT_ID_JOYSTICK, RES_EVENT_NO, NULL,
+    { "JoyPort3Device", JOYPORT_ID_NONE, RES_EVENT_NO, NULL,
       &joy_port[JOYPORT_3], set_joyport_device, (void *)JOYPORT_3 },
     RESOURCE_INT_LIST_END
 };
 
 static const resource_int_t resources_int_port4[] = {
-    { "JoyPort4Device", JOYPORT_ID_JOYSTICK, RES_EVENT_NO, NULL,
+    { "JoyPort4Device", JOYPORT_ID_NONE, RES_EVENT_NO, NULL,
       &joy_port[JOYPORT_4], set_joyport_device, (void *)JOYPORT_4 },
     RESOURCE_INT_LIST_END
 };

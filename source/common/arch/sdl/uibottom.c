@@ -1184,7 +1184,7 @@ void uibottom_shutdown() {
 
 static resource_string_t resources_string[] = {
 	{ "SoftButtonPositions",
-		"0 0 64 0 128 0 192 0 256 0 0 60 64 60 128 60 192 60 256 60 0 120 64 120 128 120 192 120 256 0 0 180 64 180 128 180 192 180 256 180",
+		" 0 0 64 0 128 0 192 0 256 0 0 60 64 60 128 60 192 60 256 60 0 120 64 120 128 120 192 120 256 120 0 180 64 180 128 180 192 180 256 180",
 		RES_EVENT_NO, NULL,
 		&soft_button_positions,
 		soft_button_positions_set, NULL },

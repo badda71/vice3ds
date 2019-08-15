@@ -1,8 +1,3 @@
-#include "my_add.h"
-
-/* src/config.h.  Generated from config.h.in by configure.  */
-/* src/config.h.in.  Generated from configure.ac by autoheader.  */
-
 /* Define if building universal (internal helper macro) */
 /* #undef AC_APPLE_UNIVERSAL_BUILD */
 
@@ -966,3 +961,5 @@
 
 /* Define as `fork' if `vfork' does not work. */
 #define vfork fork
+
+typedef unsigned char BYTE;

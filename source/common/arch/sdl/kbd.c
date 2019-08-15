@@ -93,7 +93,7 @@ static resource_string_t resources_string[] = {
 	{ "HotkeyFile", NULL, RES_EVENT_NO, NULL,
       &hotkey_file, hotkey_file_set, (void *)0 },
 */
-	{ "KeyMappings", "", RES_EVENT_NO, NULL,
+	{ "KeyMappings", KEYMAPPINGS_DEFAULT, RES_EVENT_NO, NULL,
       &keymap3ds_resource, keymap3ds_resource_set, NULL },
     RESOURCE_STRING_LIST_END
 };

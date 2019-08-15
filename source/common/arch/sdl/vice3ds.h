@@ -23,6 +23,7 @@
  *  02111-1307  USA.
  *
  */
+#define KEYMAPPINGS_DEFAULT "cc080001 ce080003 d601001e d7010011 d801001f d901001d f6010003 f7010020 f801000d"
 
 extern int LED3DS_On(unsigned char r, unsigned char g, unsigned char b);
 extern int LED3DS_Off(void);

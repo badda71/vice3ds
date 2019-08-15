@@ -64,7 +64,7 @@ static int set_system_path(const char *val, void *param)
 }
 
 static const resource_string_t resources_string[] = {
-    { "Directory", "$$", RES_EVENT_NO, NULL,
+    { "Directory", "", RES_EVENT_NO, NULL,
       &system_path, set_system_path, NULL },
     RESOURCE_STRING_LIST_END
 };
