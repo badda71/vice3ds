@@ -117,21 +117,8 @@ static UI_MENU_CALLBACK(load_settings_from_callback)
 static UI_MENU_CALLBACK(default_settings_callback)
 {
     if (activated) {
-		// copy the default config file to the config directory and restart
-		if (message_box("VICE QUESTION", "Do you really want to restore the default settings? This will overwrite your vicerc-file.", MESSAGE_YESNO) != 0) {
-            return NULL;
-        }
-
-	    char *cfg = archdep_user_config_path();
-	    char *f = archdep_join_paths(cfg, "sdl-vicerc", NULL);
-
-		if (xcopy("romfs:/config/sdl-vicerc", f, 1, NULL)==0) {
-			ui_message("Default settings restored - please restart VICE");
-			archdep_vice_exit(0);
-		} else {
-			ui_message("Default settings could not be restored");
-		}
-		lib_free(f);
+        resources_set_defaults();
+        ui_message("Default settings restored.");
     }
     return NULL;
 }
@@ -140,7 +127,7 @@ static UI_MENU_CALLBACK(all_default_settings_callback)
 {
 	if (activated) {
 		// copy the complete config directory to SD-card and restart
-		if (message_box("VICE QUESTION", "Do you really want to restore all the default settings?\nThis will overwrite all your config files including keymaps, joymaps and vicerc.", MESSAGE_YESNO) != 0) {
+		if (message_box("VICE QUESTION", "Do you really want to restore all default settings?\nThis will overwrite all config files and restart vice.", MESSAGE_YESNO) != 0) {
             return NULL;
         }
 

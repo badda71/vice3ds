@@ -357,9 +357,11 @@ static const resource_string_t resources_string[] = {
 #define SDLLIMITMODE_DEFAULT     SDL_LIMIT_MODE_OFF
 #define SDLCUSTOMWIDTH_DEFAULT   400
 #define SDLCUSTOMHEIGHT_DEFAULT  240
+#define SDLCUSTOMWIDTH_DEFAULT_128   640
+#define SDLCUSTOMHEIGHT_DEFAULT_128  400
 #endif
 
-static const resource_int_t resources_int[] = {
+static resource_int_t resources_int[] = {
     { "SDLBitdepth", VICE_DEFAULT_BITDEPTH, RES_EVENT_NO, NULL,
       &sdl_bitdepth, set_sdl_bitdepth, NULL },
     { "SDLLimitMode", SDLLIMITMODE_DEFAULT, RES_EVENT_NO, NULL,
@@ -405,6 +407,10 @@ int video_arch_resources_init(void)
         return -1;
     }
 
+	if (machine_class == VICE_MACHINE_C128) {
+		resources_int[2].factory_value=SDLCUSTOMWIDTH_DEFAULT_128;
+		resources_int[3].factory_value=SDLCUSTOMHEIGHT_DEFAULT_128;
+	}
     return resources_register_int(resources_int);
 }
 

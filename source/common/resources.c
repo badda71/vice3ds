@@ -58,8 +58,6 @@
 #include "sysfile.h"
 #include "archdep_defs.h"
 #include "archdep_user_config_path.h"
-#include "kbd.h"
-#include "uihotkey.h"
 #include "snapshot.h"
 
 #ifdef VICE_DEBUG_RESOURCES
@@ -1049,51 +1047,45 @@ int resources_read_item_from_string(char *buf)
     }
 
     *(buf + resname_len) = '\0';
-
-    if (strcmp("Hotkey",buf)==0) {
-		sdlkbd_parse_hotkey_entry(arg_ptr);
-		return 1;
 	
-	} else {
-        int result;
+	int result;
 
-        r = lookup(buf);
-        if (r == NULL) {
-            log_error(LOG_DEFAULT, "Unknown resource `%s'.", buf);
-            return RESERR_UNKNOWN_RESOURCE;
-        }
+	r = lookup(buf);
+	if (r == NULL) {
+		log_error(LOG_DEFAULT, "Unknown resource `%s'.", buf);
+		return RESERR_UNKNOWN_RESOURCE;
+	}
 
-        switch (r->type) {
-            case RES_INTEGER:
-                result = (*r->set_func_int)(atoi(arg_ptr), r->param);
-                break;
-            case RES_STRING:
-                result = (*r->set_func_string)(arg_ptr, r->param);
-                break;
-            default:
-                log_error(LOG_DEFAULT, "Unknown resource type for `%s'.",
-                          r->name);
-                result = RESERR_TYPE_INVALID;
-                break;
-        }
+	switch (r->type) {
+		case RES_INTEGER:
+			result = (*r->set_func_int)(atoi(arg_ptr), r->param);
+			break;
+		case RES_STRING:
+			result = (*r->set_func_string)(arg_ptr, r->param);
+			break;
+		default:
+			log_error(LOG_DEFAULT, "Unknown resource type for `%s'.",
+					  r->name);
+			result = RESERR_TYPE_INVALID;
+			break;
+	}
 
-        if (result < 0) {
-            switch (r->type) {
-                case RES_INTEGER:
-                case RES_STRING:
-                    log_error(LOG_DEFAULT, "Cannot assign value `%s' to resource `%s'.", arg_ptr, r->name);
-                    break;
-                default:
-                    log_error(LOG_DEFAULT, "Cannot assign value to resource `%s'.", r->name);
-                    break;
-            }
-            return -1;
-        }
+	if (result < 0) {
+		switch (r->type) {
+			case RES_INTEGER:
+			case RES_STRING:
+				log_error(LOG_DEFAULT, "Cannot assign value `%s' to resource `%s'.", arg_ptr, r->name);
+				break;
+			default:
+				log_error(LOG_DEFAULT, "Cannot assign value to resource `%s'.", r->name);
+				break;
+		}
+		return -1;
+	}
 
-        resources_issue_callback(r, 0);
+	resources_issue_callback(r, 0);
 
-        return 1;
-    }
+	return 1;
 }
 
 int resources_read_item_from_file(FILE *f)
@@ -1126,9 +1118,6 @@ int resources_load_from_buf() {
 	int err=0,retval;
 	char *e,*b=resources_buffer;
 	if (!b) return 0;
-
-	// prepare for loading config
-	sdlkbd_hotkeys_clear();	
 	
 	while ((e=strchr(b,'\n'))!=NULL) {
 		*e=0;		
@@ -1264,14 +1253,9 @@ static int resource_item_isdefault(int num)
     return 0;
 }
 
-void resources_save_to_buf(char *name) {
+void resources_add_to_buf(char *name) {
 	char *line;
 	int i;
-
-	if (resources_buffer) free (resources_buffer);
-	resources_buffer=malloc(2);
-	*resources_buffer=0;
-
 	/* Write our current configuration.  */
 	for (i = 0; i < num_resources; i++) {
 		/* only dump into the file what is different to the default config */
@@ -1285,15 +1269,15 @@ void resources_save_to_buf(char *name) {
 			}
 		}
 	}
-	// write the hotkeys
-	for (i = 0; i < SDLKBD_UI_HOTKEYS_MAX; ++i) {
-		if (sdlkbd_ui_hotkeys[i]) {
-			char *hotkey_path = sdl_ui_hotkey_path(sdlkbd_ui_hotkeys[i]);
-			resources_buffer=realloc(resources_buffer, strlen(resources_buffer) + strlen (hotkey_path) + 17);
-			sprintf(resources_buffer + strlen(resources_buffer), "Hotkey=%d %s\n", i, hotkey_path);
-			lib_free(hotkey_path);
-		}
-	}
+}
+
+void resources_save_to_buf(char *name) {
+
+	free (resources_buffer);
+	resources_buffer=malloc(2);
+	*resources_buffer=0;
+
+	resources_add_to_buf(name);
 }
 
 /* Save all the resources into file `fname'.  If `fname' is NULL, save them
@@ -1456,6 +1440,7 @@ int resources_snapshot_write_module(snapshot_t *s, int save_settings)
 
     	// only save key mapping and hotkeys
 		resources_save_to_buf("KeyMappings");
+		resources_add_to_buf("HotKeys");
 		
 		if (SMW_STR(m, resources_buffer) < 0) {
 			lib_free(resources_buffer);
@@ -1485,7 +1470,7 @@ int resources_snapshot_read_module(snapshot_t *s)
         return 0;
     }
 
-    if (resources_buffer) lib_free(resources_buffer);
+    lib_free(resources_buffer);
 
 	if (SMR_STR(m, &resources_buffer) < 0) {
 	    snapshot_module_close(m);

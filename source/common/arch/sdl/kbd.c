@@ -64,6 +64,10 @@ static log_t sdlkbd_log = LOG_ERR;
 /* Hotkey filename */
 char *hotkeys_buffer = NULL;
 
+char *hotkeys_default_C64="208 Quit emulator|231 Autostart image|232 Misc&RUN/STOP + RESTORE|233 Machine settings&Joystick settings&Swap joystick ports|234 Speed settings&Warp mode|235 Reset&Hard|236 Snapshot&Quickload snapshot.vsf|237 Snapshot&Quicksave snapshot.vsf|238 Drive&True drive emulation|239 Misc&Power off bottom screen backlight|240 Pause|241 Drive&Attach disk image to drive 8|242 Video settings&Enable Sprite-Sprite collisions|243 Video settings&Enable Sprite-Background collisions|244 Misc&LOAD\"*\",8,1 RUN|245 Misc&LOAD\"$\",8 LIST|249 Machine settings&Mouse emulation&Enable mouse|250 Misc&Hide Border / Fullscreen";
+
+char *hotkeys_default_C128="208 Quit emulator|231 Autostart image|232 Misc&RUN/STOP + RESTORE|233 Machine settings&Joystick settings&Swap joystick ports|234 Speed settings&Warp mode|235 Reset&Hard|236 Snapshot&Quickload snapshot.vsf|237 Snapshot&Quicksave snapshot.vsf|238 Drive&True drive emulation|239 Misc&Power off bottom screen backlight|240 Video settings&Toggle VDC (80 cols)|241 Drive&Attach disk image to drive 8|242 Video settings&Enable Sprite-Sprite collisions|243 Video settings&Enable Sprite-Background collisions|244 Misc&LOAD\"*\",8,1 RUN|245 Misc&LOAD\"$\",8 LIST|248 Pause|249 Machine settings&Mouse emulation&Enable mouse|250 Misc&Hide Border / Fullscreen";
+
 /* Menu keys */
 int sdl_ui_menukeys[MENU_ACTION_NUM];
 
@@ -72,22 +76,69 @@ int sdl_ui_menukeys[MENU_ACTION_NUM];
 ui_menu_entry_t *sdlkbd_ui_hotkeys[SDLKBD_UI_HOTKEYS_MAX] = {NULL};
 
 /* ------------------------------------------------------------------------ */
-
 /* Resources.  */
-/*
-static int hotkey_file_set(const char *val, void *param)
-{
-#ifdef SDL_DEBUG
-    log_debug("%s: %s\n", __func__, val);
-#endif
 
-    if (util_string_set(&hotkey_file, val)) {
-        return 0;
+int save_hotkeys_to_resource() {
+	lib_free(hotkeys_buffer);
+	hotkeys_buffer=malloc(1);
+	hotkeys_buffer[0]=0;
+	int count=0;
+
+	// write the hotkeys
+	for (int i = 0; i < SDLKBD_UI_HOTKEYS_MAX; ++i) {
+		if (sdlkbd_ui_hotkeys[i]) {
+			char *hotkey_path = sdl_ui_hotkey_path(sdlkbd_ui_hotkeys[i]);
+			hotkeys_buffer=realloc(hotkeys_buffer, strlen(hotkeys_buffer) + strlen (hotkey_path) + 7);
+			sprintf(hotkeys_buffer + strlen(hotkeys_buffer), "%s%d %s", count++?"|":"", i, hotkey_path);
+			lib_free(hotkey_path);
+		}
+	}
+	return 0;
+}
+
+static int load_hotkeys_from_resource() {
+    char *p,*saveptr;
+    int keynum;
+    ui_menu_entry_t *action;
+
+	// cannot set the hotkeys when the menus are not initialized
+	if (sdlkbd_log == LOG_ERR || hotkeys_buffer==NULL) return 0;
+
+	char *buffer=lib_stralloc(hotkeys_buffer);
+    // clear hotkeys
+	for (int i = 0; i < SDLKBD_UI_HOTKEYS_MAX; ++i) {
+       sdlkbd_ui_hotkeys[i] = NULL;
     }
 
-    return sdlkbd_hotkeys_load(hotkey_file);
+	p = strtok_r(buffer, " \t:", &saveptr);
+	while (p) {
+		keynum = (int)strtol(p,NULL,10);
+
+		if (keynum >= SDLKBD_UI_HOTKEYS_MAX || keynum<1) {
+			log_error(sdlkbd_log, "Hotkey keynum not valid: %i!", keynum);
+			strtok_r(NULL, "|\r\n", &saveptr);
+		} else if ((p = strtok_r(NULL, "|\r\n", &saveptr)) != NULL) {
+			action = sdl_ui_hotkey_action(p);
+			if (action == NULL) {
+				log_warning(sdlkbd_log, "Cannot find menu item \"%s\"!", p);
+			} else {
+				sdlkbd_set_hotkey(keynum,0,action,0);
+			}
+		}
+		p = strtok_r(NULL, " \t:", &saveptr);
+	}
+	lib_free(buffer);
+	return 0;
 }
-*/
+
+static int hotkeys_resource_set(const char *val, void *param)
+{
+	if (util_string_set(&hotkeys_buffer, val)) {
+		return 0;
+	}
+	return load_hotkeys_from_resource();
+}
+
 static resource_string_t resources_string[] = {
 /*
 	{ "HotkeyFile", NULL, RES_EVENT_NO, NULL,
@@ -95,12 +146,19 @@ static resource_string_t resources_string[] = {
 */
 	{ "KeyMappings", KEYMAPPINGS_DEFAULT, RES_EVENT_NO, NULL,
       &keymap3ds_resource, keymap3ds_resource_set, NULL },
+	{ "HotKeys", "", RES_EVENT_NO, NULL,
+      &hotkeys_buffer, hotkeys_resource_set, NULL },
     RESOURCE_STRING_LIST_END
 };
 
 int sdlkbd_init_resources(void)
 {
-    if (resources_register_string(resources_string) < 0) {
+	if (machine_class == VICE_MACHINE_C64)
+		resources_string[1].factory_value = hotkeys_default_C64;
+	else if (machine_class == VICE_MACHINE_C128)
+		resources_string[1].factory_value = hotkeys_default_C128;
+
+	if (resources_register_string(resources_string) < 0) {
         return -1;
     }
     return 0;
@@ -108,7 +166,7 @@ int sdlkbd_init_resources(void)
 
 void sdlkbd_resources_shutdown(void)
 {
-    free(hotkeys_buffer);
+    lib_free(hotkeys_buffer);
     hotkeys_buffer = NULL;
 }
 
@@ -292,76 +350,12 @@ static ui_menu_entry_t *sdlkbd_get_hotkey(SDLKey key, SDLMod mod)
     return sdlkbd_ui_hotkeys[sdlkbd_key_mod_to_index(key, mod)];
 }
 
-void sdlkbd_set_hotkey(SDLKey key, SDLMod mod, ui_menu_entry_t *value)
+void sdlkbd_set_hotkey(SDLKey key, SDLMod mod, ui_menu_entry_t *value, int save)
 {
     sdlkbd_ui_hotkeys[sdlkbd_key_mod_to_index(key, mod)] = value;
+	if (save) save_hotkeys_to_resource();
 	// recalc the soft buttons just in case the mapping was done there
 	uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
-}
-
-void sdlkbd_hotkeys_clear(void)
-{
-    int i;
-
-    for (i = 0; i < SDLKBD_UI_HOTKEYS_MAX; ++i) {
-       sdlkbd_ui_hotkeys[i] = NULL;
-    }
-}
-
-void sdlkbd_parse_hotkey_entry(char *buffer)
-{
-    char *p;
-    char *full_path;
-    int keynum;
-    ui_menu_entry_t *action;
-
-	// If resource & cmdline init, buffer the entry for later consumption
-	if (sdlkbd_log == LOG_ERR) {
-		if (hotkeys_buffer)
-			hotkeys_buffer=realloc(hotkeys_buffer,strlen(hotkeys_buffer)+strlen(buffer)+2);
-		else { 
-			hotkeys_buffer=malloc(strlen(buffer)+2);
-			*hotkeys_buffer=0;
-		}
-		sprintf(hotkeys_buffer+strlen(hotkeys_buffer),"%s\n",buffer);
-		return;
-	}
-
-	// parse and consume the entry
-	p = strtok(buffer, " \t:");
-
-    keynum = atoi(p);
-
-    if (keynum >= SDLKBD_UI_HOTKEYS_MAX) {
-        log_error(sdlkbd_log, "Too large hotkey %i!", keynum);
-        return;
-    }
-
-    p = strtok(NULL, "\r\n");
-    if (p != NULL) {
-        full_path = lib_stralloc(p);
-        action = sdl_ui_hotkey_action(p);
-        if (action == NULL) {
-            log_warning(sdlkbd_log, "Cannot find menu item \"%s\"!", full_path);
-        } else {
-           sdlkbd_set_hotkey(keynum,0,action);
-        }
-        lib_free(full_path);
-    }
-}
-
-static void sdlkbd_hotkeys_load_from_buf() {
-	char *e,*b=hotkeys_buffer;
-	if (!b) return;
-	sdlkbd_hotkeys_clear();
-	while ((e=strchr(b,'\n'))!=NULL) {
-		*e=0;
-		sdlkbd_parse_hotkey_entry(b);
-		*e='\n';
-		b=e+1;
-	}
-	free(hotkeys_buffer);
-	hotkeys_buffer=NULL;
 }
 
 /* ------------------------------------------------------------------------ */
@@ -446,7 +440,7 @@ void kbd_arch_init(void)
     sdlkbd_log = log_open("SDLKeyboard");
 
 	// load hotkeys
-	sdlkbd_hotkeys_load_from_buf();
+	load_hotkeys_from_resource();
 }
 
 signed long kbd_arch_keyname_to_keynum(char *keyname)

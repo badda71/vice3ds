@@ -642,6 +642,7 @@ static unsigned char hashKey(char *key) {
 }
 
 static void *hash_get(char *key) {
+	if (key==NULL) return NULL;
 	int i=hashKey(key);
 	while (iconHash[i].key != NULL) {
 		if (strcmp(key,iconHash[i].key)==0) return iconHash[i].val;
@@ -651,6 +652,7 @@ static void *hash_get(char *key) {
 }
 
 static void hash_put(char *key, void *val) {
+	if (key==NULL) return;
 	int i=hashKey(key);
 	while (iconHash[i].key!=NULL && strcmp(iconHash[i].key,key)!=0) {
 		++i; i %= HASHSIZE;
@@ -778,6 +780,7 @@ static SDL_Surface *createIcon(char *name) {
 static SDL_Surface *sbuttons_getIcon(char *name) {
 //log_3ds("getIcon: %s",name);
 	SDL_Surface *img;
+	if (name==NULL) return NULL;
 	if ((img=hash_get(name))!=NULL) return img;
 	if ((img=loadIcon(name))==NULL &&
 		(img=createIcon(name))==NULL) return NULL;
@@ -787,14 +790,15 @@ static SDL_Surface *sbuttons_getIcon(char *name) {
 
 char *get_key_help(int key) {
 	ui_menu_entry_t *item;
-	char *r;
+	char *r=NULL;
 	r = get_3ds_mapping_name(key);
 	if (r == NULL && (item=sdlkbd_ui_hotkeys[key]) != NULL)
 		r = item->string;
-	return r ? r : "n/a";
+	return r;
 }
 
 static void printstring(SDL_Surface *s, const char *str, int x, int y, SDL_Color col) {
+	if (str==NULL) return;
 	int c;
 	SDL_SetPalette(chars, SDL_LOGPAL, &col, 1, 1);
 	for (int i=0; str[i]!=0 ; i++) {
@@ -826,7 +830,7 @@ static void sbuttons_recalc() {
 		if (sbutton_spr[x].w != 0 && name == sbutton_name[x]) continue; // already up to date
 		SDL_Surface *s = SDL_ConvertSurface(sb_img, sb_img->format, SDL_SWSURFACE);
 		SDL_SetAlpha(s, 0, 255);
-		if ((img = sbuttons_getIcon(name)) != NULL) {
+		if (name && (img = sbuttons_getIcon(name)) != NULL) {
 			SDL_BlitSurface(img, NULL, s, &(SDL_Rect){
 				.x = (s->w - img->w) / 2,
 				.y = (s->h - img->h) /2});

@@ -749,6 +749,8 @@ int video_resources_chip_init(const char *chipname,
                     = &((*canvas)->videoconfig->fullscreen_mode[i]);
                 resources_chip_fullscreen_mode[0].param
                     = (void *)resource_chip_mode;
+				if (strcmp(chipname,"VDC")==0)	// for 3DS (because screen is too small)
+	                resources_chip_fullscreen_mode[0].factory_value=1;
 
                 if (resources_register_int(resources_chip_fullscreen_mode) < 0) {
                     return -1;
@@ -766,6 +768,8 @@ int video_resources_chip_init(const char *chipname,
             resources_chip_fullscreen_int[0].value_ptr
                 = &((*canvas)->videoconfig->fullscreen_enabled);
             resources_chip_fullscreen_int[0].param = (void *)*canvas;
+			if (strcmp(chipname,"VDC")==0)	// for 3DS (because screen is too small)
+				resources_chip_fullscreen_int[0].factory_value=1;
 
             resources_chip_fullscreen_int[1].name
                 = util_concat(chipname, vname_chip_fullscreen[1], NULL);
