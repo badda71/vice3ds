@@ -89,8 +89,9 @@ LOGO			:=	$(TOPDIR)/$(META)/logo-padded.lz11
 ifeq (, $(shell which gm))
 	MKKBDPNG := cp -f
 else
-	MKKBDPNG := gm convert -fill white\
-		-font "Arial-Narrow" -draw "font-size 8;text 0,118 'v $(VERSION) by badda71';" -font "Arial" -draw "font-size 9;text 0,109 'vice3DS-$(VICETARGET)';"
+	MKKBDPNG := gm convert -fill white -font "Picopixel-Standard"\
+		-draw "font-size 8;text 3,109 'vice3DS - $(VICETARGET)';"\
+		-draw "font-size 8;text 3,116 'v$(VERSION) by badda71';"
 endif
 
 #---------------------------------------------------------------------------------
