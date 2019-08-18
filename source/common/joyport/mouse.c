@@ -977,7 +977,7 @@ int set_mouse_enabled(int val, void *param)
 	}
 
     _mouse_enabled = val ? 1 : 0;
-	uibottom_must_redraw |= UIB_REPAINT;
+	uibottom_must_redraw |= UIB_RECALC_KEYPRESS;
     mousedrv_mouse_changed();
     latest_x = (int16_t)mousedrv_get_x();
     last_mouse_x = latest_x;
