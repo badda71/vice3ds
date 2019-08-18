@@ -711,10 +711,16 @@ ui_menu_action_t ui_dispatch_events(void)
 	// check event queue
 	while (SDL_PollEvent(&e)) {
 
-		// deactivate touchscreen if applicable
-		if (_mouse_enabled && e.type == SDL_KEYDOWN && e.key.keysym.sym == 208) {
-			set_mouse_enabled(0, NULL);
-			continue;
+		// deactivate touchscreen/editmode if applicable
+		if (e.type == SDL_KEYDOWN && e.key.keysym.sym == 208) {
+			if (_mouse_enabled)	{
+				set_mouse_enabled(0, NULL);
+				continue;
+			}
+			if (uibottom_editmode_is_on()) {
+				uibottom_toggle_editmode();
+				continue;
+			}
 		}
 
 		if (!sdl_menu_state) do_3ds_mapping(&e); // apply 3ds-specific extra key mappings
@@ -773,7 +779,7 @@ ui_menu_action_t ui_dispatch_events(void)
     }
 #endif
 	// update bottom screen if needed (and vsync is not doing it)
-	if (uibottom_must_redraw && (sdl_menu_state || ui_emulation_is_paused()))
+	if (sdl_menu_state || ui_emulation_is_paused())
 		sdl_uibottom_draw();
 
     return retval;

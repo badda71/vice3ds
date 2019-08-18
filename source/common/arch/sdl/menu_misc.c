@@ -212,6 +212,16 @@ static UI_MENU_CALLBACK(toggle_hidekeyboard_callback)
 	return r ? sdl_menu_text_tick : NULL;
 }
 
+static UI_MENU_CALLBACK(toggle_editmode_callback)
+{
+	int r=uibottom_editmode_is_on();
+	if (activated) {
+		uibottom_toggle_editmode();
+		r=!r;
+	}
+	return r ? sdl_menu_text_tick : NULL;
+}
+
 static UI_MENU_CALLBACK(list_hotkeys_callback)
 {
 	int i,count=0,k;
@@ -271,6 +281,10 @@ const ui_menu_entry_t misc_menu[] = {
 	{ "Hide Border / Fullscreen",
 		MENU_ENTRY_OTHER_TOGGLE,
 		toggle_MaxScreen_callback,
+		NULL},
+	{ "Edit bottom screen button positions",
+		MENU_ENTRY_OTHER_TOGGLE,
+		toggle_editmode_callback,
 		NULL},
 	SDL_MENU_ITEM_SEPARATOR,
     SDL_MENU_ITEM_TITLE("Key mappings"),

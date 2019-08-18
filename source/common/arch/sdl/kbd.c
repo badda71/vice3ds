@@ -368,7 +368,7 @@ ui_menu_action_t sdlkbd_press(SDLKey key, SDLMod mod)
 #ifdef SDL_DEBUG
     log_debug("%s: %i (%s),%i\n", __func__, key, SDL_GetKeyName(key), mod);
 #endif
-    if (sdl_menu_state || (uibottom_kbdactive && key == 0)) {
+    if (sdl_menu_state) {
 		if (key != SDLK_UNKNOWN) {
             for (i = MENU_ACTION_UP; i < MENU_ACTION_NUM; ++i) {
                 if (sdl_ui_menukeys[i] == (int)key) {
@@ -403,22 +403,11 @@ ui_menu_action_t sdlkbd_press(SDLKey key, SDLMod mod)
 
 ui_menu_action_t sdlkbd_release(SDLKey key, SDLMod mod)
 {
-    ui_menu_action_t i, retval = MENU_ACTION_NONE_RELEASE;
+    ui_menu_action_t retval = MENU_ACTION_NONE_RELEASE;
 
 #ifdef SDL_DEBUG
     log_debug("%s: %i (%s),%i\n", __func__, key, SDL_GetKeyName(key), mod);
 #endif
-    if (uibottom_kbdactive && key == 0) {
-        if (key != SDLK_UNKNOWN) {
-            for (i = MENU_ACTION_UP; i < MENU_ACTION_NUM; ++i) {
-                if (sdl_ui_menukeys[i] == (int)key) {
-                    retval = i;
-                    break;
-                }
-            }
-        }
-        return retval + MENU_ACTION_NONE_RELEASE;
-    }
 
 	// autofire off
 	if (key == joykeys_autofire[0] && !sdl_menu_state) stop_autofire(0);

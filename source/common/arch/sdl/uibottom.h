@@ -32,6 +32,8 @@ extern int is_keyboard_hidden();
 extern void uibottom_shutdown(void);
 extern int uibottom_resources_init();
 extern void uibottom_resources_shutdown();
+extern int uibottom_editmode_is_on();
+extern void uibottom_toggle_editmode();
 
 // exposed definitions
 typedef struct {
@@ -54,5 +56,4 @@ enum bottom_action {
 
 // exposed variables
 extern uikbd_key *uikbd_keypos;
-extern int uibottom_kbdactive;
 extern volatile enum bottom_action uibottom_must_redraw;

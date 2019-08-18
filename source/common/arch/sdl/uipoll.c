@@ -105,11 +105,18 @@ SDL_Event sdl_ui_poll_event(const char *what, const char *target, int options, i
     /* TODO check if key/event is suitable */
     while (polling) {
         while (polling && SDL_PollEvent(&e)) {
-			// deactivate touchscreen if applicable
-			if (_mouse_enabled && e.type == SDL_KEYDOWN && e.key.keysym.sym == 208) {
-				set_mouse_enabled(0, NULL);
-				continue;
+			// deactivate touchscreen/editmode if applicable
+			if (e.type == SDL_KEYDOWN && e.key.keysym.sym == 208) {
+				if (_mouse_enabled)	{
+					set_mouse_enabled(0, NULL);
+					continue;
+				}
+				if (uibottom_editmode_is_on()) {
+					uibottom_toggle_editmode();
+					continue;
+				}
 			}
+
 			switch (e.type) {
                 case SDL_KEYDOWN:
 					if (e.key.keysym.sym == 255) {
@@ -146,8 +153,8 @@ SDL_Event sdl_ui_poll_event(const char *what, const char *target, int options, i
                     break;
             }
         }
-		// update bottom screen if needed
-		if (uibottom_must_redraw) sdl_uibottom_draw();
+		// update bottom screen
+		sdl_uibottom_draw();
 
 		SDL_Delay(20);
 
