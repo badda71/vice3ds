@@ -50,8 +50,6 @@ static UI_MENU_CALLBACK(custom_C64Model_callback)
     int model, selected;
 
     selected = vice_ptr_to_int(param);
-	// this deletes the whole screen - repaint my bottom screen
-	uibottom_must_redraw |= UIB_REPAINT;
 
     if (activated) {
         c64model_set(selected);

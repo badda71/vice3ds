@@ -293,7 +293,6 @@ uikbd_key *uikbd_keypos=NULL;
 
 // exposed variables
 volatile enum bottom_action uibottom_must_redraw = UIB_NO;
-int uibottom_must_update_key = -1;
 int bottom_lcd_on=1;
 
 // internal variables
@@ -340,9 +339,8 @@ static int sb_paintlast;
 // other stuff
 static int kb_y_pos = 0;
 static volatile int set_kb_y_pos = -10000;
-static int kb_activekey;
+static int kb_activekey=-1;
 static int sticky=0;
-static int keypressed=-1;
 static unsigned char keysPressed[256];
 static int editmode_on=0;
 
@@ -599,7 +597,7 @@ static void keypress_recalc() {
 		if (key<0 || uikbd_keypos[key].key==0) return;
 
 		state=0;
-		if (key == keypressed) state=1;
+		if (key == kb_activekey) state=1;
 		else if (uikbd_keypos[key].flags==1 && 
 			(item=sdlkbd_ui_hotkeys[uikbd_keypos[key].key]) != NULL &&
 			(item->type == MENU_ENTRY_RESOURCE_TOGGLE ||
@@ -981,7 +979,7 @@ void sdl_uibottom_draw(void)
 
 		// check if our internal state matches the SDL state
 		// (actually a stupid workaround for the issue that fullscreen sbutton does not unstick)
-		if (!_mouse_enabled && keypressed != -1 && !SDL_GetMouseState(NULL, NULL))
+		if (!_mouse_enabled && kb_activekey != -1 && !SDL_GetMouseState(NULL, NULL))
 			SDL_PushEvent( &(SDL_Event){ .type = SDL_MOUSEBUTTONUP });
 	}
 }
@@ -1064,7 +1062,6 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 					x <  k->x + k->w  &&
 					y >= k->y &&
 					y <  k->y + k->h) {
-//log_citra("drag button %d to sbutton %d",kb_activekey,sbutton_nr[i]);
 					drag_over=sbutton_nr[i];
 					break;
 				}
@@ -1080,33 +1077,32 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 
 	// buttonup
 	if (e->button.type == SDL_MOUSEBUTTONUP) {
+		if (kb_activekey==-1) return; // did not get the button down, so ignore button up
+		i=kb_activekey;
+		kb_activekey=-1;
 		if (dragging) {
 			// softbutton drop
-//log_citra("dropped sb at %d, %d", x, y);
 			dragging=0;
-			// swap icons: kb_activekey <-> drag_over
+			// swap icons: i <-> drag_over
 			void *p=alloc_copy(&(int[]){
 				0, 0, 2, // steps, delay, nr
 				(int)anim_callback, 0, // callback, callback_data
 				(int)anim_callback2, 0, // callback, callback_data
 				(int)(&(uikbd_keypos[drag_over].x)),
 					uikbd_keypos[drag_over].x,
-					uikbd_keypos[kb_activekey].x,
+					uikbd_keypos[i].x,
 				(int)(&(uikbd_keypos[drag_over].y)),
 					uikbd_keypos[drag_over].y,
-					uikbd_keypos[kb_activekey].y
+					uikbd_keypos[i].y
 			}, 13*sizeof(int));
 
-			uikbd_keypos[kb_activekey].x = uikbd_keypos[drag_over].x;
-			uikbd_keypos[kb_activekey].y = uikbd_keypos[drag_over].y;
+			uikbd_keypos[i].x = uikbd_keypos[drag_over].x;
+			uikbd_keypos[i].y = uikbd_keypos[drag_over].y;
 			sb_paintlast=drag_over;
 			start_worker(animate, p);
 			uibottom_must_redraw |= UIB_REPAINT;
 			return;
 		}
-		i=kb_activekey;
-		kb_activekey=-1;
-
 	// buttondown
 	} else {
 		if (!bottom_lcd_on) {
@@ -1130,45 +1126,40 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 					y <  uikbd_keypos[i].y + uikbd_keypos[i].h + kb_y_pos) break;
 			}
 		}
+		if (uikbd_keypos[i].key == 0) return;
 		kb_activekey=i;
-	}
-//if (i==1) {show_help();return;}
-	if (i != -1 && uikbd_keypos[i].key != 0) { // got a hit
-
+		
 		// start sbutton drag
 		if (editmode_on && uikbd_keypos[i].flags) {
 			dragging=1;
-			drag_over=kb_activekey;
+			drag_over=i;
 			dragx = x; dragy = y;
 			uibottom_must_redraw |= UIB_REPAINT;
 			return;
 		}
-
-		// sticky key press
-		if (uikbd_keypos[i].sticky>0) {
-			if (e->button.type == SDL_MOUSEBUTTONDOWN) {
-				sticky = sticky ^ uikbd_keypos[i].sticky;
-				sdl_e.type = sticky & uikbd_keypos[i].sticky ? SDL_KEYDOWN : SDL_KEYUP;
-				sdl_e.key.keysym.sym = uikbd_keypos[i].key;
-				sdl_e.key.keysym.unicode = 0;
-				SDL_PushEvent(&sdl_e);
-				uibottom_must_redraw |= UIB_RECALC_KEYBOARD;
-			}
-		
-		// normal key press
-		} else {
-			sdl_e.type = e->button.type == SDL_MOUSEBUTTONDOWN ? SDL_KEYDOWN : SDL_KEYUP;
-			sdl_e.key.keysym.sym = uikbd_keypos[i].key;
-			if ((sticky & 1) && uikbd_keypos[i].shift)
-				sdl_e.key.keysym.unicode = uikbd_keypos[i].shift;
-			else
-				sdl_e.key.keysym.unicode = sdl_e.key.keysym.sym;
-			uibottom_must_update_key=i;
-			uibottom_must_redraw |= UIB_RECALC_KEYPRESS;
-			SDL_PushEvent(&sdl_e);
-			keypressed = (e->button.type == SDL_MOUSEBUTTONDOWN) ? i : -1;
-		}
 	}
+
+	// sticky key press
+	if (uikbd_keypos[i].sticky>0) {
+		if (e->button.type == SDL_MOUSEBUTTONDOWN) {
+			sticky = sticky ^ uikbd_keypos[i].sticky;
+			sdl_e.type = sticky & uikbd_keypos[i].sticky ? SDL_KEYDOWN : SDL_KEYUP;
+			sdl_e.key.keysym.sym = uikbd_keypos[i].key;
+			sdl_e.key.keysym.unicode = 0;
+			SDL_PushEvent(&sdl_e);
+			uibottom_must_redraw |= UIB_RECALC_KEYBOARD;
+		}
+	} else {
+		// normal key press
+		sdl_e.type = e->button.type == SDL_MOUSEBUTTONDOWN ? SDL_KEYDOWN : SDL_KEYUP;
+		sdl_e.key.keysym.sym = uikbd_keypos[i].key;
+		if ((sticky & 1) && uikbd_keypos[i].shift)
+			sdl_e.key.keysym.unicode = uikbd_keypos[i].shift;
+		else
+			sdl_e.key.keysym.unicode = sdl_e.key.keysym.sym;
+		SDL_PushEvent(&sdl_e);
+	}
+	uibottom_must_redraw |= UIB_RECALC_KEYPRESS;
 }
 
 static int kb_hidden=-1;
@@ -1256,12 +1247,11 @@ void uibottom_toggle_editmode() {
 
 	if (editmode_on) {
 		_mouse_enabled=mouse;
-		kb_activekey=-1;
 		editmode_on=0;
 	} else {
 		mouse=_mouse_enabled;
 		_mouse_enabled=0;
 		editmode_on=1;
 	}
-	uibottom_must_redraw |= UIB_REPAINT;
+	uibottom_must_redraw |= UIB_RECALC_KEYPRESS;
 }

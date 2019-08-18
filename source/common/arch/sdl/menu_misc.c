@@ -126,7 +126,7 @@ static UI_MENU_CALLBACK(toggle_MaxScreen_callback)
 		}	
 		app_pause=false;
 		// update keypresses on bottom screen in case we have anything mapped
-		uibottom_must_redraw |= UIB_REPAINT;
+		uibottom_must_redraw |= UIB_RECALC_KEYPRESS;
 	}
 	return r ? sdl_menu_text_tick : NULL;
 }
