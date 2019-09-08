@@ -844,7 +844,6 @@ static void sbuttons_recalc() {
 			SDL_BlitSurface(img, NULL, s, &(SDL_Rect){
 				.x = (s->w - img->w) / 2,
 				.y = (s->h - img->h) /2});
-			SDL_FreeSurface(img);
 		}
 		makeImage(&(sbutton_spr[x]), s->pixels, s->w, s->h, 0);
 		sbutton_name[x]=name;
