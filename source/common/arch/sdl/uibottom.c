@@ -44,6 +44,7 @@
 #include "menu_common.h"
 #include "mousedrv.h"
 #include "util.h"
+#include "sysfile.h"
 #include "resources.h"
 #include "lib.h"
 #include <SDL/SDL_image.h>
@@ -676,15 +677,16 @@ static void hash_put(char *key, void *val) {
 static SDL_Surface *loadIcon(char *name) {
 	char s[100];
 	int i;
-	for(i=0; i<95 && name[i]!=0; ++i) {
-		s[i]=isalnum((int)(name[i]))?name[i]:'_';
+	strcpy(s,"ICON_");
+	for(i=0; i<90 && name[i]!=0; ++i) {
+		s[i+5]=isalnum((int)(name[i]))?name[i]:'_';
 	}
-	strcpy(s+i,".png");
+	strcpy(s+i+5,".png");
 	
-	char *fn=archdep_join_paths(archdep_xdg_data_home(),"icons",s,NULL);
-//log_3ds("loadIcon: %s",fn);
-	SDL_Surface *r=IMG_Load(fn);
-	lib_free(fn);
+//log_3ds("loadIcon: %s",s);
+	SDL_Surface *r=NULL;
+	FILE *fp=sysfile_open(s,NULL,"r");
+	if (fp) r=IMG_Load_RW(SDL_RWFromFP(fp,1),1);
 	return r;
 }
 

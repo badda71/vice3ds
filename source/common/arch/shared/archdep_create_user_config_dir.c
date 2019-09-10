@@ -32,8 +32,6 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#include <3ds.h>
-#include <dirent.h>
 
 #include "lib.h"
 #include "log.h"
@@ -41,9 +39,7 @@
 #include "archdep_home_path.h"
 #include "archdep_join_paths.h"
 #include "archdep_mkdir.h"
-#include "archdep_user_config_path.h"
-#include "archdep_cp.h"
-#include "util.h"
+#include "archdep_xdg.h"
 
 #ifdef ARCHDEP_OS_UNIX
 # include <sys/stat.h>
@@ -51,74 +47,18 @@
 #endif
 
 #include "archdep_create_user_config_dir.h"
-#include "archdep_xdg.h"
 
-static int numfiles=100;
-
-static int copied=0;
-static void copy_callback() {
-	if (copied==0) {
-	    gfxInitDefault();
-	    consoleInit(GFX_BOTTOM, NULL);
-	}
-	int i=(40*++copied)/numfiles;
-	printf("\x1b[0;0H\x1b[47;30m%*s", i, "");	
-	if (copied==numfiles) {
-		copied=0;
-		gfxExit();
-	}
-}
-
-static int countfiles(char *path) {
-	DIR *dir_ptr = NULL;
-    struct dirent *direntp;
-	char *npath;
-	if (!path) return 0;
-	if( (dir_ptr = opendir(path)) == NULL ) return 0;
-
-	int count=0;
-	while( (direntp = readdir(dir_ptr)))
-	{
-		if (strcmp(direntp->d_name,".")==0 ||
-			strcmp(direntp->d_name,"..")==0) continue;
-		switch (direntp->d_type) {
-			case DT_REG:
-				count++;
-				break;
-			case DT_DIR:			
-				npath=util_concat(path, "/", direntp->d_name, NULL);
-				count += countfiles(npath);
-				lib_free(npath);
-				break;
-		}
-	}
-	closedir(dir_ptr);
-	return count;
-}
+#define MKDIRMOD 0644
 
 void archdep_create_user_config_dir(void)
 {
-    // create user config directory and unpack default config files
-	// from romfs if necessary (do not overwrite)
+    char *cfg = archdep_xdg_data_home();
 
-	char *cfg = archdep_user_config_path();
-	int i;
-
-	numfiles=countfiles("romfs:/config")+countfiles("romfs:/icons");
-	
-	i=xcopy("romfs:/config",cfg,0, &copy_callback);
-    if (i != 0) {
-        log_error(LOG_ERR, "failed to copy user config dir '%s': %d: %s.",
+	if (archdep_mkdir(cfg, MKDIRMOD) == 0) {
+        return;     /* we created the dir */
+    } else if (errno != EEXIST) {
+		log_error(LOG_ERR, "failed to create user config dir '%s': %d: %s.",
                 cfg, errno, strerror(errno));
         archdep_vice_exit(1);
-	}		
-   
-	cfg=archdep_join_paths(archdep_xdg_data_home(),"icons",NULL);
-	i=xcopy("romfs:/icons",cfg,0, &copy_callback);
-	lib_free(cfg);
-    if (i != 0) {
-        log_error(LOG_ERR, "failed to copy icons dir '%s': %d: %s.",
-                cfg, errno, strerror(errno));
-        archdep_vice_exit(1);
-	}
+    }
 }

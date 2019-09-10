@@ -28,7 +28,7 @@
 #include <string.h>
 #include "log.h"
 #include "persistence.h"
-#include "archdep_user_config_path.h"
+#include "archdep_xdg.h"
 #include "archdep_join_paths.h"
 
 static char **data=NULL;
@@ -103,7 +103,7 @@ static void persistence_fini() {
 
 static void persistence_init() {
 	// what is my filename?
-	filename = archdep_join_paths(archdep_user_config_path(), "persistence", NULL);
+	filename = archdep_join_paths(archdep_xdg_data_home(), "persistence", NULL);
 	persistence_isinit=1;
 
 	atexit(persistence_fini);

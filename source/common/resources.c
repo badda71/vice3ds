@@ -58,6 +58,7 @@
 #include "sysfile.h"
 #include "archdep_defs.h"
 #include "archdep_user_config_path.h"
+#include "archdep_mkdir.h"
 #include "snapshot.h"
 
 #ifdef VICE_DEBUG_RESOURCES
@@ -1295,6 +1296,8 @@ int resources_save(const char *fname)
 	    char *cfg = archdep_user_config_path();
 	    default_name = archdep_join_paths(cfg, ARCHDEP_VICERC_NAME, NULL);
         fname = default_name;
+		/* create the config directory if necessary */
+		archdep_mkdir(cfg, 0755);
 	}
 
     /* make a backup of an existing config, open it */

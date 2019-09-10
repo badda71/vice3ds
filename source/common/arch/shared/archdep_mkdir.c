@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #ifdef AMIGA_SUPPORT
 /* includes? */
@@ -47,11 +48,12 @@
 
 #include "archdep_atexit.h"
 #include "log.h"
+#include "lib.h"
 
 #include "archdep_mkdir.h"
 
 
-/** \brief  Create a directory \a pathname with \a mode
+/** \brief  Recursively create a directory \a pathname with \a mode
  *
  * \param[in]   pathname    directory to create
  * \param[in]   mode        access mode of directory (ignored on some systems)
@@ -60,17 +62,18 @@
  */
 int archdep_mkdir(const char *pathname, int mode)
 {
-#if defined(AMIGA_SUPPORT) || defined(BEOS_COMPILE) || defined(UNIX_COMPILE)
-    return mkdir(pathname, (mode_t)mode);
-#elif defined(OS2_COMPILE)
-    return mkdir(pathname); /* appears to need char*, let's see how long it
-                               takes for an OS/2 user to notice this */
-#elif defined(WIN32_COMPILE)
-    return _mkdir(pathname);
-#else
-    log_error(LOG_ERR,
-            "%s(): not implemented for current system, whoops!\n",
-            __func__);
-    archdep_vice_exit(1);
-#endif
+    char *c=lib_stralloc(pathname);
+	for (char* p = strchr(c + 1, '/'); p; p = strchr(p + 1, '/')) {
+        *p = '\0';
+        if (mkdir(c, mode) == -1) {
+            if (errno != EEXIST) {
+                *p = '/';
+                lib_free(c);
+				return -1;
+            }
+        }
+        *p = '/';
+    }
+	lib_free(c);
+	return mkdir(pathname, mode);
 }

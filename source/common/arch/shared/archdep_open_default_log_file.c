@@ -30,7 +30,7 @@
 
 #include "archdep_defs.h"
 #include "archdep_join_paths.h"
-#include "archdep_user_config_path.h"
+#include "archdep_xdg.h"
 #include "lib.h"
 #include "log.h"
 #ifdef UNIX_COMPILE
@@ -56,7 +56,7 @@ FILE *archdep_open_default_log_file(void)
 #ifdef UNIX_COMPILE
     if (!isatty(fileno(fp))) {
 #endif
-        path = archdep_join_paths(archdep_user_config_path(), "vice.log", NULL);
+        path = archdep_join_paths(archdep_xdg_data_home(), "vice.log", NULL);
         fp = fopen(path, "w");
         if (fp == NULL) {
             log_error(LOG_ERR,

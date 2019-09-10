@@ -123,19 +123,18 @@ static UI_MENU_CALLBACK(default_settings_callback)
     return NULL;
 }
 
-static UI_MENU_CALLBACK(all_default_settings_callback)
+static UI_MENU_CALLBACK(copy_config_callback)
 {
 	if (activated) {
-		// copy the complete config directory to SD-card and restart
-		if (message_box("VICE QUESTION", "Do you really want to restore all default settings?\nThis will overwrite all config files and restart vice.", MESSAGE_YESNO) != 0) {
-            return NULL;
-        }
-
-		if (xcopy("romfs:/config", archdep_user_config_path(), 1, NULL)==0) {
-			ui_message("All default settings restored - please restart VICE");
-			archdep_vice_exit(0);
-		} else {
-			ui_message("Default settings could not be restored");
+		// copy the complete config directory to SD-card
+		int nooverwrite = message_box("VICE QUESTION", "Overwrite existing config files?", MESSAGE_YESNO);
+		if (nooverwrite != -1) {
+			if (xcopy("romfs:/config", archdep_user_config_path(), nooverwrite?0:1, NULL)==0) {
+				ui_message(nooverwrite?"Config files copied to SD card not overwriting old files":
+					"Config files copied to SD card overwriting old files. Please restart VICE for changes to take effect.");
+			} else {
+				ui_message("Could not copy config files to SD card");
+			}
 		}
     }
     return NULL;
@@ -530,9 +529,9 @@ ui_menu_entry_t settings_manager_menu[] = {
       MENU_ENTRY_OTHER,
       default_settings_callback,
       NULL },
-    { "Restore ALL default settings",
+    { "Copy all config files to SD card",
       MENU_ENTRY_OTHER,
-      all_default_settings_callback,
+      copy_config_callback,
       NULL },
     SDL_MENU_ITEM_SEPARATOR,
     SDL_MENU_ITEM_TITLE("Actions on exit"),
@@ -646,9 +645,9 @@ ui_menu_entry_t settings_manager_menu_vsid[] = {
       MENU_ENTRY_OTHER,
       default_settings_callback,
       NULL },
-    { "Restore ALL default settings",
+    { "Copy all config files to SD card",
       MENU_ENTRY_OTHER,
-      all_default_settings_callback,
+      copy_config_callback,
       NULL },
     SDL_MENU_ITEM_SEPARATOR,
     SDL_MENU_ITEM_TITLE("Actions on exit"),

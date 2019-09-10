@@ -55,7 +55,7 @@
  */
 static char *sysfile_path = NULL;
 
-#define SYSFILE_PATH_MAXlEN 100
+#define SYSFILE_PATH_MAXlEN 200
 
 /** \brief  Generate a list of search paths for VICE system files
  *
@@ -67,7 +67,7 @@ char *archdep_default_sysfile_pathlist(const char *emu_id)
 {
     
 	sysfile_path=malloc(SYSFILE_PATH_MAXlEN);
-	snprintf(sysfile_path,SYSFILE_PATH_MAXlEN,"/3ds/vice3ds/config;/3ds/vice3ds/config/%s",emu_id);
+	snprintf(sysfile_path,SYSFILE_PATH_MAXlEN,"/3ds/vice3ds/config/%s;/3ds/vice3ds/config;romfs:/config/%s;romfs:/config",emu_id,emu_id);
 
     /* sysfile.c appears to free() this (ie TODO: fix sysfile.c) */
     return lib_stralloc(sysfile_path);
