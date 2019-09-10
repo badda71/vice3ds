@@ -158,7 +158,7 @@ static sound_register_devices_t sound_register_devices[] = {
        since the list will be searched top-down, and the dummy driver always
        works, no files will be created accidently */
     { "dummy", sound_init_dummy_device, SOUND_PLAYBACK_DEVICE },
-
+/* 3DS
     { "fs", sound_init_fs_device, SOUND_RECORD_DEVICE },
     { "dump", sound_init_dump_device, SOUND_RECORD_DEVICE },
     { "wav", sound_init_wav_device, SOUND_RECORD_DEVICE },
@@ -179,7 +179,8 @@ static sound_register_devices_t sound_register_devices[] = {
 #endif
 
     { "soundmovie", sound_init_movie_device, SOUND_RECORD_DEVICE },
-    { NULL, NULL, 0 }
+*/
+	{ NULL, NULL, 0 }
 };
 
 /* ------------------------------------------------------------------------- */
