@@ -92,11 +92,7 @@ static int init_done = 0;
 /* This is the main program entry point.  Call this from `main()'.  */
 int main_program(int argc, char **argv)
 {
-    int i, n;
-    const char *program_name;
     int ishelp = 0;
-    char term_tmp[TERM_TMP_SIZE];
-    size_t name_len;
 
     // set 804 MHz
 	osSetSpeedupEnable(1);
@@ -163,59 +159,17 @@ int main_program(int argc, char **argv)
         return -1;
     }
 
-    program_name = archdep_program_name();
-
     /* VICE boot sequence.  */
     log_message(LOG_DEFAULT, " ");
-#ifdef USE_SVN_REVISION
-    log_message(LOG_DEFAULT, "*** VICE Version %s, rev %s ***", VERSION, VICE_SVN_REV_STRING);
-#else
-    log_message(LOG_DEFAULT, "*** VICE Version %s ***", VERSION);
-#endif
+    log_message(LOG_DEFAULT, "*** Vice3DS Version %s ***", VERSION3DS);
+    log_message(LOG_DEFAULT, "*** based on VICE Version %s ***", VERSION);
     log_message(LOG_DEFAULT, " ");
-    if (machine_class == VICE_MACHINE_VSID) {
-        log_message(LOG_DEFAULT, "Welcome to %s, the free portable SID Player.",
-                    program_name);
-    } else {
-        log_message(LOG_DEFAULT, "Welcome to %s, the free portable %s Emulator.",
-                    program_name, machine_name);
-    }
-    log_message(LOG_DEFAULT, " ");
-
-    log_message(LOG_DEFAULT, "Current VICE team members:");
-    n = 0; *term_tmp = 0;
-    for (i = 0; core_team[i].name != NULL; i++) {
-        name_len = strlen(core_team[i].name);
-        /* XXX: reject names that will never fit, for now */
-        if ((int)name_len + 3 > TERM_TMP_SIZE) {
-            log_warning(LOG_DEFAULT, "%s:%d: name '%s' too large for buffer",
-                    __FILE__, __LINE__, core_team[i].name);
-            break;  /* this will still write out whatever was in the buffer */
-        }
-
-        if (n + (int)name_len + 3 > TERM_TMP_SIZE) {    /* +3 for ", \0" */
-            log_message(LOG_DEFAULT, "%s", term_tmp);
-            strcpy(term_tmp, core_team[i].name);
-            n = (int)name_len;
-        } else {
-            strcat(term_tmp, core_team[i].name);
-            n += (int)name_len;
-        }
-        if (core_team[i + 1].name == NULL) {
-            strcat(term_tmp, ".");
-        } else {
-            strcat(term_tmp, ", ");
-            n += 2;
-        }
-    }
-    log_message(LOG_DEFAULT, "%s", term_tmp);
-
+    log_message(LOG_DEFAULT, "Welcome to Vice3DS, the free portable %s Emulator for Nintendo 3DS.", machine_name);
+    log_message(LOG_DEFAULT, "Ported by badda71 <me@badda.de>");
     log_message(LOG_DEFAULT, " ");
     log_message(LOG_DEFAULT, "This is free software with ABSOLUTELY NO WARRANTY.");
-    log_message(LOG_DEFAULT, "See the \"About VICE\" command for more info.");
+    log_message(LOG_DEFAULT, "See the \"Help\" menu for more info.");
     log_message(LOG_DEFAULT, " ");
-
-    /* lib_free(program_name); */
 
     /* Complete the GUI initialization (after loading the resources and
        parsing the command-line) if necessary.  */
