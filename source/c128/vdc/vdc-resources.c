@@ -109,7 +109,7 @@ static const resource_int_t resources_int[] =
       &vdc_resources.vdc_64kb_expansion, set_64kb_expansion, NULL },
     { "VDCRevision", VDC_REVISION_2, RES_EVENT_SAME, NULL,
       (int *)&vdc.revision, set_vdc_revision, NULL },
-    { "VDCStretchVertical", 1, RES_EVENT_SAME, NULL,
+    { "VDCStretchVertical", 0, RES_EVENT_SAME, NULL,
       &vdc_resources.stretchy, set_stretch, NULL },
     RESOURCE_INT_LIST_END
 };

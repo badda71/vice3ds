@@ -358,7 +358,7 @@ static const resource_string_t resources_string[] = {
 #define SDLCUSTOMWIDTH_DEFAULT   400
 #define SDLCUSTOMHEIGHT_DEFAULT  240
 #define SDLCUSTOMWIDTH_DEFAULT_128   640
-#define SDLCUSTOMHEIGHT_DEFAULT_128  400
+#define SDLCUSTOMHEIGHT_DEFAULT_128  200
 #endif
 
 static resource_int_t resources_int[] = {
