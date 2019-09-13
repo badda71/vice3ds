@@ -22,7 +22,7 @@ INCLUDES := $(addprefix -I,$(shell find $(SRCDIR) -type d))\
 	-I./include/SDL\
 	-I./build
 
-CFLAGS := -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -O2 -mword-relocations -ffunction-sections -fdata-sections -D_3DS -D_GNU_SOURCE=1 -DARM11 -Wall
+CFLAGS := -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -O2 -mword-relocations -ffunction-sections -fdata-sections -D_3DS -D_GNU_SOURCE=1 -DARM11 -Wall -ffast-math -std=gnu11
 DEPFLAGS = -MT $@ -MMD -MP -MF $(ODIR)/$*.Td
 POSTCOMPILE = @mv -f $(ODIR)/$*.Td $(ODIR)/$*.d && touch $@
 
