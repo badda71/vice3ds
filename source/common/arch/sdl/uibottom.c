@@ -615,11 +615,14 @@ static void keypress_recalc() {
 // set up the colkey sprites and the positions relative to keyboard origin
 static void keyboard_recalc() {
 	static int oldkb = -1;
+	static void *pal=NULL;
 	u8 r=0,g=0,b=0;
 
 	int kb = (sticky&7) == 2 ? 8: 0;
-	if (kb!=oldkb) {
+	if (kb!=oldkb || pal != sdl_active_canvas->palette->entries) {
 		oldkb=kb;
+		pal=sdl_active_canvas->palette->entries;
+
 		// color keys "1"-"8" (49-56)
 		for (int i = 0; uikbd_keypos[i].key != 0 ; ++i) {
 			int k=uikbd_keypos[i].key-49;
