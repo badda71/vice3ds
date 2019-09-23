@@ -619,9 +619,10 @@ static void keyboard_recalc() {
 	u8 r=0,g=0,b=0;
 
 	int kb = (sticky&7) == 2 ? 8: 0;
-	if (kb!=oldkb || pal != sdl_active_canvas->palette->entries) {
+
+	if (kb!=oldkb || pal == NULL || pal != sdl_active_canvas->palette->entries) {
 		oldkb=kb;
-		pal=sdl_active_canvas->palette->entries;
+		if (sdl_active_canvas->palette) pal=sdl_active_canvas->palette->entries;
 
 		// color keys "1"-"8" (49-56)
 		for (int i = 0; uikbd_keypos[i].key != 0 ; ++i) {
