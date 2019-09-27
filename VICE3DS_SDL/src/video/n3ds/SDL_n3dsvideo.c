@@ -107,9 +107,11 @@ void drawTexture( int x, int y, int width, int height, float left, float right, 
 
 // video thread variables and functions
 volatile bool runThread = false;
-Handle privateVideoThreadRequest;
+Handle privateSem1;
 Thread privateVideoThreadHandle = NULL;
 static void videoThread(void* data);
+static void (*addDrawCallback)(void *)=NULL;
+static void *addDrawParam=NULL;
 extern volatile bool app_pause;
 extern volatile bool app_exiting;
 
@@ -354,7 +356,6 @@ int hh= next_pow2(height);
 // if there is a video thread running, stop and free it
 	runThread = false;
 	if (privateVideoThreadHandle) {
-		svcSignalEvent(privateVideoThreadRequest);
 		threadJoin(privateVideoThreadHandle, U64_MAX);
 		privateVideoThreadHandle = NULL;
 	}
@@ -466,8 +467,8 @@ int hh= next_pow2(height);
 //	C3D_TexBind(0, &spritesheet_tex);
 	
 	runThread = true;
-	svcCreateEvent(&privateVideoThreadRequest,0);
- // ctrulib sys threads uses 0x18, so we use a lower priority, but higher than any other SDL thread
+	svcCreateSemaphore(&privateSem1, 1, 255);
+// ctrulib sys threads uses 0x18, so we use a lower priority, but higher than any other SDL thread
 	privateVideoThreadHandle = threadCreate(videoThread, (void *) this, STACKSIZE, 0x19, -2, true);
 	this->hidden->currentVideoSurface = current; 
 	/* We're done */
@@ -498,65 +499,55 @@ static void N3DS_UnlockHWSurface(_THIS, SDL_Surface *surface)
 
 static unsigned int RenderClearColor;
 
+void SDL_RequestCall(void(*callback)(void*), void *param) {
+	addDrawCallback=callback;
+	addDrawParam=param;
+}
+
 static void videoThread(void* data)
 {
     _THIS = (SDL_VideoDevice *) data;
+	s32 i;
 
-	do {
-		if(!app_pause && !app_exiting) { 
-//			if (C3D_FrameBegin(C3D_FRAME_SYNCDRAW)){ 
-			if (C3D_FrameBegin(C3D_FRAME_NONBLOCK)){ 
-				if (this->hidden->screens & SDL_TOPSCR) {
-					C3D_RenderTargetClear(VideoSurface1, C3D_CLEAR_ALL, RenderClearColor, 0);
-					C3D_FrameDrawOn(VideoSurface1);
-					C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, &projection);
+	while(runThread) {
+		if(!app_pause && !app_exiting) {
+			if (C3D_FrameBegin(C3D_FRAME_NONBLOCK)){
+//				if (C3D_FrameBegin(C3D_FRAME_SYNCDRAW)){
+				// Update the uniforms
+				C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, &projection2);
+				C3D_RenderTargetClear(VideoSurface1, C3D_CLEAR_ALL, RenderClearColor, 0);
+				C3D_FrameDrawOn(VideoSurface1);
+				svcWaitSynchronization(privateSem1, U64_MAX);
+					C3D_TexBind(0, &spritesheet_tex);
 					drawTexture((400-this->hidden->w1*this->hidden->scalex)/2,(240-this->hidden->h1*this->hidden->scaley)/2, this->hidden->w1*this->hidden->scalex, this->hidden->h1*this->hidden->scaley, this->hidden->l1, this->hidden->r1, this->hidden->t1, this->hidden->b1);  
-				}
-				if (this->hidden->screens & SDL_BOTTOMSCR) {
-					C3D_RenderTargetClear(VideoSurface2, C3D_CLEAR_ALL, RenderClearColor, 0);
-					C3D_FrameDrawOn(VideoSurface2);
-					C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, &projection2);
-					if (this->hidden->fitscreen & SDL_FITWIDTH)
-						drawTexture(0,(240-this->hidden->h2*this->hidden->scaley)/2, this->hidden->w2*this->hidden->scalex, this->hidden->h2*this->hidden->scaley, this->hidden->l2, this->hidden->r2, this->hidden->t2, this->hidden->b2);  
-					else
-						drawTexture((400-this->hidden->w2*this->hidden->scalex*1.25)/2,(240-this->hidden->h2*this->hidden->scaley)/2, this->hidden->w2*this->hidden->scalex*1.25, this->hidden->h2*this->hidden->scaley, this->hidden->l2, this->hidden->r2, this->hidden->t2, this->hidden->b2);  
-				}
-				C3D_FrameEnd(0);
-			} 
-		} 
+				svcReleaseSemaphore(&i, privateSem1, 1);
 
-		svcWaitSynchronization(privateVideoThreadRequest, U64_MAX);
-		svcClearEvent(privateVideoThreadRequest);
-	} while(runThread); 
+				if (addDrawCallback) addDrawCallback(addDrawParam);
+			
+				C3D_FrameEnd(0);
+			}
+		}
+		gspWaitForVBlank();
+	}
 	threadExit(0);
 }
 
 static void drawBuffers(_THIS)
 {
-	
-	
-	
 	if(this->hidden->buffer) {
-
+		s32 i;
 		if(app_pause || app_exiting) return; // Blocking video output if the application is closing 
 	
-		GSPGPU_FlushDataCache(this->hidden->buffer, this->hidden->w*this->hidden->h*this->hidden->byteperpixel);
+		// next part needs to be synchronized with the videoThread
+		// because it is not possible to write a texture and draw it at the same time
+		svcWaitSynchronization(privateSem1, U64_MAX);
 
-		C3D_SyncDisplayTransfer ((u32*)this->hidden->buffer, GX_BUFFER_DIM(this->hidden->w, this->hidden->h), (u32*)spritesheet_tex.data, GX_BUFFER_DIM(this->hidden->w, this->hidden->h), textureTranferFlags[this->hidden->mode]);
+			// Convert image to 3DS tiled texture format
+			GSPGPU_FlushDataCache(this->hidden->buffer, this->hidden->w*this->hidden->h*4);
+			C3D_SyncDisplayTransfer ((u32*)this->hidden->buffer, GX_BUFFER_DIM(this->hidden->w,this->hidden->h), (u32*)(spritesheet_tex.data), GX_BUFFER_DIM(this->hidden->w,this->hidden->h), textureTranferFlags[this->hidden->mode]);
+			GSPGPU_FlushDataCache(spritesheet_tex.data, this->hidden->w*this->hidden->h*4);
 
-		GSPGPU_FlushDataCache(spritesheet_tex.data, this->hidden->w*this->hidden->h*this->hidden->byteperpixel);
-
-		C3D_TexBind(0, &spritesheet_tex);
-		// Configure the first fragment shading substage to just pass through the texture color
-		// See https://www.opengl.org/sdk/docs/man2/xhtml/glTexEnv.xml for more insight
-		C3D_TexEnv* env = C3D_GetTexEnv(0);
-		C3D_TexEnvInit(env);
-		C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, 0, 0);
-		
-		C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
-
-		gspWaitForVBlank();
-		svcSignalEvent(privateVideoThreadRequest); 
+		svcReleaseSemaphore(&i, privateSem1, 1);
 	}
 }
 
@@ -647,7 +638,6 @@ void N3DS_VideoQuit(_THIS)
 {
 	if (privateVideoThreadHandle) {
 		runThread = false;
-		svcSignalEvent(privateVideoThreadRequest);
 		threadJoin(privateVideoThreadHandle, U64_MAX);
 		privateVideoThreadHandle = NULL;
 	}
@@ -731,7 +721,14 @@ static void sceneInit(GSPGPU_FramebufferFormats mode, bool scale) {
 		C3D_RenderTargetSetOutput(VideoSurface2, GFX_BOTTOM, GFX_LEFT, displayTranferFlags[mode] | GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO));
 
 	// Configure depth test to overwrite pixels with the same depth (needed to draw overlapping sprites)
-//	C3D_DepthTest(true, GPU_GEQUAL, GPU_WRITE_ALL);
+	C3D_DepthTest(true, GPU_GEQUAL, GPU_WRITE_ALL);
+
+	// Configure the first fragment shading substage to just pass through the texture color
+	// See https://www.opengl.org/sdk/docs/man2/xhtml/glTexEnv.xml for more insight
+	C3D_TexEnv* env = C3D_GetTexEnv(0);
+	C3D_TexEnvInit(env);
+	C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, 0, 0);
+	C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
 }
 
 //---------------------------------------------------------------------------------

@@ -350,6 +350,7 @@ static int editmode_on=0;
 extern C3D_Mtx projection2;
 extern C3D_RenderTarget* VideoSurface2;
 extern int uLoc_projection;
+extern Handle privateSem1;
 
 int sintable[32]={0,6,12,18,23,27,30,31,32,31,30,27,23,18,12,6,0,-6,-12,-18,-23,-27,-30,-31,-32,-31,-30,-27,-23,-18,-12,-6};
 
@@ -409,20 +410,20 @@ static void makeImage(DS3_Image *img, u8 *pixels, unsigned w, unsigned h, int no
 	img->fw=(float)(w)/hw;
 	unsigned hh=mynext_pow2(h);
 	img->fh=(float)(h)/hh;
-	
-	// GX_DisplayTransfer needs input buffer in linear RAM
-	u8 *gpusrc = linearAlloc(hw*hh*4);
-	memset(gpusrc,0,hw*hh*4);
+	s32 i;
 
-	// copy to linear buffer, convert from RGBA to ABGR if needed
-	u8* src=pixels; u8 *dst;
-	unsigned pitch=w*4;
-	for(int y = 0; y < h; y++) {
-		dst=gpusrc+y*hw*4;
-		if (noconv) {
-			memcpy(dst,src,pitch);
-			src+=pitch;
-		} else {
+	u8 *gpusrc;
+	if (noconv) { // pixels are already in a transferable format (buffer in linear RAM, ABGR pixel format, pow2-dimensions)
+		gpusrc = pixels;
+	} else {
+		// GX_DisplayTransfer needs input buffer in linear RAM
+		gpusrc = linearAlloc(hw*hh*4);
+		memset(gpusrc,0,hw*hh*4);
+
+		// copy to linear buffer, convert from RGBA to ABGR
+		u8* src=pixels; u8 *dst;
+		for(int y = 0; y < h; y++) {
+			dst=gpusrc+y*hw*4;
 			for (int x=0; x<w; x++) {
 				int r = *src++;
 				int g = *src++;
@@ -437,7 +438,10 @@ static void makeImage(DS3_Image *img, u8 *pixels, unsigned w, unsigned h, int no
 		}
 	}
 
+	svcWaitSynchronization(privateSem1, U64_MAX);
+
 	// init texture
+	C3D_TexDelete(&(img->tex));
 	C3D_TexInit(&(img->tex), hw, hh, GPU_RGBA8);
 	C3D_TexSetFilter(&(img->tex), GPU_NEAREST, GPU_NEAREST);
 
@@ -445,9 +449,11 @@ static void makeImage(DS3_Image *img, u8 *pixels, unsigned w, unsigned h, int no
 	GSPGPU_FlushDataCache(gpusrc, hw*hh*4);
 	C3D_SyncDisplayTransfer ((u32*)gpusrc, GX_BUFFER_DIM(hw,hh), (u32*)(img->tex.data), GX_BUFFER_DIM(hw,hh), TEXTURE_TRANSFER_FLAGS);
 	GSPGPU_FlushDataCache(img->tex.data, hw*hh*4);
+
+	svcReleaseSemaphore(&i, privateSem1, 1);
 	
 	// cleanup
-	linearFree(gpusrc);
+	if (!noconv) linearFree(gpusrc);
 	return;
 }
 
@@ -496,18 +502,18 @@ static int soft_button_positions_set(const char *val, void *param) {
 	return soft_button_positions_load();
 }
 
-static void uibottom_repaint() {
+static void uibottom_repaint(void *param) {
 	int i;
 	uikbd_key *k;
 	int drag_i=-1;
 	int last_i=-1;
+	s32 c;
 
 	// Render the scene
-	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 	C3D_RenderTargetClear(VideoSurface2, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
 	C3D_FrameDrawOn(VideoSurface2);
-	// Update the uniforms
-	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, &projection2);
+
+	svcWaitSynchronization(privateSem1, U64_MAX);
 
 	// now, draw the sprites
 	// first, the background
@@ -583,8 +589,7 @@ static void uibottom_repaint() {
 		if (keysPressed[sbutton_nr[drag_i]])
 			drawImage(&(sbmask_spr),x,y,w,h);
 	}
-	
-	C3D_FrameEnd(0);
+	svcReleaseSemaphore(&c, privateSem1, 1);
 }
 
 static void keypress_recalc() {
@@ -932,10 +937,6 @@ static void uibottom_init() {
 	loadImage(&sbdrag_spr, "romfs:/sbdrag.png");
 	makeImage(&keymask_spr, (u8[]){0x00, 0x00, 0x00, 0x80},1,1,0);
 
-	// setup c3d texture environment
-	// Configure depth test to overwrite pixels with the same depth (needed to draw overlapping sprites)
-	C3D_DepthTest(true, GPU_GEQUAL, GPU_WRITE_ALL);
-
 	uibottom_must_redraw |= UIB_ALL;
 }
 
@@ -980,8 +981,12 @@ void sdl_uibottom_draw(void)
 			keypress_recalc();
 		}
 
-		uibottom_repaint();
-
+		SDL_RequestCall(uibottom_repaint, NULL);
+/*		if (0 && C3D_FrameBegin(C3D_FRAME_SYNCDRAW)){
+			uibottom_repaint(NULL);
+			C3D_FrameEnd(0);
+		}
+*/
 		// check if our internal state matches the SDL state
 		// (actually a stupid workaround for the issue that fullscreen sbutton does not unstick)
 		if (!_mouse_enabled && kb_activekey != -1 && !SDL_GetMouseState(NULL, NULL))

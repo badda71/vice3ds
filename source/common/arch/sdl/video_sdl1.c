@@ -976,7 +976,15 @@ void video_canvas_refresh(struct video_canvas_s *canvas, unsigned int xs, unsign
     } else
 #endif
 
-    SDL_UpdateRect(canvas->screen, xi, yi, w, h);
+/*
+static void *pc=NULL;
+if (pc == NULL) pc=make_profiling_context(200, "UpdateRect");
+start_profiling(pc);
+	SDL_UpdateRect(canvas->screen, xi, yi, w, h);
+stop_profiling(pc);
+*/
+
+	SDL_UpdateRect(canvas->screen, xi, yi, w, h);
 }
 
 int video_canvas_set_palette(struct video_canvas_s *canvas, struct palette_s *palette)

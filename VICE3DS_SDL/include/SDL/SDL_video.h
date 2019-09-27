@@ -951,7 +951,13 @@ extern DECLSPEC SDL_GrabMode SDLCALL SDL_WM_GrabInput(SDL_GrabMode mode);
 /** @internal Not in public API at the moment - do not use! */
 extern DECLSPEC int SDLCALL SDL_SoftStretch(SDL_Surface *src, SDL_Rect *srcrect,
                                     SDL_Surface *dst, SDL_Rect *dstrect);
-                    
+
+
+/**
+ * Vice3DS extension of libSDL
+ */
+extern void SDL_RequestCall(void(*callback)(void*), void *param);
+
 /* Ends C function definitions when using C++ */
 #ifdef __cplusplus
 }

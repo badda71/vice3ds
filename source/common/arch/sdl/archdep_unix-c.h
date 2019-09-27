@@ -157,13 +157,49 @@ int archdep_default_logger(const char *level_string, const char *txt)
 
 void log_citra(const char *format, ...)
 {
-    va_list ap;
+	char buf[2000];
 
-    va_start(ap, format);
-	char *txt = lib_mvsprintf(format, ap);
-	svcOutputDebugString(txt, strlen(txt));
-	lib_free(txt);
-    va_end(ap);
+    va_list argptr;
+    va_start(argptr, format);
+    vsprintf(buf, format, argptr);
+    va_end(argptr);
+	svcOutputDebugString(buf, strlen(buf));
+}
+
+typedef struct {
+	char *name;
+	u64 start_tick;
+	u64 measure_tick;
+	int reporting_interval;
+	int interval_count;
+	u64 t1;
+} ProfilingContext;
+
+void *make_profiling_context(int reportinterval, char *name) {
+		ProfilingContext *pc=malloc(sizeof(ProfilingContext));
+		memset(pc, 0, sizeof(ProfilingContext));
+		pc->name=name;
+		pc->reporting_interval=reportinterval;
+		pc->interval_count=10;
+		return pc;
+}
+
+void start_profiling(ProfilingContext *pc) {
+	if (pc->start_tick == 0) pc->t1 = pc->start_tick = svcGetSystemTick();
+	else pc->t1 = svcGetSystemTick();
+
+	if (--(pc->interval_count)<=0) {
+		pc->interval_count = pc->reporting_interval;
+		log_citra("%s total: %llX, profiled: %llX, percent: %f",
+			pc->name,
+			pc->t1 - pc->start_tick,
+			pc->measure_tick,
+			100*(double)(pc->measure_tick)/(double)(pc->t1 - pc->start_tick));
+	}
+}
+
+void stop_profiling(ProfilingContext *pc) {
+	pc->measure_tick += svcGetSystemTick() - pc->t1;
 }
 
 int archdep_spawn(const char *name, char **argv, char **pstdout_redir, const char *stderr_redir)
