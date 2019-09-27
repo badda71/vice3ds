@@ -57,13 +57,15 @@ FILE *archdep_open_default_log_file(void)
     if (!isatty(fileno(fp))) {
 #endif
         path = archdep_join_paths(archdep_xdg_data_home(), "vice.log", NULL);
-        fp = fopen(path, "w");
-        if (fp == NULL) {
-            log_error(LOG_ERR,
-                    "failed to open log file '%s' for writing, reverting to stdout",
-                    path);
-            fp = stdout;
-        }
+        if ( access( path, F_OK ) != -1 ) { // only open if logfile exists (3DS)
+			fp = fopen(path, "w");
+			if (fp == NULL) {
+				log_error(LOG_ERR,
+						"failed to open log file '%s' for writing, reverting to stdout",
+						path);
+				fp = stdout;
+			}
+		}
         lib_free(path);
 #ifdef UNIX_COMPILE
     }
