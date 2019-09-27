@@ -479,7 +479,6 @@ static int soft_button_positions_load() {
 		uikbd_keypos[i].x=(int)strtoul(p,&p,10);
 		uikbd_keypos[i].y=(int)strtoul(p,&p,10);
 	}
-	uibottom_must_redraw |= UIB_REPAINT;
 	return 0;
 }
 
@@ -508,6 +507,11 @@ static void uibottom_repaint(void *param) {
 	int drag_i=-1;
 	int last_i=-1;
 	s32 c;
+
+	if (set_kb_y_pos != -10000) {
+		kb_y_pos=set_kb_y_pos;
+		set_kb_y_pos=-10000;
+	}
 
 	// Render the scene
 	C3D_RenderTargetClear(VideoSurface2, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
@@ -938,6 +942,8 @@ static void uibottom_init() {
 	makeImage(&keymask_spr, (u8[]){0x00, 0x00, 0x00, 0x80},1,1,0);
 
 	uibottom_must_redraw |= UIB_ALL;
+	sdl_uibottom_draw();
+	SDL_RequestCall(uibottom_repaint, NULL);
 }
 
 /*
@@ -962,10 +968,6 @@ void sdl_uibottom_draw(void)
 		// needed for mutithreading
 		uibottom_must_redraw_local = uibottom_must_redraw;
 		uibottom_must_redraw = UIB_NO;
-		if (set_kb_y_pos != -10000) {
-			kb_y_pos=set_kb_y_pos;
-			set_kb_y_pos=-10000;
-		}
 
 		// recalc sbuttons if required
 		if (uibottom_must_redraw_local & UIB_GET_RECALC_SBUTTONS)
@@ -981,12 +983,6 @@ void sdl_uibottom_draw(void)
 			keypress_recalc();
 		}
 
-		SDL_RequestCall(uibottom_repaint, NULL);
-/*		if (0 && C3D_FrameBegin(C3D_FRAME_SYNCDRAW)){
-			uibottom_repaint(NULL);
-			C3D_FrameEnd(0);
-		}
-*/
 		// check if our internal state matches the SDL state
 		// (actually a stupid workaround for the issue that fullscreen sbutton does not unstick)
 		if (!_mouse_enabled && kb_activekey != -1 && !SDL_GetMouseState(NULL, NULL))
@@ -1027,10 +1023,6 @@ int animate(void *data){
 	if (a->callback2) (a->callback2)(a->callback2_data);
 	free(data);
 	return 0;
-}
-
-void anim_callback(void *param) {
-	uibottom_must_redraw |= UIB_REPAINT;
 }
 
 void anim_callback2(void *param) {
@@ -1075,7 +1067,6 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 					drag_over=sbutton_nr[i];
 					break;
 				}
-				uibottom_must_redraw |= UIB_REPAINT;
 			}
 
 		// forward to emulation
@@ -1096,7 +1087,7 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 			// swap icons: i <-> drag_over
 			void *p=alloc_copy(&(int[]){
 				0, 0, 2, // steps, delay, nr
-				(int)anim_callback, 0, // callback, callback_data
+				0, 0, // callback, callback_data
 				(int)anim_callback2, 0, // callback, callback_data
 				(int)(&(uikbd_keypos[drag_over].x)),
 					uikbd_keypos[drag_over].x,
@@ -1110,7 +1101,6 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 			uikbd_keypos[i].y = uikbd_keypos[drag_over].y;
 			sb_paintlast=drag_over;
 			start_worker(animate, p);
-			uibottom_must_redraw |= UIB_REPAINT;
 			return;
 		}
 	// buttondown
@@ -1144,7 +1134,6 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 			dragging=1;
 			drag_over=i;
 			dragx = x; dragy = y;
-			uibottom_must_redraw |= UIB_REPAINT;
 			return;
 		}
 	}
@@ -1183,8 +1172,8 @@ void toggle_keyboard() {
 	persistence_putInt("kbd_hidden",kb_hidden=(kb_y_pos >= 240 ? 0 : 1));
 	start_worker(animate, alloc_copy(&(int[]){
 		0, 0, 1, // steps, delay, nr
-		(int)anim_callback, 0, // callback, callback_data
-		0,0, // callback2, callback2_data
+		0, 0, // callback, callback_data
+		0, 0, // callback2, callback2_data
 		(int)(&set_kb_y_pos), kb_y_pos < 240 ? 120 : 240, kb_y_pos < 240 ? 240 : 120
 	}, 10*sizeof(int)));
 }
