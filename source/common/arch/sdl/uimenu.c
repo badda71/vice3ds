@@ -763,6 +763,14 @@ static int sdl_ui_readline_input(SDLKey *key, SDLMod *mod, Uint16 *c_uni)
 
     do {
 		if (SDL_PollEvent(&e)) {
+			// deactivate help screen if applicable
+			if (help_on) {
+				if (e.type == SDL_KEYDOWN || e.type==SDL_MOUSEBUTTONDOWN) {
+					toggle_help(sdl_menu_state);
+					while (SDL_PollEvent(&e)); // empty event queue
+				}
+				continue;
+			}
 			// deactivate touchscreen/editmode if applicable
 			if (e.type == SDL_KEYDOWN && e.key.keysym.sym == 208) {
 				if (_mouse_enabled)	{

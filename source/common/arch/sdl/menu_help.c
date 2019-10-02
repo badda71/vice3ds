@@ -41,6 +41,7 @@
 #include "util.h"
 #include "version.h"
 #include "vicefeatures.h"
+#include "uibottom.h"
 
 const char info_about_text[] =
         "              Vice3DS v" VERSION3DS "\n"
@@ -50,60 +51,12 @@ const char info_about_text[] =
         "\n"
 		"      ported by badda71 <me@badda.de>";
 
+UI_MENU_DEFINE_TOGGLE(HelpButtonOn)
+
 static UI_MENU_CALLBACK(about_callback)
 {
     if (activated) {
 		ui_show_text(info_about_text);
-    }
-    return NULL;
-}
-
-const char info_usage_text[] =
-    "USAGE\n"
-    "~~~~~\n"
-    "\n"
-	"Default 3DS button functions:\n"
-	"- Select: open Vice menu\n"
-	"- Start: quit emulator\n"
-	"- Circle Pad / A-Button: Joystick Port 1\n"
-	"- Directional Pad / X-Button: Joystick\n"
-	"  Port 2 (Keyset 1)\n"
-	"- C-Stick: cursor buttons\n"
-	"  Can be mapped to any joystick in Vice\n"
-	"  menu using Keyset 2\n"
-	"- R/ZR-buttons: autofire at joyport 1/2\n"
-	"- L/ZL-buttons: left/right mouse buttons\n"
-	"  if mouse is enabled\n"
-	"- 3D-slider: Emulation speed\n"
-	"\n"
-	"Default soft buttons functions (ltr,ttb)\n"
-	"- Autostart image\n"
-	"- Press RUN/STOP + RESTORE\n"
-	"- Toggle Swap joystick ports\n"
-	"- Toggle Warp mode\n"
-	"- Hard reset\n\n"
-	"- Quickload snapshot\n"
-	"- Quicksave snapshot\n"
-	"- Toggle True Drive Emulation\n"
-	"- Power off bottom screen backlight\n"
-	"- Pause emulation\n\n"
-	"- Attach disk image to drive 8\n"
-	"- Toggle Sprite-Sprite collisions\n"
-	"- Toggle Sprite-Background collisions\n"
-	"- Type command: LOAD\"*\",8,1 RUN\n"
-	"- Type command: LOAD\"$\",8 LIST\n\n"
-	"- Hit RUN/STOP\n"
-	"- Hit SPACE\n"
-	"- Hit RETURN\n"
-	"- Enable Mousepad\n"
-	"- Toggle No borders / Fullscreen\n"
-	"\n"
-	"This (and a lot of other things) can be changed in Vice menu. To change the mapping of a soft button (or actually any other button incl. all the 3DS- and soft keyboard buttons) to a menu item in Vice menu, press the L-button when the menu item is selected, then touch/press the button. This button will now be mapped to the selected menu entry.\n";
-
-static UI_MENU_CALLBACK(usage_callback)
-{
-    if (activated) {
-		ui_show_text(info_usage_text);
     }
     return NULL;
 }
@@ -138,16 +91,21 @@ static UI_MENU_CALLBACK(warranty_callback)
     return NULL;
 }
 
+static UI_MENU_CALLBACK(helpscreen_callback)
+{
+    if (activated) {
+		toggle_help(0);
+        return sdl_menu_text_exit_ui;
+    }
+    return NULL;
+}
+
 const ui_menu_entry_t help_menu[] = {
     { "About",
       MENU_ENTRY_DIALOG,
       about_callback,
       NULL },
-    { "Usage",
-      MENU_ENTRY_DIALOG,
-      usage_callback,
-      NULL },
-    { "License",
+	{ "License",
       MENU_ENTRY_DIALOG,
       license_callback,
       NULL },
@@ -155,5 +113,13 @@ const ui_menu_entry_t help_menu[] = {
       MENU_ENTRY_DIALOG,
       warranty_callback,
       NULL },
-    SDL_MENU_LIST_END
+    { "Help screen",
+      MENU_ENTRY_DIALOG,
+      helpscreen_callback,
+      NULL },
+    { "Show help button on bottom screen",
+      MENU_ENTRY_RESOURCE_TOGGLE,
+      toggle_HelpButtonOn_callback,
+      NULL },
+	SDL_MENU_LIST_END
 };

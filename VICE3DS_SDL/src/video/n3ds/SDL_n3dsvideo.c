@@ -504,10 +504,19 @@ void SDL_RequestCall(void(*callback)(void*), void *param) {
 	addDrawParam=param;
 }
 
+SDL_VideoDevice *vdev;
+
+void drawMainSpritesheetAt(int x, int y, int w, int h) {
+	s32 i;
+	svcWaitSynchronization(privateSem1, U64_MAX);
+	C3D_TexBind(0, &spritesheet_tex);
+	drawTexture(x, y, w, h, vdev->hidden->l1, vdev->hidden->r1, vdev->hidden->t1, vdev->hidden->b1);  
+	svcReleaseSemaphore(&i, privateSem1, 1);
+}
+
 static void videoThread(void* data)
 {
-    _THIS = (SDL_VideoDevice *) data;
-	s32 i;
+    vdev = (SDL_VideoDevice *) data;
 
 	while(runThread) {
 		if(!app_pause && !app_exiting) {
@@ -517,10 +526,7 @@ static void videoThread(void* data)
 				C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, &projection2);
 				C3D_RenderTargetClear(VideoSurface1, C3D_CLEAR_ALL, RenderClearColor, 0);
 				C3D_FrameDrawOn(VideoSurface1);
-				svcWaitSynchronization(privateSem1, U64_MAX);
-					C3D_TexBind(0, &spritesheet_tex);
-					drawTexture((400-this->hidden->w1*this->hidden->scalex)/2,(240-this->hidden->h1*this->hidden->scaley)/2, this->hidden->w1*this->hidden->scalex, this->hidden->h1*this->hidden->scaley, this->hidden->l1, this->hidden->r1, this->hidden->t1, this->hidden->b1);  
-				svcReleaseSemaphore(&i, privateSem1, 1);
+				drawMainSpritesheetAt((400-vdev->hidden->w1*vdev->hidden->scalex)/2,(240-vdev->hidden->h1*vdev->hidden->scaley)/2, vdev->hidden->w1*vdev->hidden->scalex, vdev->hidden->h1*vdev->hidden->scaley); 
 
 				if (addDrawCallback) addDrawCallback(addDrawParam);
 			

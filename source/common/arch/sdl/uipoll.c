@@ -105,6 +105,14 @@ SDL_Event sdl_ui_poll_event(const char *what, const char *target, int options, i
     /* TODO check if key/event is suitable */
     while (polling) {
         while (polling && SDL_PollEvent(&e)) {
+			// deactivate help screen if applicable
+			if (help_on) {
+				if (e.type == SDL_KEYDOWN || e.type==SDL_MOUSEBUTTONDOWN) {
+					toggle_help(sdl_menu_state);
+					while (SDL_PollEvent(&e)); // empty event queue
+				}
+				continue;
+			}
 			// deactivate touchscreen/editmode if applicable
 			if (e.type == SDL_KEYDOWN && e.key.keysym.sym == 208) {
 				if (_mouse_enabled)	{

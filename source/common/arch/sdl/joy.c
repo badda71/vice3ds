@@ -1173,7 +1173,7 @@ void sdljoy_swap_ports(void)
 	joykeys_autofire[0]=joykeys_autofire[1];
 	joykeys_autofire[1]=i;
 	// update sbuttons just in case this was triggered from a button there
-	uibottom_must_redraw |= UIB_RECALC_KEYPRESS;
+	uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
 }
 
 int sdljoy_get_swap_ports(void) 

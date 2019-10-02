@@ -34,6 +34,7 @@ extern int uibottom_resources_init();
 extern void uibottom_resources_shutdown();
 extern int uibottom_editmode_is_on();
 extern void uibottom_toggle_editmode();
+extern void toggle_help(int inmenu);
 
 // exposed definitions
 typedef struct {
@@ -54,6 +55,19 @@ enum bottom_action {
 	UIB_GET_RECALC_SBUTTONS =	0x08
 };
 
+enum str_alignment {
+	ALIGN_LEFT,
+	ALIGN_RIGHT,
+	ALIGN_CENTER
+};
+
+enum font_size {
+	FONT_SMALL,
+	FONT_MEDIUM,
+	FONT_BIG
+};
+
 // exposed variables
 extern uikbd_key *uikbd_keypos;
 extern volatile enum bottom_action uibottom_must_redraw;
+extern int help_on;

@@ -188,9 +188,9 @@ void set_3ds_mapping(int sym, SDL_Event *e, int overwrite) {
 	save_3ds_mapping();
 }
 
-static char buf[20];
+static char buf[21];
 static char *buttonname[SDL_BUTTON_WHEELDOWN+1]={
-	"NONE","LEFT","MIDDLE","RIGHT","WHEELUP","WHEELDOWN"};
+	"None","Left","Middle","Right","WheelUp","WheelDown"};
 
 char *get_3ds_mapping_name(int i) {
 	int a,k,v;
@@ -205,13 +205,13 @@ char *get_3ds_mapping_name(int i) {
 		a = k & 0xFF;
 		v = k>>8 &0xFF;
 		snprintf(buf,20,"Joy %s",
-			a == 1 && v==2 ? "UP":(
-			a == 1 && v==1 ? "DOWN":(
-			a == 0 && v==2 ? "LEFT":
-			"RIGHT")));
+			a == 1 && v==2 ? "Up":(
+			a == 1 && v==1 ? "Down":(
+			a == 0 && v==2 ? "Left":
+			"Right")));
 		break;
 	case 0x00040000:	// joy button
-		snprintf(buf,20,"Joy FIRE%d",k & 0xFF);
+		snprintf(buf,20,"Joy Fire%d",k & 0xFF);
 		break;
 	case 0x00080000:	// joy button
 		snprintf(buf,20,"Mousebutton %s", buttonname[(k & 0xFF)%(SDL_BUTTON_WHEELDOWN+1)]);

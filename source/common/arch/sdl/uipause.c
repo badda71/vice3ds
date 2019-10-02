@@ -44,7 +44,7 @@
 /* ----------------------------------------------------------------- */
 /* ui.h */
 
-static int is_paused = 0;
+int is_paused = 0;
 
 static void pause_trap(uint16_t addr, void *data)
 {

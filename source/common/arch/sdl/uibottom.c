@@ -23,30 +23,33 @@
  *
  */
 
-#include "vice_sdl.h"
-#include "uibottom.h"
 #include "archdep_join_paths.h"
 #include "archdep_user_config_path.h"
 #include "archdep_xdg.h"
-#include "lib.h"
-#include "keyboard.h"
-#include "log.h"
-#include "videoarch.h"
+#include "joystick.h"
 #include "kbd.h"
-#include "uifonts.h"
+#include "keyboard.h"
+#include "lib.h"
+#include "lib.h"
+#include "log.h"
+#include "machine.h"
+#include "menu_common.h"
 #include "menu_misc.h"
-#include "ui.h"
+#include "mouse.h"
+#include "mousedrv.h"
 #include "palette.h"
 #include "persistence.h"
-#include "vice3ds.h"
-#include "machine.h"
-#include "mouse.h"
-#include "menu_common.h"
-#include "mousedrv.h"
-#include "util.h"
-#include "sysfile.h"
 #include "resources.h"
-#include "lib.h"
+#include "sysfile.h"
+#include "ui.h"
+#include "uibottom.h"
+#include "uifonts.h"
+#include "uihotkey.h"
+#include "util.h"
+#include "vice3ds.h"
+#include "vice_sdl.h"
+#include "videoarch.h"
+#include "vsync.h"
 #include <SDL/SDL_image.h>
 #include <3ds.h>
 #include <citro3d.h>
@@ -295,6 +298,7 @@ uikbd_key *uikbd_keypos=NULL;
 // exposed variables
 volatile enum bottom_action uibottom_must_redraw = UIB_NO;
 int bottom_lcd_on=1;
+int help_on=0;
 
 // internal variables
 #define ICON_W 40
@@ -316,16 +320,21 @@ static DS3_Image sbdrag_spr;
 static DS3_Image keymask_spr;
 // dynamic sprites
 static DS3_Image touchpad_spr;
+static DS3_Image help_top_spr;
+static DS3_Image help_bot_spr;
+static DS3_Image help_spr;
 static DS3_Image sbutton_spr[20]={0};
-static char *sbutton_name[20]={NULL};
+static u32 sbutton_name_hash[20]={0};
 static int sbutton_nr[20];
 static int sbutton_ang[20];
 static int sbutton_dang[20];
 static DS3_Image colkey_spr[8];
 static int colkey_nr[8];
+
 // SDL Surfaces
 static SDL_Surface *sb_img=NULL;
 static SDL_Surface *chars=NULL;
+static SDL_Surface *mediumchars=NULL;
 static SDL_Surface *smallchars=NULL;
 static SDL_Surface *keyimg=NULL;
 static SDL_Surface *joyimg=NULL;
@@ -344,6 +353,7 @@ static int kb_activekey=-1;
 static int sticky=0;
 static unsigned char keysPressed[256];
 static int editmode_on=0;
+static int help_button_on;
 
 // sprite handling funtions
 // ========================
@@ -479,6 +489,7 @@ static int soft_button_positions_load() {
 		uikbd_keypos[i].x=(int)strtoul(p,&p,10);
 		uikbd_keypos[i].y=(int)strtoul(p,&p,10);
 	}
+	uibottom_must_redraw |= UIB_REPAINT;
 	return 0;
 }
 
@@ -501,6 +512,8 @@ static int soft_button_positions_set(const char *val, void *param) {
 	return soft_button_positions_load();
 }
 
+extern void drawMainSpritesheetAt(int x, int y, int w, int h);
+
 static void uibottom_repaint(void *param) {
 	int i;
 	uikbd_key *k;
@@ -513,11 +526,17 @@ static void uibottom_repaint(void *param) {
 		set_kb_y_pos=-10000;
 	}
 
+	svcWaitSynchronization(privateSem1, U64_MAX);
+
+	// help on top screen
+	if (help_on) {
+		drawImage(&help_top_spr, 0, 0, 320, 240);
+		drawMainSpritesheetAt(138,37,122,73);
+	}
+	
 	// Render the scene
 	C3D_RenderTargetClear(VideoSurface2, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
 	C3D_FrameDrawOn(VideoSurface2);
-
-	svcWaitSynchronization(privateSem1, U64_MAX);
 
 	// now, draw the sprites
 	// first, the background
@@ -562,36 +581,42 @@ static void uibottom_repaint(void *param) {
 		if (dragging && sbutton_nr[last_i] != kb_activekey && sbutton_nr[last_i] == drag_over)
 			drawImage(&(sbdrag_spr),k->x,k->y,0,0);
 	}
-	// color sprites for keyboard
-	for (i=0;i<8;i++) {
-		k=&(uikbd_keypos[colkey_nr[i]]);
-		drawImage(&(colkey_spr[i]),k->x,k->y+kb_y_pos,k->w,k->h);
-	}
-	// keyboard
-	drawImage(
-		(sticky&7) == 1 ? &(kbd2_spr):
-		(sticky&7) == 2 ? &(kbd3_spr):
-		(sticky&7) >= 4 ? &(kbd4_spr):
-		&(kbd1_spr), 0, kb_y_pos, 0, 0);
-	// twisty
-	drawImage(
-		kb_y_pos >= 240 ? &(twistyup_spr):&(twistydn_spr),
-		0, kb_y_pos - twistyup_spr.h, 0, 0);
-	// keys pressed
-	for (i=0;uikbd_keypos[i].key!=0; ++i) {
-		k=&(uikbd_keypos[i]);
-		if (k->flags==1 || keysPressed[i]==0) continue;
-		drawImage(&(keymask_spr),k->x,k->y+kb_y_pos,k->w,k->h);
-	}
-	// dragged icon (if applicable)
-	if (drag_i!=-1) {
-		int x=dragx-sb_img->w / 2;
-		int y=dragy-sb_img->h / 2;
-		int w=sb_img->w * 1.125;
-		int h=sb_img->h * 1.125;
-		drawImage(&(sbutton_spr[drag_i]),x,y,w,h);
-		if (keysPressed[sbutton_nr[drag_i]])
-			drawImage(&(sbmask_spr),x,y,w,h);
+	if (help_on) {
+		drawImage(&help_bot_spr, 0, 0, 0, 0);
+	} else {
+		if (help_button_on) drawImage(&help_spr,305,0,0,0);
+	
+		// color sprites for keyboard
+		for (i=0;i<8;i++) {
+			k=&(uikbd_keypos[colkey_nr[i]]);
+			drawImage(&(colkey_spr[i]),k->x,k->y+kb_y_pos,k->w,k->h);
+		}
+		// keyboard
+		drawImage(
+			(sticky&7) == 1 ? &(kbd2_spr):
+			(sticky&7) == 2 ? &(kbd3_spr):
+			(sticky&7) >= 4 ? &(kbd4_spr):
+			&(kbd1_spr), 0, kb_y_pos, 0, 0);
+		// twisty
+		drawImage(
+			kb_y_pos >= 240 ? &(twistyup_spr):&(twistydn_spr),
+			0, kb_y_pos - twistyup_spr.h, 0, 0);
+		// keys pressed
+		for (i=0;uikbd_keypos[i].key!=0; ++i) {
+			k=&(uikbd_keypos[i]);
+			if (k->flags==1 || keysPressed[i]==0) continue;
+			drawImage(&(keymask_spr),k->x,k->y+kb_y_pos,k->w,k->h);
+		}
+		// dragged icon (if applicable)
+		if (drag_i!=-1) {
+			int x=dragx-sb_img->w / 2;
+			int y=dragy-sb_img->h / 2;
+			int w=sb_img->w * 1.125;
+			int h=sb_img->h * 1.125;
+			drawImage(&(sbutton_spr[drag_i]),x,y,w,h);
+			if (keysPressed[sbutton_nr[drag_i]])
+				drawImage(&(sbmask_spr),x,y,w,h);
+		}
 	}
 	svcReleaseSemaphore(&c, privateSem1, 1);
 }
@@ -659,15 +684,16 @@ typedef struct {
 #define HASHSIZE 256
 static hash_item iconHash[HASHSIZE]={{0,NULL}};
 
-static unsigned char hashKey(char *key) {
-	int i=0;
-	while (*key!=0) i ^= *(key++);
-	return i % HASHSIZE;
+// Fowler-Noll-Vo Hash (FNV1a)
+static u32 hashKey(u8 *key) {
+	u32 hash=0x811C9DC5;
+	while (*key!=0) hash=(*(key++)^hash) * 0x01000193;
+	return hash;
 }
 
 static void *hash_get(char *key) {
 	if (key==NULL) return NULL;
-	int i=hashKey(key);
+	int i=hashKey((u8*)key) % HASHSIZE;
 	while (iconHash[i].key != NULL) {
 		if (strcmp(key,iconHash[i].key)==0) return iconHash[i].val;
 		++i; i %= HASHSIZE;
@@ -677,7 +703,7 @@ static void *hash_get(char *key) {
 
 static void hash_put(char *key, void *val) {
 	if (key==NULL) return;
-	int i=hashKey(key);
+	int i=hashKey((u8*)key) % HASHSIZE;
 	while (iconHash[i].key!=NULL && strcmp(iconHash[i].key,key)!=0) {
 		++i; i %= HASHSIZE;
 	}
@@ -703,25 +729,117 @@ static SDL_Surface *loadIcon(char *name) {
 	return r;
 }
 
+typedef struct {
+	SDL_Surface *img;
+	int w;
+	int h;
+} font_info;
+
+
+void get_font_info(font_info *f, enum font_size size) {
+	switch (size) {
+		case FONT_SMALL:
+			f->img = smallchars;
+			f->w=4; f->h=6;
+			break;
+		case FONT_MEDIUM:
+			f->img = mediumchars;
+			f->w=5; f->h=8;
+			break;
+		default:
+			f->img = chars;
+			f->w = f->h = 8;
+	}
+}
+
+static void printtext(SDL_Surface *s, const char *str, int xo, int yo, int w, int h, enum font_size size, SDL_Color col) {
+	font_info f;
+	if (str==NULL) return;
+
+	get_font_info(&f, size);
+	int maxw=w/f.w;
+	int maxh=h/f.h;
+	char *buf=malloc(maxw*maxh);
+	memset(buf,255,maxw*maxh);
+	int x=0,y=0,cx=0,cy=0;
+	char *t,c;
+	for (int i=0; str[i] != 0 && y < maxh; ++i) {
+		c=(str[i] & 0x7f)-32;
+		if (c<0) c=0;
+		if (c==0 && x==0) continue;
+		if ((c==0 || c==92)  && (((t=strpbrk(str+i+1," |,"))==NULL && y < maxh) || t-str-i > maxw-x)) { // wrap on new word before end of line
+			if (c==92) buf[x+y*maxw]=c & 0x7F;
+			x=0;++y; continue;}
+		buf[x+y*maxw]=c & 0x7F;
+		if (cx<x) cx=x;
+		if (cy<y) cy=y;
+		++x;
+		if (x>=maxw) { //end of line, next line
+			x=0;++y;
+			if ((t=strchr(str+i+1,' '))!=NULL && t-str-i-2<(maxw/2)) i=t-str; // wrap or cut?
+		}
+	}
+	int xof = xo+(w-(cx+1)*f.w)/2;
+	int yof = yo+(h-(cy+1)*f.h)/2;
+	SDL_SetPalette(f.img, SDL_LOGPAL, &col, 1, 1);
+	for (int i=0; i<maxw*maxh; i++) {
+		c=buf[i];
+		if (c==255) continue;
+		SDL_BlitSurface(
+			f.img,
+			&(SDL_Rect){.x=(c&0x0f)*f.w, .y=(c>>4)*f.h, .w=f.w, .h=f.h},
+			s,
+			&(SDL_Rect){.x=xof+(i % maxw)*f.w, .y=yof+(i/maxw)*f.h});
+	}
+	SDL_SetPalette(f.img, SDL_LOGPAL, &(SDL_Color){0xff,0xff,0xff,0}, 1, 1);
+	free(buf);
+}
+
+static void printstring(SDL_Surface *s, const char *str, int x, int y, int maxchars, enum str_alignment align, enum font_size size, SDL_Color col) {
+	int xof, w;
+	if (str==NULL || str[0]==0) return;
+	font_info f;
+	w=strlen(str);
+	if (maxchars > 0 && w > maxchars) w=maxchars;
+	get_font_info(&f,size);
+
+	switch (align) {
+		case ALIGN_CENTER:
+			xof=x-(w*f.w/2);
+			break;
+		case ALIGN_RIGHT:
+			xof=x-w*f.w;
+			break;
+		default:
+			xof=x;
+	}
+
+	int c;
+	SDL_SetPalette(f.img, SDL_LOGPAL, &col, 1, 1);
+	for (int i=0; i < w; i++) {
+		c=(str[i] & 0x7f)-32;
+		if (c<0) c=0;
+		SDL_BlitSurface(
+			f.img,
+			&(SDL_Rect){.x=(c&0x0f)*f.w, .y=(c>>4)*f.h, .w=f.w, .h=f.h},
+			s,
+			&(SDL_Rect){.x = xof+i*f.w, .y = y});
+	}
+	SDL_SetPalette(f.img, SDL_LOGPAL, &(SDL_Color){0xff,0xff,0xff,0}, 1, 1);
+}
+
 static SDL_Surface *createIcon(char *name) {
-//log_3ds("createIcon: %s",name);
-	int i,c,w,n,xof,yof;
+//log_citra("enter %s: %s",__func__,name);
+	int i,c,w,xof,yof;
 
 	SDL_Surface *icon=SDL_CreateRGBSurface(SDL_SWSURFACE,ICON_W,ICON_H,32,0xff000000,0x00ff0000,0x0000ff00,0x000000ff);
 //	SDL_FillRect(icon, NULL, SDL_MapRGBA(icon->format, 0, 0, 0, 0));
 
-	if (strncmp("Joy ",name,4)==0) {
+	if (strncmp("Joy",name,3)==0 && name[4]==' ') {
 		// make a joy icon
-		name+=4;
-		w=strlen(name);
-		if (w>5) w=5;
-		xof=20-w*4;
 		SDL_BlitSurface(joyimg,NULL,icon,NULL);
-		for(i=0;i<w;i++) {
-			c=(name[i] & 0x7f)-32;
-			SDL_BlitSurface(chars,&(SDL_Rect){.x=(c&0x0f)*8, .y=(c>>4)*8, .w=8, .h=8},
-				icon,&(SDL_Rect){.x=xof+i*8, .y=32});
-		}	
+		printstring(icon, name+3, 0, 0, 1, ALIGN_LEFT, FONT_BIG, (SDL_Color){0xff,0xff,0xff,0});
+		printstring(icon, name+5, 20, 32, 5, ALIGN_CENTER, FONT_BIG, (SDL_Color){0xff,0xff,0xff,0});
 	} else if (strncmp("Key ",name,4)==0) {
 		// make a key icon
 		// check width
@@ -741,27 +859,12 @@ static SDL_Surface *createIcon(char *name) {
 
 		// blit the characters
 		if (strlen(name)<=2) {
-			// big characters
-			xof=19-strlen(name)*4;
-			yof=15;
-			for (i=0;i<strlen(name);i++) {
-				c=(name[i] & 0x7f)-32;
-				SDL_BlitSurface(chars,&(SDL_Rect){.x=(c&0x0f)*8, .y=(c>>4)*8, .w=8, .h=8},
-					icon,&(SDL_Rect){.x=xof+i*8, .y=yof});
-			}
+			printstring(icon, name, 19, 15, 0, ALIGN_CENTER, FONT_BIG, (SDL_Color){0xff,0xff,0xff,0});
 		} else {
-			// small character, one or two lines
-			char *p1[3] = {name, p == NULL ? NULL: p+1, NULL};
-			if (p) *p=0;
-			for (i=0; p1[i] != NULL; i++) {
-				xof=20-MIN(w, strlen(p1[i])*4)/2;
-				yof=(p?13:16)+i*6;
-				for (n=0; n < strlen(p1[i]) && (n+1)*4 <= w; n++) {
-					c=(p1[i][n] & 0x7f)-32;
-					SDL_BlitSurface(smallchars,&(SDL_Rect){.x=(c&0x0f)*4, .y=(c>>4)*6, .w=4, .h=6},
-						icon,&(SDL_Rect){.x=xof+n*4, .y=yof});
-				}
-			}
+			// small characters, one or two lines
+			printstring(icon, name, 20, p?13:16, p?MIN(p-name,w/4):w/4, ALIGN_CENTER, FONT_SMALL, (SDL_Color){0xff,0xff,0xff,0});
+			if (p)
+				printstring(icon, p+1, 20, 19, w/4, ALIGN_CENTER, FONT_SMALL, (SDL_Color){0xff,0xff,0xff,0});
 		}
 	} else {
 		// Just write the name on the surface
@@ -803,8 +906,8 @@ static SDL_Surface *createIcon(char *name) {
 }
 
 static SDL_Surface *sbuttons_getIcon(char *name) {
-//log_3ds("getIcon: %s",name);
-	SDL_Surface *img;
+//log_citra("enter %s: %s",__func__,name);
+	SDL_Surface *img=NULL;
 	if (name==NULL) return NULL;
 	if ((img=hash_get(name))!=NULL) return img;
 	if ((img=loadIcon(name))==NULL &&
@@ -813,46 +916,130 @@ static SDL_Surface *sbuttons_getIcon(char *name) {
 	return img;
 }
 
-char *get_key_help(int key) {
-	ui_menu_entry_t *item;
-	char *r=NULL;
-	r = get_3ds_mapping_name(key);
-	if (r == NULL && (item=sdlkbd_ui_hotkeys[key]) != NULL)
-		r = item->string;
-	return r;
+static char* replace_char(char* str, char find, char replace){
+    char *current_pos = strchr(str,find);
+    while (current_pos){
+        *current_pos = replace;
+        current_pos = strchr(current_pos,find);
+    }
+    return str;
 }
 
-static void printstring(SDL_Surface *s, const char *str, int x, int y, SDL_Color col) {
-	if (str==NULL) return;
-	int c;
-	SDL_SetPalette(chars, SDL_LOGPAL, &col, 1, 1);
-	for (int i=0; str[i]!=0 ; i++) {
-		c=(str[i] & 0x7f)-32;
-		if (c<0) c=0;
-		SDL_BlitSurface(
-			chars,
-			&(SDL_Rect){.x=(c&0x0f)*8, .y=(c>>4)*8, .w=8, .h=8},
-			s,
-			&(SDL_Rect){.x = x+i*8, .y = y});
+static char buf[100];
+
+char *get_key_help(int key, int inmenu, int trylen) {
+	static int resolvemapping=1;
+	int dev1,dev2,i1,i2;
+	ui_menu_entry_t *item;
+	char *r=NULL,*p;
+
+	resources_get_int( "JoyDevice1", &dev1);
+	resources_get_int( "JoyDevice2", &dev2);
+
+	if (!inmenu) {
+		// check key mapping
+		if (resolvemapping && ((i1=keymap3ds[key]) & 0x01000000)) {
+			if (i1 & 0x00010000) { // keymap
+				resolvemapping=0;
+				r=get_key_help(i1 & 0xFF, 0, trylen);
+				resolvemapping=1;
+				if (r) return r;
+			}
+			else if (i1 & 0x00060000) { //joymap
+				r=get_3ds_mapping_name(key);
+				sprintf(buf,"Joy%c %s",dev1==4?'1':(dev2==4?'2':' '),r+4);
+				return buf;
+			}
+			r = get_3ds_mapping_name(key);
+			if (r) return r;
+		}
+
+		// check autofire
+		if (key == joykeys_autofire[0])
+			return "Joy1 AutoF";
+		if (key == joykeys_autofire[1])
+			return "Joy2 AutoF";
+	
+		// menu key
+		if (key == sdl_ui_menukeys[0])
+			return "Open Vice Menu";
+
+		// check hotkey
+		if ((item=sdlkbd_ui_hotkeys[key]) != NULL) {
+			if (!trylen) return item->string;
+			p = r = sdl_ui_hotkey_path(item);
+			while( strlen(p) > trylen && strchr(p,'&')) p=strchr(p,'&')+1;
+			strcpy(buf,p);
+			lib_free(r);
+			replace_char(buf, '&', '|');
+			return buf;
+		}
+
+		// Joyport1 keys (f,u,d,l,r)
+		resources_get_int( "KeySet1Fire", &i1);
+		resources_get_int( "KeySet2Fire", &i2);
+		if ((dev1 == 2 && key == i1) || (dev1 == 3 && key == i2) || (dev1==4 && key==200))
+			return "Joy1 Fire";
+		if ((dev2 == 2 && key == i1) || (dev2 == 3 && key == i2) || (dev2==4 && key==200))
+			return "Joy2 Fire";
+		resources_get_int( "KeySet1North", &i1);
+		resources_get_int( "KeySet2North", &i2);
+		if ((dev1 == 2 && key == i1) || (dev1 == 3 && key == i2) || (dev1==4 && key==218))
+			return "Joy1 Up";
+		if ((dev2 == 2 && key == i1) || (dev2 == 3 && key == i2) || (dev2==4 && key==218))
+			return "Joy2 Up";
+		resources_get_int( "KeySet1South", &i1);
+		resources_get_int( "KeySet2South", &i2);
+		if ((dev1 == 2 && key == i1) || (dev1 == 3 && key == i2) || (dev1==4 && key==219))
+			return "Joy1 Down";
+		if ((dev2 == 2 && key == i1) || (dev2 == 3 && key == i2) || (dev2==4 && key==219))
+			return "Joy2 Down";
+		resources_get_int( "KeySet1West", &i1);
+		resources_get_int( "KeySet2West", &i2);
+		if ((dev1 == 2 && key == i1) || (dev1 == 3 && key == i2) || (dev1==4 && key==220))
+			return "Joy1 Left";
+		if ((dev2 == 2 && key == i1) || (dev2 == 3 && key == i2) || (dev2==4 && key==220))
+			return "Joy2 Left";
+		resources_get_int( "KeySet1East", &i1);
+		resources_get_int( "KeySet2East", &i2);
+		if ((dev1 == 2 && key == i1) || (dev1 == 3 && key == i2) || (dev1==4 && key==221))
+			return "Joy1 Right";
+		if ((dev2 == 2 && key == i1) || (dev2 == 3 && key == i2) || (dev2==4 && key==221))
+			return "Joy2 Right";
+	} else {
+		resources_get_int( "MenuKeyMap", &i1); if (key == i1) return "Map Hotkey";
+		resources_get_int( "MenuKeyUp", &i1); if (key == i1) return "Up";
+		resources_get_int( "MenuKeyDown", &i1); if (key == i1) return "Down";
+		resources_get_int( "MenuKeyLeft", &i1); if (key == i1) return "Left";
+		resources_get_int( "MenuKeyRight", &i1); if (key == i1) return "Right";
+		resources_get_int( "MenuKeyPageUp", &i1); if (key == i1) return "Page Up";
+		resources_get_int( "MenuKeyPageDown", &i1); if (key == i1) return "Page Down";
+		resources_get_int( "MenuKeyHome", &i1); if (key == i1) return "Home";
+		resources_get_int( "MenuKeyEnd", &i1); if (key == i1) return "End";
+		resources_get_int( "MenuKeySelect", &i1); if (key == i1) return "Select";
+		resources_get_int( "MenuKeyCancel", &i1); if (key == i1) return "Cancel";
+		resources_get_int( "MenuKeyExit", &i1); if (key == i1) return "Exit";
 	}
-	SDL_SetPalette(chars, SDL_LOGPAL, &(SDL_Color){0xff,0xff,0xff,0}, 1, 1);
+	return r;
 }
 
 #define LMASK 0x01080001
 #define RMASK 0x01080003
 
 static void sbuttons_recalc() {
+//log_citra("enter %s",__func__);
 	int i,x,y;
 	char *name;
 	static int lbut=0,rbut=0;
 	SDL_Surface *img;
+	u32 h;
 
 	// create sprites for all sbuttons that are not yet created or are outdated
 	for (i = 0; uikbd_keypos[i].key != 0 ; ++i) {
 		if (uikbd_keypos[i].flags != 1) continue;	// not a soft button
-		name=get_key_help(uikbd_keypos[i].key);
+		name=get_key_help(uikbd_keypos[i].key,0,0);
 		x=uikbd_keypos[i].key-231;
-		if (sbutton_spr[x].w != 0 && name == sbutton_name[x]) continue; // already up to date
+		if ((h=hashKey((u8*)name))==sbutton_name_hash[x] && sbutton_spr[x].w != 0) continue; // already up to date
 		SDL_Surface *s = SDL_ConvertSurface(sb_img, sb_img->format, SDL_SWSURFACE);
 		SDL_SetAlpha(s, 0, 255);
 		if (name && (img = sbuttons_getIcon(name)) != NULL) {
@@ -861,7 +1048,7 @@ static void sbuttons_recalc() {
 				.y = (s->h - img->h) /2});
 		}
 		makeImage(&(sbutton_spr[x]), s->pixels, s->w, s->h, 0);
-		sbutton_name[x]=name;
+		sbutton_name_hash[x]=h;
 		SDL_FreeSurface(s);
 	}
 
@@ -896,14 +1083,14 @@ static void sbuttons_recalc() {
 		SDL_FillRect(touchpad_img, &(SDL_Rect){
 			.x = 0,	.y = y, .w = x+1, .h = 9},
 			SDL_MapRGB(touchpad_img->format, 0, 0, 0));
-		printstring(touchpad_img, lbuf, x-i*8,y, (SDL_Color){0x5d,0x5d,0x5d,0});
+		printstring(touchpad_img, lbuf, x, y, 0, ALIGN_RIGHT, FONT_BIG, (SDL_Color){0x5d,0x5d,0x5d,0});
 
 		x=167,y=148;
 		i=strlen(rbuf);
 		SDL_FillRect(touchpad_img, &(SDL_Rect) {
 			.x = x-1,.y = y, .w = 321-x, .h = 9},
 			SDL_MapRGB(touchpad_img->format, 0, 0, 0));
-		printstring(touchpad_img, rbuf, x, y, (SDL_Color){0x5d,0x5d,0x5d,0});
+		printstring(touchpad_img, rbuf, x, y, 0, ALIGN_LEFT, FONT_BIG, (SDL_Color){0x5d,0x5d,0x5d,0});
 		// create the sprite
 		makeImage(&(touchpad_spr), touchpad_img->pixels, touchpad_img->w, touchpad_img->h, 0);
 	}
@@ -922,6 +1109,8 @@ static void uibottom_init() {
 	SDL_SetColorKey(chars, SDL_SRCCOLORKEY, 0x00000000);
 	smallchars=IMG_Load("romfs:/smallchars.png");
 	SDL_SetColorKey(smallchars, SDL_SRCCOLORKEY, 0x00000000);
+	mediumchars=IMG_Load("romfs:/mediumchars.png");
+	SDL_SetColorKey(mediumchars, SDL_SRCCOLORKEY, 0x00000000);
 	keyimg=IMG_Load("romfs:/keyimg.png");
 	SDL_SetAlpha(keyimg, 0, 255);
 	joyimg=IMG_Load("romfs:/joyimg.png");
@@ -939,6 +1128,7 @@ static void uibottom_init() {
 	loadImage(&background_spr, "romfs:/background.png");
 	loadImage(&sbmask_spr, "romfs:/sbmask.png");
 	loadImage(&sbdrag_spr, "romfs:/sbdrag.png");
+	loadImage(&help_spr, "romfs:/help.png");
 	makeImage(&keymask_spr, (u8[]){0x00, 0x00, 0x00, 0x80},1,1,0);
 
 	uibottom_must_redraw |= UIB_ALL;
@@ -946,14 +1136,113 @@ static void uibottom_init() {
 	SDL_RequestCall(uibottom_repaint, NULL);
 }
 
-/*
-void show_help()
+int help_pos[][4] = {
+	//	key, x, top-y, justification (0=left, 1=right)
+	{209, 297, 224, ALIGN_LEFT},	// select
+	{208, 297, 208, ALIGN_LEFT},	// start
+	{201, 297, 192, ALIGN_LEFT},	// b
+	{203, 297, 176, ALIGN_LEFT},	// y
+	{200, 297, 160, ALIGN_LEFT},	// a
+	{202, 297, 144, ALIGN_LEFT},	// x
+	{214, 297, 104, ALIGN_LEFT},	// cstk up
+	{215, 297, 112, ALIGN_LEFT},	// cstk dn
+	{216, 297, 120, ALIGN_LEFT},	// cstk lt
+	{217, 297, 128, ALIGN_LEFT},	// cstk rt
+	{205, 297,  88, ALIGN_LEFT},	// r
+	{207, 297,  56, ALIGN_LEFT},	// zr
+	{210, 101, 192, ALIGN_RIGHT},	// dpad up
+	{211, 101, 200, ALIGN_RIGHT},	// dpad dn
+	{212, 101, 208, ALIGN_RIGHT},	// dpad lt
+	{213, 101, 216, ALIGN_RIGHT},	// dpad rt
+	{218, 101, 152, ALIGN_RIGHT},	// cpad up
+	{219, 101, 160, ALIGN_RIGHT},	// cpad dn
+	{220, 101, 168, ALIGN_RIGHT},	// cpad lt
+	{221, 101, 176, ALIGN_RIGHT},	// cpad rt
+	{206, 101, 136, ALIGN_RIGHT},	// zl
+	{204, 101, 120, ALIGN_RIGHT},	// l
+	{0,0,0,0}
+};
+
+extern int is_paused;
+
+void toggle_help(int inmenu)
 {
-	for(int i=200;i<222;i++) {
-		log_citra("%s : %s", get_3ds_keyname(i), get_key_help(i));
+	static int pstate=0;
+	SDL_Surface *help_img;
+	static int mouse;
+
+	if (!help_on) {
+		char buf[40];
+
+		// **** paint the top screen help image ********************
+		help_img=IMG_Load("romfs:/helpimg.png");
+		SDL_SetAlpha(help_img, 0, 255);
+		char *p;
+		SDL_Color w=(SDL_Color){255,255,255,0};
+
+		printstring(help_img,
+			inmenu?"Vice3DS Menu Help":"Vice3DS Emulator Help",
+			8, 1, 0, ALIGN_LEFT, FONT_BIG, w);
+		printstring(help_img,
+			inmenu?"=================":"=====================",
+			8, 9, 0, ALIGN_LEFT, FONT_BIG, w);
+
+		// print button functions
+		for (int i=0; help_pos[i][0]!=0; i++) {
+			p=get_key_help(help_pos[i][0],inmenu,0);
+			snprintf(buf, 40, "%s", p?p:"-");
+			printstring(help_img, buf, help_pos[i][1], help_pos[i][2], 0, help_pos[i][3], FONT_MEDIUM, w);
+		}
+		// print 3ds slider
+		switch (slider3d_func) {
+			case 0:	// off
+				p="-";
+				break;
+			case 1: // slowdown
+				p="Slow down Emulation";
+				break;
+			default: //speedup
+				p="Speed up Emulation";
+		}	
+		printstring(help_img, inmenu?"-":p, 297, 72, 0, ALIGN_LEFT, FONT_MEDIUM, w);
+	
+		// volume
+		printstring(help_img, inmenu?"-":"Volume", 101, 88, 0, ALIGN_RIGHT, FONT_MEDIUM, w);
+
+		// create the sprite
+		makeImage(&(help_top_spr), help_img->pixels, help_img->w, help_img->h, 0);
+		SDL_FreeSurface(help_img);
+
+		// **** paint the bottom screen help image ********************
+		// 11 x 6 at 5,6
+		help_img=IMG_Load("romfs:/helpoverlay.png");
+		SDL_SetAlpha(help_img, 0, 255);
+		if (!inmenu) {
+			// write the help texts into the overlay
+			for (int i = 0; uikbd_keypos[i].key != 0 ; ++i) {
+				if (uikbd_keypos[i].flags != 1) continue;	// not a soft button
+				char *name=get_key_help(uikbd_keypos[i].key,0,20);
+				printtext(help_img, name, uikbd_keypos[i].x+5, uikbd_keypos[i].y+6, 55, 48, FONT_MEDIUM, w);
+			}
+		}
+		// create the sprite
+		makeImage(&(help_bot_spr), help_img->pixels, help_img->w, help_img->h, 0);
+		SDL_FreeSurface(help_img);
+		
+		mouse=_mouse_enabled;
+		pstate=is_paused;
+		help_on=1;
+		_mouse_enabled=0;
+
+		ui_pause_emulation(1);
+	} else {
+		help_on=0;
+		_mouse_enabled=mouse;
+		ui_pause_emulation(pstate);
 	}
+	uibottom_must_redraw = UIB_REPAINT;
 }
-*/
+
 // update the whole bottom screen
 void sdl_uibottom_draw(void)
 {	
@@ -1025,6 +1314,10 @@ int animate(void *data){
 	return 0;
 }
 
+void anim_callback(void *param) {
+	uibottom_must_redraw |= UIB_REPAINT;
+}
+
 void anim_callback2(void *param) {
 	soft_button_positions_save();
 	sb_paintlast=-1;
@@ -1067,6 +1360,7 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 					drag_over=sbutton_nr[i];
 					break;
 				}
+				uibottom_must_redraw |= UIB_REPAINT;
 			}
 
 		// forward to emulation
@@ -1087,7 +1381,7 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 			// swap icons: i <-> drag_over
 			void *p=alloc_copy(&(int[]){
 				0, 0, 2, // steps, delay, nr
-				0, 0, // callback, callback_data
+				(int)anim_callback, 0, // callback, callback_data
 				(int)anim_callback2, 0, // callback, callback_data
 				(int)(&(uikbd_keypos[drag_over].x)),
 					uikbd_keypos[drag_over].x,
@@ -1101,6 +1395,7 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 			uikbd_keypos[i].y = uikbd_keypos[drag_over].y;
 			sb_paintlast=drag_over;
 			start_worker(animate, p);
+			uibottom_must_redraw |= UIB_REPAINT;
 			return;
 		}
 	// buttondown
@@ -1110,6 +1405,12 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 			kb_activekey=-1;
 			return; // do not further process the event
 		}
+		// help button
+		if (help_button_on && !help_on && x>=305 && y<=15) {
+			toggle_help(sdl_menu_state);
+			return;
+		}
+
 		for (i = 0; uikbd_keypos[i].key != 0 ; ++i) {
 			if (uikbd_keypos[i].flags) {
 				// soft button
@@ -1127,13 +1428,14 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 			}
 		}
 		if (uikbd_keypos[i].key == 0) return;
-		kb_activekey=i;
+		kb_activekey=i;		
 		
 		// start sbutton drag
 		if (editmode_on && uikbd_keypos[i].flags) {
 			dragging=1;
 			drag_over=i;
 			dragx = x; dragy = y;
+			uibottom_must_redraw |= UIB_REPAINT;
 			return;
 		}
 	}
@@ -1172,8 +1474,8 @@ void toggle_keyboard() {
 	persistence_putInt("kbd_hidden",kb_hidden=(kb_y_pos >= 240 ? 0 : 1));
 	start_worker(animate, alloc_copy(&(int[]){
 		0, 0, 1, // steps, delay, nr
-		0, 0, // callback, callback_data
-		0, 0, // callback2, callback2_data
+		(int)anim_callback, 0, // callback, callback_data
+		0,0, // callback2, callback2_data
 		(int)(&set_kb_y_pos), kb_y_pos < 240 ? 120 : 240, kb_y_pos < 240 ? 240 : 120
 	}, 10*sizeof(int)));
 }
@@ -1190,6 +1492,12 @@ void setBottomBacklight (int on) {
 	gspLcdExit();
 }
 
+static int set_help_button_on(int val, void *param)
+{
+	help_button_on = val ? 1 : 0;
+	return 0;
+}
+
 void uibottom_shutdown() {
 	// free the hash
 	for (int i=0; i<HASHSIZE;++i)
@@ -1203,6 +1511,12 @@ static resource_string_t resources_string[] = {
 		&soft_button_positions,
 		soft_button_positions_set, NULL },
 	RESOURCE_STRING_LIST_END
+};
+
+static const resource_int_t resources_int[] = {
+    { "HelpButtonOn", 1, RES_EVENT_NO, (resource_value_t)1,
+      &help_button_on, set_help_button_on, NULL },
+    RESOURCE_INT_LIST_END
 };
 
 int uibottom_resources_init() {
@@ -1229,6 +1543,9 @@ int uibottom_resources_init() {
 	if (resources_register_string(resources_string) < 0) {
 		return -1;
 	}
+	if (resources_register_int(resources_int) < 0) {
+        return -1;
+    }
 	return 0;
 }
 
