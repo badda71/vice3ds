@@ -292,10 +292,12 @@ const ui_menu_entry_t misc_menu[] = {
 		MENU_ENTRY_OTHER,
 		add_keymapping_callback,
 		(ui_callback_data_t)SDL_POLL_KEYBOARD },
-    { "Add key mapping (key -> joystick)",
+#ifdef HAVE_SDL_NUMJOYSTICKS
+	{ "Add key mapping (key -> joystick)",
 		MENU_ENTRY_OTHER,
 		add_keymapping_callback,
 		(ui_callback_data_t)SDL_POLL_JOYSTICK },
+#endif
     { "Add key mapping (key -> MouseB LEFT)",
 		MENU_ENTRY_OTHER,
 		add_keymousemapping_callback,

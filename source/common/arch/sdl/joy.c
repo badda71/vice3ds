@@ -141,11 +141,11 @@ struct sdljoystick_s {
     sdljoystick_mapping_t *input[NUM_INPUT_TYPES];
 };
 typedef struct sdljoystick_s sdljoystick_t;
-int sdl_joy_fire=0;
 
 static sdljoystick_t *sdljoystick = NULL;
 
 #endif /* HAVE_SDL_NUMJOYSTICKS */
+int sdl_joy_fire=0;
 
 /* ------------------------------------------------------------------------- */
 
@@ -334,6 +334,15 @@ int joy_arch_cmdline_options_init(void)
 
     return 0;
 }
+
+static int _sdljoy_swap_ports = 0;
+
+int sdljoy_get_swap_ports(void) 
+{
+    return _sdljoy_swap_ports;
+}
+
+
 
 /* ------------------------------------------------------------------------- */
 
@@ -1146,7 +1155,6 @@ void sdljoy_unset(SDL_Event e)
 
 /* ------------------------------------------------------------------------- */
 
-static int _sdljoy_swap_ports = 0;
 static int _sdljoy_swap_userport_ports = 0;
 
 void sdljoy_swap_ports(void)
@@ -1176,11 +1184,6 @@ void sdljoy_swap_ports(void)
 	uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
 }
 
-int sdljoy_get_swap_ports(void) 
-{
-    return _sdljoy_swap_ports;
-}
-
 void sdljoy_swap_userport_ports(void)
 {
     int i, k;
@@ -1202,7 +1205,6 @@ int sdljoy_get_swap_userport_ports(void)
 
 #else
 /* !HAVE_SDL_NUMJOYSTICKS */
-
 void sdljoy_swap_ports(void)
 {
     int i, k;
@@ -1211,6 +1213,13 @@ void sdljoy_swap_ports(void)
     resources_get_int("JoyDevice2", &k);
     resources_set_int("JoyDevice1", k);
     resources_set_int("JoyDevice2", i);
+    _sdljoy_swap_ports ^= 1;
+
+	i=joykeys_autofire[0];
+	joykeys_autofire[0]=joykeys_autofire[1];
+	joykeys_autofire[1]=i;
+	// update sbuttons just in case this was triggered from a button there
+	uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
 }
 
 void joystick_close(void)

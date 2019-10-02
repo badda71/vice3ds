@@ -147,6 +147,7 @@ int do_3ds_mapping(SDL_Event *e) {
 			e->key.keysym.unicode = e->key.keysym.sym = i & 0x000000FF;
 			e->key.keysym.mod = (i & 0x0000FF00) >> 8;
 			break;
+#ifdef HAVE_SDL_NUMJOYSTICKS
 		case 0x00020000:
 			e->jaxis.which = 0;
 			e->jaxis.axis = i & 0x000000FF;
@@ -160,6 +161,7 @@ int do_3ds_mapping(SDL_Event *e) {
 			e->jbutton.state = e->type == SDL_KEYDOWN ? SDL_PRESSED : SDL_RELEASED;
 			e->type = e->type == SDL_KEYDOWN ? SDL_JOYBUTTONDOWN : SDL_JOYBUTTONUP;
 			break;
+#endif
 		case 0x00080000:
 			e->button.which = 1; // mouse 0 is the touchpad, mouse 1 is the mapped mouse keys
 			e->button.button = i & 0x000000FF;
@@ -193,7 +195,7 @@ static char *buttonname[SDL_BUTTON_WHEELDOWN+1]={
 	"None","Left","Middle","Right","WheelUp","WheelDown"};
 
 char *get_3ds_mapping_name(int i) {
-	int a,k,v;
+	int k;
 	
 	if (!keymap3ds[i]) return NULL;
 	k=keymap3ds[i];
@@ -201,7 +203,9 @@ char *get_3ds_mapping_name(int i) {
 	case 0x00010000:	// key
 		snprintf(buf,20,"Key %s",get_3ds_keyname(k & 0xFF));
 		break;
+#ifdef HAVE_SDL_NUMJOYSTICKS
 	case 0x00020000:	// joy axis
+		int v,a;
 		a = k & 0xFF;
 		v = k>>8 &0xFF;
 		snprintf(buf,20,"Joy %s",
@@ -213,6 +217,7 @@ char *get_3ds_mapping_name(int i) {
 	case 0x00040000:	// joy button
 		snprintf(buf,20,"Joy Fire%d",k & 0xFF);
 		break;
+#endif
 	case 0x00080000:	// joy button
 		snprintf(buf,20,"Mousebutton %s", buttonname[(k & 0xFF)%(SDL_BUTTON_WHEELDOWN+1)]);
 		break;

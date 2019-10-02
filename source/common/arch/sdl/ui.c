@@ -957,7 +957,7 @@ static const resource_int_t resources_int[] = {
       &sdl_ui_menukeys[3], set_ui_menukey, (void *)MENU_ACTION_LEFT },
     { "MenuKeyRight", 213, RES_EVENT_NO, NULL,	// 3ds dpad right
       &sdl_ui_menukeys[4], set_ui_menukey, (void *)MENU_ACTION_RIGHT },
-    { "MenuKeySelect", SDLK_RETURN, RES_EVENT_NO, NULL,
+    { "MenuKeySelect", 200, RES_EVENT_NO, NULL, // 3ds A button
       &sdl_ui_menukeys[5], set_ui_menukey, (void *)MENU_ACTION_SELECT },
     { "MenuKeyCancel", 201, RES_EVENT_NO, NULL,	// 3ds B button
       &sdl_ui_menukeys[6], set_ui_menukey, (void *)MENU_ACTION_CANCEL },

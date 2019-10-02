@@ -38,7 +38,7 @@
 /* #undef HAS_HIDMGR */
 
 /* Enable joystick emulation. */
-#define HAS_JOYSTICK /**/
+/* #undef HAS_JOYSTICK */
 
 /* Enable emulation for USB joysticks. */
 /* #undef HAS_USB_JOYSTICK */
@@ -526,7 +526,7 @@
 /* #undef HAVE_SDL_MAIN_H */
 
 /* Define to 1 if you have the `SDL_NumJoysticks' function. */
-#define HAVE_SDL_NUMJOYSTICKS 1
+/* #undef HAVE_SDL_NUMJOYSTICKS */
 
 /* Define to 1 if you have the <SDL/SDL_audio.h> header file. */
 #define HAVE_SDL_SDL_AUDIO_H 1

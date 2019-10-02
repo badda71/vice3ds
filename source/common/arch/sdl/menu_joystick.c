@@ -37,6 +37,7 @@
 #include "menu_common.h"
 #include "menu_joystick.h"
 #include "resources.h"
+#include "uibottom.h"
 #include "uimenu.h"
 #include "uipoll.h"
 #include "userport_joystick.h"
@@ -105,6 +106,8 @@ static UI_MENU_CALLBACK(custom_keyset_callback)
         if (e.type == SDL_KEYDOWN) {
             resources_set_int((const char *)param, (int)SDL2x_to_SDL1x_Keys(e.key.keysym.sym));
         }
+		// recalc the soft buttons just in case the mapping was done there
+		uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
     } else {
 		if (resources_get_int((const char *)param, &previous)) {
 			return sdl_menu_text_unknown;
@@ -158,6 +161,26 @@ static const ui_menu_entry_t define_keyset_menu[] = {
       (ui_callback_data_t)"KeySet2Fire" },
     SDL_MENU_LIST_END
 };
+
+static UI_MENU_CALLBACK(custom_joy_auto_speed_callback)
+{
+    static char buf[20];
+    int previous, new_value;
+
+    resources_get_int("JoyAutoSpeed", &previous);
+
+    if (activated) {
+        new_value = sdl_ui_slider_input_dialog("Select speed (clks/s)", previous, 2, 100);
+        if (new_value != previous) {
+            resources_set_int("JoyAutoSpeed", joy_auto_speed=new_value);
+        }
+    } else {
+        sprintf(buf, "%3i", previous);
+        return buf;
+    }
+    return NULL;
+}
+
 
 #ifdef HAVE_SDL_NUMJOYSTICKS
 static const char *joy_pin[] = {
@@ -247,25 +270,6 @@ static UI_MENU_CALLBACK(custom_joy_misc_callback)
         }
     }
 
-    return NULL;
-}
-
-static UI_MENU_CALLBACK(custom_joy_auto_speed_callback)
-{
-    static char buf[20];
-    int previous, new_value;
-
-    resources_get_int("JoyAutoSpeed", &previous);
-
-    if (activated) {
-        new_value = sdl_ui_slider_input_dialog("Select speed (clks/s)", previous, 2, 100);
-        if (new_value != previous) {
-            resources_set_int("JoyAutoSpeed", joy_auto_speed=new_value);
-        }
-    } else {
-        sprintf(buf, "%3i", previous);
-        return buf;
-    }
     return NULL;
 }
 

@@ -953,11 +953,13 @@ char *get_key_help(int key, int inmenu, int trylen) {
 				resolvemapping=1;
 				if (r) return r;
 			}
+#ifdef HAVE_SDL_NUMJOYSTICKS
 			else if (i1 & 0x00060000) { //joymap
 				r=get_3ds_mapping_name(key);
 				sprintf(buf,"Joy%c %s",dev1==4?'1':(dev2==4?'2':' '),r+4);
 				return buf;
 			}
+#endif
 			r = get_3ds_mapping_name(key);
 			if (r) return r;
 		}
