@@ -108,9 +108,10 @@ void drawTexture( int x, int y, int width, int height, float left, float right, 
 // video thread variables and functions
 volatile bool runThread = false;
 Handle privateSem1;
+Handle repaintRequired;
 Thread privateVideoThreadHandle = NULL;
 static void videoThread(void* data);
-static void (*addDrawCallback)(void *)=NULL;
+static void (*addDrawCallback)(void *, int)=NULL;
 static void *addDrawParam=NULL;
 extern volatile bool app_pause;
 extern volatile bool app_exiting;
@@ -468,6 +469,8 @@ int hh= next_pow2(height);
 	
 	runThread = true;
 	svcCreateSemaphore(&privateSem1, 1, 255);
+	svcCreateEvent(&repaintRequired,0);
+
 // ctrulib sys threads uses 0x18, so we use a lower priority, but higher than any other SDL thread
 	privateVideoThreadHandle = threadCreate(videoThread, (void *) this, STACKSIZE, 0x19, -2, true);
 	this->hidden->currentVideoSurface = current; 
@@ -499,7 +502,7 @@ static void N3DS_UnlockHWSurface(_THIS, SDL_Surface *surface)
 
 static unsigned int RenderClearColor;
 
-void SDL_RequestCall(void(*callback)(void*), void *param) {
+void SDL_RequestCall(void(*callback)(void*, int), void *param) {
 	addDrawCallback=callback;
 	addDrawParam=param;
 }
@@ -520,17 +523,25 @@ static void videoThread(void* data)
 
 	while(runThread) {
 		if(!app_pause && !app_exiting) {
-			if (C3D_FrameBegin(C3D_FRAME_NONBLOCK)){
+			if (svcWaitSynchronization(repaintRequired, 0)) {
+				if (C3D_FrameBegin(C3D_FRAME_NONBLOCK)){
+					if (addDrawCallback) addDrawCallback(addDrawParam,0);
+					C3D_FrameEnd(0);
+				}
+			} else {
+				svcClearEvent(repaintRequired);
+				if (C3D_FrameBegin(C3D_FRAME_NONBLOCK)){
 //				if (C3D_FrameBegin(C3D_FRAME_SYNCDRAW)){
-				// Update the uniforms
-				C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, &projection2);
-				C3D_RenderTargetClear(VideoSurface1, C3D_CLEAR_ALL, RenderClearColor, 0);
-				C3D_FrameDrawOn(VideoSurface1);
-				drawMainSpritesheetAt((400-vdev->hidden->w1*vdev->hidden->scalex)/2,(240-vdev->hidden->h1*vdev->hidden->scaley)/2, vdev->hidden->w1*vdev->hidden->scalex, vdev->hidden->h1*vdev->hidden->scaley); 
+					// Update the uniforms
+					C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, &projection2);
+					C3D_RenderTargetClear(VideoSurface1, C3D_CLEAR_ALL, RenderClearColor, 0);
+					C3D_FrameDrawOn(VideoSurface1);
+					drawMainSpritesheetAt((400-vdev->hidden->w1*vdev->hidden->scalex)/2,(240-vdev->hidden->h1*vdev->hidden->scaley)/2, vdev->hidden->w1*vdev->hidden->scalex, vdev->hidden->h1*vdev->hidden->scaley); 
 
-				if (addDrawCallback) addDrawCallback(addDrawParam);
-			
-				C3D_FrameEnd(0);
+					if (addDrawCallback) addDrawCallback(addDrawParam,1);
+				
+					C3D_FrameEnd(0);
+				}
 			}
 		}
 		gspWaitForVBlank();
@@ -553,6 +564,7 @@ static void drawBuffers(_THIS)
 			C3D_SyncDisplayTransfer ((u32*)this->hidden->buffer, GX_BUFFER_DIM(this->hidden->w,this->hidden->h), (u32*)(spritesheet_tex.data), GX_BUFFER_DIM(this->hidden->w,this->hidden->h), textureTranferFlags[this->hidden->mode]);
 			GSPGPU_FlushDataCache(spritesheet_tex.data, this->hidden->w*this->hidden->h*4);
 
+			svcSignalEvent(repaintRequired);
 		svcReleaseSemaphore(&i, privateSem1, 1);
 	}
 }

@@ -956,7 +956,7 @@ extern DECLSPEC int SDLCALL SDL_SoftStretch(SDL_Surface *src, SDL_Rect *srcrect,
 /**
  * Vice3DS extension of libSDL
  */
-extern void SDL_RequestCall(void(*callback)(void*), void *param);
+extern void SDL_RequestCall(void(*callback)(void*,int), void *param);
 
 /* Ends C function definitions when using C++ */
 #ifdef __cplusplus

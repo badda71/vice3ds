@@ -354,6 +354,7 @@ static int sticky=0;
 static unsigned char keysPressed[256];
 static int editmode_on=0;
 static int help_button_on;
+static Handle repaintRequired;
 
 // sprite handling funtions
 // ========================
@@ -478,6 +479,10 @@ static int loadImage(DS3_Image *img, char *fname) {
 
 // bottom handling functions
 // =========================
+static inline void requestRepaint() {
+	svcSignalEvent(repaintRequired);
+}
+
 static char *soft_button_positions=NULL;
 
 static int soft_button_positions_load() {
@@ -489,7 +494,7 @@ static int soft_button_positions_load() {
 		uikbd_keypos[i].x=(int)strtoul(p,&p,10);
 		uikbd_keypos[i].y=(int)strtoul(p,&p,10);
 	}
-	uibottom_must_redraw |= UIB_REPAINT;
+	requestRepaint();
 	return 0;
 }
 
@@ -514,26 +519,29 @@ static int soft_button_positions_set(const char *val, void *param) {
 
 extern void drawMainSpritesheetAt(int x, int y, int w, int h);
 
-static void uibottom_repaint(void *param) {
+static void uibottom_repaint(void *param, int topupdated) {
 	int i;
 	uikbd_key *k;
 	int drag_i=-1;
 	int last_i=-1;
 	s32 c;
 
+	// help on top screen
+	if (help_on && topupdated) {
+		drawImage(&help_top_spr, 0, 0, 320, 240);
+		drawMainSpritesheetAt(138,37,122,73);
+	}
+
+	if (svcWaitSynchronization(repaintRequired, 0)) return;
+	svcClearEvent(repaintRequired);
+	
+	svcWaitSynchronization(privateSem1, U64_MAX);
+	
 	if (set_kb_y_pos != -10000) {
 		kb_y_pos=set_kb_y_pos;
 		set_kb_y_pos=-10000;
 	}
 
-	svcWaitSynchronization(privateSem1, U64_MAX);
-
-	// help on top screen
-	if (help_on) {
-		drawImage(&help_top_spr, 0, 0, 320, 240);
-		drawMainSpritesheetAt(138,37,122,73);
-	}
-	
 	// Render the scene
 	C3D_RenderTargetClear(VideoSurface2, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
 	C3D_FrameDrawOn(VideoSurface2);
@@ -1131,6 +1139,8 @@ static void uibottom_init() {
 	loadImage(&help_spr, "romfs:/help.png");
 	makeImage(&keymask_spr, (u8[]){0x00, 0x00, 0x00, 0x80},1,1,0);
 
+	svcCreateEvent(&repaintRequired,0);
+
 	uibottom_must_redraw |= UIB_ALL;
 	sdl_uibottom_draw();
 	SDL_RequestCall(uibottom_repaint, NULL);
@@ -1240,7 +1250,7 @@ void toggle_help(int inmenu)
 		_mouse_enabled=mouse;
 		ui_pause_emulation(pstate);
 	}
-	uibottom_must_redraw = UIB_REPAINT;
+	requestRepaint();
 }
 
 // update the whole bottom screen
@@ -1276,6 +1286,8 @@ void sdl_uibottom_draw(void)
 		// (actually a stupid workaround for the issue that fullscreen sbutton does not unstick)
 		if (!_mouse_enabled && kb_activekey != -1 && !SDL_GetMouseState(NULL, NULL))
 			SDL_PushEvent( &(SDL_Event){ .type = SDL_MOUSEBUTTONUP });
+
+		requestRepaint();
 	}
 }
 
@@ -1315,7 +1327,7 @@ int animate(void *data){
 }
 
 void anim_callback(void *param) {
-	uibottom_must_redraw |= UIB_REPAINT;
+	requestRepaint();
 }
 
 void anim_callback2(void *param) {
@@ -1360,9 +1372,8 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 					drag_over=sbutton_nr[i];
 					break;
 				}
-				uibottom_must_redraw |= UIB_REPAINT;
 			}
-
+			requestRepaint();
 		// forward to emulation
 		} else if (!sdl_menu_state)
 			mouse_move((int)(e->motion.xrel), (int)(e->motion.yrel));
@@ -1395,7 +1406,7 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 			uikbd_keypos[i].y = uikbd_keypos[drag_over].y;
 			sb_paintlast=drag_over;
 			start_worker(animate, p);
-			uibottom_must_redraw |= UIB_REPAINT;
+			requestRepaint();
 			return;
 		}
 	// buttondown
@@ -1435,7 +1446,7 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 			dragging=1;
 			drag_over=i;
 			dragx = x; dragy = y;
-			uibottom_must_redraw |= UIB_REPAINT;
+			requestRepaint();
 			return;
 		}
 	}
