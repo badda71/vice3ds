@@ -318,6 +318,7 @@ static DS3_Image background_spr;
 static DS3_Image sbmask_spr;
 static DS3_Image sbdrag_spr;
 static DS3_Image keymask_spr;
+static DS3_Image black_spr;
 // dynamic sprites
 static DS3_Image touchpad_spr;
 static DS3_Image help_top_spr;
@@ -339,6 +340,8 @@ static SDL_Surface *smallchars=NULL;
 static SDL_Surface *keyimg=NULL;
 static SDL_Surface *joyimg=NULL;
 static SDL_Surface *touchpad_img=NULL;
+static SDL_Surface *help_top_img=NULL;
+static SDL_Surface *help_bottom_img=NULL;
 
 // variables for draging sbuttons
 static int dragging;
@@ -558,12 +561,23 @@ static void uibottom_repaint(void *param, int topupdated) {
 	
 	// help on top screen
 	if (help_on && (topupdated || update)) {
-		int x=help_anim*(400-vdev_hidden->w1*vdev_hidden->scalex)/200 + (100-help_anim)*138/100;
-		int y=help_anim*(240-vdev_hidden->h1*vdev_hidden->scaley)/200 + (100-help_anim)*37/100;
-		int w=help_anim*vdev_hidden->w1*vdev_hidden->scalex/100 + (100-help_anim)*122/100;
-		int h=help_anim*vdev_hidden->h1*vdev_hidden->scaley/100 + (100-help_anim)*73/100;
-		drawImage(&help_top_spr, 0, 0, 320, 240);
+		int x,y,w,h;
+		drawImage(&black_spr, 0,0,320,240);
+		
+		// midpoint: 200, 55, 144 -> 44
+		x=200-((help_anim+44)*(200-(400-vdev_hidden->w1*vdev_hidden->scalex)/2))/144;
+		y=55-((help_anim+44)*(55-(240-vdev_hidden->h1*vdev_hidden->scaley)/2))/144;
+		w=((help_anim+44)*vdev_hidden->w1*vdev_hidden->scalex)/144;
+		h=((help_anim+44)*vdev_hidden->h1*vdev_hidden->scaley)/144;
 		drawMainSpritesheetAt(x,y,w,h);
+
+		// xy: -363, -123 -> 0,0
+		// wh: 1048, 787 -> 400, 240
+		x = (help_anim*-363)/100;
+		y = (help_anim*-123)/100;
+		w = 320+(help_anim*728)/100;
+		h = 240+(help_anim*547)/100; 
+		drawImage(&help_top_spr, x, y, w, h);
 	}
 	
 	if (!update) return;
@@ -1164,6 +1178,10 @@ static void uibottom_init() {
 	SDL_SetAlpha(joyimg, 0, 255);
 	touchpad_img=IMG_Load("romfs:/touchpad.png");
 	SDL_SetAlpha(touchpad_img, 0, 255);
+	help_top_img=IMG_Load("romfs:/helpimg.png");
+	SDL_SetAlpha(help_top_img, 0, 255);
+	help_bottom_img=IMG_Load("romfs:/helpoverlay.png");
+	SDL_SetAlpha(help_bottom_img, 0, 255);
 
 	// pre-load sprites
 	loadImage(&twistyup_spr, "romfs:/twistyup.png");
@@ -1177,6 +1195,7 @@ static void uibottom_init() {
 	loadImage(&sbdrag_spr, "romfs:/sbdrag.png");
 	loadImage(&help_spr, "romfs:/help.png");
 	makeImage(&keymask_spr, (u8[]){0x00, 0x00, 0x00, 0x80},1,1,0);
+	makeImage(&black_spr, (u8[]){0, 0, 0, 0xFF},1,1,0);
 
 	svcCreateEvent(&repaintRequired,0);
 
@@ -1242,8 +1261,8 @@ typedef struct animation_set {
 
 int animate(void *data){
 	animation_set *a=data;
-	int steps = a->steps != 0 ? a->steps : 24 ;
-	int delay = a->delay != 0 ? a->delay : 10 ;
+	int steps = a->steps != 0 ? a->steps : 15 ;
+	int delay = a->delay != 0 ? a->delay : 16 ; // 1/60 sec, one 3ds frame
 	for (int s=0; s <= steps; s++) {
 		for (int i=0; i < a->nr; i++) {
 			*(a->anim[i].var)=
@@ -1320,8 +1339,7 @@ void toggle_help(int inmenu)
 		char buf[40];
 
 		// **** paint the top screen help image ********************
-		help_img=IMG_Load("romfs:/helpimg.png");
-		SDL_SetAlpha(help_img, 0, 255);
+		help_img = SDL_ConvertSurface(help_top_img, help_top_img->format, SDL_SWSURFACE);
 		char *p;
 		SDL_Color w=(SDL_Color){255,255,255,0};
 
@@ -1360,8 +1378,7 @@ void toggle_help(int inmenu)
 
 		// **** paint the bottom screen help image ********************
 		// 11 x 6 at 5,6
-		help_img=IMG_Load("romfs:/helpoverlay.png");
-		SDL_SetAlpha(help_img, 0, 255);
+		help_img = SDL_ConvertSurface(help_bottom_img, help_bottom_img->format, SDL_SWSURFACE);
 		if (!inmenu) {
 			// write the help texts into the overlay
 			for (int i = 0; uikbd_keypos[i].key != 0 ; ++i) {
