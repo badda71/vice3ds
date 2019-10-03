@@ -355,6 +355,7 @@ static unsigned char keysPressed[256];
 static int editmode_on=0;
 static int help_button_on;
 static Handle repaintRequired;
+static int help_anim;
 
 // sprite handling funtions
 // ========================
@@ -517,24 +518,57 @@ static int soft_button_positions_set(const char *val, void *param) {
 	return soft_button_positions_load();
 }
 
+struct SDL_PrivateVideoData {
+//GPU drawing specific
+	int x1,y1,w1,h1; // drawing window for top screen          width and height of top screen part of the video buffer 
+	int x2,y2,w2,h2; //drawing window for bottom screen  and height of bottom part of the video buffer
+	float l1,r1,t1,b1; // GPU source window for the top part of the video buffer
+	float l2,r2,t2,b2; // GPU source window for the bottom part of the video buffer
+	float scalex,scaley; // scaling factors
+	float scalex2,scaley2; // scaling factors
+
+// framebuffer data
+    int w, h; // width and height of the video buffer
+    void *buffer;
+	Uint8 *palettedbuffer;
+	GSPGPU_FramebufferFormats mode;
+	unsigned int flags; // backup of create device flags
+	unsigned int screens; // SDL_TOPSCR, SDL_BOTTOMSCR, SDL_DUALSCR
+	unsigned int console; // SDL_CONSOLETOP, SDL_CONSOLEBOTTOM
+	unsigned int fitscreen; // SDL_TRIMBOTTOMSCR, SDL_FITWIDTH, SDL_FITHEIGHT (SDL_FULLSCREEN sets both SDL_FITWIDTH and SDL_FITHEIGHT)
+	int byteperpixel;
+	int bpp;
+// video surface
+	SDL_Surface* currentVideoSurface;	
+// Video process flags
+	bool blockVideo;  // block video output and events handlings on SDL_QUIT
+};
+
 extern void drawMainSpritesheetAt(int x, int y, int w, int h);
+extern struct SDL_PrivateVideoData *vdev_hidden;
 
 static void uibottom_repaint(void *param, int topupdated) {
-	int i;
+	int i,update=1;
 	uikbd_key *k;
 	int drag_i=-1;
 	int last_i=-1;
 	s32 c;
-
-	// help on top screen
-	if (help_on && topupdated) {
-		drawImage(&help_top_spr, 0, 0, 320, 240);
-		drawMainSpritesheetAt(138,37,122,73);
-	}
-
-	if (svcWaitSynchronization(repaintRequired, 0)) return;
-	svcClearEvent(repaintRequired);
 	
+	if (svcWaitSynchronization(repaintRequired, 0)) update=0;
+	
+	// help on top screen
+	if (help_on && (topupdated || update)) {
+		int x=help_anim*(400-vdev_hidden->w1*vdev_hidden->scalex)/200 + (100-help_anim)*138/100;
+		int y=help_anim*(240-vdev_hidden->h1*vdev_hidden->scaley)/200 + (100-help_anim)*37/100;
+		int w=help_anim*vdev_hidden->w1*vdev_hidden->scalex/100 + (100-help_anim)*122/100;
+		int h=help_anim*vdev_hidden->h1*vdev_hidden->scaley/100 + (100-help_anim)*73/100;
+		drawImage(&help_top_spr, 0, 0, 320, 240);
+		drawMainSpritesheetAt(x,y,w,h);
+	}
+	
+	if (!update) return;
+
+	svcClearEvent(repaintRequired);
 	svcWaitSynchronization(privateSem1, U64_MAX);
 	
 	if (set_kb_y_pos != -10000) {
@@ -589,42 +623,45 @@ static void uibottom_repaint(void *param, int topupdated) {
 		if (dragging && sbutton_nr[last_i] != kb_activekey && sbutton_nr[last_i] == drag_over)
 			drawImage(&(sbdrag_spr),k->x,k->y,0,0);
 	}
+	// color sprites for keyboard
+	for (i=0;i<8;i++) {
+		k=&(uikbd_keypos[colkey_nr[i]]);
+		drawImage(&(colkey_spr[i]),k->x,k->y+kb_y_pos,k->w,k->h);
+	}
+	// keyboard
+	drawImage(
+		(sticky&7) == 1 ? &(kbd2_spr):
+		(sticky&7) == 2 ? &(kbd3_spr):
+		(sticky&7) >= 4 ? &(kbd4_spr):
+		&(kbd1_spr), 0, kb_y_pos, 0, 0);
+	// twisty
+	drawImage(
+		kb_y_pos >= 240 ? &(twistyup_spr):&(twistydn_spr),
+		0, kb_y_pos - twistyup_spr.h, 0, 0);
+	// keys pressed
+	for (i=0;uikbd_keypos[i].key!=0; ++i) {
+		k=&(uikbd_keypos[i]);
+		if (k->flags==1 || keysPressed[i]==0) continue;
+		drawImage(&(keymask_spr),k->x,k->y+kb_y_pos,k->w,k->h);
+	}
+	// help screen / button
 	if (help_on) {
-		drawImage(&help_bot_spr, 0, 0, 0, 0);
+		int x=(help_anim*305)/100;
+		int y=(help_anim*-225)/100;
+		drawImage(&help_bot_spr, x, y, 0, 0);
+		drawImage(&help_spr,x, y+225,0,0);
 	} else {
 		if (help_button_on) drawImage(&help_spr,305,0,0,0);
-	
-		// color sprites for keyboard
-		for (i=0;i<8;i++) {
-			k=&(uikbd_keypos[colkey_nr[i]]);
-			drawImage(&(colkey_spr[i]),k->x,k->y+kb_y_pos,k->w,k->h);
-		}
-		// keyboard
-		drawImage(
-			(sticky&7) == 1 ? &(kbd2_spr):
-			(sticky&7) == 2 ? &(kbd3_spr):
-			(sticky&7) >= 4 ? &(kbd4_spr):
-			&(kbd1_spr), 0, kb_y_pos, 0, 0);
-		// twisty
-		drawImage(
-			kb_y_pos >= 240 ? &(twistyup_spr):&(twistydn_spr),
-			0, kb_y_pos - twistyup_spr.h, 0, 0);
-		// keys pressed
-		for (i=0;uikbd_keypos[i].key!=0; ++i) {
-			k=&(uikbd_keypos[i]);
-			if (k->flags==1 || keysPressed[i]==0) continue;
-			drawImage(&(keymask_spr),k->x,k->y+kb_y_pos,k->w,k->h);
-		}
-		// dragged icon (if applicable)
-		if (drag_i!=-1) {
-			int x=dragx-sb_img->w / 2;
-			int y=dragy-sb_img->h / 2;
-			int w=sb_img->w * 1.125;
-			int h=sb_img->h * 1.125;
-			drawImage(&(sbutton_spr[drag_i]),x,y,w,h);
-			if (keysPressed[sbutton_nr[drag_i]])
-				drawImage(&(sbmask_spr),x,y,w,h);
-		}
+	}
+	// dragged icon (if applicable)
+	if (drag_i!=-1) {
+		int x=dragx-sb_img->w / 2;
+		int y=dragy-sb_img->h / 2;
+		int w=sb_img->w * 1.125;
+		int h=sb_img->h * 1.125;
+		drawImage(&(sbutton_spr[drag_i]),x,y,w,h);
+		if (keysPressed[sbutton_nr[drag_i]])
+			drawImage(&(sbmask_spr),x,y,w,h);
 	}
 	svcReleaseSemaphore(&c, privateSem1, 1);
 }
@@ -1148,113 +1185,6 @@ static void uibottom_init() {
 	SDL_RequestCall(uibottom_repaint, NULL);
 }
 
-int help_pos[][4] = {
-	//	key, x, top-y, justification (0=left, 1=right)
-	{209, 297, 224, ALIGN_LEFT},	// select
-	{208, 297, 208, ALIGN_LEFT},	// start
-	{201, 297, 192, ALIGN_LEFT},	// b
-	{203, 297, 176, ALIGN_LEFT},	// y
-	{200, 297, 160, ALIGN_LEFT},	// a
-	{202, 297, 144, ALIGN_LEFT},	// x
-	{214, 297, 104, ALIGN_LEFT},	// cstk up
-	{215, 297, 112, ALIGN_LEFT},	// cstk dn
-	{216, 297, 120, ALIGN_LEFT},	// cstk lt
-	{217, 297, 128, ALIGN_LEFT},	// cstk rt
-	{205, 297,  88, ALIGN_LEFT},	// r
-	{207, 297,  56, ALIGN_LEFT},	// zr
-	{210, 101, 192, ALIGN_RIGHT},	// dpad up
-	{211, 101, 200, ALIGN_RIGHT},	// dpad dn
-	{212, 101, 208, ALIGN_RIGHT},	// dpad lt
-	{213, 101, 216, ALIGN_RIGHT},	// dpad rt
-	{218, 101, 152, ALIGN_RIGHT},	// cpad up
-	{219, 101, 160, ALIGN_RIGHT},	// cpad dn
-	{220, 101, 168, ALIGN_RIGHT},	// cpad lt
-	{221, 101, 176, ALIGN_RIGHT},	// cpad rt
-	{206, 101, 136, ALIGN_RIGHT},	// zl
-	{204, 101, 120, ALIGN_RIGHT},	// l
-	{0,0,0,0}
-};
-
-extern int is_paused;
-
-void toggle_help(int inmenu)
-{
-	static int pstate=0;
-	SDL_Surface *help_img;
-	static int mouse;
-
-	if (!help_on) {
-		char buf[40];
-
-		// **** paint the top screen help image ********************
-		help_img=IMG_Load("romfs:/helpimg.png");
-		SDL_SetAlpha(help_img, 0, 255);
-		char *p;
-		SDL_Color w=(SDL_Color){255,255,255,0};
-
-		printstring(help_img,
-			inmenu?"Vice3DS Menu Help":"Vice3DS Emulator Help",
-			8, 1, 0, ALIGN_LEFT, FONT_BIG, w);
-		printstring(help_img,
-			inmenu?"=================":"=====================",
-			8, 9, 0, ALIGN_LEFT, FONT_BIG, w);
-
-		// print button functions
-		for (int i=0; help_pos[i][0]!=0; i++) {
-			p=get_key_help(help_pos[i][0],inmenu,0);
-			snprintf(buf, 40, "%s", p?p:"-");
-			printstring(help_img, buf, help_pos[i][1], help_pos[i][2], 0, help_pos[i][3], FONT_MEDIUM, w);
-		}
-		// print 3ds slider
-		switch (slider3d_func) {
-			case 0:	// off
-				p="-";
-				break;
-			case 1: // slowdown
-				p="Slow down Emulation";
-				break;
-			default: //speedup
-				p="Speed up Emulation";
-		}	
-		printstring(help_img, inmenu?"-":p, 297, 72, 0, ALIGN_LEFT, FONT_MEDIUM, w);
-	
-		// volume
-		printstring(help_img, inmenu?"-":"Volume", 101, 88, 0, ALIGN_RIGHT, FONT_MEDIUM, w);
-
-		// create the sprite
-		makeImage(&(help_top_spr), help_img->pixels, help_img->w, help_img->h, 0);
-		SDL_FreeSurface(help_img);
-
-		// **** paint the bottom screen help image ********************
-		// 11 x 6 at 5,6
-		help_img=IMG_Load("romfs:/helpoverlay.png");
-		SDL_SetAlpha(help_img, 0, 255);
-		if (!inmenu) {
-			// write the help texts into the overlay
-			for (int i = 0; uikbd_keypos[i].key != 0 ; ++i) {
-				if (uikbd_keypos[i].flags != 1) continue;	// not a soft button
-				char *name=get_key_help(uikbd_keypos[i].key,0,20);
-				printtext(help_img, name, uikbd_keypos[i].x+5, uikbd_keypos[i].y+6, 55, 48, FONT_MEDIUM, w);
-			}
-		}
-		// create the sprite
-		makeImage(&(help_bot_spr), help_img->pixels, help_img->w, help_img->h, 0);
-		SDL_FreeSurface(help_img);
-		
-		mouse=_mouse_enabled;
-		pstate=is_paused;
-		help_on=1;
-		_mouse_enabled=0;
-
-		ui_pause_emulation(1);
-	} else {
-		help_on=0;
-		_mouse_enabled=mouse;
-		ui_pause_emulation(pstate);
-	}
-	requestRepaint();
-}
-
 // update the whole bottom screen
 void sdl_uibottom_draw(void)
 {	
@@ -1341,6 +1271,134 @@ void *alloc_copy(void *p, size_t s) {
 	void *d=malloc(s);
 	memcpy(d,p,s);
 	return d;
+}
+
+int help_pos[][4] = {
+	//	key, x, top-y, justification (0=left, 1=right)
+	{209, 297, 224, ALIGN_LEFT},	// select
+	{208, 297, 208, ALIGN_LEFT},	// start
+	{201, 297, 192, ALIGN_LEFT},	// b
+	{203, 297, 176, ALIGN_LEFT},	// y
+	{200, 297, 160, ALIGN_LEFT},	// a
+	{202, 297, 144, ALIGN_LEFT},	// x
+	{214, 297, 104, ALIGN_LEFT},	// cstk up
+	{215, 297, 112, ALIGN_LEFT},	// cstk dn
+	{216, 297, 120, ALIGN_LEFT},	// cstk lt
+	{217, 297, 128, ALIGN_LEFT},	// cstk rt
+	{205, 297,  88, ALIGN_LEFT},	// r
+	{207, 297,  56, ALIGN_LEFT},	// zr
+	{210, 101, 192, ALIGN_RIGHT},	// dpad up
+	{211, 101, 200, ALIGN_RIGHT},	// dpad dn
+	{212, 101, 208, ALIGN_RIGHT},	// dpad lt
+	{213, 101, 216, ALIGN_RIGHT},	// dpad rt
+	{218, 101, 152, ALIGN_RIGHT},	// cpad up
+	{219, 101, 160, ALIGN_RIGHT},	// cpad dn
+	{220, 101, 168, ALIGN_RIGHT},	// cpad lt
+	{221, 101, 176, ALIGN_RIGHT},	// cpad rt
+	{206, 101, 136, ALIGN_RIGHT},	// zl
+	{204, 101, 120, ALIGN_RIGHT},	// l
+	{0,0,0,0}
+};
+
+extern int is_paused;
+static int bckup_pstate=0;
+static int bckup_mouse;
+
+void anim_callback3(void *param) {
+	help_on=0;
+	_mouse_enabled=bckup_mouse;
+//	ui_pause_emulation(bckup_pstate);
+	requestRepaint();
+}
+
+void toggle_help(int inmenu)
+{
+	SDL_Surface *help_img;
+	static int old_kb_y_pos;
+
+	if (!help_on) {
+		char buf[40];
+
+		// **** paint the top screen help image ********************
+		help_img=IMG_Load("romfs:/helpimg.png");
+		SDL_SetAlpha(help_img, 0, 255);
+		char *p;
+		SDL_Color w=(SDL_Color){255,255,255,0};
+
+		printstring(help_img,
+			inmenu?"Vice3DS Menu Help":"Vice3DS Emulator Help",
+			8, 1, 0, ALIGN_LEFT, FONT_BIG, w);
+		printstring(help_img,
+			inmenu?"=================":"=====================",
+			8, 9, 0, ALIGN_LEFT, FONT_BIG, w);
+
+		// print button functions
+		for (int i=0; help_pos[i][0]!=0; i++) {
+			p=get_key_help(help_pos[i][0],inmenu,0);
+			snprintf(buf, 40, "%s", p?p:"-");
+			printstring(help_img, buf, help_pos[i][1], help_pos[i][2], 0, help_pos[i][3], FONT_MEDIUM, w);
+		}
+		// print 3ds slider
+		switch (slider3d_func) {
+			case 0:	// off
+				p="-";
+				break;
+			case 1: // slowdown
+				p="Slow down Emulation";
+				break;
+			default: //speedup
+				p="Speed up Emulation";
+		}	
+		printstring(help_img, inmenu?"-":p, 297, 72, 0, ALIGN_LEFT, FONT_MEDIUM, w);
+	
+		// volume
+		printstring(help_img, inmenu?"-":"Volume", 101, 88, 0, ALIGN_RIGHT, FONT_MEDIUM, w);
+
+		// create the sprite
+		makeImage(&(help_top_spr), help_img->pixels, help_img->w, help_img->h, 0);
+		SDL_FreeSurface(help_img);
+
+		// **** paint the bottom screen help image ********************
+		// 11 x 6 at 5,6
+		help_img=IMG_Load("romfs:/helpoverlay.png");
+		SDL_SetAlpha(help_img, 0, 255);
+		if (!inmenu) {
+			// write the help texts into the overlay
+			for (int i = 0; uikbd_keypos[i].key != 0 ; ++i) {
+				if (uikbd_keypos[i].flags != 1) continue;	// not a soft button
+				char *name=get_key_help(uikbd_keypos[i].key,0,20);
+				printtext(help_img, name, uikbd_keypos[i].x+5, uikbd_keypos[i].y+6, 55, 48, FONT_MEDIUM, w);
+			}
+		}
+		// create the sprite
+		makeImage(&(help_bot_spr), help_img->pixels, help_img->w, help_img->h, 0);
+		SDL_FreeSurface(help_img);
+		
+		bckup_mouse=_mouse_enabled;
+		bckup_pstate=is_paused;
+		old_kb_y_pos=kb_y_pos;
+
+		_mouse_enabled=0;
+		help_anim=100;
+		help_on=1;
+//		ui_pause_emulation(1);
+		start_worker(animate, alloc_copy(&(int[]){
+			0, 0, 2, // steps, delay, nr
+			(int)anim_callback, 0, // callback, callback_data
+			0,0, // callback2, callback2_data
+			(int)(&help_anim), 100, 0,
+			(int)(&set_kb_y_pos), kb_y_pos, 240
+		}, 13*sizeof(int)));
+	} else {
+		start_worker(animate, alloc_copy(&(int[]){
+			0, 0, 2, // steps, delay, nr
+			(int)anim_callback, 0, // callback, callback_data
+			(int)anim_callback3, 0, // callback2, callback2_data
+			(int)(&help_anim), 0, 100,
+			(int)(&set_kb_y_pos), 240, old_kb_y_pos
+		}, 13*sizeof(int)));
+	}
+	requestRepaint();
 }
 
 static SDL_Event sdl_e;

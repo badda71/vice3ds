@@ -508,6 +508,7 @@ void SDL_RequestCall(void(*callback)(void*, int), void *param) {
 }
 
 SDL_VideoDevice *vdev;
+struct SDL_PrivateVideoData *vdev_hidden;
 
 void drawMainSpritesheetAt(int x, int y, int w, int h) {
 	s32 i;
@@ -520,6 +521,7 @@ void drawMainSpritesheetAt(int x, int y, int w, int h) {
 static void videoThread(void* data)
 {
     vdev = (SDL_VideoDevice *) data;
+	vdev_hidden=vdev->hidden;
 
 	while(runThread) {
 		if(!app_pause && !app_exiting) {
