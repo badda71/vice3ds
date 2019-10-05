@@ -496,10 +496,10 @@
 #define HAVE_REGEX_H 1
 
 /* This version provides ReSID support. */
-/* #undef HAVE_RESID */
+#define HAVE_RESID /**/
 
 /* This version provides ReSID-DTV support. */
-/* #undef HAVE_RESID_DTV */
+#define HAVE_RESID_DTV /**/
 
 /* Define to 1 if you have the `rewinddir' function. */
 #define HAVE_REWINDDIR 1

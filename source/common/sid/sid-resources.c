@@ -81,6 +81,7 @@ static int set_sid_engine(int set_engine, void *param)
 {
     int engine = set_engine;
 
+/* doesn't make sense
     if (engine == SID_ENGINE_DEFAULT) {
 #ifdef HAVE_RESID
         engine = SID_ENGINE_RESID;
@@ -88,6 +89,7 @@ static int set_sid_engine(int set_engine, void *param)
         engine = SID_ENGINE_FASTSID;
 #endif
     }
+*/
 
     switch (engine) {
         case SID_ENGINE_FASTSID:
@@ -379,7 +381,7 @@ void sid_set_enable(int value)
 
 #if defined(HAVE_RESID) || defined(HAVE_RESID_DTV)
 static const resource_int_t resid_resources_int[] = {
-    { "SidResidSampling", SID_RESID_SAMPLING_RESAMPLING, RES_EVENT_NO, NULL,
+    { "SidResidSampling", SID_RESID_SAMPLING_FAST, RES_EVENT_NO, NULL,
       &sid_resid_sampling, set_sid_resid_sampling, NULL },
     { "SidResidPassband", 90, RES_EVENT_NO, NULL,
       &sid_resid_passband, set_sid_resid_passband, NULL },
