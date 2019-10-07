@@ -44,6 +44,7 @@
 #include "ssi2001.h"
 #include "sound.h"
 #include "types.h"
+#include "3ds.h"
 
 /* Resource handling -- Added by Ettore 98-04-26.  */
 
@@ -81,15 +82,21 @@ static int set_sid_engine(int set_engine, void *param)
 {
     int engine = set_engine;
 
-/* doesn't make sense
     if (engine == SID_ENGINE_DEFAULT) {
 #ifdef HAVE_RESID
-        engine = SID_ENGINE_RESID;
+        u8 i;
+		cfguInit();
+		CFGU_GetSystemModel(&i);
+		cfguExit();
+		if (i>1) {	// n3ds
+			engine = SID_ENGINE_RESID;
+		} else {	// o3ds
+			engine = SID_ENGINE_FASTSID;
+		}
 #else
         engine = SID_ENGINE_FASTSID;
 #endif
     }
-*/
 
     switch (engine) {
         case SID_ENGINE_FASTSID:
