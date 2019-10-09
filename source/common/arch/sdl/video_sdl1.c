@@ -42,7 +42,6 @@
 #include "cmdline.h"
 #include "fullscreen.h"
 #include "fullscreenarch.h"
-#include "icon.h"
 #include "joy.h"
 #include "joystick.h"
 #include "keyboard.h"
