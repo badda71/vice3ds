@@ -1232,12 +1232,12 @@ void sdl_uibottom_draw(void)
 		if (uibottom_must_redraw_local & UIB_GET_RECALC_KEYPRESS) {
 			keypress_recalc();
 		}
-
+/*
 		// check if our internal state matches the SDL state
 		// (actually a stupid workaround for the issue that fullscreen sbutton does not unstick)
 		if (!_mouse_enabled && kb_activekey != -1 && !SDL_GetMouseState(NULL, NULL))
 			SDL_PushEvent( &(SDL_Event){ .type = SDL_MOUSEBUTTONUP });
-
+*/
 		requestRepaint();
 	}
 }
@@ -1516,6 +1516,7 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 			}
 		}
 		if (uikbd_keypos[i].key == 0) return;
+		if (i==kb_activekey) return; // ignore button down on an already pressed key
 		kb_activekey=i;		
 		
 		// start sbutton drag

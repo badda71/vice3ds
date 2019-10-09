@@ -56,9 +56,6 @@ void fullscreen_resume(void)
 
 static int fullscreen_enable(struct video_canvas_s *canvas, int enable)
 {
-    SDL_Event e;
-    int count;
-
     DBG(("%s: %i", __func__, enable));
 
     if (!canvas->fullscreenconfig->device_set) {
@@ -77,7 +74,10 @@ static int fullscreen_enable(struct video_canvas_s *canvas, int enable)
                  down while switching modes. the following tries to get rid
                  of these events, so "alt-d" doesnt end up in the emulated machine.
         */
-        count = 10; while (count--) {
+/* ** not necessary for 3DS **
+		SDL_Event e;
+		int count;
+		count = 10; while (count--) {
             while (SDL_PollEvent(&e)) {
                 switch (e.type) {
                     case SDL_KEYDOWN:
@@ -88,7 +88,7 @@ static int fullscreen_enable(struct video_canvas_s *canvas, int enable)
             }
             SDL_Delay(20);
         }
-    }
+*/    }
     return 0;
 }
 
