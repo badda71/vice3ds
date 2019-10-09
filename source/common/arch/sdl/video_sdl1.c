@@ -1159,12 +1159,12 @@ void sdl_video_canvas_switch(int index)
     if (index >= sdl_num_screens) {
         return;
     }
-
+/* sometimes this surface is already freed ??
     if (sdl_canvaslist[index]->screen != NULL) {
         SDL_FreeSurface(sdl_canvaslist[index]->screen);
         sdl_canvaslist[index]->screen = NULL;
     }
-
+*/
     sdl_active_canvas_num = index;
 
     canvas = sdl_canvaslist[sdl_active_canvas_num];
