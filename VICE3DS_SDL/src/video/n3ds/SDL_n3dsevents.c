@@ -70,7 +70,7 @@ char keymem[N3DS_NUMKEYS];
 
 void N3DS_PumpEvents(_THIS)
 {
-	svcSleepThread(100000); // 0.1 ms
+//	svcSleepThread(100000); // 0.1 ms
 	
 	if (app_pause) return;
 	
