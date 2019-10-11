@@ -396,8 +396,8 @@ static inline void  drawImage( DS3_Image *img, int x, int y, int width, int heig
 	if (!img) return;
 	if (!width) width=img->w;
 	if (!height) height=img->h;
-	x=(x*400)/320;
-	width=(width*400)/320;
+	x=(int)(((float)x*400.0f)/320.0f+0.5f);
+	width=(int)(((float)width*400.0f)/320.0f+0.5f);
 
 	C3D_TexBind(0, &(img->tex));
 		
