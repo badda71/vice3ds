@@ -321,6 +321,7 @@ static DS3_Image keymask_spr;
 static DS3_Image black_spr;
 // dynamic sprites
 static DS3_Image touchpad_spr;
+static DS3_Image menu_spr;
 static DS3_Image help_top_spr;
 static DS3_Image help_bot_spr;
 static DS3_Image help_spr;
@@ -417,6 +418,21 @@ static inline void  drawImage( DS3_Image *img, int x, int y, int width, int heig
 	C3D_ImmDrawEnd();
 }
 
+static void makeTexture(C3D_Tex *tex, u8 *gpusrc, unsigned hw, unsigned hh) {
+	s32 i;
+	svcWaitSynchronization(privateSem1, U64_MAX);
+	// init texture
+	C3D_TexDelete(tex);
+	C3D_TexInit(tex, hw, hh, GPU_RGBA8);
+	C3D_TexSetFilter(tex, GPU_NEAREST, GPU_NEAREST);
+
+	// Convert image to 3DS tiled texture format
+	GSPGPU_FlushDataCache(gpusrc, hw*hh*4);
+	C3D_SyncDisplayTransfer ((u32*)gpusrc, GX_BUFFER_DIM(hw,hh), (u32*)(tex->data), GX_BUFFER_DIM(hw,hh), TEXTURE_TRANSFER_FLAGS);
+	GSPGPU_FlushDataCache(tex->data, hw*hh*4);
+	svcReleaseSemaphore(&i, privateSem1, 1);
+}
+
 static void makeImage(DS3_Image *img, u8 *pixels, unsigned w, unsigned h, int noconv) {
 
 	img->w=w;
@@ -425,7 +441,6 @@ static void makeImage(DS3_Image *img, u8 *pixels, unsigned w, unsigned h, int no
 	img->fw=(float)(w)/hw;
 	unsigned hh=mynext_pow2(h);
 	img->fh=(float)(h)/hh;
-	s32 i;
 
 	u8 *gpusrc;
 	if (noconv) { // pixels are already in a transferable format (buffer in linear RAM, ABGR pixel format, pow2-dimensions)
@@ -453,20 +468,8 @@ static void makeImage(DS3_Image *img, u8 *pixels, unsigned w, unsigned h, int no
 		}
 	}
 
-	svcWaitSynchronization(privateSem1, U64_MAX);
+	makeTexture(&(img->tex), gpusrc, hw, hh);
 
-	// init texture
-	C3D_TexDelete(&(img->tex));
-	C3D_TexInit(&(img->tex), hw, hh, GPU_RGBA8);
-	C3D_TexSetFilter(&(img->tex), GPU_NEAREST, GPU_NEAREST);
-
-	// Convert image to 3DS tiled texture format
-	GSPGPU_FlushDataCache(gpusrc, hw*hh*4);
-	C3D_SyncDisplayTransfer ((u32*)gpusrc, GX_BUFFER_DIM(hw,hh), (u32*)(img->tex.data), GX_BUFFER_DIM(hw,hh), TEXTURE_TRANSFER_FLAGS);
-	GSPGPU_FlushDataCache(img->tex.data, hw*hh*4);
-
-	svcReleaseSemaphore(&i, privateSem1, 1);
-	
 	// cleanup
 	if (!noconv) linearFree(gpusrc);
 	return;
@@ -596,7 +599,9 @@ static void uibottom_repaint(void *param, int topupdated) {
 
 	// now, draw the sprites
 	// first, the background
-	if (_mouse_enabled) {
+	if (sdl_menu_state) {
+		drawImage(&menu_spr, 0, 0, 0, 0);
+	} else if (_mouse_enabled) {
 		drawImage(&touchpad_spr, 0, 0, 0, 0);
 	} else {
 		drawImage(&background_spr, 0, 0, 0, 0);
@@ -627,16 +632,16 @@ static void uibottom_repaint(void *param, int topupdated) {
 			if (dragging && sbutton_nr[i] != kb_activekey && sbutton_nr[i] == drag_over)
 				drawImage(&(sbdrag_spr),k->x+dx,k->y-dy,0,0);
 		}
+		if (last_i!=-1) {
+			k=&(uikbd_keypos[sbutton_nr[last_i]]);
+			drawImage(&(sbutton_spr[last_i]),k->x,k->y,0,0);
+			if (keysPressed[sbutton_nr[last_i]])
+				drawImage(&(sbmask_spr),k->x,k->y,0,0);
+			if (dragging && sbutton_nr[last_i] != kb_activekey && sbutton_nr[last_i] == drag_over)
+				drawImage(&(sbdrag_spr),k->x,k->y,0,0);
+		}
 	}
 
-	if (last_i!=-1) {
-		k=&(uikbd_keypos[sbutton_nr[last_i]]);
-		drawImage(&(sbutton_spr[last_i]),k->x,k->y,0,0);
-		if (keysPressed[sbutton_nr[last_i]])
-			drawImage(&(sbmask_spr),k->x,k->y,0,0);
-		if (dragging && sbutton_nr[last_i] != kb_activekey && sbutton_nr[last_i] == drag_over)
-			drawImage(&(sbdrag_spr),k->x,k->y,0,0);
-	}
 	// color sprites for keyboard
 	for (i=0;i<8;i++) {
 		k=&(uikbd_keypos[colkey_nr[i]]);
@@ -1204,6 +1209,39 @@ static void uibottom_init() {
 	SDL_RequestCall(uibottom_repaint, NULL);
 }
 
+void menu_recalc() {
+	menu_spr.w=320;
+	menu_spr.h=240;
+	unsigned hw=512;
+	unsigned hh=256;
+	menu_spr.fw=(float)(menu_spr.w)/hw;
+	menu_spr.fh=(float)(menu_spr.h)/hh;
+
+	// GX_DisplayTransfer needs input buffer in linear RAM
+	u8 *gpusrc = linearAlloc(hw*hh*4);
+
+	// convert the paletted menu draw buffer to ABGR
+	u8* src=menu_draw_buffer;
+	u8 *dst;
+	palette_entry_t *pal= sdl_active_canvas->palette->entries;
+
+	for(int y = 0; y < 240; y++) {
+		dst=gpusrc+y*hw*4;
+		for (int x=0; x<320; x++) {
+			*dst++ = 255;				// alpha
+			*dst++ = pal[*src].blue;	// blue
+			*dst++ = pal[*src].green;	// green
+			*dst++ = pal[*src].red;		// red
+			++src;
+		}
+	}
+
+	makeTexture(&(menu_spr.tex), gpusrc, hw, hh);
+
+	// cleanup
+	linearFree(gpusrc);
+}
+
 // update the whole bottom screen
 void sdl_uibottom_draw(void)
 {	
@@ -1231,6 +1269,9 @@ void sdl_uibottom_draw(void)
 		// zero keypress status if we updated anything
 		if (uibottom_must_redraw_local & UIB_GET_RECALC_KEYPRESS) {
 			keypress_recalc();
+		}
+		if (sdl_menu_state) {
+			menu_recalc();
 		}
 /*
 		// check if our internal state matches the SDL state
