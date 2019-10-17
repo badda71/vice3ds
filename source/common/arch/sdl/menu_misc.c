@@ -54,7 +54,7 @@ static int ui_key_press_sequence (void *param) {
 	return 0;
 }
 
-static void kb_feed(char *text) {
+static void kb_feed(const char *text) {
 	char *text_in_petscii = lib_stralloc(text);
 	charset_petconvstring((unsigned char*)text_in_petscii, 0);
 	kbdbuf_feed(text_in_petscii);
@@ -68,15 +68,6 @@ static UI_MENU_CALLBACK(keystroke_callback)
         return sdl_menu_text_exit_ui;
     }
     return NULL;
-}
-
-static UI_MENU_CALLBACK(command_callback)
-{
-	if (activated) {
-		kb_feed((char *)param);
-		return sdl_menu_text_exit_ui;
-	}
-	return NULL;
 }
 
 static UI_MENU_CALLBACK(bottomoff_callback)
@@ -268,6 +259,90 @@ static UI_MENU_CALLBACK(unmap_hotkey_callback)
 	return NULL;
 }
 
+UI_MENU_CALLBACK(type_command_callback)
+{
+	const char *ostr;
+	resources_get_string((char *)param, &ostr);
+
+	if (activated) {
+		char *str=lib_stralloc(ostr);
+		for (char* p = str; (p = strchr(p, '\\')) != NULL; *p = '\r');
+		kb_feed(str);
+		lib_free(str);
+		return sdl_menu_text_exit_ui;
+	}
+	return ostr;
+}
+
+UI_MENU_DEFINE_STRING(Command01)
+UI_MENU_DEFINE_STRING(Command02)
+UI_MENU_DEFINE_STRING(Command03)
+UI_MENU_DEFINE_STRING(Command04)
+UI_MENU_DEFINE_STRING(Command05)
+UI_MENU_DEFINE_STRING(Command06)
+UI_MENU_DEFINE_STRING(Command07)
+UI_MENU_DEFINE_STRING(Command08)
+UI_MENU_DEFINE_STRING(Command09)
+UI_MENU_DEFINE_STRING(Command10)
+UI_MENU_DEFINE_STRING(Command11)
+UI_MENU_DEFINE_STRING(Command12)
+UI_MENU_DEFINE_STRING(Command13)
+UI_MENU_DEFINE_STRING(Command14)
+UI_MENU_DEFINE_STRING(Command15)
+UI_MENU_DEFINE_STRING(Command16)
+UI_MENU_DEFINE_STRING(Command17)
+UI_MENU_DEFINE_STRING(Command18)
+UI_MENU_DEFINE_STRING(Command19)
+UI_MENU_DEFINE_STRING(Command20)
+
+const ui_menu_entry_t edit_commands_menu[] = {
+    { "Edit 01", MENU_ENTRY_RESOURCE_STRING, string_Command01_callback, (ui_callback_data_t)"Command 01 (\\=RETURN)" },
+    { "Edit 02", MENU_ENTRY_RESOURCE_STRING, string_Command02_callback, (ui_callback_data_t)"Command 02 (\\=RETURN)" },
+    { "Edit 03", MENU_ENTRY_RESOURCE_STRING, string_Command03_callback, (ui_callback_data_t)"Command 03 (\\=RETURN)" },
+    { "Edit 04", MENU_ENTRY_RESOURCE_STRING, string_Command04_callback, (ui_callback_data_t)"Command 04 (\\=RETURN)" },
+    { "Edit 05", MENU_ENTRY_RESOURCE_STRING, string_Command05_callback, (ui_callback_data_t)"Command 05 (\\=RETURN)" },
+    { "Edit 06", MENU_ENTRY_RESOURCE_STRING, string_Command06_callback, (ui_callback_data_t)"Command 06 (\\=RETURN)" },
+    { "Edit 07", MENU_ENTRY_RESOURCE_STRING, string_Command07_callback, (ui_callback_data_t)"Command 07 (\\=RETURN)" },
+    { "Edit 08", MENU_ENTRY_RESOURCE_STRING, string_Command08_callback, (ui_callback_data_t)"Command 08 (\\=RETURN)" },
+    { "Edit 09", MENU_ENTRY_RESOURCE_STRING, string_Command09_callback, (ui_callback_data_t)"Command 09 (\\=RETURN)" },
+    { "Edit 10", MENU_ENTRY_RESOURCE_STRING, string_Command10_callback, (ui_callback_data_t)"Command 10 (\\=RETURN)" },
+    { "Edit 11", MENU_ENTRY_RESOURCE_STRING, string_Command11_callback, (ui_callback_data_t)"Command 11 (\\=RETURN)" },
+    { "Edit 12", MENU_ENTRY_RESOURCE_STRING, string_Command12_callback, (ui_callback_data_t)"Command 12 (\\=RETURN)" },
+    { "Edit 13", MENU_ENTRY_RESOURCE_STRING, string_Command13_callback, (ui_callback_data_t)"Command 13 (\\=RETURN)" },
+    { "Edit 14", MENU_ENTRY_RESOURCE_STRING, string_Command14_callback, (ui_callback_data_t)"Command 14 (\\=RETURN)" },
+    { "Edit 15", MENU_ENTRY_RESOURCE_STRING, string_Command15_callback, (ui_callback_data_t)"Command 15 (\\=RETURN)" },
+    { "Edit 16", MENU_ENTRY_RESOURCE_STRING, string_Command16_callback, (ui_callback_data_t)"Command 16 (\\=RETURN)" },
+    { "Edit 17", MENU_ENTRY_RESOURCE_STRING, string_Command17_callback, (ui_callback_data_t)"Command 17 (\\=RETURN)" },
+    { "Edit 18", MENU_ENTRY_RESOURCE_STRING, string_Command18_callback, (ui_callback_data_t)"Command 18 (\\=RETURN)" },
+    { "Edit 19", MENU_ENTRY_RESOURCE_STRING, string_Command19_callback, (ui_callback_data_t)"Command 19 (\\=RETURN)" },
+    { "Edit 20", MENU_ENTRY_RESOURCE_STRING, string_Command20_callback, (ui_callback_data_t)"Command 20 (\\=RETURN)" },
+    SDL_MENU_LIST_END
+};	
+
+const ui_menu_entry_t type_commands_menu[] = {
+    { "Type 01", MENU_ENTRY_OTHER, type_command_callback, (ui_callback_data_t)"Command01" },
+    { "Type 02", MENU_ENTRY_OTHER, type_command_callback, (ui_callback_data_t)"Command02" },
+    { "Type 03", MENU_ENTRY_OTHER, type_command_callback, (ui_callback_data_t)"Command03" },
+    { "Type 04", MENU_ENTRY_OTHER, type_command_callback, (ui_callback_data_t)"Command04" },
+    { "Type 05", MENU_ENTRY_OTHER, type_command_callback, (ui_callback_data_t)"Command05" },
+    { "Type 06", MENU_ENTRY_OTHER, type_command_callback, (ui_callback_data_t)"Command06" },
+    { "Type 07", MENU_ENTRY_OTHER, type_command_callback, (ui_callback_data_t)"Command07" },
+    { "Type 08", MENU_ENTRY_OTHER, type_command_callback, (ui_callback_data_t)"Command08" },
+    { "Type 09", MENU_ENTRY_OTHER, type_command_callback, (ui_callback_data_t)"Command09" },
+    { "Type 10", MENU_ENTRY_OTHER, type_command_callback, (ui_callback_data_t)"Command10" },
+    { "Type 11", MENU_ENTRY_OTHER, type_command_callback, (ui_callback_data_t)"Command11" },
+    { "Type 12", MENU_ENTRY_OTHER, type_command_callback, (ui_callback_data_t)"Command12" },
+    { "Type 13", MENU_ENTRY_OTHER, type_command_callback, (ui_callback_data_t)"Command13" },
+    { "Type 14", MENU_ENTRY_OTHER, type_command_callback, (ui_callback_data_t)"Command14" },
+    { "Type 15", MENU_ENTRY_OTHER, type_command_callback, (ui_callback_data_t)"Command15" },
+    { "Type 16", MENU_ENTRY_OTHER, type_command_callback, (ui_callback_data_t)"Command16" },
+    { "Type 17", MENU_ENTRY_OTHER, type_command_callback, (ui_callback_data_t)"Command17" },
+    { "Type 18", MENU_ENTRY_OTHER, type_command_callback, (ui_callback_data_t)"Command18" },
+    { "Type 19", MENU_ENTRY_OTHER, type_command_callback, (ui_callback_data_t)"Command19" },
+    { "Type 20", MENU_ENTRY_OTHER, type_command_callback, (ui_callback_data_t)"Command20" },
+    SDL_MENU_LIST_END
+};	
+
 const ui_menu_entry_t misc_menu[] = {
     SDL_MENU_ITEM_TITLE("3DS specific"),
     { "Power off bottom screen backlight",
@@ -322,14 +397,14 @@ const ui_menu_entry_t misc_menu[] = {
 		NULL },
 	SDL_MENU_ITEM_SEPARATOR,
     SDL_MENU_ITEM_TITLE("Commands"),
-    { "LOAD\"*\",8,1 RUN",
-		MENU_ENTRY_OTHER,
-		command_callback,
-		(ui_callback_data_t)"lO\"*\",8,1\rrun\r" },
-    { "LOAD\"$\",8 LIST",
-		MENU_ENTRY_OTHER,
-		command_callback,
-		(ui_callback_data_t)"lO\"$\",8\rlist\r" },
+    { "Edit Commands",
+      MENU_ENTRY_SUBMENU,
+      submenu_callback,
+      (ui_callback_data_t)edit_commands_menu },
+    { "Type Commands",
+      MENU_ENTRY_SUBMENU,
+      submenu_callback,
+      (ui_callback_data_t)type_commands_menu },
     SDL_MENU_ITEM_SEPARATOR,
     SDL_MENU_ITEM_TITLE("Keystrokes"),
 	{ "RUN/STOP + RESTORE",

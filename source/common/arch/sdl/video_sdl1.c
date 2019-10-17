@@ -60,6 +60,7 @@
 #include "vsidui_sdl.h"
 #include "vsync.h"
 #include "uibottom.h"
+#include "vice3ds.h"
 
 #ifdef SDL_DEBUG
 #define DBG(x)  log_debug x
@@ -402,6 +403,10 @@ int video_arch_resources_init(void)
 		return -1;
 	}
 
+	if (vice3ds_resources_init() < 0 ) {
+		return -1;
+	}
+
     if (resources_register_string(resources_string) < 0) {
         return -1;
     }
@@ -420,6 +425,8 @@ void video_arch_resources_shutdown(void)
     if (machine_class == VICE_MACHINE_VSID) {
         joy_arch_resources_shutdown();
     }
+
+	vice3ds_resources_shutdown();
 
 	uibottom_resources_shutdown();
 
