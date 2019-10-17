@@ -33,6 +33,7 @@
 #include "kbd.h"
 #include "mousedrv.h"
 #include "lib.h"
+#include "resources.h"
 
 // LED-related vars / functions
 static Handle ptmsysmHandle = 0;
@@ -235,7 +236,78 @@ int keymap3ds_resource_set(const char *val, void *param)
 	return load_3ds_mapping(keymap3ds_resource);
 }
 
-void vice3ds_shutdown() {
+static char *command[20];
+
+static int set_command(const char *val, void *param)
+{
+    int idx=(int)param;
+
+    if (val) {
+        util_string_set(&command[idx], val);
+	} else {
+		util_string_set(&command[idx], "");
+    }
+    return 0;
+}
+
+static resource_string_t resources_string[] = {
+	{ "Command01", "load\"*\",8,1\\run\\", RES_EVENT_NO, NULL,
+		&command[0], set_command, (void*)0},
+	{ "Command02", "load\"$\",8\\list\\", RES_EVENT_NO, NULL,
+		&command[1], set_command, (void*)1},
+	{ "Command03", "", RES_EVENT_NO, NULL,
+		&command[2], set_command, (void*)2},
+	{ "Command04", "", RES_EVENT_NO, NULL,
+		&command[3], set_command, (void*)3},
+	{ "Command05", "", RES_EVENT_NO, NULL,
+		&command[4], set_command, (void*)4},
+	{ "Command06", "", RES_EVENT_NO, NULL,
+		&command[5], set_command, (void*)5},
+	{ "Command07", "", RES_EVENT_NO, NULL,
+		&command[6], set_command, (void*)6},
+	{ "Command08", "", RES_EVENT_NO, NULL,
+		&command[7], set_command, (void*)7},
+	{ "Command09", "", RES_EVENT_NO, NULL,
+		&command[8], set_command, (void*)8},
+	{ "Command10", "", RES_EVENT_NO, NULL,
+		&command[9], set_command, (void*)9},
+	{ "Command11", "", RES_EVENT_NO, NULL,
+		&command[10], set_command, (void*)10},
+	{ "Command12", "", RES_EVENT_NO, NULL,
+		&command[11], set_command, (void*)11},
+	{ "Command13", "", RES_EVENT_NO, NULL,
+		&command[12], set_command, (void*)12},
+	{ "Command14", "", RES_EVENT_NO, NULL,
+		&command[13], set_command, (void*)13},
+	{ "Command15", "", RES_EVENT_NO, NULL,
+		&command[14], set_command, (void*)14},
+	{ "Command16", "", RES_EVENT_NO, NULL,
+		&command[15], set_command, (void*)15},
+	{ "Command17", "", RES_EVENT_NO, NULL,
+		&command[16], set_command, (void*)16},
+	{ "Command18", "", RES_EVENT_NO, NULL,
+		&command[17], set_command, (void*)17},
+	{ "Command19", "", RES_EVENT_NO, NULL,
+		&command[18], set_command, (void*)18},
+	{ "Command20", "", RES_EVENT_NO, NULL,
+		&command[19], set_command, (void*)19},
+	RESOURCE_STRING_LIST_END
+};
+
+
+int vice3ds_resources_init(void)
+{
+	if (resources_register_string(resources_string) < 0) {
+		return -1;
+	}
+//	if (resources_register_int(resources_int) < 0) {
+//		return -1;
+//	}
+	return 0;
+}
+
+void vice3ds_resources_shutdown(void)
+{
 	lib_free(keymap3ds_resource);
 	keymap3ds_resource=NULL;
 }

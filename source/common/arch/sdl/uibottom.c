@@ -1027,6 +1027,15 @@ char *get_key_help(int key, int inmenu, int trylen) {
 
 		// check hotkey
 		if ((item=sdlkbd_ui_hotkeys[key]) != NULL) {
+
+			// type command hotkey -> return command
+			if (item->callback == type_command_callback) {
+				resources_get_string(item->data, (const char**)&p);
+				snprintf(buf,100,"%s",p);
+				for (p = buf; (p = strchr(p, '\\')) != NULL; *p = ' ');
+				return buf;
+			}
+
 			if (!trylen) return item->string;
 			p = r = sdl_ui_hotkey_path(item);
 			while( strlen(p) > trylen && strchr(p,'&')) p=strchr(p,'&')+1;
@@ -1587,12 +1596,6 @@ static int set_help_button_on(int val, void *param)
 	return 0;
 }
 
-void uibottom_shutdown() {
-	// free the hash
-	for (int i=0; i<HASHSIZE;++i)
-		free(iconHash[i].key);
-}
-
 static resource_string_t resources_string[] = {
 	{ "SoftButtonPositions",
 		" 0 0 64 0 128 0 192 0 256 0 0 60 64 60 128 60 192 60 256 60 0 120 64 120 128 120 192 120 256 120 0 180 64 180 128 180 192 180 256 180",
@@ -1641,6 +1644,9 @@ int uibottom_resources_init() {
 void uibottom_resources_shutdown() {
 	lib_free(soft_button_positions);
 	soft_button_positions=NULL;
+	// free the hash
+	for (int i=0; i<HASHSIZE;++i)
+		free(iconHash[i].key);
 }
 
 int uibottom_editmode_is_on() {

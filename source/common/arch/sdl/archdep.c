@@ -144,9 +144,6 @@ int archdep_init(int *argc, char **argv)
 
 void archdep_shutdown(void)
 {
-    uibottom_shutdown();
-	vice3ds_shutdown();
-	
 	archdep_program_name_free();
     archdep_program_path_free();
     archdep_boot_path_free();

@@ -29,7 +29,6 @@ extern void sdl_uibottom_mouseevent(SDL_Event *);
 extern void toggle_keyboard(void);
 extern void setBottomBacklight (int on);
 extern int is_keyboard_hidden();
-extern void uibottom_shutdown(void);
 extern int uibottom_resources_init();
 extern void uibottom_resources_shutdown();
 extern int uibottom_editmode_is_on();
