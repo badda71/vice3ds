@@ -597,17 +597,13 @@ static void uibottom_repaint(void *param, int topupdated) {
 	C3D_RenderTargetClear(VideoSurface2, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
 	C3D_FrameDrawOn(VideoSurface2);
 
-	// now, draw the sprites
-	// first, the background
-	if (sdl_menu_state) {
-		drawImage(&menu_spr, 0, 0, 0, 0);
-		if (help_button_on && sdl_menu_state==MENU_ACTIVE) drawImage(&help_spr,305,0,0,0);
-	} else if (_mouse_enabled) {
+	if (_mouse_enabled) {
+		// touchpad
 		drawImage(&touchpad_spr, 0, 0, 0, 0);
-		if (help_button_on) drawImage(&help_spr,305,0,0,0);
 	} else {
+		// backound
 		drawImage(&background_spr, 0, 0, 0, 0);
-		// second, all sbuttons w/ selection mask if applicable
+		// all sbuttons w/ selection mask if applicable
 		for (i=0;i<20;i++) {
 			if (sbutton_nr[i] == sb_paintlast) {
 				last_i=i;
@@ -642,17 +638,22 @@ static void uibottom_repaint(void *param, int topupdated) {
 			if (dragging && sbutton_nr[last_i] != kb_activekey && sbutton_nr[last_i] == drag_over)
 				drawImage(&(sbdrag_spr),k->x,k->y,0,0);
 		}
-		// help screen / button
-		if (help_on) {
-			int x=(help_anim*305)/100;
-			int y=(help_anim*-225)/100;
-			drawImage(&help_bot_spr, x, y, 0, 0);
-			drawImage(&help_spr,x, y+225,0,0);
-		} else {
-			if (help_button_on) drawImage(&help_spr,305,0,0,0);
-		}
 	}
-
+	// menu
+	if (sdl_menu_state) {
+		drawImage(&menu_spr, 0, 0, 0, 0);
+		if (help_button_on && sdl_menu_state==MENU_ACTIVE) drawImage(&help_spr,305,0,0,0);
+	}
+	// help screen (bottom part & button)
+	if (help_on && !sdl_menu_state && !_mouse_enabled) {
+		int x=(help_anim*305)/100;
+		int y=(help_anim*-225)/100;
+		drawImage(&help_bot_spr, x, y, 0, 0);
+		drawImage(&help_spr,x, y+225,0,0);
+	} else {
+		if (help_button_on && !(sdl_menu_state & ~MENU_ACTIVE)) drawImage(&help_spr,305,0,0,0);
+	}
+	
 	// color sprites for keyboard
 	for (i=0;i<8;i++) {
 		k=&(uikbd_keypos[colkey_nr[i]]);
@@ -664,7 +665,7 @@ static void uibottom_repaint(void *param, int topupdated) {
 		(sticky&7) == 2 ? &(kbd3_spr):
 		(sticky&7) >= 4 ? &(kbd4_spr):
 		&(kbd1_spr), 0, kb_y_pos, 0, 0);
-	// twisty
+	// keyboard twisty
 	drawImage(
 		kb_y_pos >= 240 ? &(twistyup_spr):&(twistydn_spr),
 		0, kb_y_pos - twistyup_spr.h, 0, 0);
@@ -1220,6 +1221,9 @@ static void uibottom_init() {
 	SDL_RequestCall(uibottom_repaint, NULL);
 }
 
+int menu_alpha_value=210;
+int menu_alpha_min_y=0;
+
 void menu_recalc() {
 	menu_spr.w=320;
 	menu_spr.h=240;
@@ -1235,11 +1239,14 @@ void menu_recalc() {
 	u8* src=menu_draw_buffer;
 	u8 *dst;
 	palette_entry_t *pal= sdl_active_canvas->palette->entries;
-
+	u8 alpha=255;
+	
 	for(int y = 0; y < 240; y++) {
 		dst=gpusrc+y*hw*4;
+		if (y==menu_alpha_min_y) alpha=menu_alpha_value;
 		for (int x=0; x<320; x++) {
-			*dst++ = 255;				// alpha
+			if (*src==0) *dst++ = alpha;// alpha
+			else *dst++ = 255;
 			*dst++ = pal[*src].blue;	// blue
 			*dst++ = pal[*src].green;	// green
 			*dst++ = pal[*src].red;		// red
