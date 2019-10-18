@@ -676,6 +676,12 @@ ui_menu_action_t ui_dispatch_events(void)
     }
 #else
 
+	int tid=SDL_ThreadID();
+	// if messagebox is active and we are not in the main thread, skip processing
+	if ((sdl_menu_state & MSGBOX_ACTIVE) && tid != 0) return retval;
+	// if menu is active and we are not in the menu thread, skip processing
+	if (sdl_menu_state == MENU_ACTIVE && tid == 0) return retval;
+
     // check 3d slider and adjust emulation speed if necessary
 	static float slider3d = -1.0;
 	static int sliderf=-1;
@@ -987,22 +993,6 @@ static const resource_int_t resources_int[] = {
 #endif
     RESOURCE_INT_LIST_END
 };
-
-void ui_sdl_quit(void)
-{
-    if (confirm_on_exit) {
-        if (message_box("VICE QUESTION", "Do you really want to exit?", MESSAGE_YESNO) != 0) {
-            return;
-        }
-    }
-
-    if (save_resources_on_exit) {
-        if (resources_save(NULL) < 0) {
-            ui_error("Cannot save current settings.");
-        }
-    }
-    archdep_vice_exit(0);
-}
 
 /* Initialization  */
 int ui_resources_init(void)

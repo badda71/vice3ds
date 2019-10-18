@@ -43,10 +43,37 @@
 #include "util.h"
 #include "vice-event.h"
 #include "archdep_xdg.h"
+#include "vsync.h"
+#include "interrupt.h"
 
 static int save_disks = 1;
 static int save_roms = 0;
 static int save_settings = 1;
+
+/*****************************************************************************
+ *                              CPU trap handlers                            *
+ ****************************************************************************/
+static void load_snapshot_trap(uint16_t addr, void *data)
+{
+    char *filename = (char *)data;
+
+    vsync_suspend_speed_eval();
+    if (machine_read_snapshot(filename, 0) < 0) {
+        snapshot_display_error();
+    }
+    lib_free(filename);
+}
+
+static void save_snapshot_trap(uint16_t addr, void *data)
+{
+    char *filename = (char *)data;
+
+    vsync_suspend_speed_eval();
+	if (machine_write_snapshot(filename, save_roms, save_disks, save_settings, 0) < 0) {
+		snapshot_display_error();
+	}
+    lib_free(filename);
+}
 
 UI_MENU_DEFINE_RADIO(EventStartMode)
 
@@ -86,42 +113,20 @@ static UI_MENU_CALLBACK(toggle_save_settings_callback)
     return NULL;
 }
 
+static char *snap_name;
+
 static UI_MENU_CALLBACK(save_snapshot_callback)
 {
-    char *name;
 
     if (activated) {
-        name = sdl_ui_file_selection_dialog("Choose snapshot file to save", FILEREQ_MODE_SAVE_FILE);
-        if (name != NULL) {
-            util_add_extension(&name, "vsf");
-            if (machine_write_snapshot(name, save_roms, save_disks, save_settings, 0) < 0) {
-                snapshot_display_error();
-            }
-            lib_free(name);
+        snap_name = sdl_ui_file_selection_dialog("Choose snapshot file to save", FILEREQ_MODE_SAVE_FILE);
+        if (snap_name != NULL) {
+            util_add_extension(&snap_name, "vsf");
+            interrupt_maincpu_trigger_trap(save_snapshot_trap, snap_name);
         }
     }
     return NULL;
 }
-
-#if 0
-/* FIXME */
-static UI_MENU_CALLBACK(save_snapshot_slot_callback)
-{
-    char *name;
-
-    if (activated) {
-        name = sdl_ui_slot_selection_dialog("Choose snapshot slot to save", SLOTREQ_MODE_SAVE_SLOT);
-        if (name != NULL) {
-            util_add_extension(&name, "vsf");
-            if (machine_write_snapshot(name, save_roms, save_disks, save_settings, 0) < 0) {
-                snapshot_display_error();
-            }
-            lib_free(name);
-        }
-    }
-    return NULL;
-}
-#endif
 
 static char *quick_fname=NULL;
 
@@ -138,9 +143,7 @@ static UI_MENU_CALLBACK(quickload_snapshot_callback)
 {
     if (!quick_fname) fill_quick_fname();
 	if (activated) {
-        if (machine_read_snapshot(quick_fname, 0) < 0) {
-           snapshot_display_error();
-        }
+		interrupt_maincpu_trigger_trap(load_snapshot_trap, lib_stralloc(quick_fname));
     }
     return NULL;
 }
@@ -149,9 +152,7 @@ static UI_MENU_CALLBACK(quicksave_snapshot_callback)
 {
     if (!quick_fname) fill_quick_fname();
     if (activated) {
-        if (machine_write_snapshot(quick_fname, save_roms, save_disks, save_settings, 0) < 0) {
-            snapshot_display_error();
-        }
+		interrupt_maincpu_trigger_trap(save_snapshot_trap, lib_stralloc(quick_fname));
     }
     return NULL;
 }
@@ -203,33 +204,11 @@ static UI_MENU_CALLBACK(load_snapshot_callback)
     if (activated) {
         name = sdl_ui_file_selection_dialog("Choose snapshot file to load", FILEREQ_MODE_CHOOSE_FILE);
         if (name != NULL) {
-            if (machine_read_snapshot(name, 0) < 0) {
-                snapshot_display_error();
-            }
-            lib_free(name);
+			interrupt_maincpu_trigger_trap(load_snapshot_trap, name);
         }
     }
     return NULL;
 }
-
-#if 0
-/* FIXME */
-static UI_MENU_CALLBACK(load_snapshot_slot_callback)
-{
-    char *name;
-
-    if (activated) {
-        name = sdl_ui_slot_selection_dialog("Choose snapshot slot to load", SLOTREQ_MODE_CHOOSE_SLOT);
-        if (name != NULL) {
-            if (machine_read_snapshot(name, 0) < 0) {
-                snapshot_display_error();
-            }
-            lib_free(name);
-        }
-    }
-    return NULL;
-}
-#endif
 
 static UI_MENU_CALLBACK(set_milestone_callback)
 {

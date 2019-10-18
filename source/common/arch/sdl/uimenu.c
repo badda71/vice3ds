@@ -64,7 +64,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-int sdl_menu_state = 0;
+menu_state sdl_menu_state = MENU_INACTIVE;
 
 void (*sdl_ui_set_menu_params)(int index, menu_draw_t *menu_draw);
 
@@ -98,7 +98,7 @@ static menufont_t monitorfont = { NULL, sdl_monitor_translation, 0, 0 };
 
 static menu_draw_t menu_draw = {
     0, 0,   /* pitch, offset */
-    40, 25, /* max_text_x, max_text_y */
+    40, 28, /* max_text_x, max_text_y */
     0, 0,   /* extra_x, extra_y */
     0, 1,   /* color_back, color_front */
     0, 1,   /* color_default_back, color_default_front */
@@ -686,29 +686,18 @@ static ui_menu_retval_t sdl_ui_menu_item_activate(ui_menu_entry_t *item)
     return MENU_RETVAL_DEFAULT;
 }
 
-static void sdl_ui_trap(uint16_t addr, void *data)
+ui_menu_entry_t *menu_thread_item=NULL;
+SDL_Thread *menu_thread = NULL;
+SDL_sem *menu_sem;
+unsigned int menu_width = 320;
+unsigned int menu_height = 240;
+
+static void sdl_ui_trap(void *data)
 {
-    unsigned int width = 320;
-    unsigned int height = 240;
-    static char msg[0x40];
-
-	if (!menu_draw_buffer) {
-		menu_draw_buffer = lib_malloc(width * height);
-	}
-
     sdl_ui_activate_pre_action();
-    if (machine_class != VICE_MACHINE_VSID) {
-        memset(menu_draw_buffer, 0, width * height);
-    }
-
-    if (data == NULL) {
-        sprintf(&msg[0], "VICE %s - main menu", machine_name);
-        sdl_ui_menu_display(main_menu, msg, 1);
-    } else {
-        sdl_ui_init_draw_params();
-        sdl_ui_menu_item_activate((ui_menu_entry_t *)data);
-    }
-
+    memset(menu_draw_buffer, 0, menu_width * menu_height);
+	menu_thread_item=(ui_menu_entry_t *)data;
+	SDL_SemPost(menu_sem);
 /*
     if (machine_class == VICE_MACHINE_VSID) {
         memset(sdl_active_canvas->draw_buffer_vsid->draw_buffer, 0, width * height);
@@ -720,8 +709,6 @@ static void sdl_ui_trap(uint16_t addr, void *data)
         }
     }
 */
-
-    sdl_ui_activate_post_action();
 }
 
 /* ------------------------------------------------------------------ */
@@ -1010,57 +997,37 @@ menufont_t *sdl_ui_get_menu_font(void)
     return &activefont;
 }
 
-void sdl_ui_activate_pre_action(void)
-{
-#ifdef HAVE_FFMPEG
-    if (screenshot_is_recording()) {
-        screenshot_stop_recording();
-    }
-#endif
+static int menu_thread_func( void *data ) {
+    static char msg[0x40];
+	while (1) {
+		SDL_SemWait(menu_sem);
 
-    vsync_suspend_speed_eval();
-    sound_suspend();
-
-    if (sdl_vsid_state & SDL_VSID_ACTIVE) {
-        sdl_vsid_close();
-    }
-
-#ifndef USE_SDLUI2
-    SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-#endif
-    sdl_menu_state = 1;
-    ui_check_mouse_cursor();
+		SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+		sdl_menu_state |= MENU_ACTIVE;
+		if (menu_thread_item == NULL) {
+			sprintf(&msg[0], "VICE %s - main menu", machine_name);
+			sdl_ui_menu_display(main_menu, msg, 1);
+		} else {
+			sdl_ui_menu_item_activate(menu_thread_item);
+		}
+		sdl_menu_state &= ~MENU_ACTIVE;
+		SDL_EnableKeyRepeat(0, 0);
+		sdl_ui_refresh();
+	}
+	return 0;
 }
 
-void sdl_ui_activate_post_action(void)
+void sdl_ui_activate_pre_action(void)
 {
-    int warp_state;
+	if (!menu_draw_buffer) {
+		// allocate menu draw buffer
+		menu_draw_buffer = lib_malloc(menu_width * menu_height);
 
-    sdl_menu_state = 0;
-    ui_check_mouse_cursor();
-#ifndef USE_SDLUI2
-    SDL_EnableKeyRepeat(0, 0);
-#endif
-
-    /* Do not resume sound if in warp mode */
-    resources_get_int("WarpMode", &warp_state);
-    if (warp_state == 0) {
-        sound_resume();
-    }
-
-    if (machine_class == VICE_MACHINE_VSID) {
-        sdl_vsid_activate();
-    }
-
-    /* Force a video refresh */
-	sdl_ui_refresh();
-
-    /* SDL mode: prevent core dump - pressing menu key in -console mode causes parent_raster to be NULL */
-/*
-    if (sdl_active_canvas->parent_raster) {
-        raster_force_repaint(sdl_active_canvas->parent_raster);
-    }
-*/
+		// start the menu thread
+		menu_sem = SDL_CreateSemaphore(0);
+		menu_thread = SDL_CreateThread(menu_thread_func, NULL);
+	}
+	sdl_ui_init_draw_params();
 }
 
 void sdl_ui_init_draw_params(void)
@@ -1204,10 +1171,11 @@ void sdl_ui_invert_char(int pos_x, int pos_y)
 
 void sdl_ui_activate(void)
 {
-    if (ui_emulation_is_paused()) {
-        ui_pause_emulation(0);
-    }
-    interrupt_maincpu_trigger_trap(sdl_ui_trap, NULL);
+//    if (ui_emulation_is_paused()) {
+//        ui_pause_emulation(0);
+//    }
+//    interrupt_maincpu_trigger_trap(sdl_ui_trap, NULL);
+	sdl_ui_trap(NULL);
 }
 
 void sdl_ui_clear(void)
@@ -1233,14 +1201,16 @@ int sdl_ui_hotkey(ui_menu_entry_t *item)
         case MENU_ENTRY_OTHER_TOGGLE:
         case MENU_ENTRY_RESOURCE_TOGGLE:
         case MENU_ENTRY_RESOURCE_RADIO:
-            return sdl_ui_menu_item_activate(item);
+            sdl_ui_trap((void *)item);
+			//return sdl_ui_menu_item_activate(item);
             break;
         case MENU_ENTRY_RESOURCE_INT:
         case MENU_ENTRY_RESOURCE_STRING:
         case MENU_ENTRY_DIALOG:
         case MENU_ENTRY_SUBMENU:
         case MENU_ENTRY_DYNAMIC_SUBMENU:
-            interrupt_maincpu_trigger_trap(sdl_ui_trap, (void *)item);
+//            interrupt_maincpu_trigger_trap(sdl_ui_trap, (void *)item);
+			sdl_ui_trap((void *)item);
         default:
             break;
     }

@@ -42,7 +42,6 @@ enum {
     MESSAGE_UNIT_SELECT     /**< Drive unit number selection dialog */
 };
 
-
 extern int message_box(const char *title, char *message, int message_mode);
 
 #endif

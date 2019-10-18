@@ -601,8 +601,10 @@ static void uibottom_repaint(void *param, int topupdated) {
 	// first, the background
 	if (sdl_menu_state) {
 		drawImage(&menu_spr, 0, 0, 0, 0);
+		if (help_button_on && sdl_menu_state==MENU_ACTIVE) drawImage(&help_spr,305,0,0,0);
 	} else if (_mouse_enabled) {
 		drawImage(&touchpad_spr, 0, 0, 0, 0);
+		if (help_button_on) drawImage(&help_spr,305,0,0,0);
 	} else {
 		drawImage(&background_spr, 0, 0, 0, 0);
 		// second, all sbuttons w/ selection mask if applicable
@@ -640,6 +642,15 @@ static void uibottom_repaint(void *param, int topupdated) {
 			if (dragging && sbutton_nr[last_i] != kb_activekey && sbutton_nr[last_i] == drag_over)
 				drawImage(&(sbdrag_spr),k->x,k->y,0,0);
 		}
+		// help screen / button
+		if (help_on) {
+			int x=(help_anim*305)/100;
+			int y=(help_anim*-225)/100;
+			drawImage(&help_bot_spr, x, y, 0, 0);
+			drawImage(&help_spr,x, y+225,0,0);
+		} else {
+			if (help_button_on) drawImage(&help_spr,305,0,0,0);
+		}
 	}
 
 	// color sprites for keyboard
@@ -662,15 +673,6 @@ static void uibottom_repaint(void *param, int topupdated) {
 		k=&(uikbd_keypos[i]);
 		if (k->flags==1 || keysPressed[i]==0) continue;
 		drawImage(&(keymask_spr),k->x,k->y+kb_y_pos,k->w,k->h);
-	}
-	// help screen / button
-	if (help_on) {
-		int x=(help_anim*305)/100;
-		int y=(help_anim*-225)/100;
-		drawImage(&help_bot_spr, x, y, 0, 0);
-		drawImage(&help_spr,x, y+225,0,0);
-	} else {
-		if (help_button_on) drawImage(&help_spr,305,0,0,0);
 	}
 	// dragged icon (if applicable)
 	if (drag_i!=-1) {
@@ -1369,14 +1371,8 @@ int help_pos[][4] = {
 	{0,0,0,0}
 };
 
-extern int is_paused;
-static int bckup_pstate=0;
-static int bckup_mouse;
-
 void anim_callback3(void *param) {
 	help_on=0;
-	_mouse_enabled=bckup_mouse;
-//	ui_pause_emulation(bckup_pstate);
 	requestRepaint();
 }
 
@@ -1441,20 +1437,16 @@ void toggle_help(int inmenu)
 		makeImage(&(help_bot_spr), help_img->pixels, help_img->w, help_img->h, 0);
 		SDL_FreeSurface(help_img);
 		
-		bckup_mouse=_mouse_enabled;
-		bckup_pstate=is_paused;
 		old_kb_y_pos=kb_y_pos;
 
-		_mouse_enabled=0;
 		help_anim=100;
 		help_on=1;
-//		ui_pause_emulation(1);
 		start_worker(animate, alloc_copy(&(int[]){
 			0, 0, 2, // steps, delay, nr
 			(int)anim_callback, 0, // callback, callback_data
 			0,0, // callback2, callback2_data
 			(int)(&help_anim), 100, 0,
-			(int)(&set_kb_y_pos), kb_y_pos, 240
+			(int)(&set_kb_y_pos), kb_y_pos, _mouse_enabled?kb_y_pos:240
 		}, 13*sizeof(int)));
 	} else {
 		start_worker(animate, alloc_copy(&(int[]){
@@ -1462,7 +1454,7 @@ void toggle_help(int inmenu)
 			(int)anim_callback, 0, // callback, callback_data
 			(int)anim_callback3, 0, // callback2, callback2_data
 			(int)(&help_anim), 0, 100,
-			(int)(&set_kb_y_pos), 240, old_kb_y_pos
+			(int)(&set_kb_y_pos), _mouse_enabled?old_kb_y_pos:240, old_kb_y_pos
 		}, 13*sizeof(int)));
 	}
 	requestRepaint();

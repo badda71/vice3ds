@@ -42,7 +42,6 @@
 
 #define MAX_MSGBOX_LEN 28
 
-
 /** \brief  Table of number of buttons for each `message mode` enum value
  */
 static int msg_mode_buttons[] = {
@@ -311,25 +310,36 @@ static int handle_message_box(const char *title, const char *message, int messag
     return cur_pos;
 }
 
-static int activate_dialog(const char *title, const char *message, int message_mode)
-{
-    int retval;
-
-    sdl_ui_activate_pre_action();
-    retval = handle_message_box(title, message, message_mode);
-    sdl_ui_activate_post_action();
-
-    return retval;
-}
-
 int message_box(const char *title, char *message, int message_mode)
 {
-    sdl_ui_init_draw_params();
+	int retval;
 
+	sdl_ui_init_draw_params();
     menu_draw = sdl_ui_get_menu_param();
 
-    if (!sdl_menu_state) {
-        return activate_dialog(title, (const char *)message, message_mode);
+    // when called from the main thread, we will pause emulation, backup the menu buffer, show the messagebox and restore the backup buffer afterwards
+	if (SDL_ThreadID() == 0) {
+		int w=320,h=240,warp_state;
+
+		uint8_t *old_menu_draw_buffer = menu_draw_buffer;
+		vsync_suspend_speed_eval();
+		sound_suspend();
+		menu_draw_buffer = calloc(w * h,1);
+		sdl_menu_state |= MSGBOX_ACTIVE;
+
+		retval = handle_message_box(title, message, message_mode);
+	
+		free(menu_draw_buffer);
+		menu_draw_buffer=old_menu_draw_buffer;
+		/* Do not resume sound if in warp mode */
+		resources_get_int("WarpMode", &warp_state);
+		if (warp_state == 0) {
+			sound_resume();
+		}
+		sdl_menu_state &= ~MSGBOX_ACTIVE;
+		sdl_ui_refresh();
+		return retval;
     }
-    return handle_message_box(title, (const char *)message, message_mode);
+	// just a in-menu message box
+	return handle_message_box(title, (const char *)message, message_mode);
 }

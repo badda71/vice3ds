@@ -35,7 +35,13 @@
 #include "vice.h"
 #include "types.h"
 
-extern int sdl_menu_state;
+typedef enum {
+	MENU_INACTIVE = 0,
+	MENU_ACTIVE = 1,
+	MSGBOX_ACTIVE = 2
+} menu_state;
+
+extern menu_state sdl_menu_state;
 extern uint8_t *menu_draw_buffer;
 
 typedef void* ui_callback_data_t;
@@ -161,7 +167,6 @@ extern void (*sdl_ui_set_menu_params)(int index, menu_draw_t *menu_draw);
 
 extern uint8_t *sdl_ui_get_draw_buffer(void);
 extern void sdl_ui_activate_pre_action(void);
-extern void sdl_ui_activate_post_action(void);
 extern void sdl_ui_init_draw_params(void);
 extern void sdl_ui_reverse_colors(void);
 extern void sdl_ui_refresh(void);

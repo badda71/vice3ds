@@ -66,7 +66,7 @@ void uimon_window_close(void)
 {
     if (using_ui_monitor) {
         if (menu_draw) {
-            sdl_ui_activate_post_action();
+ //           sdl_ui_activate_post_action();
         }
         if (machine_class == VICE_MACHINE_VSID) {
             memset(sdl_active_canvas->draw_buffer_vsid->draw_buffer, 0, sdl_active_canvas->draw_buffer_vsid->draw_buffer_width * sdl_active_canvas->draw_buffer_vsid->draw_buffer_height);

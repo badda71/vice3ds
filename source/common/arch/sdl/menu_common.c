@@ -46,6 +46,7 @@
 //#include "vkbd.h"
 #include "vsyncapi.h"
 #include "uibottom.h"
+#include "uimsgbox.h"
 
 /* ------------------------------------------------------------------ */
 /* Common strings */
@@ -154,9 +155,17 @@ UI_MENU_CALLBACK(statusbar_callback)
 
 UI_MENU_CALLBACK(quit_callback)
 {
-    if (activated) {
-        ui_sdl_quit();
-    }
+    int coe;
+	resources_get_int("ConfirmOnExit",&coe);
+	if (activated) {
+		if (coe) {
+			if (message_box("VICE QUESTION", "Do you really want to exit?", MESSAGE_YESNO) != 0) {
+				return NULL;
+			}
+		}
+		SDL_PushEvent( &(SDL_Event){ .type = SDL_QUIT });
+		return sdl_menu_text_exit_ui;
+	}
     return NULL;
 }
 

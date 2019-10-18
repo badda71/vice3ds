@@ -32,6 +32,7 @@
 #include "kbdbuf.h"
 #include "uibottom.h"
 #include "vice3ds.h"
+#include "interrupt.h"
 #include "resources.h"
 #include "fullscreenarch.h"
 #include "videoarch.h"
@@ -80,13 +81,25 @@ static UI_MENU_CALLBACK(bottomoff_callback)
 }
 
 extern volatile bool app_pause; // this pauses the SDL update thread
+static char c_fs[25],c_fsm[25];
+
+static void set_resources_trap(uint16_t addr, void *data)
+{
+	int *rs=(int*)data;
+
+	app_pause=true;
+	for (int i=0;i<rs[0];i++)
+		resources_set_int((char*)rs[i*2+1],rs[i*2+2]);
+	app_pause=false;
+	// update keypresses on bottom screen in case we have anything mapped
+	uibottom_must_redraw |= UIB_RECALC_KEYPRESS;
+}
 
 static UI_MENU_CALLBACK(toggle_MaxScreen_callback)
 {
 	static int s_fs=0, s_fss=SDL_FULLSCREEN, s_fsm=FULLSCREEN_MODE_AUTO;
 	int r=0, fs=0, fss=0, w=0, h=0, fsm=0;
 	
-	char c_fs[25],c_fsm[25];
 	snprintf(c_fs,25,"%sFullscreen",sdl_active_canvas->videoconfig->chip_name);
 	resources_get_int(c_fs, &fs); // 1?
 	snprintf(c_fsm,25,"%sSDLFullscreenMode",sdl_active_canvas->videoconfig->chip_name);
@@ -98,24 +111,27 @@ static UI_MENU_CALLBACK(toggle_MaxScreen_callback)
 	if (fs==1 && w==320 && h==200 && fss==SDL_FULLSCREEN && fsm==FULLSCREEN_MODE_CUSTOM) r=1;
 
 	if (activated) {
-		app_pause=true;
+		u32 *rs = calloc(11,sizeof(u32));
 		if (r==0) {
 			r=1;
 			s_fs=fs; s_fss=fss; s_fsm=fsm;
-			resources_set_int("SDLCustomWidth", 320);
-			resources_set_int("SDLCustomHeight", 200);
-			resources_set_int("SDLFullscreenStretch", SDL_FULLSCREEN);
-			resources_set_int(c_fsm, FULLSCREEN_MODE_CUSTOM);
-			resources_set_int(c_fs, 1);
+			rs[0]=5;
+			rs[1]=(u32)"SDLCustomWidth"; rs[2]=320;
+			rs[3]=(u32)"SDLCustomHeight"; rs[4]=200;
+			rs[5]=(u32)"SDLFullscreenStretch"; rs[6]=SDL_FULLSCREEN;
+			rs[7]=(u32)c_fsm; rs[8]=FULLSCREEN_MODE_CUSTOM;
+			rs[9]=(u32)c_fs;rs[10]=1;
 		} else {
 			r=0;
-			resources_set_int(c_fs, s_fs);
-			resources_set_int(c_fsm, s_fsm);
-			resources_set_int("SDLFullscreenStretch", s_fss);
-			resources_set_int("SDLCustomWidth", 400);
-			resources_set_int("SDLCustomHeight", 240);
+			rs[0]=5;
+			rs[1]=(u32)c_fs; rs[2]=s_fs;
+			rs[3]=(u32)c_fsm; rs[4]=s_fsm;
+			rs[5]=(u32)"SDLFullscreenStretch"; rs[6]=s_fss;
+			rs[7]=(u32)"SDLCustomWidth";rs[8]=400;
+			rs[9]=(u32)"SDLCustomHeight";rs[10]=240;
 		}	
-		app_pause=false;
+		interrupt_maincpu_trigger_trap(set_resources_trap, rs);
+		
 		// update keypresses on bottom screen in case we have anything mapped
 		uibottom_must_redraw |= UIB_RECALC_KEYPRESS;
 	}
