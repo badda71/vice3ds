@@ -35,6 +35,7 @@
 #include "resources.h"
 #include "sound.h"
 #include "ui.h"
+#include "uibottom.h"
 #include "uifonts.h"
 #include "uimenu.h"
 #include "uimsgbox.h"
@@ -326,8 +327,10 @@ int message_box(const char *title, char *message, int message_mode)
 		sound_suspend();
 		menu_draw_buffer = calloc(w * h,1);
 		sdl_menu_state |= MSGBOX_ACTIVE;
-
+		int kbdhidden=is_keyboard_hidden();
+		if (!kbdhidden) toggle_keyboard();
 		retval = handle_message_box(title, message, message_mode);
+		if (kbdhidden!=is_keyboard_hidden()) toggle_keyboard();
 	
 		free(menu_draw_buffer);
 		menu_draw_buffer=old_menu_draw_buffer;

@@ -1005,8 +1005,11 @@ static int menu_thread_func( void *data ) {
 		SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 		sdl_menu_state |= MENU_ACTIVE;
 		if (menu_thread_item == NULL) {
+			int kbdhidden=is_keyboard_hidden();
+			if (!kbdhidden) toggle_keyboard();
 			sprintf(&msg[0], "VICE %s - main menu", machine_name);
 			sdl_ui_menu_display(main_menu, msg, 1);
+			if (kbdhidden!=is_keyboard_hidden()) toggle_keyboard();
 		} else {
 			sdl_ui_menu_item_activate(menu_thread_item);
 		}
@@ -1359,10 +1362,15 @@ char* sdl_ui_readline(const char* previous, int pos_x, int pos_y)
 char* sdl_ui_text_input_dialog(const char* title, const char* previous)
 {
     int i;
+	char *retval;
 
     sdl_ui_clear();
     i = sdl_ui_display_title(title) / menu_draw.max_text_x;
-    return sdl_ui_readline(previous, 0, i + MENU_FIRST_Y);
+	int kbdhidden=is_keyboard_hidden();
+	if (kbdhidden) toggle_keyboard();
+	retval=sdl_ui_readline(previous, 0, i + MENU_FIRST_Y);
+	if (kbdhidden!=is_keyboard_hidden()) toggle_keyboard();
+	return retval;
 }
 
 int sdl_ui_slider_input_dialog(const char* title, const int cur, const int min, const int max)
