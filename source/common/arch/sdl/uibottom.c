@@ -644,16 +644,6 @@ static void uibottom_repaint(void *param, int topupdated) {
 		drawImage(&menu_spr, 0, 0, 0, 0);
 		if (help_button_on && sdl_menu_state==MENU_ACTIVE) drawImage(&help_spr,305,0,0,0);
 	}
-	// help screen (bottom part & button)
-	if (help_on && !sdl_menu_state && !_mouse_enabled) {
-		int x=(help_anim*305)/100;
-		int y=(help_anim*-225)/100;
-		drawImage(&help_bot_spr, x, y, 0, 0);
-		drawImage(&help_spr,x, y+225,0,0);
-	} else {
-		if (help_button_on && !(sdl_menu_state & ~MENU_ACTIVE)) drawImage(&help_spr,305,0,0,0);
-	}
-	
 	// color sprites for keyboard
 	for (i=0;i<8;i++) {
 		k=&(uikbd_keypos[colkey_nr[i]]);
@@ -684,6 +674,15 @@ static void uibottom_repaint(void *param, int topupdated) {
 		drawImage(&(sbutton_spr[drag_i]),x,y,w,h);
 		if (keysPressed[sbutton_nr[drag_i]])
 			drawImage(&(sbmask_spr),x,y,w,h);
+	}
+	// help screen (bottom part & button)
+	if (help_on && !sdl_menu_state && !_mouse_enabled) {
+		int x=(help_anim*305)/100;
+		int y=(help_anim*-225)/100;
+		drawImage(&help_bot_spr, x, y, 0, 0);
+		drawImage(&help_spr,x, y+225,0,0);
+	} else {
+		if (help_button_on && !(sdl_menu_state & ~MENU_ACTIVE)) drawImage(&help_spr,305,0,0,0);
 	}
 	svcReleaseSemaphore(&c, privateSem1, 1);
 }
@@ -1543,7 +1542,7 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 			return; // do not further process the event
 		}
 		// help button
-		if (help_button_on && !help_on && x>=305 && y<=15) {
+		if (help_button_on && !(sdl_menu_state & ~MENU_ACTIVE) && !help_on && x>=305 && y<=15) {
 			toggle_help(sdl_menu_state);
 			return;
 		}
