@@ -66,7 +66,7 @@ static void sdl_poll_print_timeout(int x, int y, int time)
 {
     char *timestr = NULL;
 
-    timestr = lib_msprintf("Timeout in %i...", time);
+    timestr = lib_msprintf("%i sec", time);
     sdl_ui_print(timestr, x, y);
     sdl_ui_refresh();
     lib_free(timestr);
@@ -74,6 +74,7 @@ static void sdl_poll_print_timeout(int x, int y, int time)
 
 /* ------------------------------------------------------------------ */
 /* External interface */
+extern int menu_alpha_max_y;
 
 SDL_Event sdl_ui_poll_event(const char *what, const char *target, int options, int timeout)
 {
@@ -89,6 +90,9 @@ SDL_Event sdl_ui_poll_event(const char *what, const char *target, int options, i
     int allow_joystick = options & SDL_POLL_JOYSTICK;
 #endif
 
+
+	menu_alpha_max_y = 16;
+
     sdl_ui_clear();
     i = sdl_ui_print("Polling ", 0, 0);
     i = i + sdl_ui_print(what, i, 0);
@@ -96,7 +100,7 @@ SDL_Event sdl_ui_poll_event(const char *what, const char *target, int options, i
     sdl_ui_print(target, 0, 1);
 
     if (timeout > 0) {
-        sdl_poll_print_timeout(0, 2, timeout);
+        sdl_poll_print_timeout(32, 0, timeout);
     }
 
 	// empty event queue first
@@ -172,7 +176,7 @@ SDL_Event sdl_ui_poll_event(const char *what, const char *target, int options, i
                 e.type = SDL_USEREVENT;
                 polling = 0;
             } else {
-                sdl_poll_print_timeout(0, 2, timeout);
+                sdl_poll_print_timeout(32, 0, timeout);
             }
         }
     }
@@ -180,6 +184,7 @@ SDL_Event sdl_ui_poll_event(const char *what, const char *target, int options, i
     if (polling == 1) {
         e.type = SDL_USEREVENT;
     }
+	menu_alpha_max_y = 240;
 
     return e;
 }

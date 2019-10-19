@@ -166,7 +166,6 @@ extern menufont_t *sdl_ui_get_menu_font(void);
 extern void (*sdl_ui_set_menu_params)(int index, menu_draw_t *menu_draw);
 
 extern uint8_t *sdl_ui_get_draw_buffer(void);
-extern void sdl_ui_activate_pre_action(void);
 extern void sdl_ui_init_draw_params(void);
 extern void sdl_ui_reverse_colors(void);
 extern void sdl_ui_refresh(void);

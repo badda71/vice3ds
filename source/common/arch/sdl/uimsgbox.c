@@ -318,7 +318,9 @@ int message_box(const char *title, char *message, int message_mode)
 	sdl_ui_init_draw_params();
     menu_draw = sdl_ui_get_menu_param();
 
-    // when called from the main thread, we will pause emulation, backup the menu buffer, show the messagebox and restore the backup buffer afterwards
+    // when called from the main thread, we will pause emulation,
+	// backup the menu buffer, show the messagebox and restore the
+	// backup buffer afterwards
 	if (SDL_ThreadID() == 0) {
 		int w=320,h=240,warp_state;
 

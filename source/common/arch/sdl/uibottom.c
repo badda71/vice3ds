@@ -319,6 +319,10 @@ static DS3_Image sbmask_spr;
 static DS3_Image sbdrag_spr;
 static DS3_Image keymask_spr;
 static DS3_Image black_spr;
+static DS3_Image close_spr;
+static DS3_Image close2_spr;
+static DS3_Image menubut_spr;
+
 // dynamic sprites
 static DS3_Image touchpad_spr;
 static DS3_Image menu_spr;
@@ -642,7 +646,6 @@ static void uibottom_repaint(void *param, int topupdated) {
 	// menu
 	if (sdl_menu_state) {
 		drawImage(&menu_spr, 0, 0, 0, 0);
-		if (help_button_on && sdl_menu_state==MENU_ACTIVE) drawImage(&help_spr,305,0,0,0);
 	}
 	// color sprites for keyboard
 	for (i=0;i<8;i++) {
@@ -680,7 +683,7 @@ static void uibottom_repaint(void *param, int topupdated) {
 		int x=(help_anim*305)/100;
 		int y=(help_anim*-225)/100;
 		drawImage(&help_bot_spr, x, y, 0, 0);
-		drawImage(&help_spr,x, y+225,0,0);
+		drawImage(&close_spr,x, y+225,0,0);
 	} else {
 		if (help_button_on && !(sdl_menu_state & ~MENU_ACTIVE)) drawImage(&help_spr,305,0,0,0);
 	}
@@ -1210,6 +1213,9 @@ static void uibottom_init() {
 	loadImage(&sbmask_spr, "romfs:/sbmask.png");
 	loadImage(&sbdrag_spr, "romfs:/sbdrag.png");
 	loadImage(&help_spr, "romfs:/help.png");
+	loadImage(&close_spr, "romfs:/close.png");
+	loadImage(&close2_spr, "romfs:/close2.png");
+	loadImage(&menubut_spr, "romfs:/menu.png");
 	makeImage(&keymask_spr, (u8[]){0x00, 0x00, 0x00, 0x80},1,1,0);
 	makeImage(&black_spr, (u8[]){0, 0, 0, 0xFF},1,1,0);
 
@@ -1221,7 +1227,7 @@ static void uibottom_init() {
 }
 
 int menu_alpha_value=210;
-int menu_alpha_min_y=0;
+int menu_alpha_max_y=240;
 
 void menu_recalc() {
 	menu_spr.w=320;
@@ -1238,11 +1244,11 @@ void menu_recalc() {
 	u8* src=menu_draw_buffer;
 	u8 *dst;
 	palette_entry_t *pal= sdl_active_canvas->palette->entries;
-	u8 alpha=255;
+	u8 alpha=menu_alpha_value;
 	
 	for(int y = 0; y < 240; y++) {
 		dst=gpusrc+y*hw*4;
-		if (y==menu_alpha_min_y) alpha=menu_alpha_value;
+		if (y==menu_alpha_max_y) alpha=0;
 		for (int x=0; x<320; x++) {
 			if (*src==0) *dst++ = alpha;// alpha
 			else *dst++ = 255;
@@ -1380,6 +1386,32 @@ int help_pos[][4] = {
 void anim_callback3(void *param) {
 	help_on=0;
 	requestRepaint();
+}
+
+void toggle_menu(int active, ui_menu_entry_t *item)
+{
+	static int movekb,kbdhidden;
+	if (active) {
+		SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+		sdl_menu_state |= MENU_ACTIVE;
+		movekb=0;
+		if (item == NULL || 
+			item->type == MENU_ENTRY_DIALOG ||
+			item->type == MENU_ENTRY_SUBMENU ||
+			item->type == MENU_ENTRY_DYNAMIC_SUBMENU)
+			movekb=1;
+		if (movekb)	{
+			kbdhidden=is_keyboard_hidden();
+			if (!kbdhidden) toggle_keyboard();
+		}
+	} else {
+		if (movekb) {
+			if (kbdhidden!=is_keyboard_hidden()) toggle_keyboard();
+		}
+		sdl_menu_state &= ~MENU_ACTIVE;
+		SDL_EnableKeyRepeat(0, 0);
+		uibottom_must_redraw |= UIB_REPAINT;
+	}
 }
 
 void toggle_help(int inmenu)

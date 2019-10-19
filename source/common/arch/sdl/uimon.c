@@ -85,7 +85,7 @@ console_t *uimon_window_open(void)
 #endif
 
     if (using_ui_monitor) {
-        sdl_ui_activate_pre_action();
+//        sdl_ui_activate_pre_action();
         sdl_ui_init_draw_params();
         sdl_ui_clear();
         menu_draw = sdl_ui_get_menu_param();

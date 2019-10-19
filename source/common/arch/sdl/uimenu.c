@@ -692,10 +692,37 @@ SDL_sem *menu_sem;
 unsigned int menu_width = 320;
 unsigned int menu_height = 240;
 
+static int menu_thread_func( void *data ) {
+    static char msg[0x40];
+	while (1) {
+		SDL_SemWait(menu_sem);
+
+		toggle_menu(1,menu_thread_item);
+
+		if (menu_thread_item == NULL) {
+			sprintf(&msg[0], "VICE %s - main menu", machine_name);
+			sdl_ui_menu_display(main_menu, msg, 1);
+		} else {
+			sdl_ui_menu_item_activate(menu_thread_item);
+		}
+		toggle_menu(0,NULL);
+	}
+	return 0;
+}
+
 static void sdl_ui_trap(void *data)
 {
-    sdl_ui_activate_pre_action();
-    memset(menu_draw_buffer, 0, menu_width * menu_height);
+	if (!menu_draw_buffer) {
+		// init draw parameter
+		sdl_ui_init_draw_params();
+		
+		// allocate and clear menu draw buffer
+		menu_draw_buffer = calloc(menu_width * menu_height,1);
+
+		// start the menu thread
+		menu_sem = SDL_CreateSemaphore(0);
+		menu_thread = SDL_CreateThread(menu_thread_func, NULL);
+	}
 	menu_thread_item=(ui_menu_entry_t *)data;
 	SDL_SemPost(menu_sem);
 /*
@@ -997,42 +1024,6 @@ menufont_t *sdl_ui_get_menu_font(void)
     return &activefont;
 }
 
-static int menu_thread_func( void *data ) {
-    static char msg[0x40];
-	while (1) {
-		SDL_SemWait(menu_sem);
-
-		SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-		sdl_menu_state |= MENU_ACTIVE;
-		if (menu_thread_item == NULL) {
-			int kbdhidden=is_keyboard_hidden();
-			if (!kbdhidden) toggle_keyboard();
-			sprintf(&msg[0], "VICE %s - main menu", machine_name);
-			sdl_ui_menu_display(main_menu, msg, 1);
-			if (kbdhidden!=is_keyboard_hidden()) toggle_keyboard();
-		} else {
-			sdl_ui_menu_item_activate(menu_thread_item);
-		}
-		sdl_menu_state &= ~MENU_ACTIVE;
-		SDL_EnableKeyRepeat(0, 0);
-		sdl_ui_refresh();
-	}
-	return 0;
-}
-
-void sdl_ui_activate_pre_action(void)
-{
-	if (!menu_draw_buffer) {
-		// allocate menu draw buffer
-		menu_draw_buffer = lib_malloc(menu_width * menu_height);
-
-		// start the menu thread
-		menu_sem = SDL_CreateSemaphore(0);
-		menu_thread = SDL_CreateThread(menu_thread_func, NULL);
-	}
-	sdl_ui_init_draw_params();
-}
-
 void sdl_ui_init_draw_params(void)
 {
     if (sdl_ui_set_menu_params != NULL) {
@@ -1199,24 +1190,7 @@ int sdl_ui_hotkey(ui_menu_entry_t *item)
         return 0;
     }
 
-    switch (item->type) {
-        case MENU_ENTRY_OTHER:
-        case MENU_ENTRY_OTHER_TOGGLE:
-        case MENU_ENTRY_RESOURCE_TOGGLE:
-        case MENU_ENTRY_RESOURCE_RADIO:
-            sdl_ui_trap((void *)item);
-			//return sdl_ui_menu_item_activate(item);
-            break;
-        case MENU_ENTRY_RESOURCE_INT:
-        case MENU_ENTRY_RESOURCE_STRING:
-        case MENU_ENTRY_DIALOG:
-        case MENU_ENTRY_SUBMENU:
-        case MENU_ENTRY_DYNAMIC_SUBMENU:
-//            interrupt_maincpu_trigger_trap(sdl_ui_trap, (void *)item);
-			sdl_ui_trap((void *)item);
-        default:
-            break;
-    }
+	sdl_ui_trap((void *)item);
     return 0;
 }
 

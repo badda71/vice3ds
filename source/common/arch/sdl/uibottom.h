@@ -23,6 +23,11 @@
  *
  */
 
+#ifndef VICE_UIBOTTOM_H
+#define VICE_UIBOTTOM_H
+
+#include "uimenu.h"
+
 // exposed function
 extern void sdl_uibottom_draw(void);
 extern void sdl_uibottom_mouseevent(SDL_Event *);
@@ -34,6 +39,7 @@ extern void uibottom_resources_shutdown();
 extern int uibottom_editmode_is_on();
 extern void uibottom_toggle_editmode();
 extern void toggle_help(int inmenu);
+extern void toggle_menu(int active, ui_menu_entry_t *item);
 
 // exposed definitions
 typedef struct {
@@ -70,3 +76,5 @@ enum font_size {
 extern uikbd_key *uikbd_keypos;
 extern volatile enum bottom_action uibottom_must_redraw;
 extern int help_on;
+
+#endif
