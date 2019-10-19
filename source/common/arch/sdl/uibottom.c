@@ -1452,10 +1452,10 @@ void toggle_help(int inmenu)
 			default: //speedup
 				p="Speed up Emulation";
 		}	
-		printstring(help_img, inmenu?"-":p, 297, 72, 0, ALIGN_LEFT, FONT_MEDIUM, w);
+		printstring(help_img, p, 297, 72, 0, ALIGN_LEFT, FONT_MEDIUM, w);
 	
 		// volume
-		printstring(help_img, inmenu?"-":"Volume", 101, 88, 0, ALIGN_RIGHT, FONT_MEDIUM, w);
+		printstring(help_img, "Volume", 101, 88, 0, ALIGN_RIGHT, FONT_MEDIUM, w);
 
 		// create the sprite
 		makeImage(&(help_top_spr), help_img->pixels, help_img->w, help_img->h, 0);
