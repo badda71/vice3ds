@@ -1193,9 +1193,6 @@ ui_jam_action_t ui_jam_dialog(const char *format, ...)
     if (retval == 0) {
         return UI_JAM_HARD_RESET;
     }
-    if (retval == 1) {
-        return UI_JAM_MONITOR;
-    }
     return UI_JAM_NONE;
 }
 
