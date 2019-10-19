@@ -76,5 +76,6 @@ enum font_size {
 extern uikbd_key *uikbd_keypos;
 extern volatile enum bottom_action uibottom_must_redraw;
 extern int help_on;
+extern int grab_sbuttons;
 
 #endif

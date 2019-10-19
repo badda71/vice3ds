@@ -106,6 +106,7 @@ SDL_Event sdl_ui_poll_event(const char *what, const char *target, int options, i
 	// empty event queue first
 	while (SDL_PollEvent(&e));
 
+	grab_sbuttons=1;
     /* TODO check if key/event is suitable */
     while (polling) {
         while (polling && SDL_PollEvent(&e)) {
@@ -180,6 +181,7 @@ SDL_Event sdl_ui_poll_event(const char *what, const char *target, int options, i
             }
         }
     }
+	grab_sbuttons=0;
 
     if (polling == 1) {
         e.type = SDL_USEREVENT;

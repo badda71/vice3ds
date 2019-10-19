@@ -299,6 +299,7 @@ uikbd_key *uikbd_keypos=NULL;
 volatile enum bottom_action uibottom_must_redraw = UIB_NO;
 int bottom_lcd_on=1;
 int help_on=0;
+int grab_sbuttons=0;
 
 // internal variables
 #define ICON_W 40
@@ -1410,7 +1411,7 @@ void toggle_menu(int active, ui_menu_entry_t *item)
 		}
 		sdl_menu_state &= ~MENU_ACTIVE;
 		SDL_EnableKeyRepeat(0, 0);
-		uibottom_must_redraw |= UIB_REPAINT;
+		requestRepaint();
 	}
 }
 
@@ -1582,7 +1583,10 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 		for (i = 0; uikbd_keypos[i].key != 0 ; ++i) {
 			if (uikbd_keypos[i].flags) {
 				// soft button
-				if (y >= kb_y_pos || _mouse_enabled) continue; // ignore soft buttons below keyboard or if mousepad is enabled
+				if (y >= kb_y_pos ||
+					_mouse_enabled ||
+					(sdl_menu_state && !grab_sbuttons))
+					continue; // ignore soft buttons below keyboard or if mousepad is enabled or if in menu
 				if (x >= uikbd_keypos[i].x &&
 					x <  uikbd_keypos[i].x + uikbd_keypos[i].w  &&
 					y >= uikbd_keypos[i].y &&
