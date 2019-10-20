@@ -82,6 +82,7 @@ extern void keyboard_key_pressed(signed long key);
 
 static int sdl_ui_ready = 0;
 static int save_resources_on_exit;
+static int events_to_emu=0;
 
 
 static void (*psid_init_func)(void) = NULL;
@@ -679,8 +680,10 @@ ui_menu_action_t ui_dispatch_events(void)
 	int tid=SDL_ThreadID();
 	// if messagebox is active and we are not in the main thread, skip processing
 	if ((sdl_menu_state & MSGBOX_ACTIVE) && tid != 0) return retval;
-	// if menu is active and we are not in the menu thread, skip processing
-	if (sdl_menu_state == MENU_ACTIVE && tid == 0) return retval;
+	// if menu is active and we are in the menu thread, skip processing
+	// (except when explicitly sending events to emu)
+	if (sdl_menu_state == MENU_ACTIVE && ((tid == 0) != (events_to_emu != 0)))
+		return retval;
 
     // check 3d slider and adjust emulation speed if necessary
 	static float slider3d = -1.0;
@@ -747,13 +750,21 @@ ui_menu_action_t ui_dispatch_events(void)
 						break;
 					}
 					ui_display_kbd_status(&e);
-	                retval = sdlkbd_press(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod);
+					if (sdl_menu_state && e.key.keysym.sym==sdl_ui_menukeys[MENU_ACTION_EMU]) {
+						events_to_emu=1;
+						break;
+					}
+	                retval = sdlkbd_press(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod, (sdl_menu_state!=0) ^ events_to_emu);
 				}
-                break;
+				break;
             case SDL_KEYUP:
                 if (e.key.keysym.sym != 0) {
 					ui_display_kbd_status(&e);
-					retval = sdlkbd_release(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod);
+					if (events_to_emu==1 && e.key.keysym.sym==sdl_ui_menukeys[MENU_ACTION_EMU]) {
+						events_to_emu=0;
+						break;
+					}
+					retval = sdlkbd_release(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod, (sdl_menu_state!=0) ^ events_to_emu);
 //log_3ds("Keyup %d",e.key.keysym.sym);
 				}
 				break;
@@ -786,10 +797,9 @@ ui_menu_action_t ui_dispatch_events(void)
                 /* SDL_EventState(SDL_VIDEORESIZE, SDL_ENABLE); */
                 break;
         }
-        /* When using the menu or vkbd, pass every meaningful event to the caller */
-        if (sdl_menu_state && (retval != MENU_ACTION_NONE) && (retval != MENU_ACTION_NONE_RELEASE)) {
-            break;
-        }
+		if (sdl_menu_state && !events_to_emu && retval != MENU_ACTION_NONE && retval != MENU_ACTION_NONE_RELEASE) {
+			break;
+		}
     }
 #endif
 	// update bottom screen if needed (and vsync is not doing it)
@@ -977,8 +987,10 @@ static const resource_int_t resources_int[] = {
       &sdl_ui_menukeys[10], set_ui_menukey, (void *)MENU_ACTION_PAGEDOWN },
     { "MenuKeyHome", SDLK_HOME, RES_EVENT_NO, NULL,
       &sdl_ui_menukeys[11], set_ui_menukey, (void *)MENU_ACTION_HOME },
+    { "MenuKeyEmu", 206, RES_EVENT_NO, NULL,	// 3ds ZL button
+      &sdl_ui_menukeys[12], set_ui_menukey, (void *)MENU_ACTION_EMU },
     { "MenuKeyEnd", SDLK_END, RES_EVENT_NO, NULL,
-      &sdl_ui_menukeys[12], set_ui_menukey, (void *)MENU_ACTION_END },
+      &sdl_ui_menukeys[13], set_ui_menukey, (void *)MENU_ACTION_END },
     { "SaveResourcesOnExit", 0, RES_EVENT_NO, NULL,
       &save_resources_on_exit, set_save_resources_on_exit, NULL },
     { "ConfirmOnExit", 1, RES_EVENT_NO, NULL,

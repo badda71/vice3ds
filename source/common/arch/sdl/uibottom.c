@@ -1100,6 +1100,7 @@ char *get_key_help(int key, int inmenu, int trylen) {
 		resources_get_int( "MenuKeySelect", &i1); if (key == i1) return "Select";
 		resources_get_int( "MenuKeyCancel", &i1); if (key == i1) return "Cancel";
 		resources_get_int( "MenuKeyExit", &i1); if (key == i1) return "Exit";
+		resources_get_int( "MenuKeyEmu", &i1); if (key == i1) return "Use Emulation";
 	}
 	return r;
 }

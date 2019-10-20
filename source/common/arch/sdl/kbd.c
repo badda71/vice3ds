@@ -360,7 +360,7 @@ void sdlkbd_set_hotkey(SDLKey key, SDLMod mod, ui_menu_entry_t *value, int save)
 
 /* ------------------------------------------------------------------------ */
 
-ui_menu_action_t sdlkbd_press(SDLKey key, SDLMod mod)
+ui_menu_action_t sdlkbd_press(SDLKey key, SDLMod mod, int sdl_menu_state)
 {
     ui_menu_action_t i, retval = MENU_ACTION_NONE;
     ui_menu_entry_t *hotkey_action = NULL;
@@ -401,7 +401,7 @@ ui_menu_action_t sdlkbd_press(SDLKey key, SDLMod mod)
     return retval;
 }
 
-ui_menu_action_t sdlkbd_release(SDLKey key, SDLMod mod)
+ui_menu_action_t sdlkbd_release(SDLKey key, SDLMod mod, int sdl_menu_state)
 {
     ui_menu_action_t retval = MENU_ACTION_NONE_RELEASE;
 
