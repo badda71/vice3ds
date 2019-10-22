@@ -220,6 +220,7 @@ static UI_MENU_CALLBACK(toggle_editmode_callback)
 	if (activated) {
 		uibottom_toggle_editmode();
 		r=!r;
+		return sdl_menu_text_exit_ui;
 	}
 	return r ? sdl_menu_text_tick : NULL;
 }

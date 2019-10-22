@@ -321,8 +321,6 @@ static DS3_Image sbmask_spr;
 static DS3_Image sbdrag_spr;
 static DS3_Image keymask_spr;
 static DS3_Image black_spr;
-static DS3_Image close_spr;
-static DS3_Image close2_spr;
 static DS3_Image menubut_spr;
 
 // dynamic sprites
@@ -648,6 +646,8 @@ static void uibottom_repaint(void *param, int topupdated) {
 	// menu
 	if (sdl_menu_state) {
 		drawImage(&menu_spr, 0, 0, 0, 0);
+	} else {
+		drawImage(&menubut_spr, 0,0,0,0);
 	}
 	// color sprites for keyboard
 	for (i=0;i<8;i++) {
@@ -685,7 +685,6 @@ static void uibottom_repaint(void *param, int topupdated) {
 		int x=(help_anim*305)/100;
 		int y=(help_anim*-225)/100;
 		drawImage(&help_bot_spr, x, y, 0, 0);
-		drawImage(&close_spr,x, y+225,0,0);
 	} else {
 		if (help_button_on && !(sdl_menu_state & ~MENU_ACTIVE)) drawImage(&help_spr,305,0,0,0);
 	}
@@ -1216,8 +1215,6 @@ static void uibottom_init() {
 	loadImage(&sbmask_spr, "romfs:/sbmask.png");
 	loadImage(&sbdrag_spr, "romfs:/sbdrag.png");
 	loadImage(&help_spr, "romfs:/help.png");
-	loadImage(&close_spr, "romfs:/close.png");
-	loadImage(&close2_spr, "romfs:/close2.png");
 	loadImage(&menubut_spr, "romfs:/menu.png");
 	makeImage(&keymask_spr, (u8[]){0x00, 0x00, 0x00, 0x80},1,1,0);
 	makeImage(&black_spr, (u8[]){0, 0, 0, 0xFF},1,1,0);
@@ -1396,6 +1393,7 @@ void anim_callback3(void *param) {
 void toggle_menu(int active, ui_menu_entry_t *item)
 {
 	static int movekb,kbdhidden;
+
 	if (active) {
 		SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 		sdl_menu_state |= MENU_ACTIVE;
@@ -1405,7 +1403,7 @@ void toggle_menu(int active, ui_menu_entry_t *item)
 			item->type == MENU_ENTRY_SUBMENU ||
 			item->type == MENU_ENTRY_DYNAMIC_SUBMENU)
 			movekb=1;
-		if (movekb)	{
+		if (movekb)     {
 			kbdhidden=is_keyboard_hidden();
 			if (!kbdhidden) toggle_keyboard();
 		}
@@ -1595,6 +1593,11 @@ ui_menu_action_t sdl_uibottom_mouseevent(SDL_Event *e) {
 		// help button
 		if (help_button_on && !(sdl_menu_state & ~MENU_ACTIVE) && !help_on && x>=305 && y<=15) {
 			toggle_help(sdl_menu_state);
+			return 0;
+		}
+		// menu button
+		if (!(sdl_menu_state) && x<=15 && y<=15) {
+			sdl_ui_activate();
 			return 0;
 		}
 
