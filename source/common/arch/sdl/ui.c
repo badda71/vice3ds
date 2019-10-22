@@ -190,6 +190,14 @@ static unsigned int ui_scroll_up(const char *text, int offset, int amount)
     return offset;
 }
 
+static unsigned int ui_scroll_down(const char *text, int offset, int amount)
+{
+    while (text[offset] != 0 && amount!=0) 
+		if (text[offset++]=='\n') --amount;
+
+	return offset;
+}
+
 #define CHARCODE_UMLAUT_A_LOWER         ((char)0xe4)
 #define CHARCODE_UMLAUT_A_UPPER         ((char)0xc4)
 
@@ -204,7 +212,7 @@ static unsigned int ui_scroll_up(const char *text, int offset, int amount)
 
 #define CHARCODE_KROUZEK_A_LOWER        ((char)0xe5)
 
-void ui_show_text(const char *texti)
+void ui_show_text(const char *title, const char *texti)
 {
     int first_line = 0;
     int last_line = 0;
@@ -218,6 +226,7 @@ void ui_show_text(const char *texti)
     int active_keys;
     char *string;
     menu_draw_t *menu_draw;
+    int yy, action, old_y=-1, dragging=0;
 
     menu_draw = sdl_ui_get_menu_param();
 
@@ -247,7 +256,7 @@ void ui_show_text(const char *texti)
         }
     }
 
-    last_line -= menu_draw->max_text_y;
+    last_line -= menu_draw->max_text_y - 2;
     for (x = 0, z = 0; text[x] != 0; x++) {
         if (last_line == 0) {
             break;
@@ -260,9 +269,10 @@ void ui_show_text(const char *texti)
 
     while (active) {
         sdl_ui_clear();
+		sdl_ui_display_title(title);
         first_line = current_line;
         this_line = current_line;
-        for (y = 0; (y < menu_draw->max_text_y) && (this_line < len); y++) {
+        for (y = 2; (y < menu_draw->max_text_y) && (this_line < len); y++) {
             z = 0;
             for (x = 0; (text[this_line + x] != '\n') &&
                         (text[this_line + x] != 0); x++) {
@@ -313,7 +323,7 @@ void ui_show_text(const char *texti)
                 string[x + z] = 0;
                 sdl_ui_print(string, 0, y);
             }
-            if (y == 0) {
+            if (y == 2) {
                 next_line = this_line + x + 1;
             }
             this_line += x + 1;
@@ -323,54 +333,86 @@ void ui_show_text(const char *texti)
         sdl_ui_refresh();
 
         while (active_keys) {
-            switch (sdl_ui_menu_poll_input()) {
-                case MENU_ACTION_CANCEL:
-                case MENU_ACTION_EXIT:
-                case MENU_ACTION_SELECT:
-                    active_keys = 0;
-                    active = 0;
-                    break;
-                case MENU_ACTION_RIGHT:
-                case MENU_ACTION_PAGEDOWN:
-                    active_keys = 0;
-                    if (current_line < last_line) {
-                        current_line = next_page;
-                        if (current_line > last_line) {
-                            current_line = last_line;
-                        }
-                    }
-                    break;
-                case MENU_ACTION_DOWN:
-                    active_keys = 0;
-                    if (current_line < last_line) {
-                        current_line = next_line;
-                        if (current_line > last_line) {
-                            current_line = last_line;
-                        }
-                    }
-                    break;
-                case MENU_ACTION_LEFT:
-                case MENU_ACTION_PAGEUP:
-                    active_keys = 0;
-                    current_line = ui_scroll_up(text, first_line, menu_draw->max_text_y);
-                    break;
-                case MENU_ACTION_UP:
-                    active_keys = 0;
-                    current_line = ui_scroll_up(text, first_line, 1);
-                    break;
-                case MENU_ACTION_HOME:
-                    active_keys = 0;
-                    current_line = 0;
-                    break;
-                case MENU_ACTION_END:
-                    active_keys = 0;
-                    if (current_line < last_line) {
-                        current_line = last_line;
-                    }
-                    break;
-                default:
-                    SDL_Delay(10);
-                    break;
+			action=sdl_ui_menu_poll_input();
+			while (action != MENU_ACTION_NONE) {
+				i=action; action = MENU_ACTION_NONE;
+				switch (i) {
+					case MENU_ACTION_CANCEL:
+					case MENU_ACTION_EXIT:
+					case MENU_ACTION_SELECT:
+						active_keys = 0;
+						active = 0;
+						break;
+					case MENU_ACTION_RIGHT:
+					case MENU_ACTION_PAGEDOWN:
+						active_keys = 0;
+						if (current_line < last_line) {
+							current_line = next_page;
+							if (current_line > last_line) {
+								current_line = last_line;
+							}
+						}
+						break;
+					case MENU_ACTION_DOWN:
+						active_keys = 0;
+						if (current_line < last_line) {
+							current_line = next_line;
+							if (current_line > last_line) {
+								current_line = last_line;
+							}
+						}
+						break;
+					case MENU_ACTION_LEFT:
+					case MENU_ACTION_PAGEUP:
+						active_keys = 0;
+						current_line = ui_scroll_up(text, first_line, menu_draw->max_text_y - 2 );
+						break;
+					case MENU_ACTION_UP:
+						active_keys = 0;
+						current_line = ui_scroll_up(text, first_line, 1);
+						break;
+					case MENU_ACTION_HOME:
+						active_keys = 0;
+						current_line = 0;
+						break;
+					case MENU_ACTION_END:
+						active_keys = 0;
+						if (current_line < last_line) {
+							current_line = last_line;
+						}
+						break;
+					case MENU_ACTION_MOUSE:
+						yy = ((lastevent.button.y*240) / sdl_active_canvas->screen->h) / activefont.h;
+						if (lastevent.type != SDL_MOUSEBUTTONUP) {
+							if (old_y==-1) {
+								if (yy >= 2 && 
+									yy < menu_draw->max_text_y) {
+									old_y=yy;
+									dragging=0;
+								}
+							} else {
+								if (yy!=old_y) {
+									active_keys = 0;
+									dragging=1;
+									if (yy<old_y) {
+										current_line = ui_scroll_down(text, first_line, old_y-yy);
+										if (current_line>last_line) current_line=last_line;
+									} else {
+										current_line = ui_scroll_up(text, first_line, yy-old_y);
+									}
+									old_y=yy;
+								}
+							}
+						} else {
+							if (!dragging) action=MENU_ACTION_SELECT;
+							dragging=0;
+							old_y=-1;
+						}
+						break;
+					default:
+						SDL_Delay(10);
+						break;
+				}
             }
         }
     }
@@ -716,7 +758,7 @@ ui_menu_action_t ui_dispatch_events(void)
 		resources_set_int("WarpMode", w);
 		resources_set_int("Speed", s);
 	}
-	
+
 	// check event queue
 	while (SDL_PollEvent(&e)) {
 
@@ -785,11 +827,11 @@ ui_menu_action_t ui_dispatch_events(void)
                 retval = sdljoy_hat_event(e.jhat.which, e.jhat.hat, e.jhat.value);
                 break;
 #endif
-            case SDL_MOUSEMOTION:
-            case SDL_MOUSEBUTTONDOWN:
             case SDL_MOUSEBUTTONUP:
-//log_debug("Mousebutton %s, which %d, button %d, x %d, y %d",e.type==SDL_MOUSEBUTTONDOWN?"down":"up",e.button.which, e.button.button, e.button.x, e.button.y);
-				sdl_uibottom_mouseevent(&e);
+            case SDL_MOUSEBUTTONDOWN:
+			case SDL_MOUSEMOTION:
+				retval = sdl_uibottom_mouseevent(&e);
+//log_citra("Mouse %s, which %d, button %d, x %d, y %d, retval %d",e.type==SDL_MOUSEBUTTONDOWN?"down":(e.type==SDL_MOUSEBUTTONUP?"up":"move"),e.button.which, e.button.button, e.button.x, e.button.y, retval);
                 break;
             default:
                 /* SDL_EventState(SDL_VIDEORESIZE, SDL_IGNORE); */

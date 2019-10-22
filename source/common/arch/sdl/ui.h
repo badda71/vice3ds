@@ -66,7 +66,7 @@ extern void ui_handle_misc_sdl_event(SDL_Event e);
 extern ui_menu_action_t ui_dispatch_events(void);
 extern void ui_exit(void);
 extern void ui_message(const char *format, ...);
-extern void ui_show_text(const char *texti);
+extern void ui_show_text(const char *title, const char *texti);
 extern char *ui_select_file(const char *title, char *(*read_contents_func)(const char *, unsigned int unit), unsigned int unit,
                             unsigned int allow_autostart, const char *default_dir, const char *default_pattern,
                             ui_button_t *button_return, unsigned int show_preview, int *attach_wp);
@@ -95,7 +95,6 @@ extern int sdl_kbd_statusbar;
 extern int sdl_statusbar;
 extern int drive_led;
 extern int drive_led_brightness;
-
 
 #ifdef BEOS_COMPILE
 extern int CheckForHaiku(void);

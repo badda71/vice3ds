@@ -189,11 +189,6 @@ static UI_MENU_CALLBACK(list_keymappings_callback)
 		buf=malloc(40*(count+3));
 		buf[0]=0;
 
-		sprintf(buf+strlen(buf),
-			"Key mappings\n"
-			"~~~~~~~~~~~~\n"
-			"\n");
-
 		if (count == 0) {
 			sprintf(buf+strlen(buf),"-- NONE --");
 		} else {
@@ -203,7 +198,7 @@ static UI_MENU_CALLBACK(list_keymappings_callback)
 				sprintf(buf+strlen(buf),"\n");
 			}
 		}
-		ui_show_text(buf);
+		ui_show_text("Key Mappings",buf);
 		free(buf);
 	}
 	return NULL;
@@ -243,11 +238,6 @@ static UI_MENU_CALLBACK(list_hotkeys_callback)
 		buf=malloc(40*(count+3));
 		buf[0]=0;
 
-		sprintf(buf+strlen(buf),
-			"Hotkeys\n"
-			"~~~~~~~\n"
-			"\n");
-
 		if (count == 0) {
 			sprintf(buf+strlen(buf),"-- NONE --");
 		} else {
@@ -263,7 +253,7 @@ static UI_MENU_CALLBACK(list_hotkeys_callback)
 				}
 			}
 		}
-		ui_show_text(buf);
+		ui_show_text("Hotkeys",buf);
 		free(buf);
 	}
 	return NULL;

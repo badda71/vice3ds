@@ -30,7 +30,7 @@
 
 // exposed function
 extern void sdl_uibottom_draw(void);
-extern void sdl_uibottom_mouseevent(SDL_Event *);
+extern ui_menu_action_t sdl_uibottom_mouseevent(SDL_Event *);
 extern void toggle_keyboard(void);
 extern void setBottomBacklight (int on);
 extern int is_keyboard_hidden();
@@ -77,5 +77,6 @@ extern uikbd_key *uikbd_keypos;
 extern volatile enum bottom_action uibottom_must_redraw;
 extern int help_on;
 extern int grab_sbuttons;
+extern SDL_Event lastevent;
 
 #endif

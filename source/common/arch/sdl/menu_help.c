@@ -56,7 +56,7 @@ UI_MENU_DEFINE_TOGGLE(HelpButtonOn)
 static UI_MENU_CALLBACK(about_callback)
 {
     if (activated) {
-		ui_show_text(info_about_text);
+		ui_show_text("About", info_about_text);
     }
     return NULL;
 }
@@ -68,9 +68,9 @@ static UI_MENU_CALLBACK(license_callback)
     if (activated) {
         menu_draw = sdl_ui_get_menu_param();
         if (menu_draw->max_text_x > 60) {
-            ui_show_text(info_license_text);
+            ui_show_text("License",info_license_text);
         } else {
-            ui_show_text(info_license_text40);
+            ui_show_text("License",info_license_text40);
         }
     }
     return NULL;
@@ -83,9 +83,9 @@ static UI_MENU_CALLBACK(warranty_callback)
     if (activated) {
         menu_draw = sdl_ui_get_menu_param();
         if (menu_draw->max_text_x > 60) {
-            ui_show_text(info_warranty_text);
+            ui_show_text("Warranty",info_warranty_text);
         } else {
-            ui_show_text(info_warranty_text40);
+            ui_show_text("Warranty",info_warranty_text40);
         }
     }
     return NULL;

@@ -144,6 +144,7 @@ typedef enum {
     MENU_ACTION_HOME,
 	MENU_ACTION_EMU,
     MENU_ACTION_END,
+	MENU_ACTION_MOUSE,
     MENU_ACTION_NUM,
     MENU_ACTION_NONE_RELEASE,
     MENU_ACTION_UP_RELEASE,
@@ -158,8 +159,13 @@ typedef enum {
     MENU_ACTION_PAGEDOWN_RELEASE,
     MENU_ACTION_HOME_RELEASE,
 	MENU_ACTION_EMU_RELEASE,
-    MENU_ACTION_END_RELEASE
+    MENU_ACTION_END_RELEASE,
+	MENU_ACTION_MOUSE_RELEASE,
+	MENU_ACTION_DOWN_NOWRAP,
+	MENU_ACTION_UP_NOWRAP
 } ui_menu_action_t;
+
+extern menufont_t activefont;
 
 extern void sdl_ui_set_main_menu(const ui_menu_entry_t *menu);
 extern ui_menu_entry_t *sdl_ui_get_main_menu(void);

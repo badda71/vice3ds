@@ -39,6 +39,7 @@
 #include "uifonts.h"
 #include "uimenu.h"
 #include "uimsgbox.h"
+#include "videoarch.h"
 #include "vsync.h"
 
 #define MAX_MSGBOX_LEN 28
@@ -52,7 +53,10 @@ static int msg_mode_buttons[] = {
     5,  /* MESSAGE_UNIT_SELECT */
 };
 
-
+static int buttons_OK[] = {17,4};
+static int buttons_YESNO[] = {23,5,11,4};
+static int buttons_UNIT_SELECT[] = {27,3,23,3,19,4,14,4,9,6};
+static int buttons_CPUJAM[] = {24,7,16,10};
 
 static menu_draw_t *menu_draw;
 
@@ -75,6 +79,8 @@ static int handle_message_box(const char *title, const char *message, int messag
     int active = 1;
     int cur_pos = 0;
     int button_count;
+	int *buttonx=NULL;
+	int action, xx, yy, i;
 
     /* determine button count for requested `message mode` */
     if (message_mode < 0 || message_mode >= (int)(sizeof msg_mode_buttons / sizeof msg_mode_buttons[0])) {
@@ -181,23 +187,27 @@ static int handle_message_box(const char *title, const char *message, int messag
             sdl_ui_print_center(UIFONT_VERTICAL_STRING "            " UIFONT_TOPLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_TOPRIGHT_STRING "            " UIFONT_VERTICAL_STRING, j + 1);
             x = sdl_ui_print_center(UIFONT_VERTICAL_STRING "            " UIFONT_VERTICAL_STRING "OK" UIFONT_VERTICAL_STRING "            " UIFONT_VERTICAL_STRING, j + 2);
             sdl_ui_print_center(UIFONT_VERTICAL_STRING "            " UIFONT_BOTTOMLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_BOTTOMRIGHT_STRING "            " UIFONT_VERTICAL_STRING, j + 3);
+			buttonx = buttons_OK;
             break;
         case MESSAGE_YESNO:
             sdl_ui_print_center(UIFONT_VERTICAL_STRING "      " UIFONT_TOPLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_TOPRIGHT_STRING "       " UIFONT_TOPLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_TOPRIGHT_STRING "      " UIFONT_VERTICAL_STRING, j + 1);
             x = sdl_ui_print_center(UIFONT_VERTICAL_STRING "      " UIFONT_VERTICAL_STRING "YES" UIFONT_VERTICAL_STRING "       " UIFONT_VERTICAL_STRING "NO" UIFONT_VERTICAL_STRING "      " UIFONT_VERTICAL_STRING, j + 2);
             sdl_ui_print_center(UIFONT_VERTICAL_STRING "      " UIFONT_BOTTOMLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_BOTTOMRIGHT_STRING "       " UIFONT_BOTTOMLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_BOTTOMRIGHT_STRING "      " UIFONT_VERTICAL_STRING, j + 3);
+			buttonx = buttons_YESNO;
             break;
         case MESSAGE_UNIT_SELECT:
             /* Present a selection of '8', '9', '10', '11' or 'SKIP' */
             sdl_ui_print_center(UIFONT_VERTICAL_STRING "  " UIFONT_TOPLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_TOPRIGHT_STRING " " UIFONT_TOPLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_TOPRIGHT_STRING " " UIFONT_TOPLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_TOPRIGHT_STRING " " UIFONT_TOPLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_TOPRIGHT_STRING " " UIFONT_TOPLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_TOPRIGHT_STRING "  " UIFONT_VERTICAL_STRING, j + 1);
             x = sdl_ui_print_center(UIFONT_VERTICAL_STRING "  " UIFONT_VERTICAL_STRING "8" UIFONT_VERTICAL_STRING " " UIFONT_VERTICAL_STRING "9" UIFONT_VERTICAL_STRING " " UIFONT_VERTICAL_STRING "10" UIFONT_VERTICAL_STRING " " UIFONT_VERTICAL_STRING "11" UIFONT_VERTICAL_STRING " " UIFONT_VERTICAL_STRING "SKIP" UIFONT_VERTICAL_STRING "  " UIFONT_VERTICAL_STRING, j + 2);
             sdl_ui_print_center(UIFONT_VERTICAL_STRING "  " UIFONT_BOTTOMLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_BOTTOMRIGHT_STRING " " UIFONT_BOTTOMLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_BOTTOMRIGHT_STRING " " UIFONT_BOTTOMLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_BOTTOMRIGHT_STRING " " UIFONT_BOTTOMLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_BOTTOMRIGHT_STRING " " UIFONT_BOTTOMLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_BOTTOMRIGHT_STRING "  " UIFONT_VERTICAL_STRING, j + 3);
-            break;
+			buttonx = buttons_UNIT_SELECT;
+           break;
         case MESSAGE_CPUJAM:
         default:
             sdl_ui_print_center(UIFONT_VERTICAL_STRING "     " UIFONT_TOPLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_TOPRIGHT_STRING " " UIFONT_TOPLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_TOPRIGHT_STRING "     " UIFONT_VERTICAL_STRING, j + 1);
             x = sdl_ui_print_center(UIFONT_VERTICAL_STRING "     " UIFONT_VERTICAL_STRING "RESET" UIFONT_VERTICAL_STRING " " UIFONT_VERTICAL_STRING "CONTINUE" UIFONT_VERTICAL_STRING "     " UIFONT_VERTICAL_STRING, j + 2);
             sdl_ui_print_center(UIFONT_VERTICAL_STRING "     " UIFONT_BOTTOMLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_BOTTOMRIGHT_STRING " " UIFONT_BOTTOMLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_BOTTOMRIGHT_STRING "     " UIFONT_VERTICAL_STRING, j + 3);
+			buttonx = buttons_CPUJAM;
             break;
     }
 
@@ -271,36 +281,57 @@ static int handle_message_box(const char *title, const char *message, int messag
 
         sdl_ui_refresh();
 
-        switch (sdl_ui_menu_poll_input()) {
-            case MENU_ACTION_CANCEL:
-            case MENU_ACTION_EXIT:
-                cur_pos = -1;
-                active = 0;
-                break;
-            case MENU_ACTION_SELECT:
-                active = 0;
-                break;
-            case MENU_ACTION_LEFT:
-            case MENU_ACTION_UP:
-                if (message_mode != MESSAGE_OK) {
-                    cur_pos--;
-                    if (cur_pos < 0) {
-                        cur_pos = button_count - 1;
-                    }
-                }
-                break;
-            case MENU_ACTION_RIGHT:
-            case MENU_ACTION_DOWN:
-                if (message_mode != MESSAGE_OK) {
-                    cur_pos++;
-                    if (cur_pos >= button_count) {
-                        cur_pos = 0;
-                    }
-                }
-                break;
-            default:
-                SDL_Delay(10);
-                break;
+ 		action=sdl_ui_menu_poll_input();
+		while (action != MENU_ACTION_NONE) {
+			i=action; action = MENU_ACTION_NONE;
+			switch (i) {
+				case MENU_ACTION_CANCEL:
+				case MENU_ACTION_EXIT:
+					cur_pos = -1;
+					active = 0;
+					break;
+				case MENU_ACTION_SELECT:
+					active = 0;
+					break;
+				case MENU_ACTION_LEFT:
+				case MENU_ACTION_UP:
+					if (message_mode != MESSAGE_OK) {
+						cur_pos--;
+						if (cur_pos < 0) {
+							cur_pos = button_count - 1;
+						}
+					}
+					break;
+				case MENU_ACTION_RIGHT:
+				case MENU_ACTION_DOWN:
+					if (message_mode != MESSAGE_OK) {
+						cur_pos++;
+						if (cur_pos >= button_count) {
+							cur_pos = 0;
+						}
+					}
+					break;
+				case MENU_ACTION_MOUSE:
+					yy = lastevent.button.y*240 / sdl_active_canvas->screen->h / activefont.h;
+					xx = lastevent.button.x*320 / sdl_active_canvas->screen->w / activefont.w;
+					if (lastevent.type != SDL_MOUSEBUTTONUP) {
+						if (yy > j && yy < j+4) {
+							for (i=0; i<button_count; i++) {
+								if (xx >= x-buttonx[i*2] && xx < x-buttonx[i*2]+buttonx[i*2+1]) {
+									cur_pos=i;
+									break;
+								}
+							}
+						}
+					} else {
+						if (yy > j && yy < j+4 && xx >= x-buttonx[cur_pos*2] && xx < x-buttonx[cur_pos*2]+buttonx[cur_pos*2+1])
+							action=MENU_ACTION_SELECT;
+					}
+					break;
+				default:
+					SDL_Delay(10);
+					break;
+			}
         }
     }
     return cur_pos;

@@ -37,9 +37,11 @@
 #include "ioutil.h"
 #include "lib.h"
 #include "ui.h"
+#include "uibottom.h"
 #include "uimenu.h"
 #include "uifilereq.h"
 #include "util.h"
+#include "videoarch.h"
 #include "menu_common.h"
 
 #define SDL_FILEREQ_META_NUM 0
@@ -125,6 +127,7 @@ int sdl_ui_image_file_selection_dialog(const char* filename, ui_menu_filereq_mod
     int offset = 0;
     int redraw = 1;
     int cur = 0, cur_old = -1;
+    int i, y, action, old_y=-1, dragging=0;
 
     image_contents_t *contents = NULL;
     image_contents_file_list_t *entry;
@@ -170,90 +173,127 @@ int sdl_ui_image_file_selection_dialog(const char* filename, ui_menu_filereq_mod
 
         sdl_ui_refresh();
 
-        switch (sdl_ui_menu_poll_input()) {
-            case MENU_ACTION_HOME:
-                cur_old = cur;
-                cur = 0;
-                offset = 0;
-                redraw = 1;
-                break;
+ 		action=sdl_ui_menu_poll_input();       
+		while (action != MENU_ACTION_NONE) {
+			i=action; action = MENU_ACTION_NONE;
+			switch (i) {
+				case MENU_ACTION_HOME:
+					cur_old = cur;
+					cur = 0;
+					offset = 0;
+					redraw = 1;
+					break;
 
-            case MENU_ACTION_END:
-                cur_old = cur;
-                if (total < (menu_max - 1)) {
-                    cur = total - 1;
-                    offset = 0;
-                } else {
-                    cur = menu_max - 1;
-                    offset = total - menu_max;
-                }
-                redraw = 1;
-                break;
+				case MENU_ACTION_END:
+					cur_old = cur;
+					if (total < (menu_max - 1)) {
+						cur = total - 1;
+						offset = 0;
+					} else {
+						cur = menu_max - 1;
+						offset = total - menu_max;
+					}
+					redraw = 1;
+					break;
 
-            case MENU_ACTION_UP:
-                if (cur > 0) {
-                    cur_old = cur;
-                    --cur;
-                } else {
-                    if (offset > 0) {
-                        offset--;
-                        redraw = 1;
-                    }
-                }
-                break;
+				case MENU_ACTION_UP:
+					if (cur > 0) {
+						cur_old = cur;
+						--cur;
+					} else {
+						if (offset > 0) {
+							offset--;
+							redraw = 1;
+						}
+					}
+					break;
 
-            case MENU_ACTION_PAGEUP:
-            case MENU_ACTION_LEFT:
-                offset -= menu_max;
-                if (offset < 0) {
-                    offset = 0;
-                    cur_old = -1;
-                    cur = 0;
-                }
-                redraw = 1;
-                break;
+				case MENU_ACTION_PAGEUP:
+				case MENU_ACTION_LEFT:
+					offset -= menu_max;
+					if (offset < 0) {
+						offset = 0;
+						cur_old = -1;
+						cur = 0;
+					}
+					redraw = 1;
+					break;
 
-            case MENU_ACTION_DOWN:
-                if (cur < (menu_max - 1)) {
-                    if ((cur + offset) < total - 1) {
-                        cur_old = cur;
-                        ++cur;
-                    }
-                } else {
-                    if (offset < (total - menu_max)) {
-                        offset++;
-                        redraw = 1;
-                    }
-                }
-                break;
+				case MENU_ACTION_DOWN:
+					if (cur < (menu_max - 1)) {
+						if ((cur + offset) < total - 1) {
+							cur_old = cur;
+							++cur;
+						}
+					} else {
+						if (offset < (total - menu_max)) {
+							offset++;
+							redraw = 1;
+						}
+					}
+					break;
 
-            case MENU_ACTION_PAGEDOWN:
-            case MENU_ACTION_RIGHT:
-                offset += menu_max;
-                if (offset >= total) {
-                    offset = total - 1;
-                    cur_old = -1;
-                    cur = 0;
-                } else if ((cur + offset) >= total) {
-                    cur_old = -1;
-                    cur = total - offset - 1;
-                }
-                redraw = 1;
-                break;
+				case MENU_ACTION_PAGEDOWN:
+				case MENU_ACTION_RIGHT:
+					offset += menu_max;
+					if (offset >= total) {
+						offset = total - 1;
+						cur_old = -1;
+						cur = 0;
+					} else if ((cur + offset) >= total) {
+						cur_old = -1;
+						cur = total - offset - 1;
+					}
+					redraw = 1;
+					break;
 
-            case MENU_ACTION_SELECT:
-                active = 0;
-                retval = offset + cur - dirs - SDL_FILEREQ_META_NUM + 1;
-                break;
+				case MENU_ACTION_SELECT:
+					active = 0;
+					retval = offset + cur - dirs - SDL_FILEREQ_META_NUM + 1;
+					break;
 
-            case MENU_ACTION_CANCEL:
-            case MENU_ACTION_EXIT:
-                active = 0;
-                break;
-
-            default:
-                SDL_Delay(10);
-                break;
+				case MENU_ACTION_CANCEL:
+				case MENU_ACTION_EXIT:
+					active = 0;
+					break;
+				case MENU_ACTION_MOUSE:
+					y = ((lastevent.button.y*240) / sdl_active_canvas->screen->h) / activefont.h;
+					if (lastevent.type != SDL_MOUSEBUTTONUP) {
+						if (old_y==-1) {
+							if (y >= IMAGE_FIRST_Y + SDL_FILEREQ_META_NUM && 
+								y < menu_max + IMAGE_FIRST_Y + SDL_FILEREQ_META_NUM &&
+								y < IMAGE_FIRST_Y + total - offset) {
+								cur_old=cur;
+								cur = y - IMAGE_FIRST_Y - SDL_FILEREQ_META_NUM;
+								old_y=y;
+								dragging=0;
+							}
+						} else {
+							if (y!=old_y) {
+								dragging=1;
+								i=offset;
+								offset-=y-old_y;
+								old_y=y;
+								if (offset > total - menu_max)
+									offset=total - menu_max;
+								if (offset<0) offset=0;
+								cur-=offset-i;
+								if (i!=offset) {
+									cur_old=-1;
+									redraw=1;
+								}
+							}
+						}
+					} else {
+						if (!dragging && cur == y - IMAGE_FIRST_Y - SDL_FILEREQ_META_NUM) action=MENU_ACTION_SELECT;
+						dragging=0;
+						old_y=-1;
+					}
+					break;
+				default:
+					SDL_Delay(10);
+					break;
+			}
         }
     }
 

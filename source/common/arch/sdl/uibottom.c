@@ -300,6 +300,7 @@ volatile enum bottom_action uibottom_must_redraw = UIB_NO;
 int bottom_lcd_on=1;
 int help_on=0;
 int grab_sbuttons=0;
+SDL_Event lastevent;
 
 // internal variables
 #define ICON_W 40
@@ -1501,22 +1502,28 @@ void toggle_help(int inmenu)
 }
 
 static SDL_Event sdl_e;
-void sdl_uibottom_mouseevent(SDL_Event *e) {
+SDL_Event lastevent;
+
+ui_menu_action_t sdl_uibottom_mouseevent(SDL_Event *e) {
+	
 	int x = e->button.x*320/sdl_active_canvas->screen->w;
 	int y = e->button.y*240/sdl_active_canvas->screen->h;
 	uikbd_key *k;
 	int i;
+	static int menu_mousebuttonstate=0;
 
 	// mouse press from mouse 1: comes from mapped mouse buttons -> forward to emulation
 	if (e->button.which == 1) {
-		if (sdl_menu_state || !_mouse_enabled) return;
+		if (!_mouse_enabled) return 0;
 		mouse_button((int)(e->button.button), (e->button.state == SDL_PRESSED));
-		return;
+		return 0;
 	}
+
+	if (sdl_menu_state) lastevent = *e;
 
 	// mousmotion
 	if (e->type==SDL_MOUSEMOTION) {
-		if (e->motion.state!=1) return;
+		if (e->motion.state!=1) return menu_mousebuttonstate ? MENU_ACTION_MOUSE : 0;
 		if (dragging) {
 			// drag sbutton
 			if (y>=kb_y_pos) y=kb_y_pos-1;
@@ -1537,12 +1544,20 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 		} else if (!sdl_menu_state)
 			mouse_move((int)(e->motion.xrel), (int)(e->motion.yrel));
 
-		return;
+		return menu_mousebuttonstate ? MENU_ACTION_MOUSE : 0;
 	}
 
 	// buttonup
 	if (e->button.type == SDL_MOUSEBUTTONUP) {
-		if (kb_activekey==-1) return; // did not get the button down, so ignore button up
+
+		if (sdl_menu_state && menu_mousebuttonstate) {
+			menu_mousebuttonstate = 0;
+			if (y/8==0 && x/8<2) return MENU_ACTION_CANCEL;
+			return MENU_ACTION_MOUSE;
+		}
+
+		if (sdl_menu_state) menu_mousebuttonstate = 0;
+		if (kb_activekey==-1) return 0; // did not get the button down, so ignore button up
 		i=kb_activekey;
 		kb_activekey=-1;
 		if (dragging) {
@@ -1566,19 +1581,19 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 			sb_paintlast=drag_over;
 			start_worker(animate, p);
 			requestRepaint();
-			return;
+			return 0;
 		}
 	// buttondown
 	} else {
 		if (!bottom_lcd_on) {
 			setBottomBacklight(1);
 			kb_activekey=-1;
-			return; // do not further process the event
+			return 0; // do not further process the event
 		}
 		// help button
 		if (help_button_on && !(sdl_menu_state & ~MENU_ACTIVE) && !help_on && x>=305 && y<=15) {
 			toggle_help(sdl_menu_state);
-			return;
+			return 0;
 		}
 
 		for (i = 0; uikbd_keypos[i].key != 0 ; ++i) {
@@ -1600,9 +1615,15 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 					y <  uikbd_keypos[i].y + uikbd_keypos[i].h + kb_y_pos) break;
 			}
 		}
-		if (uikbd_keypos[i].key == 0) return;
-		if (i==kb_activekey) return; // ignore button down on an already pressed key
-		kb_activekey=i;		
+		if (uikbd_keypos[i].key == 0) {
+			if (sdl_menu_state && y < kb_y_pos) {
+				menu_mousebuttonstate = 1;
+				return MENU_ACTION_MOUSE;
+			}
+			return 0;
+		}
+		if (i==kb_activekey) return 0; // ignore button down on an already pressed key
+		kb_activekey=i;
 		
 		// start sbutton drag
 		if (editmode_on && uikbd_keypos[i].flags) {
@@ -1610,7 +1631,7 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 			drag_over=i;
 			dragx = x; dragy = y;
 			requestRepaint();
-			return;
+			return 0;
 		}
 	}
 
@@ -1635,6 +1656,7 @@ void sdl_uibottom_mouseevent(SDL_Event *e) {
 		SDL_PushEvent(&sdl_e);
 	}
 	uibottom_must_redraw |= UIB_RECALC_KEYPRESS;
+	return 0;
 }
 
 static int kb_hidden=-1;

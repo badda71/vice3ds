@@ -49,6 +49,7 @@
 #include "util.h"
 #include "video.h"
 #include "videoarch.h"
+#include "palette.h"
 //#include "vkbd.h"
 #include "vsidui_sdl.h"
 #include "vsync.h"
@@ -91,7 +92,7 @@ uint8_t *menu_draw_buffer = NULL;
 static int *menu_offsets = NULL;
 
 
-static menufont_t activefont = { NULL, sdl_active_translation, 0, 0 };
+menufont_t activefont = { NULL, sdl_active_translation, 0, 0 };
 static menufont_t menufont = { NULL, sdl_menu_translation, 0, 0 };
 static menufont_t imagefont = { NULL, sdl_image_translation, 0, 0 };
 static menufont_t monitorfont = { NULL, sdl_monitor_translation, 0, 0 };
@@ -499,7 +500,7 @@ static ui_menu_retval_t sdl_ui_menu_display(ui_menu_entry_t *menu, const char *t
     int num_items = 0, cur = 0, cur_old = -1, cur_offset = 0, in_menu = 1, redraw = 1;
     int *value_offsets = NULL;
     ui_menu_retval_t menu_retval = MENU_RETVAL_DEFAULT;
-    int i;
+    int i, y, action, old_y=-1, dragging=0;
 
     /* SDL mode: prevent core dump - pressing menu key in -console mode causes menu to be NULL */
     if (menu == NULL) {
@@ -531,125 +532,162 @@ static ui_menu_retval_t sdl_ui_menu_display(ui_menu_entry_t *menu, const char *t
         }
         sdl_ui_refresh();
 
-        switch (sdl_ui_menu_poll_input()) {
-            case MENU_ACTION_HOME:
-                cur_old = cur;
-                /* If a subtitle is at the top of the menu, then start at the next line. */
-                if (menu[0].type == MENU_ENTRY_TEXT) {
-                    cur = 1;
-                } else {
-                    cur = 0;
-                }
-                cur_offset = 0;
-                redraw = 1;
-                break;
-            case MENU_ACTION_END:
-                redraw = 1;
-                cur_offset = num_items - (menu_draw.max_text_y - MENU_FIRST_Y);
-                cur = (menu_draw.max_text_y - MENU_FIRST_Y) - 1;
-                if (cur_offset < 0) {
-                    cur += cur_offset;
-                    cur_offset = 0;
-                }
-                break;
-            case MENU_ACTION_UP:
-                cur_old = cur;
-                do {
-                    if (cur > 0) {
-                        --cur;
-                    } else {
-                        if (cur_offset > 0) {
-                            --cur_offset;
-                        } else {
-                            cur_offset = num_items - (menu_draw.max_text_y - MENU_FIRST_Y);
-                            cur = (menu_draw.max_text_y - MENU_FIRST_Y) - 1;
-                            if (cur_offset < 0) {
-                                cur += cur_offset;
-                                cur_offset = 0;
-                            }
-                        }
-                        redraw = 1;
-                    }
-                /* Skip subtitles and blank lines. */
-                } while (menu[cur + cur_offset].type == MENU_ENTRY_TEXT);
-                break;
-            case MENU_ACTION_PAGEUP:
-                cur_old = cur;
-                for (i = 0; i < (menu_draw.max_text_y - MENU_FIRST_Y - 1); i++) {
-                    do {
-                        if (cur > 0) {
-                            --cur;
-                        } else {
-                            if (cur_offset > 0) {
-                                --cur_offset;
-                            }
-                        }
-                    /* Skip subtitles and blank lines. */
-                    } while (menu[cur + cur_offset].type == MENU_ENTRY_TEXT);
-                }
-                redraw = 1;
-                break;
-            case MENU_ACTION_DOWN:
-                cur_old = cur;
-                do {
-                    if ((cur + cur_offset) < (num_items - 1)) {
-                        if (++cur == (menu_draw.max_text_y - MENU_FIRST_Y)) {
-                            --cur;
-                            ++cur_offset;
-                            redraw = 1;
-                        }
-                    } else {
-                        cur = cur_offset = 0;
-                        redraw = 1;
-                    }
+		action=sdl_ui_menu_poll_input();       
+		while (action != MENU_ACTION_NONE) {
+			i=action; action = MENU_ACTION_NONE;
+			switch (i) {
+				case MENU_ACTION_HOME:
+					cur_old = cur;
+					/* If a subtitle is at the top of the menu, then start at the next line. */
+					if (menu[0].type == MENU_ENTRY_TEXT) {
+						cur = 1;
+					} else {
+						cur = 0;
+					}
+					cur_offset = 0;
+					redraw = 1;
+					break;
+				case MENU_ACTION_END:
+					redraw = 1;
+					cur_offset = num_items - (menu_draw.max_text_y - MENU_FIRST_Y);
+					cur = (menu_draw.max_text_y - MENU_FIRST_Y) - 1;
+					if (cur_offset < 0) {
+						cur += cur_offset;
+						cur_offset = 0;
+					}
+					break;
+				case MENU_ACTION_UP:
+					cur_old = cur;
+					do {
+						if (cur > 0) {
+							--cur;
+						} else {
+							if (cur_offset > 0) {
+								--cur_offset;
+							} else {
+								cur_offset = num_items - (menu_draw.max_text_y - MENU_FIRST_Y);
+								cur = (menu_draw.max_text_y - MENU_FIRST_Y) - 1;
+								if (cur_offset < 0) {
+									cur += cur_offset;
+									cur_offset = 0;
+								}
+							}
+							redraw = 1;
+						}
+					/* Skip subtitles and blank lines. */
+					} while (menu[cur + cur_offset].type == MENU_ENTRY_TEXT);
+					break;
+				case MENU_ACTION_PAGEUP:
+					cur_old = cur;
+					for (i = 0; i < (menu_draw.max_text_y - MENU_FIRST_Y - 1); i++) {
+						do {
+							if (cur > 0) {
+								--cur;
+							} else {
+								if (cur_offset > 0) {
+									--cur_offset;
+								}
+							}
+						/* Skip subtitles and blank lines. */
+						} while (menu[cur + cur_offset].type == MENU_ENTRY_TEXT);
+					}
+					redraw = 1;
+					break;
+				case MENU_ACTION_DOWN:
+					cur_old = cur;
+					do {
+						if ((cur + cur_offset) < (num_items - 1)) {
+							if (++cur == (menu_draw.max_text_y - MENU_FIRST_Y)) {
+								--cur;
+								++cur_offset;
+								redraw = 1;
+							}
+						} else {
+							cur = cur_offset = 0;
+							redraw = 1;
+						}
 
-                /* Skip subtitles and blank lines. */
-                } while (menu[cur + cur_offset].type == MENU_ENTRY_TEXT);
-                break;
-            case MENU_ACTION_PAGEDOWN:
-                cur_old = cur;
-                for (i = 0; i < (menu_draw.max_text_y - MENU_FIRST_Y - 1); i++) {
-                    do {
-                        if ((cur + cur_offset) < (num_items - 1)) {
-                            if (++cur == (menu_draw.max_text_y - MENU_FIRST_Y)) {
-                                --cur;
-                                ++cur_offset;
-                            }
-                        }
-                    /* Skip subtitles and blank lines. */
-                    } while (menu[cur + cur_offset].type == MENU_ENTRY_TEXT);
-                }
-                redraw = 1;
-                break;
-            case MENU_ACTION_RIGHT:
-                if ((menu[cur + cur_offset].type != MENU_ENTRY_SUBMENU) && (menu[cur + cur_offset].type != MENU_ENTRY_DYNAMIC_SUBMENU)) {
-                    break;
-                }
-            /* fall through */
-            case MENU_ACTION_SELECT:
-                if (sdl_ui_menu_item_activate(&(menu[cur + cur_offset])) == MENU_RETVAL_EXIT_UI) {
-                    in_menu = 0;
-                    menu_retval = MENU_RETVAL_EXIT_UI;
-                } else {
-                    sdl_ui_menu_redraw(menu, title, cur_offset, value_offsets, cur);
-                }
-                break;
-            case MENU_ACTION_EXIT:
-                menu_retval = MENU_RETVAL_EXIT_UI;
-            /* fall through */
-            case MENU_ACTION_LEFT:
-            case MENU_ACTION_CANCEL:
-                in_menu = 0;
-                break;
-            case MENU_ACTION_MAP:
-                if (allow_mapping && sdl_ui_hotkey_map(&(menu[cur + cur_offset]),0)) {
-                    sdl_ui_menu_redraw(menu, title, cur_offset, value_offsets, cur);
-                }
-                break;
-            default:
-                SDL_Delay(10);
-                break;
-        }
+					/* Skip subtitles and blank lines. */
+					} while (menu[cur + cur_offset].type == MENU_ENTRY_TEXT);
+					break;
+				case MENU_ACTION_PAGEDOWN:
+					cur_old = cur;
+					for (i = 0; i < (menu_draw.max_text_y - MENU_FIRST_Y - 1); i++) {
+						do {
+							if ((cur + cur_offset) < (num_items - 1)) {
+								if (++cur == (menu_draw.max_text_y - MENU_FIRST_Y)) {
+									--cur;
+									++cur_offset;
+								}
+							}
+						/* Skip subtitles and blank lines. */
+						} while (menu[cur + cur_offset].type == MENU_ENTRY_TEXT);
+					}
+					redraw = 1;
+					break;
+				case MENU_ACTION_RIGHT:
+					if ((menu[cur + cur_offset].type != MENU_ENTRY_SUBMENU) && (menu[cur + cur_offset].type != MENU_ENTRY_DYNAMIC_SUBMENU)) {
+						break;
+					}
+				/* fall through */
+				case MENU_ACTION_SELECT:
+					if (sdl_ui_menu_item_activate(&(menu[cur + cur_offset])) == MENU_RETVAL_EXIT_UI) {
+						in_menu = 0;
+						menu_retval = MENU_RETVAL_EXIT_UI;
+					} else {
+						sdl_ui_menu_redraw(menu, title, cur_offset, value_offsets, cur);
+					}
+					break;
+				case MENU_ACTION_EXIT:
+					menu_retval = MENU_RETVAL_EXIT_UI;
+				/* fall through */
+				case MENU_ACTION_LEFT:
+				case MENU_ACTION_CANCEL:
+					in_menu = 0;
+					break;
+				case MENU_ACTION_MAP:
+					if (allow_mapping && sdl_ui_hotkey_map(&(menu[cur + cur_offset]),0)) {
+						sdl_ui_menu_redraw(menu, title, cur_offset, value_offsets, cur);
+					}
+					break;
+				case MENU_ACTION_MOUSE:
+					y = ((lastevent.button.y*240) / sdl_active_canvas->screen->h) / activefont.h;
+					if (lastevent.type != SDL_MOUSEBUTTONUP) {
+						if (old_y==-1) {
+							if (y >= MENU_FIRST_Y && 
+								y < menu_draw.max_text_y &&
+								y <= MENU_FIRST_Y+(num_items-cur_offset)) {
+								if (menu[y - MENU_FIRST_Y + cur_offset].type != MENU_ENTRY_TEXT) {
+									cur_old=cur;
+									cur=y - MENU_FIRST_Y;
+								}
+								old_y=y;
+								dragging=0;
+							}
+						} else {
+							if (y!=old_y) {
+								dragging=1;
+								i=cur_offset;
+								cur_offset-=y-old_y;
+								old_y=y;
+								if (cur_offset > num_items - menu_draw.max_text_y + MENU_FIRST_Y)
+									cur_offset=num_items - menu_draw.max_text_y + MENU_FIRST_Y;
+								if (cur_offset<0) cur_offset=0;
+								cur-=cur_offset-i;
+								if (i!=cur_offset) redraw=1;
+							}
+						}
+					} else {
+						if (!dragging && cur == y - MENU_FIRST_Y) action=MENU_ACTION_SELECT;
+						dragging=0;
+						old_y=-1;
+					}
+					break;
+				default:
+					SDL_Delay(10);
+					break;
+			}
+		}
     }
 
     lib_free(value_offsets);
@@ -816,7 +854,7 @@ static int sdl_ui_readline_input(SDLKey *key, SDLMod *mod, Uint16 *c_uni)
 #endif
 				case SDL_MOUSEBUTTONDOWN:
 				case SDL_MOUSEBUTTONUP:
-					sdl_uibottom_mouseevent(&e);
+					action = sdl_uibottom_mouseevent(&e);
 					break;
 				default:
 					ui_handle_misc_sdl_event(e);
@@ -836,11 +874,10 @@ static int sdl_ui_readline_input(SDLKey *key, SDLMod *mod, Uint16 *c_uni)
 					*key = VICE_SDLK_RETURN;
 					got_key = 1;
 					break;
-	/*            case MENU_ACTION_CANCEL:
-				case MENU_ACTION_MAP:
-					*key = PC_VKBD_ACTIVATE;
+	            case MENU_ACTION_CANCEL:
+					*key = VICE_SDLK_ESCAPE;
 					got_key = 1;
-					break;*/
+					break;
 				case MENU_ACTION_UP:
 				case MENU_ACTION_DOWN:
 				default:
@@ -865,6 +902,7 @@ static int sdl_ui_slider(const char* title, const int cur, const int min, const 
     int i = 0, done = 0, loop = 0, screen_dirty = 1, step = 1, xsize = menu_draw.max_text_x, oldvalue = 0;
     float segment = 0, segment2 = 0, parts = 0, parts2 = 0;
     char *new_string = NULL, *value = NULL;
+	int xx, yy, action, oa;
 
     new_string = lib_malloc(xsize + 1);
 
@@ -911,7 +949,15 @@ static int sdl_ui_slider(const char* title, const int cur, const int min, const 
 
             sprintf(new_string, "%-10i %3i%%", i, (100 * i) / max);
             sdl_ui_print_wrap(new_string, pos_x, &pos_y);
-            pos_y = pos_y - 2;
+
+			sdl_ui_print_center(UIFONT_TOPLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_TOPRIGHT_STRING, pos_y+1);
+			sdl_ui_print_center(UIFONT_VERTICAL_STRING "OK" UIFONT_VERTICAL_STRING, pos_y+2);
+			sdl_ui_print_center(UIFONT_BOTTOMLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_BOTTOMRIGHT_STRING, pos_y+3);
+			sdl_ui_reverse_colors();
+			sdl_ui_print_center("OK", pos_y + 2);
+			sdl_ui_reverse_colors();
+
+			pos_y = pos_y - 2;
 
             sdl_ui_refresh();
             screen_dirty = 0;
@@ -922,73 +968,90 @@ static int sdl_ui_slider(const char* title, const int cur, const int min, const 
             }
         }
 
-        switch (sdl_ui_menu_poll_input()) {
-            case MENU_ACTION_LEFT:
-                if (i > min) {
-                    i = i - step;
-                    if (i < min) {
-                        i = min;
-                    }
-                    screen_dirty = 1;
-                }
-                break;
+ 		action=sdl_ui_menu_poll_input();
+		while (action != MENU_ACTION_NONE) {
+			oa=action; action = MENU_ACTION_NONE;
+			switch (oa) {
+				case MENU_ACTION_LEFT:
+					if (i > min) {
+						i = i - step;
+						if (i < min) {
+							i = min;
+						}
+						screen_dirty = 1;
+					}
+					break;
 
-            case MENU_ACTION_RIGHT:
-                if (i < max) {
-                    i = i + step;
-                    if (i > max) {
-                        i = max;
-                    }
-                    screen_dirty = 1;
-                }
-                break;
+				case MENU_ACTION_RIGHT:
+					if (i < max) {
+						i = i + step;
+						if (i > max) {
+							i = max;
+						}
+						screen_dirty = 1;
+					}
+					break;
 
-            case MENU_ACTION_UP:
-                step /= 10;
-                if (step < 1) {
-                    step = 1;
-                }
-                screen_dirty = 1;
-                break;
+				case MENU_ACTION_UP:
+					step /= 10;
+					if (step < 1) {
+						step = 1;
+					}
+					screen_dirty = 1;
+					break;
 
-            case MENU_ACTION_DOWN:
-                if (step * 10 < max) {
-                    step *= 10;
-                }
-                screen_dirty = 1;
-                break;
+				case MENU_ACTION_DOWN:
+					if (step * 10 < max) {
+						step *= 10;
+					}
+					screen_dirty = 1;
+					break;
 
-            case MENU_ACTION_CANCEL:
-            case MENU_ACTION_EXIT:
-                i = cur;
-                done = 1;
-                break;
+				case MENU_ACTION_CANCEL:
+				case MENU_ACTION_EXIT:
+					i = cur;
+					done = 1;
+					break;
 
-            case MENU_ACTION_SELECT:
-                done = 1;
-                break;
+				case MENU_ACTION_SELECT:
+					done = 1;
+					break;
 
-            case MENU_ACTION_MAP:
-                sprintf(new_string, "%i", i);
-                value = sdl_ui_text_input_dialog(title, new_string);
+				case MENU_ACTION_MAP:
+					sprintf(new_string, "%i", i);
+					value = sdl_ui_text_input_dialog(title, new_string);
 
-                /* accept value from user, convert and free */
-                if (value) {
-                    i = strtol(value, NULL, 0);
+					/* accept value from user, convert and free */
+					if (value) {
+						i = strtol(value, NULL, 0);
 
-                    if (i < min) {
-                        i = min;
-                    }
-                    if (i > max) {
-                        i = max;
-                    }
-                    lib_free(value);
-                }
-                screen_dirty = 1;
-                break;
-
-            default:
-                break;
+						if (i < min) {
+							i = min;
+						}
+						if (i > max) {
+							i = max;
+						}
+						lib_free(value);
+					}
+					screen_dirty = 1;
+					break;
+				case MENU_ACTION_MOUSE:
+					yy = lastevent.button.y*240 / sdl_active_canvas->screen->h / activefont.h;
+					xx = lastevent.button.x*320 / sdl_active_canvas->screen->w;
+					if (lastevent.type != SDL_MOUSEBUTTONUP) {
+						if (yy > 0 && yy < pos_y+3) {
+							if (xx<4) i=min;
+							else if (xx>315) i=max;
+							else i=(min+(max-min)*(xx-3))/313;
+							screen_dirty = 1;
+						}
+					} else {
+						if (yy > pos_y+2 && yy < pos_y+6 && xx/activefont.w > 17 && xx/activefont.w < 22)
+							action=MENU_ACTION_SELECT;
+					}
+				default:
+					break;
+			}
         }
     } while (!done);
 
@@ -1130,9 +1193,10 @@ int sdl_ui_print_center(const char *text, int pos_y)
 /* print a headline in the first row of the screen */
 int sdl_ui_display_title(const char *title)
 {
-    int dummy = 0, i;
+    int dummy = 0, i=0;
     sdl_ui_reverse_colors();
-    i = sdl_ui_print_wrap(title, 0, &dummy);
+    i += sdl_ui_print_wrap("< ", 0, &dummy);
+	i += sdl_ui_print_wrap(title, i, &dummy);
     i += sdl_ui_print_eol(i, 0);
     sdl_ui_reverse_colors();
     return i;
@@ -1404,11 +1468,13 @@ const char *sdl_ui_menu_video_slider_helper(int activated, ui_callback_data_t pa
         sdl_ui_clear();
 
         /* print 16x16 colors at the bottom, works for all emus */
-        menu_draw.color_front =  0;
-        for (y = 0; y < 16; y++) {
-            for (x = 0; x < 16; x++) {
+		i=sdl_active_canvas->palette->num_entries;
+		
+		menu_draw.color_front =  0;
+        for (y = 0; y <= i/16; y++) {
+            for (x = 0; x<16 && y*16+x<i; x++) {
                 menu_draw.color_back = y * 16 + x;
-                sdl_ui_print("  ", 0 + x * 2, 9 + y);
+                sdl_ui_print("  ", 0 + x * 2, 11 + y);
             }
         }
         menu_draw.color_front = menu_draw.color_default_front;
