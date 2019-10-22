@@ -1248,13 +1248,15 @@ void menu_recalc() {
 	u8 *dst;
 	palette_entry_t *pal= sdl_active_canvas->palette->entries;
 	u8 alpha=menu_alpha_value;
+	u8 alpha2=255;
+	if (events_to_emu) alpha=alpha2=128;
 	
 	for(int y = 0; y < 240; y++) {
 		dst=gpusrc+y*hw*4;
 		if (y==menu_alpha_max_y) alpha=0;
 		for (int x=0; x<320; x++) {
 			if (*src==0) *dst++ = alpha;// alpha
-			else *dst++ = 255;
+			else *dst++ = alpha2;
 			*dst++ = pal[*src].blue;	// blue
 			*dst++ = pal[*src].green;	// green
 			*dst++ = pal[*src].red;		// red
