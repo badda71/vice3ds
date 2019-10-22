@@ -59,8 +59,8 @@
 #define STATUSBAR_DRIVE11_TRACK_POS 31
 #define STATUSBAR_TAPE_POS          37
 
-static char statusbar_text[MAX_STATUSBAR_LEN] = "                                       ";
-static char kbdstatusbar_text[MAX_STATUSBAR_LEN] = "                                       ";
+static char statusbar_text[MAX_STATUSBAR_LEN] = "                                        ";
+static char kbdstatusbar_text[MAX_STATUSBAR_LEN] = "                                        ";
 
 static menufont_t *menufont = NULL;
 static int pitch;
@@ -456,7 +456,7 @@ void uistatusbar_draw(void)
 
     color_f = limits->color_default_front;
     color_b = limits->color_default_back;
-    pitch = limits->pitch;
+    pitch = sdl_active_canvas->draw_buffer->draw_buffer_pitch;
 
 	if (sdl_active_canvas->fullscreenconfig->enable) 
 	    line = MIN(sdl_active_canvas->viewport->last_line, sdl_active_canvas->geometry->last_displayed_line);
