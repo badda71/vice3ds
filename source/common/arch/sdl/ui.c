@@ -82,7 +82,7 @@ extern void keyboard_key_pressed(signed long key);
 
 static int sdl_ui_ready = 0;
 static int save_resources_on_exit;
-static int events_to_emu=0;
+int events_to_emu=0;
 
 
 static void (*psid_init_func)(void) = NULL;
@@ -796,7 +796,7 @@ ui_menu_action_t ui_dispatch_events(void)
 						events_to_emu=1;
 						break;
 					}
-	                retval = sdlkbd_press(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod, (sdl_menu_state!=0) ^ events_to_emu);
+	                retval = sdlkbd_press(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod, sdl_menu_state && !events_to_emu);
 				}
 				break;
             case SDL_KEYUP:
@@ -806,7 +806,7 @@ ui_menu_action_t ui_dispatch_events(void)
 						events_to_emu=0;
 						break;
 					}
-					retval = sdlkbd_release(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod, (sdl_menu_state!=0) ^ events_to_emu);
+					retval = sdlkbd_release(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod, sdl_menu_state && !events_to_emu);
 //log_3ds("Keyup %d",e.key.keysym.sym);
 				}
 				break;

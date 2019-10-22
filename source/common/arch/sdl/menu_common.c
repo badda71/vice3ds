@@ -96,17 +96,22 @@ UI_MENU_CALLBACK(seperator_callback)
 UI_MENU_CALLBACK(autostart_callback)
 {
     char *name = NULL;
+	int repeat=1;
 
     if (activated) {
-        name = sdl_ui_file_selection_dialog("Choose autostart image", FILEREQ_MODE_CHOOSE_FILE_IN_IMAGE);
-        if (name != NULL) {
-            /* FIXME: using last_selected_image_pos is kindof a hack */
-            if (autostart_autodetect(name, NULL, last_selected_image_pos, AUTOSTART_MODE_RUN) < 0) {
-                ui_error("could not start auto-image");
-            }
-            lib_free(name);
-            return sdl_menu_text_exit_ui;
-        }
+        while (repeat) {
+			repeat=0;
+			name = sdl_ui_file_selection_dialog("Choose autostart image", FILEREQ_MODE_CHOOSE_FILE_IN_IMAGE);
+			if (name != NULL) {
+				/* FIXME: using last_selected_image_pos is kindof a hack */
+				if (autostart_autodetect(name, NULL, last_selected_image_pos, AUTOSTART_MODE_RUN) < 0) {
+					ui_error("could not start auto-image");
+					repeat=1;
+				}
+				lib_free(name);
+				if (!repeat) return sdl_menu_text_exit_ui;
+			}
+		}
     }
     return NULL;
 }
@@ -133,7 +138,6 @@ UI_MENU_CALLBACK(advance_frame_callback)
         } else {
             ui_pause_emulation(1);
         }
-        return sdl_menu_text_exit_ui;
     }
     return NULL;
 }

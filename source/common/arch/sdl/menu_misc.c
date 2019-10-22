@@ -45,6 +45,7 @@
 static int ui_key_press_sequence (void *param) {
 	int (*keyseq)[3]=param;
 	SDL_Event sdl_e;
+	events_to_emu=1;
 	for (int i=0;keyseq[i][2]!=0;++i) {
 		SDL_Delay(keyseq[i][0]);
 		sdl_e.type = keyseq[i][1];
@@ -52,6 +53,7 @@ static int ui_key_press_sequence (void *param) {
 		SDL_PushEvent(&sdl_e);
 	}
 	SDL_Delay(50);
+	events_to_emu=0;
 	return 0;
 }
 
@@ -66,7 +68,6 @@ static UI_MENU_CALLBACK(keystroke_callback)
 {
 	if (activated) {
 		start_worker(ui_key_press_sequence, (int(*)[3])param);
-        return sdl_menu_text_exit_ui;
     }
     return NULL;
 }
@@ -75,7 +76,6 @@ static UI_MENU_CALLBACK(bottomoff_callback)
 {
     if (activated) {
 		setBottomBacklight(0);
-		return sdl_menu_text_exit_ui;
     }
     return NULL;
 }
@@ -275,7 +275,6 @@ UI_MENU_CALLBACK(type_command_callback)
 		for (char* p = str; (p = strchr(p, '\\')) != NULL; *p = '\r');
 		kb_feed(str);
 		lib_free(str);
-		return sdl_menu_text_exit_ui;
 	}
 	return ostr;
 }

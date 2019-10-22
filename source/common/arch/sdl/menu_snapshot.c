@@ -168,7 +168,6 @@ static UI_MENU_CALLBACK(start_stop_recording_history_callback)
         } else {
             event_record_stop();
         }
-        return sdl_menu_text_exit_ui;
     } else {
         if (!recording_new) {
             return "(recording)";
@@ -188,7 +187,6 @@ static UI_MENU_CALLBACK(start_stop_playback_history_callback)
         } else {
             event_playback_stop();
         }
-        return sdl_menu_text_exit_ui;
     } else {
         if (!playback_new) {
             return "(playing)";
@@ -214,7 +212,6 @@ static UI_MENU_CALLBACK(set_milestone_callback)
 {
     if (activated) {
         event_record_set_milestone();
-        return sdl_menu_text_exit_ui;
     }
     return NULL;
 }
@@ -223,7 +220,6 @@ static UI_MENU_CALLBACK(return_to_milestone_callback)
 {
     if (activated) {
         event_record_reset_milestone();
-        return sdl_menu_text_exit_ui;
     }
     return NULL;
 }
