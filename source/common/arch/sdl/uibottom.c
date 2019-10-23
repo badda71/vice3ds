@@ -364,6 +364,7 @@ static int editmode_on=0;
 static int help_button_on;
 static Handle repaintRequired;
 static int help_anim;
+static int menu_anim=0;
 
 // sprite handling funtions
 // ========================
@@ -645,10 +646,12 @@ static void uibottom_repaint(void *param, int topupdated) {
 	}
 	// menu
 	if (sdl_menu_state) {
-		drawImage(&menu_spr, 0, 0, 0, 0);
+		drawImage(&menu_spr, (menu_anim*-305)/100, (menu_anim*-225)/100, 0, 0);
+		drawImage(&menubut_spr, ((menu_anim*-305)/100)+305,((menu_anim*-225)/100)+225,0,0);
 	} else {
 		drawImage(&menubut_spr, 0,0,0,0);
 	}
+	
 	// color sprites for keyboard
 	for (i=0;i<8;i++) {
 		k=&(uikbd_keypos[colkey_nr[i]]);
@@ -1236,6 +1239,7 @@ void menu_recalc() {
 	unsigned hh=256;
 	menu_spr.fw=(float)(menu_spr.w)/hw;
 	menu_spr.fh=(float)(menu_spr.h)/hh;
+	int y,x;
 
 	// GX_DisplayTransfer needs input buffer in linear RAM
 	u8 *gpusrc = linearAlloc(hw*hh*4);
@@ -1248,10 +1252,10 @@ void menu_recalc() {
 	u8 alpha2=255;
 	if (events_to_emu) alpha=alpha2=128;
 	
-	for(int y = 0; y < 240; y++) {
+	for(y = 0; y < 240; ++y) {
 		dst=gpusrc+y*hw*4;
 		if (y==menu_alpha_max_y) alpha=0;
-		for (int x=0; x<320; x++) {
+		for (x=0; x<320; ++x) {
 			if (*src==0) *dst++ = alpha;// alpha
 			else *dst++ = alpha2;
 			*dst++ = pal[*src].blue;	// blue
@@ -1260,6 +1264,13 @@ void menu_recalc() {
 			++src;
 		}
 	}
+
+	// draw white lines
+	for (y=0;y<230;++y) {
+		dst=gpusrc+y*hw*4+4*319;
+		*((int*)dst)=0xFFFFFFFF;
+	}
+	memset(gpusrc+239*hw*4,255,310*4);
 
 	makeTexture(&(menu_spr.tex), gpusrc, hw, hh);
 
@@ -1390,30 +1401,51 @@ void anim_callback3(void *param) {
 	requestRepaint();
 }
 
+void anim_callback4(void *param) {
+	sdl_menu_state &= ~MENU_ACTIVE;
+	SDL_EnableKeyRepeat(0, 0);
+	requestRepaint();
+}
+
 void toggle_menu(int active, ui_menu_entry_t *item)
 {
-	static int movekb,kbdhidden;
+	static int movekb=0, movemenu=0, old_kb_y_pos;
 
 	if (active) {
 		SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-		sdl_menu_state |= MENU_ACTIVE;
-		movekb=0;
+		movekb=movemenu=0;
 		if (item == NULL || 
 			item->type == MENU_ENTRY_DIALOG ||
 			item->type == MENU_ENTRY_SUBMENU ||
 			item->type == MENU_ENTRY_DYNAMIC_SUBMENU)
 			movekb=1;
-		if (movekb)     {
-			kbdhidden=is_keyboard_hidden();
-			if (!kbdhidden) toggle_keyboard();
+		if (movekb ||
+			item->type == MENU_ENTRY_RESOURCE_INT ||
+			item->type == MENU_ENTRY_RESOURCE_STRING)
+			movemenu=1;
+		old_kb_y_pos = kb_y_pos;
+		if (movemenu) {
+			start_worker(animate, alloc_copy(&(int[]){
+				0, 0, 2, // steps, delay, nr
+				(int)anim_callback, 0, // callback, callback_data
+				0,0, // callback2, callback2_data
+				(int)(&menu_anim), 100, 0,
+				(int)(&set_kb_y_pos), kb_y_pos, movekb?240:kb_y_pos
+			}, 13*sizeof(int)));
 		}
+		sdl_menu_state |= MENU_ACTIVE;
 	} else {
-		if (movekb) {
-			if (kbdhidden!=is_keyboard_hidden()) toggle_keyboard();
+		if (movemenu) {
+			start_worker(animate, alloc_copy(&(int[]){
+				0, 0, 2, // steps, delay, nr
+				(int)anim_callback, 0, // callback, callback_data
+				(int)anim_callback4, 0, // callback2, callback2_data
+				(int)(&menu_anim), 0, 100,
+				(int)(&set_kb_y_pos), kb_y_pos, old_kb_y_pos
+			}, 13*sizeof(int)));
+		} else {
+			anim_callback4(NULL);
 		}
-		sdl_menu_state &= ~MENU_ACTIVE;
-		SDL_EnableKeyRepeat(0, 0);
-		requestRepaint();
 	}
 }
 
@@ -1553,6 +1585,7 @@ ui_menu_action_t sdl_uibottom_mouseevent(SDL_Event *e) {
 		if (sdl_menu_state && menu_mousebuttonstate) {
 			menu_mousebuttonstate = 0;
 			if (y/8==0 && x/8<2) return MENU_ACTION_CANCEL;
+			if (y>=215 && x>=305) return MENU_ACTION_EXIT;
 			return MENU_ACTION_MOUSE;
 		}
 
