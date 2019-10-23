@@ -71,7 +71,7 @@ static int autofire_thread( void *data ) {
 				e1.key.keysym.unicode = e1.key.keysym.sym =
 				e2.key.keysym.unicode = e2.key.keysym.sym = k & 0xff;
 		}
-		while(SDL_SemTryWait(af_stop[port])) {
+		while(SDL_SemTryWait(af_stop[port]) && !sdl_menu_state) {
 			SDL_PushEvent(&e1);
 			SDL_Delay(s);
 			SDL_PushEvent(&e2);
@@ -133,10 +133,14 @@ int start_autofire(int port) {
 	if (!af_init && autofire_init()!=0) return -1;
 
 	if ((af_key[port]=af_get_joydev_fire(port))==0) return -1;
+	// clear stop semaphore
+	while(!SDL_SemTryWait(af_stop[port]));
 	SDL_SemPost(af_start[port]);
 	return 0;
 }
 
 void stop_autofire(int port) {
+	// clear start semaphore
+	while(!SDL_SemTryWait(af_start[port]));
 	SDL_SemPost(af_stop[port]);
 }

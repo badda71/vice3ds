@@ -95,7 +95,7 @@ extern int sdl_kbd_statusbar;
 extern int sdl_statusbar;
 extern int drive_led;
 extern int drive_led_brightness;
-extern int events_to_emu;
+extern volatile int events_to_emu;
 
 #ifdef BEOS_COMPILE
 extern int CheckForHaiku(void);

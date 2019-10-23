@@ -363,8 +363,8 @@ static unsigned char keysPressed[256];
 static int editmode_on=0;
 static int help_button_on;
 static Handle repaintRequired;
-static int help_anim;
-static int menu_anim=0;
+static volatile int help_anim;
+static volatile int menu_anim=0;
 
 // sprite handling funtions
 // ========================
@@ -1403,6 +1403,7 @@ void anim_callback3(void *param) {
 
 void anim_callback4(void *param) {
 	sdl_menu_state &= ~MENU_ACTIVE;
+	menu_anim=0;
 	SDL_EnableKeyRepeat(0, 0);
 	requestRepaint();
 }
@@ -1410,10 +1411,10 @@ void anim_callback4(void *param) {
 void toggle_menu(int active, ui_menu_entry_t *item)
 {
 	static int movekb=0, movemenu=0, old_kb_y_pos;
-
+	
 	if (active) {
 		SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-		movekb=movemenu=0;
+		menu_anim=movekb=movemenu=0;
 		if (item == NULL || 
 			item->type == MENU_ENTRY_DIALOG ||
 			item->type == MENU_ENTRY_SUBMENU ||

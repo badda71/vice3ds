@@ -41,7 +41,7 @@ typedef enum {
 	MSGBOX_ACTIVE = 2
 } menu_state;
 
-extern menu_state sdl_menu_state;
+extern volatile menu_state sdl_menu_state;
 extern uint8_t *menu_draw_buffer;
 
 typedef void* ui_callback_data_t;

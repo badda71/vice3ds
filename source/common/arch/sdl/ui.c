@@ -82,7 +82,7 @@ extern void keyboard_key_pressed(signed long key);
 
 static int sdl_ui_ready = 0;
 static int save_resources_on_exit;
-int events_to_emu=0;
+volatile int events_to_emu=0;
 
 
 static void (*psid_init_func)(void) = NULL;
@@ -770,28 +770,27 @@ ui_menu_action_t ui_dispatch_events(void)
 			}
 			continue;
 		}
-		// deactivate touchscreen/editmode if applicable
-		if (e.type == SDL_KEYDOWN && e.key.keysym.sym == 208) {
-			if (_mouse_enabled)	{
-				set_mouse_enabled(0, NULL);
-				continue;
-			}
-			if (uibottom_editmode_is_on()) {
-				uibottom_toggle_editmode();
-				continue;
-			}
-		}
-
 		if (!sdl_menu_state) do_3ds_mapping(&e); // apply 3ds-specific extra key mappings
 
 		switch (e.type) {
 			case SDL_KEYDOWN:
                 if (e.key.keysym.sym != 0) {
+					ui_display_kbd_status(&e);
 					if (e.key.keysym.sym == 255) {
 						toggle_keyboard();
 						break;
 					}
-					ui_display_kbd_status(&e);
+					// deactivate touchscreen/editmode with start button if applicable
+					if (e.key.keysym.sym == 208) {
+						if (_mouse_enabled)	{
+							set_mouse_enabled(0, NULL);
+							continue;
+						}
+						if (uibottom_editmode_is_on()) {
+							uibottom_toggle_editmode();
+							continue;
+						}
+					}
 					if (sdl_menu_state && e.key.keysym.sym==sdl_ui_menukeys[MENU_ACTION_EMU]) {
 						events_to_emu=1;
 						uibottom_must_redraw |= UIB_REPAINT;

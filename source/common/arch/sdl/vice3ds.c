@@ -308,6 +308,7 @@ int vice3ds_resources_init(void)
 
 void vice3ds_resources_shutdown(void)
 {
+	LED3DS_Off();
 	lib_free(keymap3ds_resource);
 	keymap3ds_resource=NULL;
 }

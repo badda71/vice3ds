@@ -65,7 +65,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-menu_state sdl_menu_state = MENU_INACTIVE;
+volatile menu_state sdl_menu_state = MENU_INACTIVE;
 
 void (*sdl_ui_set_menu_params)(int index, menu_draw_t *menu_draw);
 
