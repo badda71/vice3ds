@@ -1022,7 +1022,7 @@ static const resource_int_t resources_int[] = {
       &sdl_ui_menukeys[6], set_ui_menukey, (void *)MENU_ACTION_CANCEL },
     { "MenuKeyExit", 209, RES_EVENT_NO, NULL,	// 3ds select button
       &sdl_ui_menukeys[7], set_ui_menukey, (void *)MENU_ACTION_EXIT },
-    { "MenuKeyMap", 204, RES_EVENT_NO, NULL,	// 3ds L button
+    { "MenuKeyMap", 205, RES_EVENT_NO, NULL,	// 3ds R button
       &sdl_ui_menukeys[8], set_ui_menukey, (void *)MENU_ACTION_MAP },
     { "MenuKeyPageUp", SDLK_PAGEUP, RES_EVENT_NO, NULL,
       &sdl_ui_menukeys[9], set_ui_menukey, (void *)MENU_ACTION_PAGEUP },
@@ -1030,7 +1030,7 @@ static const resource_int_t resources_int[] = {
       &sdl_ui_menukeys[10], set_ui_menukey, (void *)MENU_ACTION_PAGEDOWN },
     { "MenuKeyHome", SDLK_HOME, RES_EVENT_NO, NULL,
       &sdl_ui_menukeys[11], set_ui_menukey, (void *)MENU_ACTION_HOME },
-    { "MenuKeyEmu", 206, RES_EVENT_NO, NULL,	// 3ds ZL button
+    { "MenuKeyEmu", 204, RES_EVENT_NO, NULL,	// 3ds L button
       &sdl_ui_menukeys[12], set_ui_menukey, (void *)MENU_ACTION_EMU },
     { "MenuKeyEnd", SDLK_END, RES_EVENT_NO, NULL,
       &sdl_ui_menukeys[13], set_ui_menukey, (void *)MENU_ACTION_END },
