@@ -27,6 +27,7 @@
 
 #include "vice.h"
 #include "archdep_defs.h"
+#include "archdep.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,6 +68,6 @@ void archdep_startup_log_error(const char *format, ...)
             "SDLVICE/2 Startup Error", 0, MB_OK);
 #endif
 
-    fprintf(stderr, "%s", tmp);
+    archdep_default_logger("ERROR", tmp);
     lib_free(tmp);
 }

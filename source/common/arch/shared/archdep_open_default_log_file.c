@@ -48,14 +48,11 @@
  */
 FILE *archdep_open_default_log_file(void)
 {
-    FILE *fp = stdout;
+    FILE *fp = NULL;
     char *path;
 
     /* quick fix. on non windows platforms this should check if VICE has been
        started from a terminal, and only if not open a file instead of stdout */
-#ifdef UNIX_COMPILE
-    if (!isatty(fileno(fp))) {
-#endif
         path = archdep_join_paths(archdep_xdg_data_home(), "vice.log", NULL);
         if ( access( path, F_OK ) != -1 ) { // only open if logfile exists (3DS)
 			fp = fopen(path, "w");
@@ -67,8 +64,5 @@ FILE *archdep_open_default_log_file(void)
 			}
 		}
         lib_free(path);
-#ifdef UNIX_COMPILE
-    }
-#endif
     return fp;
 }
