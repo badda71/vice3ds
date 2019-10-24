@@ -61,8 +61,8 @@ APP_AUTHOR	:=	badda71 <me@badda.de>
 ICON		:=	$(META)/icon_3ds_$(VICETARGET).png
 
 ifeq ($(VICETARGET), C64)
-	VERSION_MAJOR :=	1
-	VERSION_MINOR :=	6
+	VERSION_MAJOR :=	2
+	VERSION_MINOR :=	RC1
 	VERSION_MICRO :=	0
 else
 	VERSION_MAJOR :=	0
