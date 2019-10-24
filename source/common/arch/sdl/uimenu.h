@@ -167,12 +167,14 @@ typedef enum {
 
 extern menufont_t activefont;
 
+
 extern void sdl_ui_set_main_menu(const ui_menu_entry_t *menu);
 extern ui_menu_entry_t *sdl_ui_get_main_menu(void);
 extern menu_draw_t *sdl_ui_get_menu_param(void);
 extern menufont_t *sdl_ui_get_menu_font(void);
 extern void (*sdl_ui_set_menu_params)(int index, menu_draw_t *menu_draw);
 
+extern void sdl_ui_putchar(uint8_t c, int pos_x, int pos_y);
 extern uint8_t *sdl_ui_get_draw_buffer(void);
 extern void sdl_ui_init_draw_params(void);
 extern void sdl_ui_reverse_colors(void);

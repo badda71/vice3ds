@@ -90,7 +90,7 @@ uint8_t *menu_draw_buffer = NULL;
  * Used to properly clean up when 'Quit emu' is triggered
  */
 static int *menu_offsets = NULL;
-
+static int havescrollbar=0;
 
 menufont_t activefont = { NULL, sdl_active_translation, 0, 0 };
 static menufont_t menufont = { NULL, sdl_menu_translation, 0, 0 };
@@ -217,7 +217,7 @@ static const uint8_t sdl_char_to_screen_monitor[256] = {
 
 static ui_menu_retval_t sdl_ui_menu_item_activate(ui_menu_entry_t *item);
 
-static void sdl_ui_putchar(uint8_t c, int pos_x, int pos_y)
+void sdl_ui_putchar(uint8_t c, int pos_x, int pos_y)
 {
     int x, y;
     uint8_t fontchar;
@@ -466,7 +466,7 @@ dispitemexit:
     return i;
 }
 
-static void sdl_ui_menu_redraw(ui_menu_entry_t *menu, const char *title, int offset, int *value_offsets, int cur_offset)
+static void sdl_ui_menu_redraw(ui_menu_entry_t *menu, const char *title, int offset, int *value_offsets, int cur_offset, int total)
 {
     int i = 0;
 
@@ -474,16 +474,32 @@ static void sdl_ui_menu_redraw(ui_menu_entry_t *menu, const char *title, int off
     sdl_ui_clear();
     sdl_ui_display_title(title);
 
+	havescrollbar = total > menu_draw.max_text_y - MENU_FIRST_Y ? 1 : 0;
+
+	if (havescrollbar) --menu_draw.max_text_x;
     while ((menu[i + offset].string != NULL) && (i <= (menu_draw.max_text_y - MENU_FIRST_Y))) {
         sdl_ui_display_item(&(menu[i + offset]), i, value_offsets[i + offset], (i == cur_offset));
         ++i;
     }
+	if (havescrollbar) ++menu_draw.max_text_x;
+
+	// scrollbar
+	if (havescrollbar) {
+		int menu_max = menu_draw.max_text_y - MENU_FIRST_Y - 1;
+		int beg = (float)(offset * menu_max) / (float)total + 0.5f;
+		int end = (float)((offset + menu_max) * menu_max) / (float)total + 0.5f;
+		for (i=0; i<=menu_max; ++i) {
+			if (i==beg) sdl_ui_reverse_colors();
+			sdl_ui_putchar(' ', menu_draw.max_text_x-1, i + MENU_FIRST_Y);
+			if (i==end) sdl_ui_reverse_colors();
+		}
+	}
 }
 
 static void sdl_ui_menu_redraw_cursor(ui_menu_entry_t *menu, int offset, int *value_offsets, int cur_offset, int old_offset)
 {
     int i = 0, n;
-
+	if (havescrollbar) --menu_draw.max_text_x;
     while ((menu[i + offset].string != NULL) && (i <= (menu_draw.max_text_y - MENU_FIRST_Y))) {
         if (i == cur_offset) {
             sdl_ui_display_item(&(menu[i + offset]), i, value_offsets[i + offset], 1);
@@ -493,6 +509,7 @@ static void sdl_ui_menu_redraw_cursor(ui_menu_entry_t *menu, int offset, int *va
         }
         ++i;
     }
+	if (havescrollbar) ++menu_draw.max_text_x;
 }
 
 static ui_menu_retval_t sdl_ui_menu_display(ui_menu_entry_t *menu, const char *title, int allow_mapping)
@@ -500,7 +517,8 @@ static ui_menu_retval_t sdl_ui_menu_display(ui_menu_entry_t *menu, const char *t
     int num_items = 0, cur = 0, cur_old = -1, cur_offset = 0, in_menu = 1, redraw = 1;
     int *value_offsets = NULL;
     ui_menu_retval_t menu_retval = MENU_RETVAL_DEFAULT;
-    int i, y, action, old_y=-1, dragging=0;
+    int i, y, x, action, old_y=-1, dragging=0;
+	int menu_max = menu_draw.max_text_y - MENU_FIRST_Y;
 
     /* SDL mode: prevent core dump - pressing menu key in -console mode causes menu to be NULL */
     if (menu == NULL) {
@@ -524,7 +542,7 @@ static ui_menu_retval_t sdl_ui_menu_display(ui_menu_entry_t *menu, const char *t
 
     while (in_menu) {
         if (redraw) {
-            sdl_ui_menu_redraw(menu, title, cur_offset, value_offsets, cur);
+            sdl_ui_menu_redraw(menu, title, cur_offset, value_offsets, cur, num_items);
             cur_old = -1;
             redraw = 0;
         } else {
@@ -549,8 +567,8 @@ static ui_menu_retval_t sdl_ui_menu_display(ui_menu_entry_t *menu, const char *t
 					break;
 				case MENU_ACTION_END:
 					redraw = 1;
-					cur_offset = num_items - (menu_draw.max_text_y - MENU_FIRST_Y);
-					cur = (menu_draw.max_text_y - MENU_FIRST_Y) - 1;
+					cur_offset = num_items - menu_max;
+					cur = menu_max - 1;
 					if (cur_offset < 0) {
 						cur += cur_offset;
 						cur_offset = 0;
@@ -565,8 +583,8 @@ static ui_menu_retval_t sdl_ui_menu_display(ui_menu_entry_t *menu, const char *t
 							if (cur_offset > 0) {
 								--cur_offset;
 							} else {
-								cur_offset = num_items - (menu_draw.max_text_y - MENU_FIRST_Y);
-								cur = (menu_draw.max_text_y - MENU_FIRST_Y) - 1;
+								cur_offset = num_items - menu_max;
+								cur = menu_max - 1;
 								if (cur_offset < 0) {
 									cur += cur_offset;
 									cur_offset = 0;
@@ -579,7 +597,7 @@ static ui_menu_retval_t sdl_ui_menu_display(ui_menu_entry_t *menu, const char *t
 					break;
 				case MENU_ACTION_PAGEUP:
 					cur_old = cur;
-					for (i = 0; i < (menu_draw.max_text_y - MENU_FIRST_Y - 1); i++) {
+					for (i = 0; i < (menu_max - 1); i++) {
 						do {
 							if (cur > 0) {
 								--cur;
@@ -597,7 +615,7 @@ static ui_menu_retval_t sdl_ui_menu_display(ui_menu_entry_t *menu, const char *t
 					cur_old = cur;
 					do {
 						if ((cur + cur_offset) < (num_items - 1)) {
-							if (++cur == (menu_draw.max_text_y - MENU_FIRST_Y)) {
+							if (++cur == menu_max) {
 								--cur;
 								++cur_offset;
 								redraw = 1;
@@ -612,10 +630,10 @@ static ui_menu_retval_t sdl_ui_menu_display(ui_menu_entry_t *menu, const char *t
 					break;
 				case MENU_ACTION_PAGEDOWN:
 					cur_old = cur;
-					for (i = 0; i < (menu_draw.max_text_y - MENU_FIRST_Y - 1); i++) {
+					for (i = 0; i < (menu_max - 1); i++) {
 						do {
 							if ((cur + cur_offset) < (num_items - 1)) {
-								if (++cur == (menu_draw.max_text_y - MENU_FIRST_Y)) {
+								if (++cur == (menu_max)) {
 									--cur;
 									++cur_offset;
 								}
@@ -635,7 +653,7 @@ static ui_menu_retval_t sdl_ui_menu_display(ui_menu_entry_t *menu, const char *t
 						in_menu = 0;
 						menu_retval = MENU_RETVAL_EXIT_UI;
 					} else {
-						sdl_ui_menu_redraw(menu, title, cur_offset, value_offsets, cur);
+						sdl_ui_menu_redraw(menu, title, cur_offset, value_offsets, cur, num_items);
 					}
 					break;
 				case MENU_ACTION_EXIT:
@@ -647,34 +665,47 @@ static ui_menu_retval_t sdl_ui_menu_display(ui_menu_entry_t *menu, const char *t
 					break;
 				case MENU_ACTION_MAP:
 					if (allow_mapping && sdl_ui_hotkey_map(&(menu[cur + cur_offset]),0)) {
-						sdl_ui_menu_redraw(menu, title, cur_offset, value_offsets, cur);
+						sdl_ui_menu_redraw(menu, title, cur_offset, value_offsets, cur, num_items);
 					}
 					break;
 				case MENU_ACTION_MOUSE:
 					y = ((lastevent.button.y*240) / sdl_active_canvas->screen->h) / activefont.h;
+					x = ((lastevent.button.x*320) / sdl_active_canvas->screen->w) / activefont.w;
 					if (lastevent.type != SDL_MOUSEBUTTONUP) {
+						i=cur_offset;
 						if (old_y==-1) {
 							if (y >= MENU_FIRST_Y && 
 								y < menu_draw.max_text_y &&
-								y <= MENU_FIRST_Y+(num_items-cur_offset)) {
-								if (menu[y - MENU_FIRST_Y + cur_offset].type != MENU_ENTRY_TEXT) {
-									cur_old=cur;
-									cur=y - MENU_FIRST_Y;
+								y <= MENU_FIRST_Y + num_items - cur_offset + 1) {
+								if (havescrollbar && (dragging || x==menu_draw.max_text_x-1)) {
+									cur_offset = ((y - MENU_FIRST_Y) * num_items) / menu_max - menu_max/2;
+									dragging=1;
+								} else {
+									if (menu[y - MENU_FIRST_Y + cur_offset].type != MENU_ENTRY_TEXT &&
+										cur!=y - MENU_FIRST_Y) {
+										cur_old=cur;
+										cur=y - MENU_FIRST_Y;
+									}
+									old_y=y;
 								}
-								old_y=y;
-								dragging=0;
 							}
 						} else {
 							if (y!=old_y) {
 								dragging=1;
-								i=cur_offset;
 								cur_offset-=y-old_y;
 								old_y=y;
-								if (cur_offset > num_items - menu_draw.max_text_y + MENU_FIRST_Y)
-									cur_offset=num_items - menu_draw.max_text_y + MENU_FIRST_Y;
-								if (cur_offset<0) cur_offset=0;
+							}
+						}
+						if (i != cur_offset) {
+							if (cur_offset > num_items - menu_max)
+								cur_offset= num_items - menu_max;
+							if (cur_offset<0) cur_offset=0;
+							if (i!=cur_offset) {
 								cur-=cur_offset-i;
-								if (i!=cur_offset) redraw=1;
+								if (cur<0) cur=0;
+								if (cur>=menu_max) cur=menu_max-1;
+								cur_old=-1;
+								redraw=1;
 							}
 						}
 					} else {
