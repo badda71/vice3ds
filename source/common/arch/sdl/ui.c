@@ -720,134 +720,134 @@ ui_menu_action_t ui_dispatch_events(void)
 #else
 
 	int tid=SDL_ThreadID();
+	
 	// if messagebox is active and we are not in the main thread, skip processing
-	if ((sdl_menu_state & MSGBOX_ACTIVE) && tid != 0) return retval;
 	// if menu is active and we are in the menu thread, skip processing
 	// (except when explicitly sending events to emu)
-	if (sdl_menu_state == MENU_ACTIVE && ((tid == 0) != (events_to_emu != 0)))
-		return retval;
-
-    // check 3d slider and adjust emulation speed if necessary
-	static float slider3d = -1.0;
-	static int sliderf=-1;
-	float f;
-	if ((sliderf != slider3d_func && (f=osGet3DSliderState())!=-1) ||
-		(sliderf && (f=osGet3DSliderState())!=slider3d)) {
-		int w=0,s=100;
-		switch (slider3d_func) {
-			case 0:	// off
-				w=0;
-				s=100;
-				break;
-			case 1: // slowdown
-				w=0;
-				s=100-(int)(f * 100.0);
-				if (f == 1.0) ui_pause_emulation(1);
-				if (slider3d == 1.0) ui_pause_emulation(0);
-				break;
-			default: //speedup
-				// 0 = 100, 0.8=400, 0.9=0, 1=warp
-				if (f == 1.0) w=1;
-				else {
+	if (!((sdl_menu_state & MSGBOX_ACTIVE) && tid != 0) &&
+		!(sdl_menu_state == MENU_ACTIVE && ((tid == 0) != (events_to_emu != 0))))
+		{
+		// check 3d slider and adjust emulation speed if necessary
+		static float slider3d = -1.0;
+		static int sliderf=-1;
+		float f;
+		if ((sliderf != slider3d_func && (f=osGet3DSliderState())!=-1) ||
+			(sliderf && (f=osGet3DSliderState())!=slider3d)) {
+			int w=0,s=100;
+			switch (slider3d_func) {
+				case 0:	// off
 					w=0;
-					s= f >= 0.9 ? 0 : 100+(int)(f * 375.0);
-				}
-		}
-		slider3d=f;
-		sliderf=slider3d_func;
-		resources_set_int("WarpMode", w);
-		resources_set_int("Speed", s);
-	}
-
-	// check event queue
-	while (SDL_PollEvent(&e)) {
-
-		// deactivate help screen if applicable
-		if (help_on) {
-			if (e.type == SDL_KEYDOWN || e.type==SDL_MOUSEBUTTONDOWN) {
-				toggle_help(sdl_menu_state);
-				while (SDL_PollEvent(&e)); // empty event queue
+					s=100;
+					break;
+				case 1: // slowdown
+					w=0;
+					s=100-(int)(f * 100.0);
+					if (f == 1.0) ui_pause_emulation(1);
+					if (slider3d == 1.0) ui_pause_emulation(0);
+					break;
+				default: //speedup
+					// 0 = 100, 0.8=400, 0.9=0, 1=warp
+					if (f == 1.0) w=1;
+					else {
+						w=0;
+						s= f >= 0.9 ? 0 : 100+(int)(f * 375.0);
+					}
 			}
-			continue;
+			slider3d=f;
+			sliderf=slider3d_func;
+			resources_set_int("WarpMode", w);
+			resources_set_int("Speed", s);
 		}
-		if (!sdl_menu_state) do_3ds_mapping(&e); // apply 3ds-specific extra key mappings
 
-		switch (e.type) {
-			case SDL_KEYDOWN:
-                if (e.key.keysym.sym != 0) {
-					ui_display_kbd_status(&e);
-					if (e.key.keysym.sym == 255) {
-						toggle_keyboard();
-						break;
-					}
-					// deactivate touchscreen/editmode with start button if applicable
-					if (e.key.keysym.sym == 208) {
-						if (_mouse_enabled)	{
-							set_mouse_enabled(0, NULL);
-							continue;
-						}
-						if (uibottom_editmode_is_on()) {
-							uibottom_toggle_editmode();
-							continue;
-						}
-					}
-					if (sdl_menu_state && e.key.keysym.sym==sdl_ui_menukeys[MENU_ACTION_EMU]) {
-						events_to_emu=1;
-						uibottom_must_redraw |= UIB_REPAINT;
-						break;
-					}
-	                retval = sdlkbd_press(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod, sdl_menu_state && !events_to_emu);
+		// check event queue
+		while (SDL_PollEvent(&e)) {
+
+			// deactivate help screen if applicable
+			if (help_on) {
+				if (e.type == SDL_KEYDOWN || e.type==SDL_MOUSEBUTTONDOWN) {
+					toggle_help(sdl_menu_state);
+					while (SDL_PollEvent(&e)); // empty event queue
 				}
-				break;
-            case SDL_KEYUP:
-                if (e.key.keysym.sym != 0) {
-					ui_display_kbd_status(&e);
-					if (events_to_emu==1 && e.key.keysym.sym==sdl_ui_menukeys[MENU_ACTION_EMU]) {
-						events_to_emu=0;
-						uibottom_must_redraw |= UIB_REPAINT;
-						break;
+				continue;
+			}
+			if (!sdl_menu_state) do_3ds_mapping(&e); // apply 3ds-specific extra key mappings
+
+			switch (e.type) {
+				case SDL_KEYDOWN:
+					if (e.key.keysym.sym != 0) {
+						ui_display_kbd_status(&e);
+						if (e.key.keysym.sym == 255) {
+							toggle_keyboard();
+							break;
+						}
+						// deactivate touchscreen/editmode with start button if applicable
+						if (e.key.keysym.sym == 208) {
+							if (_mouse_enabled)	{
+								set_mouse_enabled(0, NULL);
+								continue;
+							}
+							if (uibottom_editmode_is_on()) {
+								uibottom_toggle_editmode();
+								continue;
+							}
+						}
+						if (sdl_menu_state && e.key.keysym.sym==sdl_ui_menukeys[MENU_ACTION_EMU]) {
+							events_to_emu=1;
+							uibottom_must_redraw |= UIB_REPAINT;
+							break;
+						}
+						retval = sdlkbd_press(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod, sdl_menu_state && !events_to_emu);
 					}
-					retval = sdlkbd_release(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod, sdl_menu_state && !events_to_emu);
-//log_3ds("Keyup %d",e.key.keysym.sym);
-				}
+					break;
+				case SDL_KEYUP:
+					if (e.key.keysym.sym != 0) {
+						ui_display_kbd_status(&e);
+						if (events_to_emu==1 && e.key.keysym.sym==sdl_ui_menukeys[MENU_ACTION_EMU]) {
+							events_to_emu=0;
+							uibottom_must_redraw |= UIB_REPAINT;
+							break;
+						}
+						retval = sdlkbd_release(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod, sdl_menu_state && !events_to_emu);
+	//log_3ds("Keyup %d",e.key.keysym.sym);
+					}
+					break;
+	#ifdef HAVE_SDL_NUMJOYSTICKS
+				case SDL_JOYAXISMOTION:
+	//log_3ds("Joyaxismotion %d %d",e.jaxis.axis, e.jaxis.value);
+					retval = sdljoy_axis_event(e.jaxis.which, e.jaxis.axis, e.jaxis.value);
+					break;
+				case SDL_JOYBUTTONDOWN:
+	//log_3ds("Joybutton down %d",e.jbutton.button);
+					retval = sdljoy_button_event(e.jbutton.which, e.jbutton.button, 1);
+					break;
+				case SDL_JOYBUTTONUP:
+	//log_3ds("Joybutton up %d",e.jbutton.button);
+					retval = sdljoy_button_event(e.jbutton.which, e.jbutton.button, 0);
+					break;
+				case SDL_JOYHATMOTION:
+					retval = sdljoy_hat_event(e.jhat.which, e.jhat.hat, e.jhat.value);
+					break;
+	#endif
+				case SDL_MOUSEBUTTONUP:
+				case SDL_MOUSEBUTTONDOWN:
+				case SDL_MOUSEMOTION:
+					retval = sdl_uibottom_mouseevent(&e);
+	//log_citra("Mouse %s, which %d, button %d, x %d, y %d, retval %d",e.type==SDL_MOUSEBUTTONDOWN?"down":(e.type==SDL_MOUSEBUTTONUP?"up":"move"),e.button.which, e.button.button, e.button.x, e.button.y, retval);
+					break;
+				default:
+					/* SDL_EventState(SDL_VIDEORESIZE, SDL_IGNORE); */
+					ui_handle_misc_sdl_event(e);
+					/* SDL_EventState(SDL_VIDEORESIZE, SDL_ENABLE); */
+					break;
+			}
+			if (sdl_menu_state && !events_to_emu && retval != MENU_ACTION_NONE && retval != MENU_ACTION_NONE_RELEASE) {
 				break;
-#ifdef HAVE_SDL_NUMJOYSTICKS
-            case SDL_JOYAXISMOTION:
-//log_3ds("Joyaxismotion %d %d",e.jaxis.axis, e.jaxis.value);
-                retval = sdljoy_axis_event(e.jaxis.which, e.jaxis.axis, e.jaxis.value);
-                break;
-            case SDL_JOYBUTTONDOWN:
-//log_3ds("Joybutton down %d",e.jbutton.button);
-                retval = sdljoy_button_event(e.jbutton.which, e.jbutton.button, 1);
-                break;
-            case SDL_JOYBUTTONUP:
-//log_3ds("Joybutton up %d",e.jbutton.button);
-                retval = sdljoy_button_event(e.jbutton.which, e.jbutton.button, 0);
-                break;
-            case SDL_JOYHATMOTION:
-                retval = sdljoy_hat_event(e.jhat.which, e.jhat.hat, e.jhat.value);
-                break;
-#endif
-            case SDL_MOUSEBUTTONUP:
-            case SDL_MOUSEBUTTONDOWN:
-			case SDL_MOUSEMOTION:
-				retval = sdl_uibottom_mouseevent(&e);
-//log_citra("Mouse %s, which %d, button %d, x %d, y %d, retval %d",e.type==SDL_MOUSEBUTTONDOWN?"down":(e.type==SDL_MOUSEBUTTONUP?"up":"move"),e.button.which, e.button.button, e.button.x, e.button.y, retval);
-                break;
-            default:
-                /* SDL_EventState(SDL_VIDEORESIZE, SDL_IGNORE); */
-                ui_handle_misc_sdl_event(e);
-                /* SDL_EventState(SDL_VIDEORESIZE, SDL_ENABLE); */
-                break;
-        }
-		if (sdl_menu_state && !events_to_emu && retval != MENU_ACTION_NONE && retval != MENU_ACTION_NONE_RELEASE) {
-			break;
+			}
 		}
-    }
+	}
 #endif
-	// update bottom screen if needed (and vsync is not doing it)
-	if (sdl_menu_state || ui_emulation_is_paused())
-		sdl_uibottom_draw();
+	// update bottom screen if we are in the main thread
+	if (tid==0) sdl_uibottom_draw();
 
     return retval;
 }

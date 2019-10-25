@@ -865,9 +865,7 @@ void video_canvas_refresh(struct video_canvas_s *canvas, unsigned int xs, unsign
         return;
     }
 
-	sdl_uibottom_draw();
-
-    if (sdl_vsid_state & SDL_VSID_ACTIVE) {
+	if (sdl_vsid_state & SDL_VSID_ACTIVE) {
         sdl_vsid_draw();
     }
 

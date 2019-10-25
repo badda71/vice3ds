@@ -916,7 +916,7 @@ static int sdl_ui_readline_input(SDLKey *key, SDLMod *mod, Uint16 *c_uni)
 			}
 		}
 		// update bottom screen
-		sdl_uibottom_draw();
+		if (!SDL_ThreadID()) sdl_uibottom_draw();
 
 		SDL_Delay(20);
     } while (!got_key);
@@ -1142,7 +1142,6 @@ ui_menu_action_t sdl_ui_menu_poll_input(void)
     ui_menu_action_t retval = MENU_ACTION_NONE;
 
     do {
-		sdl_uibottom_draw();
 		SDL_Delay(20);
         retval = ui_dispatch_events();
 #ifdef HAVE_SDL_NUMJOYSTICKS
