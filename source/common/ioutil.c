@@ -223,7 +223,7 @@ static int ioutil_compare_names(const void* a, const void* b)
 {
     ioutil_name_table_t *arg1 = (ioutil_name_table_t*)a;
     ioutil_name_table_t *arg2 = (ioutil_name_table_t*)b;
-    return strcmp(arg1->name, arg2->name);
+    return strcasecmp(arg1->name, arg2->name);
 }
 
 /* checks a direntry for the given filter mode, 
