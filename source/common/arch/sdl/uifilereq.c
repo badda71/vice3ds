@@ -417,10 +417,13 @@ char* sdl_ui_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mod
     maxpathlen = ioutil_maxpathlen();
     current_dir = lib_malloc(maxpathlen);
 
-    chdir(persistence_get("cwd","/"));
+    strncpy(current_dir,persistence_get("cwd","/"),maxpathlen);
 
-    ioutil_getcwd(current_dir, maxpathlen);
+    ioutil_chdir(current_dir);
     backup_dir = lib_stralloc(current_dir);
+
+    // clear screen
+    sdl_ui_file_selector_redraw(NULL, title, current_dir, offset, 0, 0, mode, 0, 0);
 
     directory = ioutil_opendir(current_dir, SDL_FILESELECTOR_DIRMODE);
     if (directory == NULL) {
@@ -435,8 +438,9 @@ char* sdl_ui_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mod
     if ((mode == FILEREQ_MODE_CHOOSE_FILE) || (mode == FILEREQ_MODE_CHOOSE_FILE_IN_IMAGE)) {
         offset = sdl_ui_file_selector_recall_location(directory);
 		if (offset > total - menu_max) {
-			cur -= total - menu_max - offset;
-			offset = total - menu_max;
+			i=offset;
+			offset = total>menu_max?total - menu_max:0;
+			cur -= offset - i;
 		}
     }
 
