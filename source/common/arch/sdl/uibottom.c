@@ -1306,7 +1306,7 @@ void sdl_uibottom_draw(void)
 		if (uibottom_must_redraw_local & UIB_GET_RECALC_KEYPRESS) {
 			keypress_recalc();
 		}
-		if (sdl_menu_state) {
+		if (sdl_menu_state && (uibottom_must_redraw_local & UIB_RECALC_MENU)) {
 			menu_recalc();
 		}
 /*

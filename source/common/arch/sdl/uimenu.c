@@ -1457,7 +1457,7 @@ ui_menu_entry_t *sdl_ui_get_main_menu(void)
 
 void sdl_ui_refresh(void)
 {
-    uibottom_must_redraw |= UIB_REPAINT;
+    uibottom_must_redraw |= UIB_RECALC_MENU;
 }
 
 void sdl_ui_scroll_screen_up(void)
