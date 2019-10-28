@@ -149,10 +149,10 @@ static const ui_menu_entry_t x64_main_menu[] = {
       MENU_ENTRY_OTHER,
       vkbd_callback,
       NULL },*/
-/*    { "Statusbar",
+    { "Statusbar",
       MENU_ENTRY_OTHER_TOGGLE,
       statusbar_callback,
-      NULL },*/
+      NULL },
 #ifdef DEBUG
     { "Debug",
       MENU_ENTRY_SUBMENU,
@@ -224,7 +224,7 @@ int c64ui_init(void)
     uisampler_menu_create();
     uicart_menu_create();
     uidrive_menu_create();
-    uikeyboard_menu_create();
+//    uikeyboard_menu_create();
     uipalette_menu_create("VICII", NULL);
     uisid_menu_create();
     uiclockport_rr_mmc_menu_create();
@@ -245,7 +245,7 @@ int c64ui_init(void)
 
 void c64ui_shutdown(void)
 {
-    uikeyboard_menu_shutdown();
+//    uikeyboard_menu_shutdown();
     uisid_menu_shutdown();
     uicart_menu_shutdown();
     uipalette_menu_shutdown();

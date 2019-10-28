@@ -158,6 +158,7 @@ static UI_MENU_CALLBACK(save_keymap_callback)
 }
 
 UI_MENU_DEFINE_RADIO(KeymapIndex)
+
 static const ui_menu_entry_t keymap_index_submenu[] = {
     { "Symbolic",
       MENU_ENTRY_RESOURCE_RADIO,
@@ -177,7 +178,7 @@ static const ui_menu_entry_t keymap_index_submenu[] = {
       (ui_callback_data_t)KBD_INDEX_USERPOS },
     SDL_MENU_LIST_END
 };
-*/
+
 UI_MENU_DEFINE_RADIO(KeyboardMapping)
 
 static ui_menu_entry_t *keyboard_mapping_submenu;
@@ -214,7 +215,7 @@ void uikeyboard_menu_shutdown(void)
 }
 
 
-/*
+
 static UI_MENU_CALLBACK(load_sym_keymap_callback)
 {
     // temporary fix until I find out what 'keymap' is supposed to be
@@ -505,7 +506,6 @@ static const ui_menu_entry_t define_ui_keyset_menu[] = {
 };*/
 
 UI_MENU_DEFINE_TOGGLE(SDLKbdStatusbar)
-UI_MENU_DEFINE_TOGGLE(SDLStatusbar)
 
 ui_menu_entry_t settings_manager_menu[] = {
      SDL_MENU_ITEM_TITLE("VICE Settings"),
@@ -560,18 +560,9 @@ ui_menu_entry_t settings_manager_menu[] = {
     { "Load positional user keymap",
       MENU_ENTRY_OTHER,
       load_pos_keymap_callback,
-      NULL },
-    { "Save current keymap to",
-      MENU_ENTRY_OTHER,
-      save_keymap_callback,
-      NULL },
-*/
+      NULL },*/
     SDL_MENU_ITEM_SEPARATOR,
     SDL_MENU_ITEM_TITLE("Statusbar"),
-    { "Show statusbar",
-      MENU_ENTRY_RESOURCE_TOGGLE,
-      toggle_SDLStatusbar_callback,
-      NULL },
 	{ "Show keyboard status in statusbar",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_SDLKbdStatusbar_callback,

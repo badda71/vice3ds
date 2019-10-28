@@ -241,7 +241,7 @@ int c128ui_init(void)
     uisampler_menu_create();
     uicart_menu_create();
     uidrive_menu_create();
-    uikeyboard_menu_create();
+//    uikeyboard_menu_create();
     uipalette_menu_create("VICII", "VDC");
     uisid_menu_create();
     uiclockport_rr_mmc_menu_create();
@@ -260,7 +260,7 @@ int c128ui_init(void)
 
 void c128ui_shutdown(void)
 {
-    uikeyboard_menu_shutdown();
+//    uikeyboard_menu_shutdown();
     uisid_menu_shutdown();
     uicart_menu_shutdown();
     uipalette_menu_shutdown();
