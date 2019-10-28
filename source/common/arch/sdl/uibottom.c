@@ -336,6 +336,7 @@ static int sbutton_ang[20];
 static int sbutton_dang[20];
 static DS3_Image colkey_spr[8];
 static int colkey_nr[8];
+static DS3_Image note_spr;
 
 // SDL Surfaces
 static SDL_Surface *sb_img=NULL;
@@ -683,6 +684,11 @@ static void uibottom_repaint(void *param, int topupdated) {
 		if (keysPressed[sbutton_nr[drag_i]])
 			drawImage(&(sbmask_spr),x,y,w,h);
 	}
+	// editmode notifiction
+	if (editmode_on) {
+		drawImage(&keymask_spr,150,230,170,10);
+		drawImage(&note_spr, 152,232,0,0);
+	}
 	// help screen (bottom part & button)
 	if (help_on && !sdl_menu_state && !_mouse_enabled) {
 		int x=(help_anim*305)/100;
@@ -691,6 +697,7 @@ static void uibottom_repaint(void *param, int topupdated) {
 	} else {
 		if (help_button_on && !(sdl_menu_state & ~MENU_ACTIVE)) drawImage(&help_spr,305,0,0,0);
 	}
+
 	svcReleaseSemaphore(&c, privateSem1, 1);
 }
 
@@ -1221,6 +1228,11 @@ static void uibottom_init() {
 	loadImage(&menubut_spr, "romfs:/menu.png");
 	makeImage(&keymask_spr, (u8[]){0x00, 0x00, 0x00, 0x80},1,1,0);
 	makeImage(&black_spr, (u8[]){0, 0, 0, 0xFF},1,1,0);
+
+	// create sprites
+	SDL_Surface *s=SDL_CreateRGBSurface(SDL_SWSURFACE,256,64,32,0xff000000,0x00ff0000,0x0000ff00,0x000000ff);
+	printstring(s, "Press START to finish", 0, 0, 0, ALIGN_LEFT, FONT_BIG, (SDL_Color){0xff,0xff,0xff,0});
+	makeImage(&note_spr, s->pixels, s->w, s->h, 0);
 
 	svcCreateEvent(&repaintRequired,0);
 
