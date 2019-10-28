@@ -1715,6 +1715,10 @@ void toggle_keyboard() {
 	}, 10*sizeof(int)));
 }
 
+int getBottomBacklight() {
+	return bottom_lcd_on;
+}
+
 void setBottomBacklight (int on) {
 	if (on == bottom_lcd_on) return;
 	gspLcdInit();

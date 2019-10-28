@@ -72,12 +72,13 @@ static UI_MENU_CALLBACK(keystroke_callback)
     return NULL;
 }
 
-static UI_MENU_CALLBACK(bottomoff_callback)
+static UI_MENU_CALLBACK(toggle_bottomoff_callback)
 {
-    if (activated) {
-		setBottomBacklight(0);
+	int r=getBottomBacklight();
+	if (activated) {
+		setBottomBacklight(r=!r);
     }
-    return NULL;
+	return !r ? sdl_menu_text_tick : NULL;
 }
 
 extern volatile bool app_pause; // this pauses the SDL update thread
@@ -352,8 +353,8 @@ const ui_menu_entry_t type_commands_menu[] = {
 const ui_menu_entry_t misc_menu[] = {
     SDL_MENU_ITEM_TITLE("3DS specific"),
     { "Power off bottom screen backlight",
-		MENU_ENTRY_OTHER,
-		bottomoff_callback,
+		MENU_ENTRY_OTHER_TOGGLE,
+		toggle_bottomoff_callback,
 		NULL },
 	{ "Hide keyboard",
 		MENU_ENTRY_OTHER_TOGGLE,
