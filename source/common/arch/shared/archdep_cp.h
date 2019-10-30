@@ -32,3 +32,4 @@
 // overwrite: 1 = overwrite existing files, 0 = leave existing files untouched
 
 extern int xcopy(char *source, char *destination, int overwrite, void (*callback)());
+extern int mkpath(char* file_path, int complete);

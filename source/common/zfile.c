@@ -49,18 +49,21 @@
 #include <strings.h>
 #endif
 
+#include <zip.h>
+
 #include "archdep.h"
+#include "archdep_cp.h"
+#include "archdep_xdg.h"
 #include "ioutil.h"
 #include "lib.h"
 #include "log.h"
 #include "util.h"
 #include "zfile.h"
-#include "zipcode.h"
 
 
 /* ------------------------------------------------------------------------- */
 
-/* #define DEBUG_ZFILE */
+//#define DEBUG_ZFILE
 
 #ifdef DEBUG_ZFILE
 #define ZDEBUG(a)  log_debug a
@@ -72,11 +75,7 @@
 enum compression_type {
     COMPR_NONE,
     COMPR_GZIP,
-    COMPR_BZIP,
-    COMPR_ARCHIVE,
-    COMPR_ZIPCODE,
-    COMPR_LYNX,
-    COMPR_TZX
+    COMPR_ZIP
 };
 
 /* This defines a linked list of all the compressed files that have been
@@ -197,7 +196,6 @@ void zfile_shutdown(void)
    of the temporary file; return NULL otherwise.  */
 static char *try_uncompress_with_gzip(const char *name)
 {
-#ifdef HAVE_ZLIB
     FILE *fddest;
     gzFile fdsrc;
     char *tmp_name = NULL;
@@ -240,122 +238,6 @@ static char *try_uncompress_with_gzip(const char *name)
     fclose(fddest);
 
     return tmp_name;
-#else
-    char *tmp_name = NULL;
-    int exit_status;
-    char *argv[4];
-
-    if (!file_is_gzip(name)) {
-        return NULL;
-    }
-
-    /* `exec*()' does not want these to be constant...  */
-    argv[0] = lib_stralloc("gzip");
-    argv[1] = lib_stralloc("-cd");
-    argv[2] = archdep_filename_parameter(name);
-    argv[3] = NULL;
-
-    ZDEBUG(("try_uncompress_with_gzip: spawning gzip -cd %s", name));
-    exit_status = archdep_spawn("gzip", argv, &tmp_name, NULL);
-
-    lib_free(argv[0]);
-    lib_free(argv[1]);
-    lib_free(argv[2]);
-
-    if (exit_status == 0) {
-        ZDEBUG(("try_uncompress_with_gzip: OK"));
-        return tmp_name;
-    } else {
-        ZDEBUG(("try_uncompress_with_gzip: failed"));
-        ioutil_remove(tmp_name);
-        lib_free(tmp_name);
-        return NULL;
-    }
-#endif
-}
-
-/* If `name' has a bzip-like extension, try to uncompress it into a temporary
-   file using bzip.  If this succeeds, return the name of the temporary file;
-   return NULL otherwise.  */
-static char *try_uncompress_with_bzip(const char *name)
-{
-    char *tmp_name = NULL;
-    size_t l = strlen(name);
-    int exit_status;
-    char *argv[4];
-
-    /* Check whether the name sounds like a bzipped file by checking the
-       extension.  UNIX variants of bzip v2 use the extension
-       '.bz2'.  bzip v1 is obsolete.  */
-    if (l < 5 || strcasecmp(name + l - 4, ".bz2") != 0) {
-        return NULL;
-    }
-
-    /* `exec*()' does not want these to be constant...  */
-    argv[0] = lib_stralloc("bzip2");
-    argv[1] = lib_stralloc("-cd");
-    argv[2] = archdep_filename_parameter(name);
-    argv[3] = NULL;
-
-    ZDEBUG(("try_uncompress_with_bzip: spawning bzip -cd %s", name));
-    exit_status = archdep_spawn("bzip2", argv, &tmp_name, NULL);
-
-    lib_free(argv[0]);
-    lib_free(argv[1]);
-    lib_free(argv[2]);
-
-    if (exit_status == 0) {
-        ZDEBUG(("try_uncompress_with_bzip: OK"));
-        return tmp_name;
-    } else {
-        ZDEBUG(("try_uncompress_with_bzip: failed"));
-        ioutil_remove(tmp_name);
-        lib_free(tmp_name);
-        return NULL;
-    }
-}
-
-static char *try_uncompress_with_tzx(const char *name)
-{
-    char *tmp_name = NULL;
-    size_t l = strlen(name);
-    int exit_status;
-    char *argv[4];
-
-    /* Check whether the name sounds like a tzx file. */
-    if (l < 4 || strcasecmp(name + l - 4, ".tzx") != 0) {
-        return NULL;
-    }
-
-    /* `exec*()' does not want these to be constant...  */
-    argv[0] = lib_stralloc("64tzxtap");
-    argv[1] = archdep_filename_parameter(name);
-    argv[2] = NULL;
-
-    ZDEBUG(("try_uncompress_with_tzx: spawning 64tzxtap %s", name));
-    exit_status = archdep_spawn("64tzxtap", argv, &tmp_name, NULL);
-
-    lib_free(argv[0]);
-    lib_free(argv[1]);
-
-    if (exit_status == 0) {
-        ZDEBUG(("try_uncompress_with_tzx: OK"));
-        return tmp_name;
-    } else {
-        ZDEBUG(("try_uncompress_with_tzx: failed"));
-        ioutil_remove(tmp_name);
-        lib_free(tmp_name);
-        return NULL;
-    }
-}
-
-/* is the name zipcode -name? */
-static int is_zipcode_name(char *name)
-{
-    if (name[0] >= '1' && name[0] <= '4' && name[1] == '!') {
-        return 1;
-    }
-    return 0;
 }
 
 /* Extensions we know about */
@@ -382,22 +264,15 @@ static const char *extensions[] = {
     NULL
 };
 
-static int is_valid_extension(char *end, size_t l, int nameoffset)
+static int is_valid_extension(char *str)
 {
-    int i;
+	int i;
     size_t len;
+	size_t slen = strlen(str);
 
-    /* zipcode testing is a special case */
-    if (l > nameoffset + 2u && is_zipcode_name(end + nameoffset)) {
-        return 1;
-    }
-    /* others */
     for (i = 0; extensions[i]; i++) {
         len = strlen(extensions[i]);
-        if (l < nameoffset + len) {
-            continue;
-        }
-        if (!strcasecmp(extensions[i], end + l - len)) {
+        if (len <= slen && !strcasecmp(extensions[i], str + slen - len)) {
             return 1;
         }
     }
@@ -414,20 +289,19 @@ static int is_valid_extension(char *end, size_t l, int nameoffset)
    succeeds, return the name of the temporary file; if the archive file is
    valid but `write_mode' is non-zero, return a zero-length string; in all
    the other cases, return NULL.  */
-static char *try_uncompress_archive(const char *name, int write_mode,
-                                    const char *program,
-                                    const char *listopts,
-                                    const char *extractopts,
-                                    const char *extension,
-                                    const char *search)
+static char *try_uncompress_with_zip(const char *name)
 {
-    char *tmp_name = NULL;
-    size_t l = strlen(name), len, nameoffset;
+	char *extension=".zip";
+	char *tmp_name = NULL;
+    size_t l = strlen(name), len;
     int found = 0;
     int exit_status;
-    char *argv[8];
     FILE *fd;
     char tmp[1024];
+	zip_int64_t num_entries;
+	zip_uint64_t i;
+	const char *fname;
+	struct zip_file *zf;
 
     /* Do we have correct extension?  */
     len = strlen(extension);
@@ -435,325 +309,51 @@ static char *try_uncompress_archive(const char *name, int write_mode,
         return NULL;
     }
 
-    /* First run listing and search for first recognizeable extension.  */
-    argv[0] = lib_stralloc(program);
-    argv[1] = lib_stralloc(listopts);
-    argv[2] = archdep_filename_parameter(name);
-    argv[3] = NULL;
+    // open the archive
+	struct zip *za;
+    if ((za = zip_open(name, 0, &exit_status)) == NULL)
+		return NULL;
+	
+	/* First run listing and search for first recognizeable extension.  */
+	num_entries = zip_get_num_entries(za, 0);
 
-    ZDEBUG(("try_uncompress_archive: spawning `%s %s %s'",
-            program, listopts, name));
-    exit_status = archdep_spawn(program, argv, &tmp_name, NULL);
+	for (i = 0; i < (zip_uint64_t)num_entries; i++) {
+		fname = zip_get_name(za, i, 0);
+		if (is_valid_extension((char *)fname)) {
+			ZDEBUG(("%s: found '%s'.", __func__, fname));
+			found = 1;
+			break;
+		}
+	}
 
-    lib_free(argv[0]);
-    lib_free(argv[1]);
-    lib_free(argv[2]);
-
-    /* No luck?  */
-    if (exit_status != 0) {
-        ZDEBUG(("try_uncompress_archive: `%s %s' failed.", program, listopts));
-        ioutil_remove(tmp_name);
-        lib_free(tmp_name);
+	if (!found) {
+		zip_close(za);
+        ZDEBUG(("%s: no valid file found.", __func__));
         return NULL;
     }
 
-    ZDEBUG(("try_uncompress_archive: `%s %s' successful.", program, listopts));
+	tmp_name=archdep_join_paths(archdep_xdg_data_home(), "data", fname, NULL);
 
-    fd = fopen(tmp_name, MODE_READ);
-    if (!fd) {
-        ZDEBUG(("try_uncompress_archive: cannot read `%s %s' output.",
-                program, tmp_name));
-        ioutil_remove(tmp_name);
-        lib_free(tmp_name);
-        return NULL;
-    }
+	mkpath(tmp_name,0);
+	fd = fopen(tmp_name, "w");
+	if (fd==NULL) {
+		ZDEBUG(("%s: could not open output file %s", __func__, tmp_name));
+		lib_free(tmp_name);
+		zip_close(za);
+		return NULL;
+	}
+	
+	zf = zip_fopen_index(za, i, 0);
+	while ((len = zip_fread(zf, tmp, 1024))>0)
+		fwrite(tmp, sizeof(char), len, fd);
+	zip_fclose(zf);
+	fclose(fd);
 
-    ZDEBUG(("try_uncompress_archive: searching for the first valid file."));
+	zip_close(za);
 
-    /* Search for `search' first (if any) to see the offset where
-       filename begins, then search for first recognizeable file.  */
-    nameoffset = search ? SIZE_MAX : 0;
-    len = search ? strlen(search) : 0;
-    while (!feof(fd) && !found) {
-        if (fgets(tmp, 1024, fd) == NULL) {
-            break;
-        }
-        l = strlen(tmp);
-        while (l > 0) {
-            tmp[--l] = 0;
-            if (((nameoffset == SIZE_MAX) || (nameoffset > 1024)) && l >= len
-                    && strcasecmp(tmp + l - len, search) == 0) {
-                nameoffset = l - 4;
-            }
-            if (nameoffset <= 1024
-                    && is_valid_extension(tmp, l, nameoffset)) {
-                ZDEBUG(("try_uncompress_archive: found `%s'.",
-                        tmp + nameoffset));
-                found = 1;
-                break;
-            }
-        }
-    }
-
-    fclose(fd);
-    ioutil_remove(tmp_name);
-    if (!found) {
-        ZDEBUG(("try_uncompress_archive: no valid file found."));
-        lib_free(tmp_name);
-        return NULL;
-    }
-
-    /* This would be a valid ZIP file, but we cannot handle ZIP files in
-       write mode.  Return a null temporary file name to report this.  */
-    if (write_mode) {
-        ZDEBUG(("try_uncompress_archive: cannot open file in write mode."));
-        lib_free(tmp_name);
-        return "";
-    }
-
-    /* And then file inside zip.  If we have a zipcode extract all of them
-       to the same file. */
-    argv[0] = lib_stralloc(program);
-    argv[1] = lib_stralloc(extractopts);
-    argv[2] = archdep_filename_parameter(name);
-    if (is_zipcode_name(tmp + nameoffset)) {
-        argv[3] = lib_stralloc(tmp + nameoffset);
-        argv[4] = lib_stralloc(tmp + nameoffset);
-        argv[5] = lib_stralloc(tmp + nameoffset);
-        argv[6] = lib_stralloc(tmp + nameoffset);
-        argv[7] = NULL;
-        argv[3][0] = '1';
-        argv[4][0] = '2';
-        argv[5][0] = '3';
-        argv[6][0] = '4';
-    } else {
-        argv[3] = archdep_quote_parameter(tmp + nameoffset);
-        argv[4] = NULL;
-    }
-
-    ZDEBUG(("try_uncompress_archive: spawning `%s %s %s %s'.",
-            program, extractopts, name, tmp + nameoffset));
-    exit_status = archdep_spawn(program, argv, &tmp_name, NULL);
-
-    lib_free(argv[0]);
-    lib_free(argv[1]);
-    lib_free(argv[2]);
-    lib_free(argv[3]);
-    if (is_zipcode_name(tmp + nameoffset)) {
-        lib_free(argv[4]);
-        lib_free(argv[5]);
-        lib_free(argv[6]);
-    }
-
-    if (exit_status != 0) {
-        ZDEBUG(("try_uncompress_archive: `%s %s' failed.",
-                program, extractopts));
-        ioutil_remove(tmp_name);
-        lib_free(tmp_name);
-        return NULL;
-    }
-
-    ZDEBUG(("try_uncompress_archive: `%s %s' successful.", program, tmp_name));
+    ZDEBUG(("%s: extract '%s' successful.", __func__, tmp_name));
     return tmp_name;
 }
-
-#define C1541_NAME     "c1541"
-
-/* If this file looks like a zipcode, try to extract is using c1541. We have
-   to figure this out by reading the contents of the file */
-static char *try_uncompress_zipcode(const char *name, int write_mode)
-{
-    char *tmp_name = NULL;
-    char *argv[5];
-    int exit_status;
-
-    /* The 2nd char has to be '!'?  */
-    util_fname_split(name, NULL, &tmp_name);
-    if (tmp_name == NULL) {
-        return NULL;
-    }
-    if (strlen(tmp_name) < 3 || tmp_name[1] != '!') {
-        lib_free(tmp_name);
-        return NULL;
-    }
-    lib_free(tmp_name);
-
-
-    /* don't ask for permission. just do it, if it fails, it fails. This relies
-     * on zipcode.c doing the right thing, which I doubt */
-#if 0
-    /* Can we read this file?  */
-    fd = fopen(name, MODE_READ);
-    if (fd == NULL) {
-        return NULL;
-    }
-    /* Read first track to see if this is zipcode.  */
-    fseek(fd, 4, SEEK_SET);
-    for (count = 1; count < 21; count++) {
-        i = zipcode_read_sector(fd, 1, &sector, tmp);
-        if (i || sector < 0 || sector > 20 || (sectors & (1 << sector))) {
-            fclose(fd);
-            return NULL;
-        }
-        sectors |= 1 << sector;
-    }
-    fclose(fd);
-#endif
-    /* it is a zipcode. We cannot support write_mode */
-    if (write_mode) {
-        return "";
-    }
-
-    /* format image first */
-    tmp_name = archdep_tmpnam();
-
-    /* ok, now extract the zipcode */
-    argv[0] = lib_stralloc(C1541_NAME);
-    argv[1] = lib_stralloc("-zcreate");
-    argv[2] = lib_stralloc(tmp_name);
-    argv[3] = archdep_filename_parameter(name);
-    argv[4] = NULL;
-
-    exit_status = archdep_spawn(C1541_NAME, argv, NULL, NULL);
-
-    lib_free(argv[0]);
-    lib_free(argv[1]);
-    lib_free(argv[2]);
-    lib_free(argv[3]);
-
-    if (exit_status) {
-        ioutil_remove(tmp_name);
-        lib_free(tmp_name);
-        return NULL;
-    }
-    /* everything ok */
-    return tmp_name;
-}
-
-/* If the file looks like a lynx image, try to extract it using c1541. We have
-   to figure this out by reading the contents of the file */
-static char *try_uncompress_lynx(const char *name, int write_mode)
-{
-    char *tmp_name;
-    size_t i;
-    int count;
-    FILE *fd;
-    char tmp[256];
-    char *argv[20];
-    int exit_status;
-
-    /* can we read this file? */
-    fd = fopen(name, MODE_READ);
-    if (fd == NULL) {
-        return NULL;
-    }
-    /* is this lynx -image? */
-    i = fread(tmp, 1, 2, fd);
-    if (i != 2 || tmp[0] != 1 || tmp[1] != 8) {
-        fclose(fd);
-        return NULL;
-    }
-    count = 0;
-    while (1) {
-        i = fread(tmp, 1, 1, fd);
-        if (i != 1) {
-            fclose(fd);
-            return NULL;
-        }
-        if (tmp[0]) {
-            count = 0;
-        } else {
-            count++;
-        }
-        if (count == 3) {
-            break;
-        }
-    }
-    i = fread(tmp, 1, 1, fd);
-    if (i != 1 || tmp[0] != 13) {
-        fclose(fd);
-        return NULL;
-    }
-    count = 0;
-    while (1) {
-        i = fread(&tmp[count], 1, 1, fd);
-        if (i != 1 || count == 254) {
-            fclose(fd);
-            return NULL;
-        }
-        if (tmp[count++] == 13) {
-            break;
-        }
-    }
-    tmp[count] = 0;
-    if (!atoi(tmp)) {
-        fclose(fd);
-        return NULL;
-    }
-    /* XXX: this is not a full check, but perhaps enough? */
-
-    fclose(fd);
-
-    /* it is a lynx image. We cannot support write_mode */
-    if (write_mode) {
-        return "";
-    }
-
-    tmp_name = archdep_tmpnam();
-
-    /* now create the image */
-    argv[0] = lib_stralloc("c1541");
-    argv[1] = lib_stralloc("-format");
-    argv[2] = lib_stralloc("lynximage,00");
-    argv[3] = lib_stralloc("x64");
-    argv[4] = lib_stralloc(tmp_name);
-    argv[5] = lib_stralloc("-unlynx");
-    argv[6] = archdep_filename_parameter(name);
-    argv[7] = NULL;
-
-    exit_status = archdep_spawn("c1541", argv, NULL, NULL);
-
-    lib_free(argv[0]);
-    lib_free(argv[1]);
-    lib_free(argv[2]);
-    lib_free(argv[3]);
-    lib_free(argv[4]);
-    lib_free(argv[5]);
-    lib_free(argv[6]);
-
-    if (exit_status) {
-        ioutil_remove(tmp_name);
-        lib_free(tmp_name);
-        return NULL;
-    }
-    /* everything ok */
-    return tmp_name;
-}
-
-struct valid_archives_s {
-    const char *program;
-    const char *listopts;
-    const char *extractopts;
-    const char *extension;
-    const char *search;
-};
-typedef struct valid_archives_s valid_archives_t;
-
-static const valid_archives_t valid_archives[] = {
-    { "unzip",   "-l",   "-p",    ".zip",    "Name" },
-    { "lha",     "lv",   "pq",    ".lzh",    NULL },
-    { "lha",     "lv",   "pq",    ".lha",    NULL },
-    /* Hmmm.  Did non-gnu tar have a -O -option?  */
-    { "gtar",    "-tf",  "-xOf",  ".tar",    NULL },
-    { "tar",     "-tf",  "-xOf",  ".tar",    NULL },
-    { "gtar",    "-ztf", "-zxOf", ".tar.gz", NULL },
-    { "tar",     "-ztf", "-zxOf", ".tar.gz", NULL },
-    { "gtar",    "-ztf", "-zxOf", ".tgz",    NULL },
-    { "tar",     "-ztf", "-zxOf", ".tgz",    NULL },
-    /* this might be overkill, but adding this was sooo easy...  */
-    { "zoo",     "lf1q", "xpq",   ".zoo",    NULL },
-    { NULL, NULL, NULL, NULL, NULL }
-};
 
 /* Try to uncompress file `name' using the algorithms we know of.  If this is
    not possible, return `COMPR_NONE'.  Otherwise, uncompress the file into a
@@ -765,39 +365,12 @@ static enum compression_type try_uncompress(const char *name,
                                             char **tmp_name,
                                             int write_mode)
 {
-    int i;
-
-    for (i = 0; valid_archives[i].program; i++) {
-        if ((*tmp_name = try_uncompress_archive(name, write_mode,
-                                                valid_archives[i].program,
-                                                valid_archives[i].listopts,
-                                                valid_archives[i].extractopts,
-                                                valid_archives[i].extension,
-                                                valid_archives[i].search))
-            != NULL) {
-            return COMPR_ARCHIVE;
-        }
+	if ((*tmp_name = try_uncompress_with_zip(name)) != NULL) {
+        return COMPR_ZIP;
     }
 
-    /* need this order or .tar.gz is misunderstood */
     if ((*tmp_name = try_uncompress_with_gzip(name)) != NULL) {
         return COMPR_GZIP;
-    }
-
-    if ((*tmp_name = try_uncompress_with_bzip(name)) != NULL) {
-        return COMPR_BZIP;
-    }
-
-    if ((*tmp_name = try_uncompress_zipcode(name, write_mode)) != NULL) {
-        return COMPR_ZIPCODE;
-    }
-
-    if ((*tmp_name = try_uncompress_lynx(name, write_mode)) != NULL) {
-        return COMPR_LYNX;
-    }
-
-    if ((*tmp_name = try_uncompress_with_tzx(name)) != NULL) {
-        return COMPR_TZX;
     }
 
     return COMPR_NONE;
@@ -810,7 +383,6 @@ static enum compression_type try_uncompress(const char *name,
 /* Compress `src' into `dest' using gzip.  */
 static int compress_with_gzip(const char *src, const char *dest)
 {
-#ifdef HAVE_ZLIB
     FILE *fdsrc;
     gzFile fddest;
     size_t len;
@@ -840,69 +412,6 @@ static int compress_with_gzip(const char *src, const char *dest)
     ZDEBUG(("compress with zlib: OK."));
 
     return 0;
-#else
-    static char *argv[4];
-    int exit_status;
-    char *mdest;
-
-    /* `exec*()' does not want these to be constant...  */
-    argv[0] = lib_stralloc("gzip");
-    argv[1] = lib_stralloc("-c");
-    argv[2] = lib_stralloc(src);
-    argv[3] = NULL;
-
-    mdest = lib_stralloc(dest);
-
-    ZDEBUG(("compress_with_gzip: spawning gzip -c %s", src));
-    exit_status = archdep_spawn("gzip", argv, &mdest, NULL);
-
-    lib_free(mdest);
-
-    lib_free(argv[0]);
-    lib_free(argv[1]);
-    lib_free(argv[2]);
-
-    if (exit_status == 0) {
-        ZDEBUG(("compress_with_gzip: OK."));
-        return 0;
-    } else {
-        ZDEBUG(("compress_with_gzip: failed."));
-        return -1;
-    }
-#endif
-}
-
-/* Compress `src' into `dest' using bzip.  */
-static int compress_with_bzip(const char *src, const char *dest)
-{
-    char *argv[4];
-    int exit_status;
-    char *mdest;
-
-    /* `exec*()' does not want these to be constant...  */
-    argv[0] = lib_stralloc("bzip2");
-    argv[1] = lib_stralloc("-c");
-    argv[2] = lib_stralloc(src);
-    argv[3] = NULL;
-
-    mdest = lib_stralloc(dest);
-
-    ZDEBUG(("compress_with_bzip: spawning bzip -c %s", src));
-    exit_status = archdep_spawn("bzip2", argv, &mdest, NULL);
-
-    lib_free(mdest);
-
-    lib_free(argv[0]);
-    lib_free(argv[1]);
-    lib_free(argv[2]);
-
-    if (exit_status == 0) {
-        ZDEBUG(("compress_with_bzip: OK."));
-        return 0;
-    } else {
-        ZDEBUG(("compress_with_bzip: failed."));
-        return -1;
-    }
 }
 
 /* Compress `src' into `dest' using algorithm `type'.  */
@@ -913,31 +422,13 @@ static int zfile_compress(const char *src, const char *dest,
     int retval;
 
     /* This shouldn't happen */
-    if (type == COMPR_ARCHIVE) {
+    if (type == COMPR_ZIP) {
         log_error(zlog, "compress: trying to compress archive-file.");
         return -1;
     }
 
-    /* This shouldn't happen */
-    if (type == COMPR_ZIPCODE) {
-        log_error(zlog, "compress: trying to compress zipcode-file.");
-        return -1;
-    }
-
-    /* This shouldn't happen */
-    if (type == COMPR_LYNX) {
-        log_error(zlog, "compress: trying to compress lynx-file.");
-        return -1;
-    }
-
-    /* This shouldn't happen */
-    if (type == COMPR_TZX) {
-        log_error(zlog, "compress: trying to compress tzx-file.");
-        return -1;
-    }
-
     /* Check whether `compression_type' is a known one.  */
-    if (type != COMPR_GZIP && type != COMPR_BZIP) {
+    if (type != COMPR_GZIP) {
         log_error(zlog, "compress: unknown compression type");
         return -1;
     }
@@ -971,9 +462,6 @@ static int zfile_compress(const char *src, const char *dest,
     switch (type) {
         case COMPR_GZIP:
             retval = compress_with_gzip(src, dest);
-            break;
-        case COMPR_BZIP:
-            retval = compress_with_bzip(src, dest);
             break;
         default:
             retval = -1;

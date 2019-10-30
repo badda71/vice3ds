@@ -720,7 +720,7 @@
 /* #undef HAVE_WORKING_VFORK */
 
 /* Can we use the ZLIB compression library? */
-/* #undef HAVE_ZLIB */
+#define HAVE_ZLIB
 
 /* Enable support for Linux style joysticks. */
 /* #undef LINUX_JOYSTICK */

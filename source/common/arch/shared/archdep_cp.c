@@ -43,7 +43,7 @@ struct stat path_stat;
 int overwrite=1;
 static void *callback=NULL;
 
-static int mkpath(char* file_path, int complete) {
+int mkpath(char* file_path, int complete) {
 	char* p;
 
 	for (p=strchr(file_path+1, PATH_SEP_CHAR); p; p=strchr(p+1, PATH_SEP_CHAR)) {
