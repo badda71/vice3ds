@@ -205,6 +205,9 @@ void stop_profiling(ProfilingContext *pc) {
 int archdep_spawn(const char *name, char **argv, char **pstdout_redir, const char *stderr_redir)
 {
 #ifdef _3DS
+    if (pstdout_redir != NULL && *pstdout_redir == NULL) {
+		*pstdout_redir = archdep_tmpnam();
+    }
 	log_error(LOG_DEFAULT, "function archdep_spawn not supported");
 	return -1;
 #else
