@@ -793,7 +793,7 @@ ui_menu_action_t ui_dispatch_events(void)
 						}
 						if (sdl_menu_state && e.key.keysym.sym==sdl_ui_menukeys[MENU_ACTION_EMU]) {
 							events_to_emu=1;
-							uibottom_must_redraw |= UIB_REPAINT;
+							uibottom_must_redraw |= UIB_RECALC_MENU;
 							break;
 						}
 						retval = sdlkbd_press(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod, sdl_menu_state && !events_to_emu);
@@ -804,7 +804,7 @@ ui_menu_action_t ui_dispatch_events(void)
 						ui_display_kbd_status(&e);
 						if (events_to_emu==1 && e.key.keysym.sym==sdl_ui_menukeys[MENU_ACTION_EMU]) {
 							events_to_emu=0;
-							uibottom_must_redraw |= UIB_REPAINT;
+							uibottom_must_redraw |= UIB_RECALC_MENU;
 							break;
 						}
 						retval = sdlkbd_release(SDL2x_to_SDL1x_Keys(e.key.keysym.sym), e.key.keysym.mod, sdl_menu_state && !events_to_emu);
