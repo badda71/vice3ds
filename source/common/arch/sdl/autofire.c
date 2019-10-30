@@ -36,6 +36,7 @@
 #include "joy.h"
 #include "resources.h"
 #include "joystick.h"
+#include "ui.h"
 
 //The thread that will be used
 SDL_Thread *af_port1_thread = NULL;
@@ -71,7 +72,7 @@ static int autofire_thread( void *data ) {
 				e1.key.keysym.unicode = e1.key.keysym.sym =
 				e2.key.keysym.unicode = e2.key.keysym.sym = k & 0xff;
 		}
-		while(SDL_SemTryWait(af_stop[port]) && !sdl_menu_state) {
+		while(SDL_SemTryWait(af_stop[port]) && (!sdl_menu_state || events_to_emu)) {
 			SDL_PushEvent(&e1);
 			SDL_Delay(s);
 			SDL_PushEvent(&e2);
