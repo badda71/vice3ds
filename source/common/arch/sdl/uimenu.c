@@ -827,7 +827,7 @@ static void sdl_ui_readline_vkbd_erase(void)
     }
 }*/
 
-static int sdl_ui_readline_input(SDLKey *key, SDLMod *mod, Uint16 *c_uni)
+static int sdl_ui_readline_input(int *key, SDLMod *mod, Uint16 *c_uni)
 {
     SDL_Event e;
     int got_key = 0;
@@ -1295,7 +1295,7 @@ char* sdl_ui_readline(const char* previous, int pos_x, int pos_y)
     int screen_redraw = 0;
     size_t size = 0, max;
     char *new_string = NULL;
-    SDLKey key = SDLK_UNKNOWN;
+    int key = SDLK_UNKNOWN;
     SDLMod mod;
     Uint16 c_uni = 0;
     char c;
@@ -1362,19 +1362,23 @@ char* sdl_ui_readline(const char* previous, int pos_x, int pos_y)
 
         switch (key) {
             case VICE_SDLK_LEFT:
+			case 31:
                 if (i > 0) {
                     --i;
                 }
                 break;
             case VICE_SDLK_RIGHT:
+			case 29:
                 if (i < (int)size) {
                     ++i;
                 }
                 break;
             case VICE_SDLK_HOME:
+			case 30:
                 i = 0;
                 break;
             case VICE_SDLK_END:
+			case 17:
                 i = size;
                 break;
             case VICE_SDLK_BACKSPACE:
