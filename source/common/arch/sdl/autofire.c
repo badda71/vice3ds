@@ -40,111 +40,76 @@
 #include "ui.h"
 
 //The thread that will be used
-SDL_Thread *af_port1_thread = NULL;
-SDL_Thread *af_port2_thread = NULL;
-int af_key[2] = { 0 };
-Handle af_start[2] = { 0 };
-Handle af_stop[2] = { 0 };
-int af_active[2] = { 0 };
-int af_init = 0;
-int af_button_joy = 0;
-int af_button_ks1 = 0;
-int af_button_ks2 = 0;
+static SDL_Thread *af_thread = NULL;
+static Handle af_start = 0;
+static volatile int af_active = 0;
+static int af_init = 0;
 
 static int autofire_thread( void *data ) {
-	int port=*((int*)data);
-	SDL_Event e1,e2;
-	
+	SDL_Event e1[3];
+	SDL_Event e2[3];
+	int k;
+
 	//While the program is not over
 	while( 1 ) {
-		svcWaitSynchronization(af_start[port], U64_MAX);
-		svcClearEvent(af_start[port]);
+		svcWaitSynchronization(af_start, U64_MAX);
+		svcClearEvent(af_start);
 		int s=500/joy_auto_speed;
-		int k=af_key[port];
-		switch (k >> 8) {
-			case 1:
-				e1.type = SDL_JOYBUTTONDOWN;
-				e2.type = SDL_JOYBUTTONUP;
-				e1.jbutton.which = e2.jbutton.which = 0;
-				e1.jbutton.button = e2.jbutton.button = k & 0xff;
-				break;
-			default:
-				e1.type = SDL_KEYDOWN;
-				e2.type = SDL_KEYUP;
-				e1.key.keysym.unicode = e1.key.keysym.sym =
-				e2.key.keysym.unicode = e2.key.keysym.sym = k & 0xff;
-		}
-		while(svcWaitSynchronization(af_stop[port], 0) && (!sdl_menu_state || events_to_emu)) {
-			SDL_PushEvent(&e1);
+		// setup my events
+		e1[1].type = e1[2].type = SDL_KEYDOWN;
+		e2[1].type = e2[2].type = SDL_KEYUP;
+		resources_get_int( "KeySet1Fire", &k );
+		e1[1].key.keysym.unicode = e1[1].key.keysym.sym =
+		e2[1].key.keysym.unicode = e2[1].key.keysym.sym = k & 0xff;
+		resources_get_int( "KeySet2Fire", &k );
+		e1[2].key.keysym.unicode = e1[2].key.keysym.sym =
+		e2[2].key.keysym.unicode = e2[2].key.keysym.sym = k & 0xff;
+		
+		// post fire events
+		while (af_active) {
+			k=af_active;
+			for (int i=1; i<3; i++)
+				if (k & i) 
+					SDL_PushEvent(&e1[i]);
 			SDL_Delay(s);
-			SDL_PushEvent(&e2);
+			for (int i=1; i<3; i++)
+				if (k & i) 
+					SDL_PushEvent(&e2[i]);
 			SDL_Delay(s);
 		}
-		svcClearEvent(af_stop[port]);
+		svcClearEvent(af_start);
 	}
 	return 0;
 }
 
 static int autofire_init() {
-	// check fire buttons for joystick, keyset 1&2
-	af_button_joy = sdl_joy_fire;
-	resources_get_int( "KeySet1Fire", &af_button_ks1 );
-	resources_get_int( "KeySet2Fire", &af_button_ks2 );
-
-
 	// start autofire threads
-	svcCreateEvent(&af_start[0],0);
-	svcCreateEvent(&af_start[1],0);
-	svcCreateEvent(&af_stop[0],0);
-	svcCreateEvent(&af_stop[1],0);
-	int i1=0,i2=1;
-	if ((af_port1_thread = SDL_CreateThread(autofire_thread, &i1)) == NULL ) return -1;
-	if ((af_port2_thread = SDL_CreateThread(autofire_thread, &i2)) == NULL ) return -1;
+	svcCreateEvent(&af_start,0);
+	if ((af_thread = SDL_CreateThread(autofire_thread, NULL)) == NULL ) return -1;
 	af_init=1;
 	return 0;
 }
 
 void autofire_shutdown() {
 	if (af_init) {
-		if (af_port1_thread) SDL_KillThread (af_port1_thread);
-		if (af_port2_thread) SDL_KillThread (af_port2_thread);
-		if(af_start[0]) svcCloseHandle(af_start[0]);
-		if(af_start[1]) svcCloseHandle(af_start[1]);
-		if(af_stop[0]) svcCloseHandle(af_stop[0]);
-		if(af_stop[1]) svcCloseHandle(af_stop[1]);
+		if (af_thread) SDL_KillThread (af_thread);
+		if(af_start) svcCloseHandle(af_start);
 	}
 	af_init=0;
 }
 
-static int af_get_joydev_fire(int port) {
-	int dev=0;
-	resources_get_int( port==0?"JoyDevice1":"JoyDevice2" ,&dev);
-
-	switch(dev){
-		case 2: // Keyset 1
-			return af_button_ks1;
-		case 3: // Keyset 2
-			return af_button_ks2;
-		case 4:	// joystick
-			return (0x100 | af_button_joy);
-	}
-	return 0;
-}
-
-int start_autofire(int port) {
-	if (port<0 || port>1) return -1;
+int start_autofire(int keyset) {
+	if (keyset<1 || keyset>2) return -1;
 	// init if not alread done
 	if (!af_init && autofire_init()!=0) return -1;
 
-	if ((af_key[port]=af_get_joydev_fire(port))==0) return -1;
 	// clear stop semaphore
-	svcClearEvent(af_stop[port]);
-	svcSignalEvent(af_start[port]);
+	af_active |= keyset;
+	svcSignalEvent(af_start);
 	return 0;
 }
 
-void stop_autofire(int port) {
+void stop_autofire(int keyset) {
 	// clear start semaphore
-	svcClearEvent(af_start[port]);
-	svcSignalEvent(af_stop[port]);
+	af_active &= ~keyset;
 }

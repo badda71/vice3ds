@@ -1025,23 +1025,10 @@ char *get_key_help(int key, int inmenu, int trylen) {
 				resolvemapping=1;
 				if (r) return r;
 			}
-#ifdef HAVE_SDL_NUMJOYSTICKS
-			else if (i1 & 0x00060000) { //joymap
-				r=get_3ds_mapping_name(key);
-				sprintf(buf,"Joy%c %s",dev1==4?'1':(dev2==4?'2':' '),r+4);
-				return buf;
-			}
-#endif
 			r = get_3ds_mapping_name(key);
 			if (r) return r;
 		}
 
-		// check autofire
-		if (key == joykeys_autofire[0])
-			return "Joy1 AutoF";
-		if (key == joykeys_autofire[1])
-			return "Joy2 AutoF";
-	
 		// menu key
 		if (key == sdl_ui_menukeys[0])
 			return "Open Vice Menu";
@@ -1069,33 +1056,39 @@ char *get_key_help(int key, int inmenu, int trylen) {
 		// Joyport1 keys (f,u,d,l,r)
 		resources_get_int( "KeySet1Fire", &i1);
 		resources_get_int( "KeySet2Fire", &i2);
-		if ((dev1 == 2 && key == i1) || (dev1 == 3 && key == i2) || (dev1==4 && key==200))
+		if ((dev1 == 2 && key == i1) || (dev1 == 3 && key == i2))
 			return "Joy1 Fire";
-		if ((dev2 == 2 && key == i1) || (dev2 == 3 && key == i2) || (dev2==4 && key==200))
+		if ((dev2 == 2 && key == i1) || (dev2 == 3 && key == i2))
 			return "Joy2 Fire";
+		resources_get_int( "KeySet1AFire", &i1);
+		resources_get_int( "KeySet2AFire", &i2);
+		if ((dev1 == 2 && key == i1) || (dev1 == 3 && key == i2))
+			return "Joy1 AutoF";
+		if ((dev2 == 2 && key == i1) || (dev2 == 3 && key == i2))
+			return "Joy2 AutoF";
 		resources_get_int( "KeySet1North", &i1);
 		resources_get_int( "KeySet2North", &i2);
-		if ((dev1 == 2 && key == i1) || (dev1 == 3 && key == i2) || (dev1==4 && key==218))
+		if ((dev1 == 2 && key == i1) || (dev1 == 3 && key == i2))
 			return "Joy1 Up";
-		if ((dev2 == 2 && key == i1) || (dev2 == 3 && key == i2) || (dev2==4 && key==218))
+		if ((dev2 == 2 && key == i1) || (dev2 == 3 && key == i2))
 			return "Joy2 Up";
 		resources_get_int( "KeySet1South", &i1);
 		resources_get_int( "KeySet2South", &i2);
-		if ((dev1 == 2 && key == i1) || (dev1 == 3 && key == i2) || (dev1==4 && key==219))
+		if ((dev1 == 2 && key == i1) || (dev1 == 3 && key == i2))
 			return "Joy1 Down";
-		if ((dev2 == 2 && key == i1) || (dev2 == 3 && key == i2) || (dev2==4 && key==219))
+		if ((dev2 == 2 && key == i1) || (dev2 == 3 && key == i2))
 			return "Joy2 Down";
 		resources_get_int( "KeySet1West", &i1);
 		resources_get_int( "KeySet2West", &i2);
-		if ((dev1 == 2 && key == i1) || (dev1 == 3 && key == i2) || (dev1==4 && key==220))
+		if ((dev1 == 2 && key == i1) || (dev1 == 3 && key == i2))
 			return "Joy1 Left";
-		if ((dev2 == 2 && key == i1) || (dev2 == 3 && key == i2) || (dev2==4 && key==220))
+		if ((dev2 == 2 && key == i1) || (dev2 == 3 && key == i2))
 			return "Joy2 Left";
 		resources_get_int( "KeySet1East", &i1);
 		resources_get_int( "KeySet2East", &i2);
-		if ((dev1 == 2 && key == i1) || (dev1 == 3 && key == i2) || (dev1==4 && key==221))
+		if ((dev1 == 2 && key == i1) || (dev1 == 3 && key == i2))
 			return "Joy1 Right";
-		if ((dev2 == 2 && key == i1) || (dev2 == 3 && key == i2) || (dev2==4 && key==221))
+		if ((dev2 == 2 && key == i1) || (dev2 == 3 && key == i2))
 			return "Joy2 Right";
 	} else {
 		resources_get_int( "MenuKeyMap", &i1); if (key == i1) return "Map Hotkey";

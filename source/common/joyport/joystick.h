@@ -59,7 +59,6 @@ extern uint8_t get_joystick_value(int index);
 typedef void (*joystick_machine_func_t)(void);
 extern void joystick_register_machine(joystick_machine_func_t func);
 
-extern int joykeys_autofire[];
 extern int joy_auto_speed;
 
 /*! the number of joysticks that can be attached to the emu */
@@ -78,7 +77,7 @@ extern int joystick_port_map[JOYSTICK_NUM];
 #define COMMON_JOYKEYS
 
 #define JOYSTICK_KEYSET_NUM 3
-#define JOYSTICK_KEYSET_NUM_KEYS 9
+#define JOYSTICK_KEYSET_NUM_KEYS 10
 #define JOYSTICK_KEYSET_IDX_NUMBLOCK 0
 #define JOYSTICK_KEYSET_IDX_A 1
 #define JOYSTICK_KEYSET_IDX_B 2
@@ -96,7 +95,8 @@ typedef enum {
     JOYSTICK_KEYSET_E,
     JOYSTICK_KEYSET_NW,
     JOYSTICK_KEYSET_N,
-    JOYSTICK_KEYSET_NE
+    JOYSTICK_KEYSET_NE,
+    JOYSTICK_KEYSET_AFIRE
 } joystick_direction_t;
 #endif
 

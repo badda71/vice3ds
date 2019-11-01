@@ -53,7 +53,6 @@
 #include "util.h"
 //#include "vkbd.h"
 #include "uibottom.h"
-#include "autofire.h"
 #include "joystick.h"
 #include "vice3ds.h"
 
@@ -383,10 +382,6 @@ ui_menu_action_t sdlkbd_press(SDLKey key, SDLMod mod, int sdl_menu_state)
         return retval;
     }
 
-	// autofire on
-	if (key == joykeys_autofire[0]) start_autofire(0);
-	if (key == joykeys_autofire[1]) start_autofire(1);
-
     if ((int)(key) == sdl_ui_menukeys[0]) {
         sdl_ui_activate();
         return retval;
@@ -408,11 +403,6 @@ ui_menu_action_t sdlkbd_release(SDLKey key, SDLMod mod, int sdl_menu_state)
 #ifdef SDL_DEBUG
     log_debug("%s: %i (%s),%i\n", __func__, key, SDL_GetKeyName(key), mod);
 #endif
-
-	// autofire off
-	if (key == joykeys_autofire[0] && !sdl_menu_state) stop_autofire(0);
-	if (key == joykeys_autofire[1] && !sdl_menu_state) stop_autofire(1);
-
 
     keyboard_key_released((unsigned long)key);
     return retval;

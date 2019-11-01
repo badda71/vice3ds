@@ -37,6 +37,7 @@
 #include <string.h>
 
 #include "archdep.h"
+#include "autofire.h"
 #include "alarm.h"
 #include "cmdline.h"
 #include "keyboard.h"
@@ -85,7 +86,6 @@
 #define JOYPAD_NW   (JOYPAD_N | JOYPAD_W)
 #define JOYPAD_NE   (JOYPAD_N | JOYPAD_E)
 
-int joykeys_autofire[] = { 0 , 0 };
 int joy_auto_speed = 10;
 
 static int joyport_joystick[5] = { 0, 0, 0, 0, 0 };
@@ -302,7 +302,8 @@ static int joypad_bits[JOYSTICK_KEYSET_NUM_KEYS] = {
     JOYPAD_E,
     JOYPAD_NW,
     JOYPAD_N,
-    JOYPAD_NE
+    JOYPAD_NE,
+	0 // autofire
 };
 
 static int joypad_status[JOYSTICK_KEYSET_NUM][JOYSTICK_KEYSET_NUM_KEYS];
@@ -336,17 +337,6 @@ static int set_joykeys_enable(int val, void *param)
     return 0;
 }
 
-static int set_joykeys_autofire1(int val, void *param)
-{
-    joykeys_autofire[0] = val;
-    return 0;
-}
-
-static int set_joykeys_autofire2(int val, void *param)
-{
-    joykeys_autofire[1] = val;
-    return 0;
-}
 static int set_joy_auto_speed(int val, void *param)
 {
     if ((val < 2) || (val > 100)) {
@@ -387,7 +377,9 @@ static const resource_int_t joykeys_resources_int[] = {
       &joykeys[JOYSTICK_KEYSET_IDX_A][JOYSTICK_KEYSET_W], set_keyset1, (void *)JOYSTICK_KEYSET_W },
     { "KeySet1Fire", 200, RES_EVENT_NO, NULL, // 3ds A button
       &joykeys[JOYSTICK_KEYSET_IDX_A][JOYSTICK_KEYSET_FIRE], set_keyset1, (void *)JOYSTICK_KEYSET_FIRE },
-    { "KeySet2NorthWest", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
+    { "KeySet1AFire", 205, RES_EVENT_NO, NULL, // 3ds A button
+      &joykeys[JOYSTICK_KEYSET_IDX_A][JOYSTICK_KEYSET_AFIRE], set_keyset1, (void *)JOYSTICK_KEYSET_AFIRE },
+	{ "KeySet2NorthWest", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
       &joykeys[JOYSTICK_KEYSET_IDX_B][JOYSTICK_KEYSET_NW], set_keyset2, (void *)JOYSTICK_KEYSET_NW },
     { "KeySet2North", 210, RES_EVENT_NO, NULL,	// 3ds dpad up
       &joykeys[JOYSTICK_KEYSET_IDX_B][JOYSTICK_KEYSET_N], set_keyset2, (void *)JOYSTICK_KEYSET_N },
@@ -405,10 +397,8 @@ static const resource_int_t joykeys_resources_int[] = {
       &joykeys[JOYSTICK_KEYSET_IDX_B][JOYSTICK_KEYSET_W], set_keyset2, (void *)JOYSTICK_KEYSET_W },
     { "KeySet2Fire", 201, RES_EVENT_NO, NULL,	// 3ds B button
       &joykeys[JOYSTICK_KEYSET_IDX_B][JOYSTICK_KEYSET_FIRE], set_keyset2, (void *)JOYSTICK_KEYSET_FIRE },
-	{ "JoyDev1Auto", 205, RES_EVENT_NO, NULL,	// 3ds R button
-      &joykeys_autofire[0], set_joykeys_autofire1, NULL },
-    { "JoyDev2Auto", 207, RES_EVENT_NO, NULL,	// 3ds ZR button
-      &joykeys_autofire[1], set_joykeys_autofire2, NULL },
+    { "KeySet2AFire", 207, RES_EVENT_NO, NULL, // 3ds A button
+      &joykeys[JOYSTICK_KEYSET_IDX_B][JOYSTICK_KEYSET_AFIRE], set_keyset2, (void *)JOYSTICK_KEYSET_AFIRE },
 	{ "JoyAutoSpeed", 10, RES_EVENT_NO, (resource_value_t)10,
       &joy_auto_speed, set_joy_auto_speed, NULL },
 	{ "KeySetEnable", 1, RES_EVENT_NO, NULL,
@@ -451,7 +441,7 @@ static void DBGSTATUS(int keysetnum, int value, int joyport, int key, int flg)
 /* called on key-down event */
 int joystick_check_set(signed long key, int keysetnum, unsigned int joyport)
 {
-    int column, value;
+	int column, value;
 
     /* if joykeys are disabled then ignore key sets */
     if (!joykeys_enable) {
@@ -462,7 +452,13 @@ int joystick_check_set(signed long key, int keysetnum, unsigned int joyport)
         if (key == joykeys[keysetnum][column]) {
             DBG(("joystick_check_set:"));
 
-            joypad_status[keysetnum][column] = 1;
+            // autofire
+			if (column == JOYSTICK_KEYSET_AFIRE) {
+				start_autofire(keysetnum);
+				return 0;
+			}
+			
+			joypad_status[keysetnum][column] = 1;
             value = getjoyvalue(joypad_status[keysetnum]);
 
             if (!joystick_opposite_enable) {
@@ -508,6 +504,13 @@ int joystick_check_clr(signed long key, int keysetnum, unsigned int joyport)
 
     for (column = 0; column < JOYSTICK_KEYSET_NUM_KEYS; column++) {
         if (key == joykeys[keysetnum][column]) {
+
+            // autofire
+			if (column == JOYSTICK_KEYSET_AFIRE) {
+				stop_autofire(keysetnum);
+				return 0;
+			}
+
             joypad_status[keysetnum][column] = 0;
             value = getjoyvalue(joypad_status[keysetnum]);
 

@@ -1177,9 +1177,6 @@ void sdljoy_swap_ports(void)
             }
         }
     }
-	i=joykeys_autofire[0];
-	joykeys_autofire[0]=joykeys_autofire[1];
-	joykeys_autofire[1]=i;
 	// update sbuttons just in case this was triggered from a button there
 	uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
 }
@@ -1215,9 +1212,6 @@ void sdljoy_swap_ports(void)
     resources_set_int("JoyDevice2", i);
     _sdljoy_swap_ports ^= 1;
 
-	i=joykeys_autofire[0];
-	joykeys_autofire[0]=joykeys_autofire[1];
-	joykeys_autofire[1]=i;
 	// update sbuttons just in case this was triggered from a button there
 	uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
 }

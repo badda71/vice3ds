@@ -62,10 +62,6 @@ UI_MENU_DEFINE_RADIO(JoyDevice5)
           MENU_ENTRY_RESOURCE_RADIO,                                     \
           radio_JoyDevice##port##_callback,                              \
           (ui_callback_data_t)JOYDEV_KEYSET2 },                          \
-        { "Joystick",                                                    \
-          MENU_ENTRY_RESOURCE_RADIO,                                     \
-          radio_JoyDevice##port##_callback,                              \
-          (ui_callback_data_t)JOYDEV_JOYSTICK },                         \
         SDL_MENU_LIST_END                                                \
     };
 
@@ -138,6 +134,10 @@ static const ui_menu_entry_t define_keyset_menu[] = {
       MENU_ENTRY_DIALOG,
       custom_keyset_callback,
       (ui_callback_data_t)"KeySet1Fire" },
+    { "Keyset 1 Autofire",
+      MENU_ENTRY_DIALOG,
+      custom_keyset_callback,
+      (ui_callback_data_t)"KeySet1AFire" },
     SDL_MENU_ITEM_SEPARATOR,
     { "Keyset 2 Up",
       MENU_ENTRY_DIALOG,
@@ -159,6 +159,10 @@ static const ui_menu_entry_t define_keyset_menu[] = {
       MENU_ENTRY_DIALOG,
       custom_keyset_callback,
       (ui_callback_data_t)"KeySet2Fire" },
+    { "Keyset 2 Autofire",
+      MENU_ENTRY_DIALOG,
+      custom_keyset_callback,
+      (ui_callback_data_t)"KeySet2AFire" },
     SDL_MENU_LIST_END
 };
 
@@ -426,14 +430,6 @@ const ui_menu_entry_t joystick_c64_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_radio_callback,
       (ui_callback_data_t)joystick_port4_device_menu },*/
-    { "Joydev 1 autofire",
-      MENU_ENTRY_DIALOG,
-      custom_keyset_callback,
-      (ui_callback_data_t)"JoyDev1Auto" },
-    { "Joydev 2 autofire",
-      MENU_ENTRY_DIALOG,
-      custom_keyset_callback,
-      (ui_callback_data_t)"JoyDev2Auto" },
     { "Joystick Autofire speed",
       MENU_ENTRY_DIALOG,
       custom_joy_auto_speed_callback,
