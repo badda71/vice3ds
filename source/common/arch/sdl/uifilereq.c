@@ -424,6 +424,7 @@ char* sdl_ui_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mod
 
     // clear screen
     sdl_ui_file_selector_redraw(NULL, title, current_dir, offset, 0, 0, mode, 0, 0);
+    sdl_ui_refresh();
 
     directory = ioutil_opendir(current_dir, SDL_FILESELECTOR_DIRMODE);
     if (directory == NULL) {
