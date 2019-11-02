@@ -67,11 +67,24 @@ extern const char *sdl_menu_text_exit_ui;
         return sdl_ui_menu_toggle_helper(activated, #resource);      \
     }
 
+#define UI_MENU_DEFINE_TOGGLE_TRAP(resource)                              \
+    static UI_MENU_CALLBACK(toggle_##resource##_callback)            \
+    {                                                                \
+        return sdl_ui_menu_toggle_helper_trap(activated, #resource);      \
+    }
+
 #define UI_MENU_DEFINE_RADIO(resource)                                \
     static UI_MENU_CALLBACK(radio_##resource##_callback)              \
     {                                                                 \
         return sdl_ui_menu_radio_helper(activated, param, #resource); \
     }
+
+#define UI_MENU_DEFINE_RADIO_TRAP(resource)                                \
+    static UI_MENU_CALLBACK(radio_##resource##_callback)              \
+    {                                                                 \
+        return sdl_ui_menu_radio_helper_trap(activated, param, #resource); \
+    }
+
 
 #define UI_MENU_DEFINE_STRING(resource)                                \
     static UI_MENU_CALLBACK(string_##resource##_callback)              \
@@ -103,7 +116,9 @@ extern UI_MENU_CALLBACK(submenu_radio_callback);
 extern UI_MENU_CALLBACK(seperator_callback);
 
 extern const char *sdl_ui_menu_toggle_helper(int activated, const char *resource_name);
+extern const char *sdl_ui_menu_toggle_helper_trap(int activated, const char *resource_name);
 extern const char *sdl_ui_menu_radio_helper(int activated, ui_callback_data_t param, const char *resource_name);
+extern const char *sdl_ui_menu_radio_helper_trap(int activated, ui_callback_data_t param, const char *resource_name);
 extern const char *sdl_ui_menu_string_helper(int activated, ui_callback_data_t param, const char *resource_name);
 extern const char *sdl_ui_menu_int_helper(int activated, ui_callback_data_t param, const char *resource_name);
 extern const char *sdl_ui_menu_file_string_helper(int activated, ui_callback_data_t param, const char *resource_name);

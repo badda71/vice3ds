@@ -47,6 +47,7 @@
 #include "vsyncapi.h"
 #include "uibottom.h"
 #include "uimsgbox.h"
+#include "interrupt.h"
 
 /* ------------------------------------------------------------------ */
 /* Common strings */
@@ -176,6 +177,33 @@ UI_MENU_CALLBACK(quit_callback)
 /* ------------------------------------------------------------------ */
 /* Menu helpers */
 
+static void toggle_helper_trap(uint16_t addr, void *data)
+{
+    int i;
+	resources_toggle((char *)data, &i);
+}
+
+const char *sdl_ui_menu_toggle_helper_trap(int activated, const char *resource_name)
+{
+    int value, r;
+
+    if (activated) {
+        interrupt_maincpu_trigger_trap(toggle_helper_trap, (char *)resource_name);
+		SDL_Delay(100);
+        r = resources_get_int(resource_name, &value);
+		// update keypresses on bottom screen in case we have anything mapped
+		uibottom_must_redraw |= UIB_RECALC_KEYPRESS;
+	} else {
+        r = resources_get_int(resource_name, &value);
+    }
+
+    if (r < 0) {
+        return sdl_menu_text_unknown;
+    } else {
+        return value ? sdl_menu_text_tick : NULL;
+    }
+}
+
 const char *sdl_ui_menu_toggle_helper(int activated, const char *resource_name)
 {
     int value, r;
@@ -196,6 +224,50 @@ const char *sdl_ui_menu_toggle_helper(int activated, const char *resource_name)
     } else {
         return value ? sdl_menu_text_tick : NULL;
     }
+}
+
+typedef struct {
+	ui_callback_data_t param;
+	const char *resource_name;
+} radio_helper;
+
+static void radio_helper_trap(uint16_t addr, void *data)
+{
+	radio_helper *r=(radio_helper*)data;
+	if (resources_query_type(r->resource_name) == RES_INTEGER) {
+		resources_set_int(r->resource_name, vice_ptr_to_int(r->param));
+	} else {
+		resources_set_string(r->resource_name, (char *)r->param);
+	}
+	free(r);
+}
+
+const char *sdl_ui_menu_radio_helper_trap(int activated, ui_callback_data_t param, const char *resource_name)
+{
+    if (activated) {
+		radio_helper *r=malloc(sizeof(radio_helper));
+		r->param=param;
+		r->resource_name=resource_name;
+        interrupt_maincpu_trigger_trap(radio_helper_trap, r);
+		SDL_Delay(100);
+		// update keypresses on bottom screen in case we have anything mapped
+		uibottom_must_redraw |= UIB_RECALC_KEYPRESS;
+    } else {
+        int v;
+        const char *w;
+        if (resources_query_type(resource_name) == RES_INTEGER) {
+            resources_get_int(resource_name, &v);
+            if (v == vice_ptr_to_int(param)) {
+                return sdl_menu_text_tick;
+            }
+        } else {
+            resources_get_string(resource_name, &w);
+            if (!strcmp(w, (char *)param)) {
+                return sdl_menu_text_tick;
+            }
+        }
+    }
+    return NULL;
 }
 
 const char *sdl_ui_menu_radio_helper(int activated, ui_callback_data_t param, const char *resource_name)
