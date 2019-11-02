@@ -80,5 +80,6 @@ extern volatile enum bottom_action uibottom_must_redraw;
 extern int help_on;
 extern int grab_sbuttons;
 extern SDL_Event lastevent;
+extern int menu_invisible;
 
 #endif

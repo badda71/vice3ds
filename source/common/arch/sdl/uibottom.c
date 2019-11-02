@@ -301,6 +301,7 @@ int bottom_lcd_on=1;
 int help_on=0;
 int grab_sbuttons=0;
 SDL_Event lastevent;
+int menu_invisible=0;
 
 // internal variables
 #define ICON_W 40
@@ -646,7 +647,7 @@ static void uibottom_repaint(void *param, int topupdated) {
 		}
 	}
 	// menu
-	if (sdl_menu_state) {
+	if (sdl_menu_state && !menu_invisible) {
 		drawImage(&menu_spr, (menu_anim*-305)/100, (menu_anim*-225)/100, 0, 0);
 		drawImage(&menubut_spr, ((menu_anim*-305)/100)+305,((menu_anim*-225)/100)+225,0,0);
 	} else {

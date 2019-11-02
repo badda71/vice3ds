@@ -772,6 +772,7 @@ static int menu_thread_func( void *data ) {
 			sprintf(&msg[0], "VICE %s - main menu", machine_name);
 			sdl_ui_menu_display(main_menu, msg, 1);
 		} else {
+			menu_invisible=1;
 			sdl_ui_menu_item_activate(menu_thread_item);
 		}
 		toggle_menu(0,NULL);
@@ -1461,6 +1462,7 @@ ui_menu_entry_t *sdl_ui_get_main_menu(void)
 
 void sdl_ui_refresh(void)
 {
+    menu_invisible = 0;
     uibottom_must_redraw |= UIB_RECALC_MENU;
 }
 
