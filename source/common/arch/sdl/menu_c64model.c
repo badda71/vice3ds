@@ -41,9 +41,15 @@
 #include "vicii.h"
 #include "uibottom.h"
 #include "videoarch.h"
+#include "interrupt.h"
 
 /* ------------------------------------------------------------------------- */
 /* common */
+
+static void c64model_set_trap(uint16_t addr, void *data)
+{
+	c64model_set(vice_ptr_to_int(data));
+}
 
 static UI_MENU_CALLBACK(custom_C64Model_callback)
 {
@@ -52,7 +58,8 @@ static UI_MENU_CALLBACK(custom_C64Model_callback)
     selected = vice_ptr_to_int(param);
 
     if (activated) {
-        c64model_set(selected);
+        interrupt_maincpu_trigger_trap(c64model_set_trap, param);
+		SDL_Delay(100);
     } else {
         model = c64model_get();
 
