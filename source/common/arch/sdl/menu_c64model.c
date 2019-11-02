@@ -420,12 +420,18 @@ static void vicmodel_set(int model)
     resources_set_int("MachineVideoStandard", vicmodels[model].video);
 }
 
+static void x64_ui_vicii_model_trap(uint16_t addr, void *data)
+{
+	vicmodel_set(vice_ptr_to_int(data));
+}
+
 static const char *x64_ui_vicii_model(int activated, ui_callback_data_t param)
 {
     int val = vice_ptr_to_int(param);
 
     if (activated) {
-        vicmodel_set(val);
+        interrupt_maincpu_trigger_trap(x64_ui_vicii_model_trap, param);
+		SDL_Delay(100);
     } else {
         int v = vicmodel_get();
 
