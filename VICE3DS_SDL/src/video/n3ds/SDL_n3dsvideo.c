@@ -107,7 +107,6 @@ void drawTexture( int x, int y, int width, int height, float left, float right, 
 
 // video thread variables and functions
 volatile bool runThread = false;
-Handle privateSem1;
 Handle repaintRequired;
 Thread privateVideoThreadHandle = NULL;
 static void videoThread(void* data);
@@ -133,6 +132,60 @@ static int N3DS_FlipHWSurface (_THIS, SDL_Surface *surface);
 
 int N3DS_ToggleFullScreen(_THIS, int on);
 
+
+// thread safe queue
+static Handle tsq_sem;
+static void* tsq_queue[256];
+static int tsq_head=0;
+static int tsq_tail=0;
+static int tsq_isinit=0;
+
+static void tsq_init(void) {
+	svcCreateSemaphore(&tsq_sem, 1, 255);
+	tsq_isinit=1;
+}
+
+static void *tsq_get() {
+	s32 i;
+	if (!tsq_isinit) tsq_init();
+	void *r = NULL;
+	svcWaitSynchronization(tsq_sem, U64_MAX);
+	if (tsq_tail!=tsq_head) {
+		r=tsq_queue[tsq_tail++];
+		tsq_tail%=256;
+	}
+	svcReleaseSemaphore(&i, tsq_sem, 1);
+	return r;
+}
+
+static void tsq_put(void *p) {
+	s32 i;
+	if (!tsq_isinit) tsq_init();
+	svcWaitSynchronization(tsq_sem, U64_MAX);
+	tsq_queue[tsq_head++]=p;
+	tsq_head%=256;
+	svcReleaseSemaphore(&i, tsq_sem, 1);
+}
+
+typedef struct {
+	C3D_Tex *tex;
+	u8 *gpusrc;
+	unsigned w;
+	unsigned h;
+	u32 flags;
+	int freesrc;
+} SDL_TexTransferRequest;
+
+void SDL_QueueTextureTransfer(C3D_Tex *tex, u8 *gpusrc,	unsigned w,	unsigned h,	u32 flags, int freesrc) {
+	SDL_TexTransferRequest *t=malloc(sizeof(SDL_TexTransferRequest));
+	t->tex=tex;
+	t->gpusrc=gpusrc;
+	t->w=w;
+	t->h=h;
+	t->flags=flags;
+	t->freesrc=freesrc;
+	tsq_put(t);
+}
 
 //Copied from sf2dlib that grabbed it from: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
 unsigned int next_pow2(unsigned int v)
@@ -468,7 +521,6 @@ int hh= next_pow2(height);
 //	C3D_TexBind(0, &spritesheet_tex);
 	
 	runThread = true;
-	svcCreateSemaphore(&privateSem1, 1, 255);
 	svcCreateEvent(&repaintRequired,0);
 
 // ctrulib sys threads uses 0x18, so we use a lower priority, but higher than any other SDL thread
@@ -511,39 +563,45 @@ SDL_VideoDevice *vdev;
 struct SDL_PrivateVideoData *vdev_hidden;
 
 void drawMainSpritesheetAt(int x, int y, int w, int h) {
-	s32 i;
-	svcWaitSynchronization(privateSem1, U64_MAX);
 	C3D_TexBind(0, &spritesheet_tex);
 	drawTexture(x, y, w, h, vdev->hidden->l1, vdev->hidden->r1, vdev->hidden->t1, vdev->hidden->b1);  
-	svcReleaseSemaphore(&i, privateSem1, 1);
 }
 
 static void videoThread(void* data)
 {
     vdev = (SDL_VideoDevice *) data;
 	vdev_hidden=vdev->hidden;
+	int topupdate;
 
 	while(runThread) {
 		if(!app_pause && !app_exiting) {
-			if (svcWaitSynchronization(repaintRequired, 0)) {
-				if (C3D_FrameBegin(C3D_FRAME_NONBLOCK)){
-					if (addDrawCallback) addDrawCallback(addDrawParam,0);
-					C3D_FrameEnd(0);
+			topupdate=svcWaitSynchronization(repaintRequired, 0)?0:1;
+
+			if (C3D_FrameBegin(C3D_FRAME_NONBLOCK)){
+//			if (C3D_FrameBegin(C3D_FRAME_SYNCDRAW)){
+
+				// transfer all queued textures
+				SDL_TexTransferRequest *r;
+				while ((r=tsq_get())!=NULL) {
+					// Convert image to 3DS tiled texture format
+					GSPGPU_FlushDataCache(r->gpusrc, r->w*r->h*4);
+					C3D_SyncDisplayTransfer ((u32*)r->gpusrc, GX_BUFFER_DIM(r->w,r->h), (u32*)(r->tex->data), GX_BUFFER_DIM(r->w,r->h), r->flags);
+					GSPGPU_FlushDataCache(r->tex->data, r->w*r->h*4);
+					if (r->freesrc) linearFree(r->gpusrc);
+					free(r);
 				}
-			} else {
-				svcClearEvent(repaintRequired);
-				if (C3D_FrameBegin(C3D_FRAME_NONBLOCK)){
-//				if (C3D_FrameBegin(C3D_FRAME_SYNCDRAW)){
-					// Update the uniforms
+				
+				if (topupdate) {
+					svcClearEvent(repaintRequired);
 					C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, &projection2);
 					C3D_RenderTargetClear(VideoSurface1, C3D_CLEAR_ALL, RenderClearColor, 0);
 					C3D_FrameDrawOn(VideoSurface1);
-					drawMainSpritesheetAt((400-vdev->hidden->w1*vdev->hidden->scalex)/2,(240-vdev->hidden->h1*vdev->hidden->scaley)/2, vdev->hidden->w1*vdev->hidden->scalex, vdev->hidden->h1*vdev->hidden->scaley); 
 
-					if (addDrawCallback) addDrawCallback(addDrawParam,1);
-				
-					C3D_FrameEnd(0);
+					drawMainSpritesheetAt((400-vdev->hidden->w1*vdev->hidden->scalex)/2,(240-vdev->hidden->h1*vdev->hidden->scaley)/2, vdev->hidden->w1*vdev->hidden->scalex, vdev->hidden->h1*vdev->hidden->scaley); 
 				}
+				
+				if (addDrawCallback) addDrawCallback(addDrawParam, topupdate);
+				C3D_FrameEnd(0);
 			}
 		}
 		gspWaitForVBlank();
@@ -554,20 +612,18 @@ static void videoThread(void* data)
 static void drawBuffers(_THIS)
 {
 	if(this->hidden->buffer) {
-		s32 i;
-		if(app_pause || app_exiting) return; // Blocking video output if the application is closing 
-	
-		// next part needs to be synchronized with the videoThread
-		// because it is not possible to write a texture and draw it at the same time
-		svcWaitSynchronization(privateSem1, U64_MAX);
+		vdev_hidden = this->hidden;
 
-			// Convert image to 3DS tiled texture format
-			GSPGPU_FlushDataCache(this->hidden->buffer, this->hidden->w*this->hidden->h*4);
-			C3D_SyncDisplayTransfer ((u32*)this->hidden->buffer, GX_BUFFER_DIM(this->hidden->w,this->hidden->h), (u32*)(spritesheet_tex.data), GX_BUFFER_DIM(this->hidden->w,this->hidden->h), textureTranferFlags[this->hidden->mode]);
-			GSPGPU_FlushDataCache(spritesheet_tex.data, this->hidden->w*this->hidden->h*4);
-
-			svcSignalEvent(repaintRequired);
-		svcReleaseSemaphore(&i, privateSem1, 1);
+		// queue the texture transfer
+		SDL_QueueTextureTransfer(
+			&spritesheet_tex,
+			this->hidden->buffer,
+			this->hidden->w,
+			this->hidden->h,
+			textureTranferFlags[vdev_hidden->mode],
+			0
+		);
+		svcSignalEvent(repaintRequired);
 	}
 }
 
