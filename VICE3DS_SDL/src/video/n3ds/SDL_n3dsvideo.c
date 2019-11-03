@@ -671,7 +671,8 @@ void N3DS_VideoQuit(_THIS)
 		free(this->hidden->palettedbuffer);
 		this->hidden->palettedbuffer = NULL;
 	}
-	this->hidden->currentVideoSurface->pixels = NULL; // set to buffer or to palettedbuffer, so now pointing to not allocated memory
+	if (this->hidden->currentVideoSurface) 
+		this->hidden->currentVideoSurface->pixels = NULL; // set to buffer or to palettedbuffer, so now pointing to not allocated memory
 	
 	sceneExit();
 	C3D_Fini();

@@ -50,21 +50,5 @@ int archdep_path_is_relative(const char *path)
         return 1;   /* yup, */
     }
 
-#if defined(AMIGA_SUPPORT)
-    return strchr(path, ':') == NULL;
-#elif defined(UNIX_COMPILE) || defined(BEOS_COMPILE)
-    return *path != '/';
-#elif defined(WIN32_COMPILE) || defined(OS2_COMPILE)
-    if (*path == '\\' || *path == '/') {
-        return 0;
-    }
-    if (isalpha(path[0]) && path[1] == ':' &&
-            (path[2] == '\\' || path[2] == '/')) {
-        return 0;
-    }
-    return 1;
-#else
-    log_error(LOG_ERR, "system not supported.");
-    archdep_vice_exit(1);
-#endif
+    return (*path != '/' && strchr(path,':')==NULL);
 }
