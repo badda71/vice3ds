@@ -136,37 +136,35 @@ int N3DS_ToggleFullScreen(_THIS, int on);
 
 
 // thread safe queue
-static Handle tsq_sem;
+static Handle tsq_mutex;
 static void* tsq_queue[256];
 static int tsq_head=0;
 static int tsq_tail=0;
 static int tsq_isinit=0;
 
 static void tsq_init(void) {
-	svcCreateSemaphore(&tsq_sem, 1, 255);
+	svcCreateMutex(&tsq_mutex, false);
 	tsq_isinit=1;
 }
 
 static void *tsq_get() {
-	s32 i;
 	if (!tsq_isinit) tsq_init();
 	void *r = NULL;
-	svcWaitSynchronization(tsq_sem, U64_MAX);
+	svcWaitSynchronization(tsq_mutex, U64_MAX);
 	if (tsq_tail!=tsq_head) {
 		r=tsq_queue[tsq_tail++];
 		tsq_tail%=256;
 	}
-	svcReleaseSemaphore(&i, tsq_sem, 1);
+	svcReleaseMutex(tsq_mutex);
 	return r;
 }
 
 static void tsq_put(void *p) {
-	s32 i;
 	if (!tsq_isinit) tsq_init();
-	svcWaitSynchronization(tsq_sem, U64_MAX);
+	svcWaitSynchronization(tsq_mutex, U64_MAX);
 	tsq_queue[tsq_head++]=p;
 	tsq_head%=256;
-	svcReleaseSemaphore(&i, tsq_sem, 1);
+	svcReleaseMutex(tsq_mutex);
 }
 
 typedef struct {
