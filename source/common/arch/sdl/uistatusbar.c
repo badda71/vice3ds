@@ -461,7 +461,7 @@ void uistatusbar_draw(void)
 	if (sdl_active_canvas->fullscreenconfig->enable) 
 	    line = MIN(sdl_active_canvas->viewport->last_line, sdl_active_canvas->geometry->last_displayed_line);
 	else
-		line=(sdl_active_canvas->viewport->last_line-240)/2+248;
+		line=sdl_active_canvas->viewport->last_line - (sdl_active_canvas->height - 239)/2;
 
     draw_offset = (line - menufont->h + 1) * pitch
                   + sdl_active_canvas->geometry->extra_offscreen_border_left
