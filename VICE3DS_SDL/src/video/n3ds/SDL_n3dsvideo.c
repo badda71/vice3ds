@@ -114,6 +114,8 @@ static void (*addDrawCallback)(void *, int)=NULL;
 static void *addDrawParam=NULL;
 extern volatile bool app_pause;
 extern volatile bool app_exiting;
+static Handle buffer_mutex;
+static void* draw_buffer;
 
 /* Initialization/Query functions */
 static int N3DS_VideoInit(_THIS, SDL_PixelFormat *vformat);
@@ -288,6 +290,8 @@ int N3DS_VideoInit(_THIS, SDL_PixelFormat *vformat)
 	vformat->Bmask = 0x0000ff00; 
 	vformat->Amask = 0x000000ff; 
 	
+	svcCreateMutex(&buffer_mutex, false);
+
 	/* We're done! */
 	return(0);
 }
@@ -418,6 +422,10 @@ int hh= next_pow2(height);
 		linearFree( this->hidden->buffer );
 		this->hidden->buffer = NULL;
 	}
+	if ( this->hidden->buffer2 ) {
+		linearFree( this->hidden->buffer2 );
+		this->hidden->buffer2 = NULL;
+	}
 	if ( this->hidden->palettedbuffer ) {
 		free( this->hidden->palettedbuffer );
 		this->hidden->palettedbuffer = NULL;
@@ -428,14 +436,22 @@ int hh= next_pow2(height);
 		SDL_SetError("Couldn't allocate buffer for requested mode");
 		return(NULL);
 	}
+	this->hidden->buffer2 = (u8*) linearAlloc(hw * hh * this->hidden->byteperpixel);
+	if ( ! this->hidden->buffer2 ) {
+		SDL_SetError("Couldn't allocate buffer2 for requested mode");
+		linearFree(this->hidden->buffer);
+		return(NULL);
+	}
 
 	SDL_memset(this->hidden->buffer, 0, hw * hh * this->hidden->byteperpixel);
+	SDL_memset(this->hidden->buffer2, 0, hw * hh * this->hidden->byteperpixel);
 
 	if(bpp==8) {
 		this->hidden->palettedbuffer = malloc(width * height);
 		if ( ! this->hidden->palettedbuffer ) {
 			SDL_SetError("Couldn't allocate buffer for requested mode");
 			linearFree(this->hidden->buffer);
+			linearFree(this->hidden->buffer2);
 			return(NULL);
 		}
 		SDL_memset(this->hidden->palettedbuffer, 0, width * height);
@@ -445,6 +461,8 @@ int hh= next_pow2(height);
 	if ( ! SDL_ReallocFormat(current, bpp, Rmask, Gmask, Bmask, Amask) ) {
 		linearFree(this->hidden->buffer);
 		this->hidden->buffer = NULL;
+		linearFree(this->hidden->buffer2);
+		this->hidden->buffer2 = NULL;
 		SDL_SetError("Couldn't allocate new pixel format for requested mode");
 		return(NULL);
 	}
@@ -572,6 +590,7 @@ static void videoThread(void* data)
     vdev = (SDL_VideoDevice *) data;
 	vdev_hidden=vdev->hidden;
 	int topupdate;
+	void *p;
 
 	while(runThread) {
 		if(!app_pause && !app_exiting) {
@@ -593,6 +612,15 @@ static void videoThread(void* data)
 				
 				if (topupdate) {
 					svcClearEvent(repaintRequired);
+					// transfer the main emulation buffer
+					svcWaitSynchronization(buffer_mutex, U64_MAX);
+					p=draw_buffer;
+					draw_buffer=NULL;
+					svcReleaseMutex(buffer_mutex);
+					GSPGPU_FlushDataCache(p, vdev_hidden->w*vdev_hidden->h*4);
+					C3D_SyncDisplayTransfer ((u32*)vdev_hidden->buffer, GX_BUFFER_DIM(vdev_hidden->w,vdev_hidden->h), (u32*)(spritesheet_tex.data), GX_BUFFER_DIM(vdev_hidden->w,vdev_hidden->h), textureTranferFlags[vdev_hidden->mode]);
+					GSPGPU_FlushDataCache(spritesheet_tex.data, vdev_hidden->w*vdev_hidden->h*4);
+
 					C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, &projection2);
 					C3D_RenderTargetClear(VideoSurface1, C3D_CLEAR_ALL, RenderClearColor, 0);
 					C3D_FrameDrawOn(VideoSurface1);
@@ -614,6 +642,13 @@ static void drawBuffers(_THIS)
 	if(this->hidden->buffer) {
 		vdev_hidden = this->hidden;
 
+/*
+		// transfer the texture
+		GSPGPU_FlushDataCache(this->hidden->buffer, this->hidden->w*this->hidden->h*4);
+		C3D_SyncDisplayTransfer ((u32*)this->hidden->buffer, GX_BUFFER_DIM(this->hidden->w,this->hidden->h), (u32*)(spritesheet_tex.data), GX_BUFFER_DIM(this->hidden->w,this->hidden->h), textureTranferFlags[vdev_hidden->mode]);
+		GSPGPU_FlushDataCache(spritesheet_tex.data, this->hidden->w*this->hidden->h*4);
+*/
+/*		
 		// queue the texture transfer
 		SDL_QueueTextureTransfer(
 			&spritesheet_tex,
@@ -623,7 +658,18 @@ static void drawBuffers(_THIS)
 			textureTranferFlags[vdev_hidden->mode],
 			0
 		);
+*/
+
+		svcWaitSynchronization(buffer_mutex, U64_MAX);
+		draw_buffer=this->hidden->buffer;
+		svcReleaseMutex(buffer_mutex);
 		svcSignalEvent(repaintRequired);
+
+		// switch draw buffers
+		void *p = this->hidden->buffer;
+		this->hidden->buffer=this->hidden->buffer2;
+		this->hidden->buffer2=p;
+		this->hidden->currentVideoSurface->pixels = this->hidden->buffer;
 	}
 }
 
@@ -722,6 +768,11 @@ void N3DS_VideoQuit(_THIS)
 		linearFree(this->hidden->buffer);
 		this->hidden->buffer = NULL;
 	}
+	if (this->hidden->buffer2)
+	{
+		linearFree(this->hidden->buffer2);
+		this->hidden->buffer2 = NULL;
+	}
 	if (this->hidden->palettedbuffer)
 	{
 		free(this->hidden->palettedbuffer);
@@ -730,6 +781,8 @@ void N3DS_VideoQuit(_THIS)
 	if (this->hidden->currentVideoSurface) 
 		this->hidden->currentVideoSurface->pixels = NULL; // set to buffer or to palettedbuffer, so now pointing to not allocated memory
 	
+	if (buffer_mutex) svcCloseHandle(buffer_mutex);
+
 	sceneExit();
 	C3D_Fini();
 	gfxExit();
