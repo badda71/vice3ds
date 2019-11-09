@@ -44,12 +44,14 @@
 #include "uibottom.h"
 
 const char info_about_text[] =
-        "              Vice3DS v" VERSION3DS "\n"
+        "                Vice3DS\n"
+		"             v" VERSION3DS " (" GITHASH ")\n"
 		"\n"
-		"            based on VICE v" VERSION "\n"
-		"       Versatile Commodore Emulator\n"
+		"           based on VICE v" VERSION "\n"
+		"      Versatile Commodore Emulator\n"
         "\n"
-		"      ported by badda71 <me@badda.de>";
+		"    ported by badda71 <me@badda.de>\n"
+		"   https://github.com/badda71/vice3ds\n";
 
 UI_MENU_DEFINE_TOGGLE(HelpButtonOn)
 

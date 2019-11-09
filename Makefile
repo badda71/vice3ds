@@ -59,6 +59,7 @@ APP_TITLE	:=	vice3DS-$(VICETARGET)
 APP_DESCRIPTION	:=	Vice $(VICETARGET) emulator for Nintendo 3DS
 APP_AUTHOR	:=	badda71 <me@badda.de>
 ICON		:=	$(META)/icon_3ds_$(VICETARGET).png
+GITHASH		:= `git rev-parse --short HEAD`
 
 ifeq ($(VICETARGET), C64)
 	VERSION_MAJOR :=	2
@@ -104,7 +105,7 @@ CFLAGS		:=	-g -Wall -O2 -mword-relocations \
 			-ffast-math -std=gnu11 \
 			$(ARCH)
 
-CFLAGS		+=	$(INCLUDE) -DARM11 -D_3DS -DVERSION3DS=\"$(VERSION)\"
+CFLAGS		+=	$(INCLUDE) -DARM11 -D_3DS -DVERSION3DS=\"$(VERSION)\" -DGITHASH=\"$(GITHASH)\"
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 
