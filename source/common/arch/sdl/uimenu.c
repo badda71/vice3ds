@@ -1074,7 +1074,7 @@ static int sdl_ui_slider(const char* title, const int cur, const int min, const 
 						if (yy > 0 && yy < pos_y+3) {
 							if (xx<4) i=min;
 							else if (xx>315) i=max;
-							else i=(min+(max-min)*(xx-3))/313;
+							else i=min+((max-min)*(xx-3))/313;
 							screen_dirty = 1;
 						}
 					} else {
