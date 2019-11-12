@@ -59,7 +59,7 @@ APP_TITLE	:=	vice3DS-$(VICETARGET)
 APP_DESCRIPTION	:=	Vice $(VICETARGET) emulator for Nintendo 3DS
 APP_AUTHOR	:=	badda71 <me@badda.de>
 ICON		:=	$(META)/icon_3ds_$(VICETARGET).png
-GITHASH		:= `git rev-parse --short HEAD`
+GITHASH		:= $(shell git rev-parse --short HEAD)
 
 ifeq ($(VICETARGET), C64)
 	VERSION_MAJOR :=	2
