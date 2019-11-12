@@ -596,18 +596,6 @@ static void videoThread(void* data)
 
 			if (C3D_FrameBegin(C3D_FRAME_NONBLOCK)){
 //			if (C3D_FrameBegin(C3D_FRAME_SYNCDRAW)){
-
-				// transfer all queued textures
-				SDL_TexTransferRequest *r;
-				while ((r=tsq_get())!=NULL) {
-					// Convert image to 3DS tiled texture format
-					GSPGPU_FlushDataCache(r->gpusrc, r->w*r->h*4);
-					C3D_SyncDisplayTransfer ((u32*)r->gpusrc, GX_BUFFER_DIM(r->w,r->h), (u32*)(r->tex->data), GX_BUFFER_DIM(r->w,r->h), r->flags);
-					GSPGPU_FlushDataCache(r->tex->data, r->w*r->h*4);
-					if (r->freesrc) linearFree(r->gpusrc);
-					free(r);
-				}
-				
 				if (topupdate) {
 					svcClearEvent(repaintRequired);
 					// transfer the main emulation buffer
@@ -624,6 +612,16 @@ static void videoThread(void* data)
 					C3D_FrameDrawOn(VideoSurface1);
 
 					drawMainSpritesheetAt((400-vdev->hidden->w1*vdev->hidden->scalex)/2,(240-vdev->hidden->h1*vdev->hidden->scaley)/2, vdev->hidden->w1*vdev->hidden->scalex, vdev->hidden->h1*vdev->hidden->scaley); 
+				}
+				// transfer all queued textures
+				SDL_TexTransferRequest *r;
+				while ((r=tsq_get())!=NULL) {
+					// Convert image to 3DS tiled texture format
+					GSPGPU_FlushDataCache(r->gpusrc, r->w*r->h*4);
+					C3D_SyncDisplayTransfer ((u32*)r->gpusrc, GX_BUFFER_DIM(r->w,r->h), (u32*)(r->tex->data), GX_BUFFER_DIM(r->w,r->h), r->flags);
+					GSPGPU_FlushDataCache(r->tex->data, r->w*r->h*4);
+					if (r->freesrc) linearFree(r->gpusrc);
+					free(r);
 				}
 				
 				if (addDrawCallback) addDrawCallback(addDrawParam, topupdate);
