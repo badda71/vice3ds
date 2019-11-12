@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
 
 #include "archdep.h"
 #include "attach.h"
@@ -48,6 +49,8 @@
 #include "tape.h"
 #include "util.h"
 #include "vicefeatures.h"
+#include "archdep_xdg.h"
+#include "archdep_join_paths.h"
 
 #ifdef DEBUG_CMDLINE
 #define DBG(x)  printf x
@@ -289,6 +292,27 @@ int initcmdline_check_psid(void)
     return 0;
 }
 
+static char *check_autostart_file(char *dir) {
+	struct dirent *pDirent;
+	DIR *pDir;
+
+	pDir = opendir (dir);
+	if (pDir == NULL) {
+		archdep_startup_log_error("check autostart: cannot open directory %s\n", dir);
+		return NULL;
+	} else {
+		while ((pDirent = readdir(pDir)) != NULL) {
+			if (strncmp("autostart.",pDirent->d_name,10)==0) {
+				char *p=archdep_join_paths(dir,pDirent->d_name,NULL);
+				closedir(pDir);
+				return p;
+			}
+		}
+	}
+	closedir (pDir);
+	return NULL;
+}
+
 int initcmdline_check_args(int argc, char **argv)
 {
     DBG(("initcmdline_check_args (argc:%d)\n", argc));
@@ -305,6 +329,14 @@ int initcmdline_check_args(int argc, char **argv)
         argc--, argv++;
     }
     DBG(("initcmdline_check_args 2 (argc:%d)\n", argc));
+
+	// 3DS - check for autostart file in romfs and vice dir
+	char *p;
+	if ((p=check_autostart_file("romfs:/"))!=NULL ||
+		(p=check_autostart_file(archdep_xdg_data_home()))!=NULL) {
+		autostart_string = p;
+        autostart_mode = AUTOSTART_MODE_RUN;
+	}
 
     if (argc > 1) {
         int len = 0, j;
