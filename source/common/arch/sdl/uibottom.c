@@ -1112,6 +1112,7 @@ static void sbuttons_recalc() {
 		if (uikbd_keypos[i].flags != 1) continue;	// not a soft button
 		name=get_key_help(uikbd_keypos[i].key,0,0);
 		x=uikbd_keypos[i].key-231;
+		if (!name) name="";
 		if ((h=hashKey((u8*)name))==sbutton_name_hash[x] && sbutton_spr[x].w != 0) continue; // already up to date
 		SDL_Surface *s = SDL_ConvertSurface(sb_img, sb_img->format, SDL_SWSURFACE);
 		SDL_SetAlpha(s, 0, 255);
