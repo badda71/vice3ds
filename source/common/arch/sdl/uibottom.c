@@ -1612,6 +1612,7 @@ ui_menu_action_t sdl_uibottom_mouseevent(SDL_Event *e) {
 		if (!bottom_lcd_on) {
 			setBottomBacklight(1);
 			kb_activekey=-1;
+			uibottom_must_redraw |= UIB_RECALC_KEYPRESS;
 			return 0; // do not further process the event
 		}
 		// help button
