@@ -197,78 +197,40 @@ int sdl_ui_image_file_selection_dialog(const char* filename, ui_menu_filereq_mod
 			switch (i) {
 				case MENU_ACTION_HOME:
 					cur_old = cur;
-					cur = 0;
-					offset = 0;
-					redraw = 1;
+					cur = -offset;
+					redraw |= sdl_ui_adjust_offset(&offset, &cur,menu_max,total);
 					break;
-
 				case MENU_ACTION_END:
 					cur_old = cur;
-					if (total < (menu_max - 1)) {
-						cur = total - 1;
-						offset = 0;
-					} else {
-						cur = menu_max - 1;
-						offset = total - menu_max;
-					}
-					redraw = 1;
+					cur = total-offset-1;
+					redraw |= sdl_ui_adjust_offset(&offset, &cur,menu_max,total);
 					break;
-
 				case MENU_ACTION_UP:
-					if (cur > 0) {
-						cur_old = cur;
-						--cur;
-					} else {
-						if (offset > 0) {
-							offset--;
-							redraw = 1;
-						}
-					}
+					cur_old=cur;
+					--cur;
+					redraw |= sdl_ui_adjust_offset(&offset, &cur,menu_max,total);
 					break;
-
 				case MENU_ACTION_PAGEUP:
 				case MENU_ACTION_LEFT:
-					offset -= menu_max;
-					if (offset < 0) {
-						offset = 0;
-						cur_old = -1;
-						cur = 0;
-					}
-					redraw = 1;
+					cur_old = cur;
+					cur -= menu_max;
+					redraw |= sdl_ui_adjust_offset(&offset, &cur,menu_max,total);
 					break;
-
 				case MENU_ACTION_DOWN:
-					if (cur < (menu_max - 1)) {
-						if ((cur + offset) < total - 1) {
-							cur_old = cur;
-							++cur;
-						}
-					} else {
-						if (offset < (total - menu_max)) {
-							offset++;
-							redraw = 1;
-						}
-					}
+					cur_old=cur;
+					++cur;
+					redraw |= sdl_ui_adjust_offset(&offset, &cur,menu_max,total);
 					break;
-
 				case MENU_ACTION_PAGEDOWN:
 				case MENU_ACTION_RIGHT:
-					offset += menu_max;
-					if (offset > total - menu_max) {
-						   cur -= total - menu_max - offset;
-						   offset = total - menu_max;
-					}
-					if ((cur + offset) >= total) {
-						cur = total - offset - 1;
-					}
-					redraw = 1;
+					cur_old = cur;
+					cur += menu_max;
+					redraw |= sdl_ui_adjust_offset(&offset, &cur,menu_max,total);
 					break;
-
 				case MENU_ACTION_SELECT:
 					active = 0;
 					retval = offset + cur - dirs - SDL_FILEREQ_META_NUM + 1;
 					break;
-
 				case MENU_ACTION_CANCEL:
 				case MENU_ACTION_EXIT:
 					active = 0;
