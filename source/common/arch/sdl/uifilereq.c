@@ -398,6 +398,7 @@ static char * display_drive_menu(void)
 
 char* sdl_ui_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mode)
 {
+    unsigned int poscache[256]={0};
     int total, dirs, files, menu_max;
     int active = 1;
     int offset = 0;
@@ -554,14 +555,24 @@ char* sdl_ui_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mod
 	#endif
 						default:
 							if (offset + cur < (dirs + SDL_FILEREQ_META_NUM)) {
+								// store cursor position
+								for (i=0, y=0; current_dir[i] && y<255; i++) if (current_dir[i]=='/') ++y;
+								poscache[y]=cur + (offset<<16);
 								/* enter subdirectory */
 								ioutil_chdir(directory->dirs[offset + cur - SDL_FILEREQ_META_NUM].name);
 								ioutil_closedir(directory);
 								ioutil_getcwd(current_dir, maxpathlen);
 								directory = ioutil_opendir(current_dir, SDL_FILESELECTOR_DIRMODE);
-								offset = 0;
+								// recall cursor pos if going up directory
+								for (i=0, x=0; current_dir[i] && y<255; i++) if (current_dir[i]=='/') ++x;
 								cur_old = -1;
-								cur = 0;
+								if (x < y) {
+									cur=poscache[x] & 0xffff;
+									offset=poscache[x]>>16;
+								} else {
+									offset = 0;
+									cur = 0;
+								}
 								dirs = directory->dir_amount;
 								files = directory->file_amount;
 								total = dirs + files + SDL_FILEREQ_META_NUM;
@@ -593,6 +604,16 @@ char* sdl_ui_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mod
 					break;
 
 				case MENU_ACTION_CANCEL:
+					for (i=0; i<dirs; i++) {
+						if (strcmp("..", directory->dirs[i].name)==0) {
+							cur=i+SDL_FILEREQ_META_NUM;
+							offset=0;
+							action=MENU_ACTION_SELECT;
+							break;
+						}
+					}
+					if (i<dirs) break;
+					// fallthrough
 				case MENU_ACTION_EXIT:
 					retval = NULL;
 					active = 0;
