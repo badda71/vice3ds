@@ -1100,6 +1100,21 @@ static int sdl_ui_slider(const char* title, const int cur, const int min, const 
 /* ------------------------------------------------------------------ */
 /* External UI interface */
 
+
+//#define MAX(x,y) (x)<(y)?(y):(x)
+
+int sdl_ui_adjust_offset(int *offset, int *cur,int menu_max, int total)
+{
+	if (*offset + *cur < 0) *cur=-*offset;
+	if (*offset + *cur >= total) *cur=total-*offset-1;
+	if (*cur >= 0 && *cur < menu_max && *cur < total - *offset) return 0;
+	int i=*offset;
+	if (*cur < 0) *offset=i+*cur;
+	if (*cur >= menu_max) *offset = MAX(0,i + *cur - menu_max + 1);
+	*cur += i-*offset;
+	return i==*offset?0:1;
+}
+
 ui_menu_retval_t sdl_ui_external_menu_activate(ui_menu_entry_t *item)
 {
     if (item && ((item->type == MENU_ENTRY_SUBMENU) || (item->type == MENU_ENTRY_DYNAMIC_SUBMENU))) {
