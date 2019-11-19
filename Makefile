@@ -63,7 +63,7 @@ GITHASH		:= $(shell git rev-parse --short HEAD)
 
 ifeq ($(VICETARGET), C64)
 	VERSION_MAJOR :=	2
-	VERSION_MINOR :=	RC1
+	VERSION_MINOR :=	RC3
 	VERSION_MICRO :=	0
 else
 	VERSION_MAJOR :=	0
@@ -322,7 +322,7 @@ $(OUTPUT).elf	:	$(OFILES)
 #---------------------------------------------------------------------------------
 icon_$(VICETARGET).icn: $(APP_ICON)
 	@echo -n generating $(notdir $@) ...
-	@bannertool makesmdh -s "$(APP_TITLE)" -l "$(APP_TITLE) - $(APP_DESCRIPTION)" -p "$(APP_AUTHOR)" -i $(APP_ICON) -o $@
+	@bannertool makesmdh -r regionfree -s "$(APP_TITLE)" -l "$(APP_TITLE) - $(APP_DESCRIPTION)" -p "$(APP_AUTHOR)" -i $(APP_ICON) -o $@
 	@echo OK
 
 banner_$(VICETARGET).bnr: $(BANNER_IMAGE) $(BANNER_AUDIO)
