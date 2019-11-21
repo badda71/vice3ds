@@ -676,7 +676,7 @@ static ui_menu_retval_t sdl_ui_menu_display(ui_menu_entry_t *menu, const char *t
 						if (old_y==-1) {
 							if (y >= MENU_FIRST_Y && 
 								y < menu_draw.max_text_y &&
-								y <= MENU_FIRST_Y + num_items - cur_offset + 1) {
+								y <= MENU_FIRST_Y + num_items - cur_offset - 1) {
 								if (havescrollbar && (dragging || x==menu_draw.max_text_x-1)) {
 									cur_offset = ((y - MENU_FIRST_Y) * num_items) / menu_max - menu_max/2;
 									dragging=1;
@@ -1105,8 +1105,8 @@ static int sdl_ui_slider(const char* title, const int cur, const int min, const 
 
 int sdl_ui_adjust_offset(int *offset, int *cur,int menu_max, int total)
 {
-	if (*offset + *cur < 0) *cur=-*offset;
-	if (*offset + *cur >= total) *cur=total-*offset-1;
+	if (*offset + *cur < 0) *cur=total-*offset-1;
+	if (*offset + *cur >= total) *cur=-*offset;
 	if (*cur >= 0 && *cur < menu_max && *cur < total - *offset) return 0;
 	int i=*offset;
 	if (*cur < 0) *offset=i+*cur;
