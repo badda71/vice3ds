@@ -1592,8 +1592,6 @@ ui_menu_action_t sdl_uibottom_mouseevent(SDL_Event *e) {
 
 		if (sdl_menu_state && menu_mousebuttonstate) {
 			menu_mousebuttonstate = 0;
-			if (y/8==0 && x/8<2) return MENU_ACTION_CANCEL;
-			if (y>=215 && x>=305) return MENU_ACTION_EXIT;
 			return MENU_ACTION_MOUSE;
 		}
 
@@ -1642,7 +1640,6 @@ ui_menu_action_t sdl_uibottom_mouseevent(SDL_Event *e) {
 			sdl_ui_activate();
 			return 0;
 		}
-
 		for (i = 0; uikbd_keypos[i].key != 0 ; ++i) {
 			if (uikbd_keypos[i].flags) {
 				// soft button
@@ -1664,6 +1661,8 @@ ui_menu_action_t sdl_uibottom_mouseevent(SDL_Event *e) {
 		}
 		if (uikbd_keypos[i].key == 0) {
 			if (sdl_menu_state && y < kb_y_pos) {
+				if (y/8==0 && x/8<2) return MENU_ACTION_CANCEL;
+				if (y>=215 && x>=305) return MENU_ACTION_EXIT;
 				menu_mousebuttonstate = 1;
 				return MENU_ACTION_MOUSE;
 			}
