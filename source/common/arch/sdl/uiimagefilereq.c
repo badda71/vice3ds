@@ -214,6 +214,7 @@ int sdl_ui_image_file_selection_dialog(const char* filename, ui_menu_filereq_mod
 				case MENU_ACTION_LEFT:
 					cur_old = cur;
 					cur -= menu_max;
+					if (cur_old + offset != 0 && cur + offset < 0) cur=-offset;
 					redraw |= sdl_ui_adjust_offset(&offset, &cur,menu_max,total);
 					break;
 				case MENU_ACTION_DOWN:
@@ -225,6 +226,7 @@ int sdl_ui_image_file_selection_dialog(const char* filename, ui_menu_filereq_mod
 				case MENU_ACTION_RIGHT:
 					cur_old = cur;
 					cur += menu_max;
+					if (cur_old + offset != total-1 && cur + offset > total-1) cur=total-offset-1;
 					redraw |= sdl_ui_adjust_offset(&offset, &cur,menu_max,total);
 					break;
 				case MENU_ACTION_SELECT:
@@ -243,7 +245,7 @@ int sdl_ui_image_file_selection_dialog(const char* filename, ui_menu_filereq_mod
 						if (old_y==-1) {
 							if (y >= IMAGE_FIRST_Y + SDL_FILEREQ_META_NUM && 
 								y < menu_max + IMAGE_FIRST_Y + SDL_FILEREQ_META_NUM &&
-								y <= MENU_FIRST_Y + total - offset + 1) {
+								y <= IMAGE_FIRST_Y + total - offset - 1) {
 								if (havescrollbar && (dragging || x==menu_draw->max_text_x-1)) {
 									offset = ((y - IMAGE_FIRST_Y + SDL_FILEREQ_META_NUM) * total ) / menu_max - menu_max/2;
 								   dragging=1;

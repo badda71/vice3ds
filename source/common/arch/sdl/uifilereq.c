@@ -482,6 +482,7 @@ char* sdl_ui_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mod
 				case MENU_ACTION_LEFT:
 					cur_old = cur;
 					cur -= menu_max;
+					if (cur_old + offset != 0 && cur + offset < 0) cur=-offset;
 					redraw |= sdl_ui_adjust_offset(&offset, &cur,menu_max,total);
 					break;
 				case MENU_ACTION_DOWN:
@@ -493,6 +494,7 @@ char* sdl_ui_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mod
 				case MENU_ACTION_RIGHT:
 					cur_old = cur;
 					cur += menu_max;
+					if (cur_old + offset != total-1 && cur + offset > total-1) cur=total-offset-1;
 					redraw |= sdl_ui_adjust_offset(&offset, &cur,menu_max,total);
 					break;
 				case MENU_ACTION_SELECT:
