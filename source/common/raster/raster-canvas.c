@@ -38,7 +38,7 @@
 #include "video.h"
 #include "viewport.h"
 
-/* 3DS: cannot only partially refresh the canvas because we have double buffering due to multithreading
+
 inline static void refresh_canvas(raster_t *raster)
 {
     raster_canvas_area_t *update_area;
@@ -61,16 +61,16 @@ inline static void refresh_canvas(raster_t *raster)
     h = update_area->ye - update_area->ys + 1;
 
     if (raster->canvas->videoconfig->filter == VIDEO_FILTER_CRT) {
-//		 * if pal emu is activated, more pixels have to be updated: around,
-//       * above and below, because of blurring and scanline effects.
-//       *
-//       * 1 line above and 1 lines below are required because the update on
-//       * any line affects the scanlines both above and below, so both must
-//       * be included in the full update rectangle.
-//       *
-//       * These coordinates are also passed to the graphics driver as the
-//       * updated region, so the area here must be at least as large as the
-//       * updated region.
+        /* if pal emu is activated, more pixels have to be updated: around,
+         * above and below, because of blurring and scanline effects.
+         *
+         * 1 line above and 1 lines below are required because the update on
+         * any line affects the scanlines both above and below, so both must
+         * be included in the full update rectangle.
+         *
+         * These coordinates are also passed to the graphics driver as the
+         * updated region, so the area here must be at least as large as the
+         * updated region. */
         x -= 4;
         xx -= 4;
         w += 8;
@@ -104,7 +104,7 @@ inline static void refresh_canvas(raster_t *raster)
 
     update_area->is_null = 1;
 }
-*/
+
 void raster_canvas_handle_end_of_frame(raster_t *raster)
 {
     if (video_disabled_mode) {
@@ -119,11 +119,11 @@ void raster_canvas_handle_end_of_frame(raster_t *raster)
         return;
     }
 
-//    if (raster->dont_cache) { // 3DS: cannot cache here because we have double buffering due to multithreading
+    if (raster->dont_cache) {
         video_canvas_refresh_all(raster->canvas);
-//    } else {
-//        refresh_canvas(raster);
-//    }
+    } else {
+        refresh_canvas(raster);
+    }
 }
 
 void raster_canvas_init(raster_t *raster)

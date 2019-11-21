@@ -46,7 +46,6 @@ struct SDL_PrivateVideoData {
 // framebuffer data
     int w, h; // width and height of the video buffer
     void *buffer;
-	void *buffer2;
 	Uint8 *palettedbuffer;
 	GSPGPU_FramebufferFormats mode;
 	unsigned int flags; // backup of create device flags

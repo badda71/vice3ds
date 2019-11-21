@@ -107,6 +107,7 @@ void drawTexture( int x, int y, int width, int height, float left, float right, 
 
 // video thread variables and functions
 volatile bool runThread = false;
+Handle privateSem1;
 Handle repaintRequired;
 Thread privateVideoThreadHandle = NULL;
 static void videoThread(void* data);
@@ -114,8 +115,6 @@ static void (*addDrawCallback)(void *, int)=NULL;
 static void *addDrawParam=NULL;
 extern volatile bool app_pause;
 extern volatile bool app_exiting;
-static Handle buffer_mutex;
-static void* draw_buffer;
 
 /* Initialization/Query functions */
 static int N3DS_VideoInit(_THIS, SDL_PixelFormat *vformat);
@@ -134,58 +133,6 @@ static int N3DS_FlipHWSurface (_THIS, SDL_Surface *surface);
 
 int N3DS_ToggleFullScreen(_THIS, int on);
 
-
-// thread safe queue
-static Handle tsq_mutex;
-static void* tsq_queue[256];
-static int tsq_head=0;
-static int tsq_tail=0;
-static int tsq_isinit=0;
-
-static void tsq_init(void) {
-	svcCreateMutex(&tsq_mutex, false);
-	tsq_isinit=1;
-}
-
-static void *tsq_get() {
-	if (!tsq_isinit) tsq_init();
-	void *r = NULL;
-	svcWaitSynchronization(tsq_mutex, U64_MAX);
-	if (tsq_tail!=tsq_head) {
-		r=tsq_queue[tsq_tail++];
-		tsq_tail%=256;
-	}
-	svcReleaseMutex(tsq_mutex);
-	return r;
-}
-
-static void tsq_put(void *p) {
-	if (!tsq_isinit) tsq_init();
-	svcWaitSynchronization(tsq_mutex, U64_MAX);
-	tsq_queue[tsq_head++]=p;
-	tsq_head%=256;
-	svcReleaseMutex(tsq_mutex);
-}
-
-typedef struct {
-	C3D_Tex *tex;
-	u8 *gpusrc;
-	unsigned w;
-	unsigned h;
-	u32 flags;
-	int freesrc;
-} SDL_TexTransferRequest;
-
-void SDL_QueueTextureTransfer(C3D_Tex *tex, u8 *gpusrc,	unsigned w,	unsigned h,	u32 flags, int freesrc) {
-	SDL_TexTransferRequest *t=malloc(sizeof(SDL_TexTransferRequest));
-	t->tex=tex;
-	t->gpusrc=gpusrc;
-	t->w=w;
-	t->h=h;
-	t->flags=flags;
-	t->freesrc=freesrc;
-	tsq_put(t);
-}
 
 //Copied from sf2dlib that grabbed it from: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
 unsigned int next_pow2(unsigned int v)
@@ -288,8 +235,6 @@ int N3DS_VideoInit(_THIS, SDL_PixelFormat *vformat)
 	vformat->Bmask = 0x0000ff00; 
 	vformat->Amask = 0x000000ff; 
 	
-	svcCreateMutex(&buffer_mutex, false);
-
 	/* We're done! */
 	return(0);
 }
@@ -420,10 +365,6 @@ int hh= next_pow2(height);
 		linearFree( this->hidden->buffer );
 		this->hidden->buffer = NULL;
 	}
-	if ( this->hidden->buffer2 ) {
-		linearFree( this->hidden->buffer2 );
-		this->hidden->buffer2 = NULL;
-	}
 	if ( this->hidden->palettedbuffer ) {
 		free( this->hidden->palettedbuffer );
 		this->hidden->palettedbuffer = NULL;
@@ -434,22 +375,14 @@ int hh= next_pow2(height);
 		SDL_SetError("Couldn't allocate buffer for requested mode");
 		return(NULL);
 	}
-	this->hidden->buffer2 = (u8*) linearAlloc(hw * hh * this->hidden->byteperpixel);
-	if ( ! this->hidden->buffer2 ) {
-		SDL_SetError("Couldn't allocate buffer2 for requested mode");
-		linearFree(this->hidden->buffer);
-		return(NULL);
-	}
 
 	SDL_memset(this->hidden->buffer, 0, hw * hh * this->hidden->byteperpixel);
-	SDL_memset(this->hidden->buffer2, 0, hw * hh * this->hidden->byteperpixel);
 
 	if(bpp==8) {
 		this->hidden->palettedbuffer = malloc(width * height);
 		if ( ! this->hidden->palettedbuffer ) {
 			SDL_SetError("Couldn't allocate buffer for requested mode");
 			linearFree(this->hidden->buffer);
-			linearFree(this->hidden->buffer2);
 			return(NULL);
 		}
 		SDL_memset(this->hidden->palettedbuffer, 0, width * height);
@@ -459,8 +392,6 @@ int hh= next_pow2(height);
 	if ( ! SDL_ReallocFormat(current, bpp, Rmask, Gmask, Bmask, Amask) ) {
 		linearFree(this->hidden->buffer);
 		this->hidden->buffer = NULL;
-		linearFree(this->hidden->buffer2);
-		this->hidden->buffer2 = NULL;
 		SDL_SetError("Couldn't allocate new pixel format for requested mode");
 		return(NULL);
 	}
@@ -537,6 +468,7 @@ int hh= next_pow2(height);
 //	C3D_TexBind(0, &spritesheet_tex);
 	
 	runThread = true;
+	svcCreateSemaphore(&privateSem1, 1, 255);
 	svcCreateEvent(&repaintRequired,0);
 
 // ctrulib sys threads uses 0x18, so we use a lower priority, but higher than any other SDL thread
@@ -579,53 +511,39 @@ SDL_VideoDevice *vdev;
 struct SDL_PrivateVideoData *vdev_hidden;
 
 void drawMainSpritesheetAt(int x, int y, int w, int h) {
+	s32 i;
+	svcWaitSynchronization(privateSem1, U64_MAX);
 	C3D_TexBind(0, &spritesheet_tex);
 	drawTexture(x, y, w, h, vdev->hidden->l1, vdev->hidden->r1, vdev->hidden->t1, vdev->hidden->b1);  
+	svcReleaseSemaphore(&i, privateSem1, 1);
 }
 
 static void videoThread(void* data)
 {
     vdev = (SDL_VideoDevice *) data;
 	vdev_hidden=vdev->hidden;
-	int topupdate;
-	void *p;
 
 	while(runThread) {
 		if(!app_pause && !app_exiting) {
-			topupdate=svcWaitSynchronization(repaintRequired, 0)?0:1;
-
-			if (C3D_FrameBegin(C3D_FRAME_NONBLOCK)){
-//			if (C3D_FrameBegin(C3D_FRAME_SYNCDRAW)){
-				if (topupdate) {
-					svcClearEvent(repaintRequired);
-					// transfer the main emulation buffer
-					svcWaitSynchronization(buffer_mutex, U64_MAX);
-					p=draw_buffer;
-					draw_buffer=NULL;
-					svcReleaseMutex(buffer_mutex);
-					GSPGPU_FlushDataCache(p, vdev_hidden->w*vdev_hidden->h*4);
-					C3D_SyncDisplayTransfer ((u32*)vdev_hidden->buffer, GX_BUFFER_DIM(vdev_hidden->w,vdev_hidden->h), (u32*)(spritesheet_tex.data), GX_BUFFER_DIM(vdev_hidden->w,vdev_hidden->h), textureTranferFlags[vdev_hidden->mode]);
-					GSPGPU_FlushDataCache(spritesheet_tex.data, vdev_hidden->w*vdev_hidden->h*4);
-
+			if (svcWaitSynchronization(repaintRequired, 0)) {
+				if (C3D_FrameBegin(C3D_FRAME_NONBLOCK)){
+					if (addDrawCallback) addDrawCallback(addDrawParam,0);
+					C3D_FrameEnd(0);
+				}
+			} else {
+				svcClearEvent(repaintRequired);
+				if (C3D_FrameBegin(C3D_FRAME_NONBLOCK)){
+//				if (C3D_FrameBegin(C3D_FRAME_SYNCDRAW)){
+					// Update the uniforms
 					C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, &projection2);
 					C3D_RenderTargetClear(VideoSurface1, C3D_CLEAR_ALL, RenderClearColor, 0);
 					C3D_FrameDrawOn(VideoSurface1);
-
 					drawMainSpritesheetAt((400-vdev->hidden->w1*vdev->hidden->scalex)/2,(240-vdev->hidden->h1*vdev->hidden->scaley)/2, vdev->hidden->w1*vdev->hidden->scalex, vdev->hidden->h1*vdev->hidden->scaley); 
-				}
-				// transfer all queued textures
-				SDL_TexTransferRequest *r;
-				while ((r=tsq_get())!=NULL) {
-					// Convert image to 3DS tiled texture format
-					GSPGPU_FlushDataCache(r->gpusrc, r->w*r->h*4);
-					C3D_SyncDisplayTransfer ((u32*)r->gpusrc, GX_BUFFER_DIM(r->w,r->h), (u32*)(r->tex->data), GX_BUFFER_DIM(r->w,r->h), r->flags);
-					GSPGPU_FlushDataCache(r->tex->data, r->w*r->h*4);
-					if (r->freesrc) linearFree(r->gpusrc);
-					free(r);
-				}
+
+					if (addDrawCallback) addDrawCallback(addDrawParam,1);
 				
-				if (addDrawCallback) addDrawCallback(addDrawParam, topupdate);
-				C3D_FrameEnd(0);
+					C3D_FrameEnd(0);
+				}
 			}
 		}
 		gspWaitForVBlank();
@@ -636,36 +554,20 @@ static void videoThread(void* data)
 static void drawBuffers(_THIS)
 {
 	if(this->hidden->buffer) {
-		vdev_hidden = this->hidden;
+		s32 i;
+		if(app_pause || app_exiting) return; // Blocking video output if the application is closing 
+	
+		// next part needs to be synchronized with the videoThread
+		// because it is not possible to write a texture and draw it at the same time
+		svcWaitSynchronization(privateSem1, U64_MAX);
 
-/*
-		// transfer the texture
-		GSPGPU_FlushDataCache(this->hidden->buffer, this->hidden->w*this->hidden->h*4);
-		C3D_SyncDisplayTransfer ((u32*)this->hidden->buffer, GX_BUFFER_DIM(this->hidden->w,this->hidden->h), (u32*)(spritesheet_tex.data), GX_BUFFER_DIM(this->hidden->w,this->hidden->h), textureTranferFlags[vdev_hidden->mode]);
-		GSPGPU_FlushDataCache(spritesheet_tex.data, this->hidden->w*this->hidden->h*4);
-*/
-/*		
-		// queue the texture transfer
-		SDL_QueueTextureTransfer(
-			&spritesheet_tex,
-			this->hidden->buffer,
-			this->hidden->w,
-			this->hidden->h,
-			textureTranferFlags[vdev_hidden->mode],
-			0
-		);
-*/
+			// Convert image to 3DS tiled texture format
+			GSPGPU_FlushDataCache(this->hidden->buffer, this->hidden->w*this->hidden->h*4);
+			C3D_SyncDisplayTransfer ((u32*)this->hidden->buffer, GX_BUFFER_DIM(this->hidden->w,this->hidden->h), (u32*)(spritesheet_tex.data), GX_BUFFER_DIM(this->hidden->w,this->hidden->h), textureTranferFlags[this->hidden->mode]);
+			GSPGPU_FlushDataCache(spritesheet_tex.data, this->hidden->w*this->hidden->h*4);
 
-		svcWaitSynchronization(buffer_mutex, U64_MAX);
-		draw_buffer=this->hidden->buffer;
-		svcReleaseMutex(buffer_mutex);
-		svcSignalEvent(repaintRequired);
-
-		// switch draw buffers
-		void *p = this->hidden->buffer;
-		this->hidden->buffer=this->hidden->buffer2;
-		this->hidden->buffer2=p;
-		this->hidden->currentVideoSurface->pixels = this->hidden->buffer;
+			svcSignalEvent(repaintRequired);
+		svcReleaseSemaphore(&i, privateSem1, 1);
 	}
 }
 
@@ -764,11 +666,6 @@ void N3DS_VideoQuit(_THIS)
 		linearFree(this->hidden->buffer);
 		this->hidden->buffer = NULL;
 	}
-	if (this->hidden->buffer2)
-	{
-		linearFree(this->hidden->buffer2);
-		this->hidden->buffer2 = NULL;
-	}
 	if (this->hidden->palettedbuffer)
 	{
 		free(this->hidden->palettedbuffer);
@@ -777,8 +674,6 @@ void N3DS_VideoQuit(_THIS)
 	if (this->hidden->currentVideoSurface) 
 		this->hidden->currentVideoSurface->pixels = NULL; // set to buffer or to palettedbuffer, so now pointing to not allocated memory
 	
-	if (buffer_mutex) svcCloseHandle(buffer_mutex);
-
 	sceneExit();
 	C3D_Fini();
 	gfxExit();

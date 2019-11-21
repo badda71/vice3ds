@@ -373,6 +373,7 @@ static volatile int menu_anim=0;
 extern C3D_Mtx projection2;
 extern C3D_RenderTarget* VideoSurface2;
 extern int uLoc_projection;
+extern Handle privateSem1;
 
 int sintable[32]={0,6,12,18,23,27,30,31,32,31,30,27,23,18,12,6,0,-6,-12,-18,-23,-27,-30,-31,-32,-31,-30,-27,-23,-18,-12,-6};
 
@@ -424,15 +425,19 @@ static inline void  drawImage( DS3_Image *img, int x, int y, int width, int heig
 	C3D_ImmDrawEnd();
 }
 
-extern void SDL_QueueTextureTransfer(C3D_Tex *tex, u8 *gpusrc,	unsigned w,	unsigned h,	u32 flags, int freesrc);
-
-static void makeTexture(C3D_Tex *tex, u8 *gpusrc, unsigned hw, unsigned hh, int freesrc) {
+static void makeTexture(C3D_Tex *tex, u8 *gpusrc, unsigned hw, unsigned hh) {
+	s32 i;
+	svcWaitSynchronization(privateSem1, U64_MAX);
 	// init texture
 	C3D_TexDelete(tex);
 	C3D_TexInit(tex, hw, hh, GPU_RGBA8);
 	C3D_TexSetFilter(tex, GPU_NEAREST, GPU_NEAREST);
 
-	SDL_QueueTextureTransfer(tex, gpusrc, hw, hh, TEXTURE_TRANSFER_FLAGS, freesrc);
+	// Convert image to 3DS tiled texture format
+	GSPGPU_FlushDataCache(gpusrc, hw*hh*4);
+	C3D_SyncDisplayTransfer ((u32*)gpusrc, GX_BUFFER_DIM(hw,hh), (u32*)(tex->data), GX_BUFFER_DIM(hw,hh), TEXTURE_TRANSFER_FLAGS);
+	GSPGPU_FlushDataCache(tex->data, hw*hh*4);
+	svcReleaseSemaphore(&i, privateSem1, 1);
 }
 
 static void makeImage(DS3_Image *img, u8 *pixels, unsigned w, unsigned h, int noconv) {
@@ -470,7 +475,10 @@ static void makeImage(DS3_Image *img, u8 *pixels, unsigned w, unsigned h, int no
 		}
 	}
 
-	makeTexture(&(img->tex), gpusrc, hw, hh, !noconv);
+	makeTexture(&(img->tex), gpusrc, hw, hh);
+
+	// cleanup
+	if (!noconv) linearFree(gpusrc);
 	return;
 }
 
@@ -557,9 +565,9 @@ static void uibottom_repaint(void *param, int topupdated) {
 	uikbd_key *k;
 	int drag_i=-1;
 	int last_i=-1;
+	s32 c;
 	
 	if (svcWaitSynchronization(repaintRequired, 0)) update=0;
-	svcClearEvent(repaintRequired);
 	
 	// help on top screen
 	if (help_on && (topupdated || update)) {
@@ -583,6 +591,9 @@ static void uibottom_repaint(void *param, int topupdated) {
 	}
 	
 	if (!update) return;
+
+	svcClearEvent(repaintRequired);
+	svcWaitSynchronization(privateSem1, U64_MAX);
 	
 	if (set_kb_y_pos != -10000) {
 		kb_y_pos=set_kb_y_pos;
@@ -687,6 +698,8 @@ static void uibottom_repaint(void *param, int topupdated) {
 	} else {
 		if (help_button_on && !(sdl_menu_state & ~MENU_ACTIVE)) drawImage(&help_spr,305,0,0,0);
 	}
+
+	svcReleaseSemaphore(&c, privateSem1, 1);
 }
 
 static void keypress_recalc() {
@@ -1266,7 +1279,10 @@ void menu_recalc() {
 	}
 	memset(gpusrc+239*hw*4,255,310*4);
 
-	makeTexture(&(menu_spr.tex), gpusrc, hw, hh, 1);
+	makeTexture(&(menu_spr.tex), gpusrc, hw, hh);
+
+	// cleanup
+	linearFree(gpusrc);
 }
 
 // update the whole bottom screen
