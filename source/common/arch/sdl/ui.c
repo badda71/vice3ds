@@ -724,8 +724,8 @@ ui_menu_action_t ui_dispatch_events(void)
 	// if messagebox is active and we are not in the main thread, skip processing
 	// if menu is active and we are in the menu thread, skip processing
 	// (except when explicitly sending events to emu)
-	if (!((sdl_menu_state & MSGBOX_ACTIVE) && tid != 0) &&
-		!(sdl_menu_state == MENU_ACTIVE && ((tid == 0) != (events_to_emu != 0))))
+	if (!((sdl_menu_state & MSGBOX_ACTIVE) && tid != -1) &&
+		!(sdl_menu_state == MENU_ACTIVE && ((tid == -1) != (events_to_emu != 0))))
 		{
 		// check 3d slider and adjust emulation speed if necessary
 		static float slider3d = -1.0;
@@ -847,7 +847,7 @@ ui_menu_action_t ui_dispatch_events(void)
 	}
 #endif
 	// update bottom screen if we are in the main thread
-	if (tid==0) sdl_uibottom_draw();
+	if (tid==-1) sdl_uibottom_draw();
 
     return retval;
 }

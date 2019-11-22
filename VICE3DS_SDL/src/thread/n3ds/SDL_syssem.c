@@ -82,8 +82,7 @@ int SDL_SemWaitTimeout(SDL_sem *sem, Uint32 timeout)
         return 0;
     }
 
-    res = svcWaitSynchronization(sem->semid, (timeout == SDL_MUTEX_MAXWAIT) ? U64_MAX : (signed long long)timeout*1000000);
-
+    res = svcWaitSynchronization(sem->semid, (timeout == SDL_MUTEX_MAXWAIT) ? 0x7FFFFFFFFFFFFFFF : (signed long long)timeout*1000000);
     return (res == 0) ? 0 : SDL_MUTEX_TIMEDOUT;
 }
 

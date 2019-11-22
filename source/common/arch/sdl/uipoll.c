@@ -167,7 +167,7 @@ SDL_Event sdl_ui_poll_event(const char *what, const char *target, int options, i
             }
         }
 		// update bottom screen
-		if (!SDL_ThreadID()) sdl_uibottom_draw();
+		if (SDL_ThreadID()!=-1) sdl_uibottom_draw();
 
 		SDL_Delay(20);
 

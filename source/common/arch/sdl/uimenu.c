@@ -917,7 +917,7 @@ static int sdl_ui_readline_input(int *key, SDLMod *mod, Uint16 *c_uni)
 			}
 		}
 		// update bottom screen
-		if (!SDL_ThreadID()) sdl_uibottom_draw();
+		if (SDL_ThreadID()!=-1) sdl_uibottom_draw();
 
 		SDL_Delay(20);
     } while (!got_key);
