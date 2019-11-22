@@ -741,17 +741,17 @@ ui_menu_action_t ui_dispatch_events(void)
 					break;
 				case 1: // slowdown
 					w=0;
-					s=100-(int)(f * 100.0);
 					if (f == 1.0) ui_pause_emulation(1);
+					else if (f < 0.1) s = 100;
+					else s=100-(int)((f-0.1f) * 111.0);
 					if (slider3d == 1.0) ui_pause_emulation(0);
 					break;
 				default: //speedup
-					// 0 = 100, 0.8=400, 0.9=0, 1=warp
+					// < 0.1 = 100, 0.1 - 0.99 = 100 - 300, 1.0 = warp
+					w=0;
 					if (f == 1.0) w=1;
-					else {
-						w=0;
-						s= f >= 0.9 ? 0 : 100+(int)(f * 375.0);
-					}
+					else if (f < 0.1) s = 100;
+					else s = 100 + (int)((f - 0.1f) * 200.0f);
 			}
 			slider3d=f;
 			sliderf=slider3d_func;
