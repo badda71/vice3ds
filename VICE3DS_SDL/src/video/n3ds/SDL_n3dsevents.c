@@ -38,12 +38,16 @@ volatile bool app_pause = false;
 volatile bool app_exiting = false;
 
 static void task_apt_hook(APT_HookType hook, void* param) {
-    
+	SDL_Event sdlevent;
 	switch(hook) {
 		case APTHOOK_ONSUSPEND:
+			sdlevent.type = SDL_SUSPEND;
+			SDL_PushEvent(&sdlevent);
 			app_pause = true;
             break;
         case APTHOOK_ONRESTORE:
+			sdlevent.type = SDL_RESUME;
+			SDL_PushEvent(&sdlevent);
 			app_pause = false;
 			app_exiting = false;
             break;

@@ -76,6 +76,8 @@ typedef enum {
        SDL_EVENT_RESERVED7,		/**< Reserved for future use.. */
        /** Events SDL_USEREVENT through SDL_MAXEVENTS-1 are for your use */
        SDL_USEREVENT = 24,
+       SDL_SUSPEND,
+       SDL_RESUME,
        /** This last event is only for bounding internal arrays
 	*  It is the number of bits in the event mask datatype -- Uint32
         */

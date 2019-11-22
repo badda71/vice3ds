@@ -120,6 +120,12 @@ void ui_handle_misc_sdl_event(SDL_Event e)
 			if (save_resources_on_exit) resources_save(NULL);
 			archdep_vice_exit(0);
             break;
+		case SDL_SUSPEND:
+			ui_pause_emulation(1);
+			break;
+		case SDL_RESUME:
+			ui_pause_emulation(0);
+			break;
 #ifndef USE_SDLUI2
 /*        case SDL_VIDEORESIZE:
             DBG(("ui_handle_misc_sdl_event: SDL_VIDEORESIZE (%d,%d)", (unsigned int)e.resize.w, (unsigned int)e.resize.h));
