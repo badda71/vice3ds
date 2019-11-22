@@ -53,6 +53,7 @@
 //#include "vkbd.h"
 #include "vsidui_sdl.h"
 #include "vsync.h"
+#include "vice3ds.h"
 #include "uibottom.h"
 #include "mouse.h"
 
@@ -870,33 +871,12 @@ static int sdl_ui_readline_input(int *key, SDLMod *mod, Uint16 *c_uni)
 
     do {
 		if (SDL_PollEvent(&e)) {
-			// deactivate help screen if applicable
-			if (help_on) {
-				if (e.type == SDL_KEYDOWN || e.type==SDL_MOUSEBUTTONDOWN) {
-					toggle_help(sdl_menu_state);
-					while (SDL_PollEvent(&e)); // empty event queue
-				}
-				continue;
-			}
-			// deactivate touchscreen/editmode if applicable
-			if (e.type == SDL_KEYDOWN && e.key.keysym.sym == 208) {
-				if (_mouse_enabled)	{
-					set_mouse_enabled(0, NULL);
-					continue;
-				}
-				if (uibottom_editmode_is_on()) {
-					uibottom_toggle_editmode();
-					continue;
-				}
-			}
 
-	        action = MENU_ACTION_NONE;
+			if (do_common_3DS_actions(&e)) continue;
+
+			action = MENU_ACTION_NONE;
 			switch (e.type) {
 				case SDL_KEYDOWN:
-					if (e.key.keysym.sym == 255) {
-						toggle_keyboard();
-						break;
-					}
 					*key = SDL2x_to_SDL1x_Keys(e.key.keysym.sym);
 					*mod = e.key.keysym.mod;
 					*c_uni = e.key.keysym.unicode;

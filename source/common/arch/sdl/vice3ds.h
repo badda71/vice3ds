@@ -38,3 +38,4 @@ extern char *get_3ds_mapping_name(int i);
 extern int keymap3ds_resource_set(const char *val, void *param);
 extern int vice3ds_resources_init(void);
 extern void vice3ds_resources_shutdown(void);
+extern int do_common_3DS_actions(SDL_Event *e);

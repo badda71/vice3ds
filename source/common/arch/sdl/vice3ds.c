@@ -312,3 +312,32 @@ void vice3ds_resources_shutdown(void)
 	lib_free(keymap3ds_resource);
 	keymap3ds_resource=NULL;
 }
+
+int do_common_3DS_actions(SDL_Event *e){
+	// deactivate help screen if applicable
+	if (help_on) {
+		if (e->type == SDL_KEYDOWN || e->type==SDL_MOUSEBUTTONDOWN) {
+			SDL_Event v;
+			toggle_help(sdl_menu_state);
+			while (SDL_PollEvent(&v)); // empty event queue
+		}
+		return 1;
+	}
+	if (e->type == SDL_KEYDOWN) {
+		if (e->key.keysym.sym == 208) { // start
+			if (_mouse_enabled)	{
+				set_mouse_enabled(0, NULL);
+				return 1;
+			}
+			if (uibottom_editmode_is_on()) {
+				uibottom_toggle_editmode();
+				return 1;
+			}
+		}
+		if (e->key.keysym.sym == 255) {
+			toggle_keyboard();
+			return 1;
+		}
+	}
+	return 0;
+}

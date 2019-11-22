@@ -762,35 +762,14 @@ ui_menu_action_t ui_dispatch_events(void)
 		// check event queue
 		while (SDL_PollEvent(&e)) {
 
-			// deactivate help screen if applicable
-			if (help_on) {
-				if (e.type == SDL_KEYDOWN || e.type==SDL_MOUSEBUTTONDOWN) {
-					toggle_help(sdl_menu_state);
-					while (SDL_PollEvent(&e)); // empty event queue
-				}
-				continue;
-			}
 			if (!sdl_menu_state) do_3ds_mapping(&e); // apply 3ds-specific extra key mappings
 
+			if (do_common_3DS_actions(&e)) continue;
+	
 			switch (e.type) {
 				case SDL_KEYDOWN:
 					if (e.key.keysym.sym != 0) {
 						ui_display_kbd_status(&e);
-						if (e.key.keysym.sym == 255) {
-							toggle_keyboard();
-							break;
-						}
-						// deactivate touchscreen/editmode with start button if applicable
-						if (e.key.keysym.sym == 208) {
-							if (_mouse_enabled)	{
-								set_mouse_enabled(0, NULL);
-								continue;
-							}
-							if (uibottom_editmode_is_on()) {
-								uibottom_toggle_editmode();
-								continue;
-							}
-						}
 						if (sdl_menu_state && e.key.keysym.sym==sdl_ui_menukeys[MENU_ACTION_EMU]) {
 							events_to_emu=1;
 							uibottom_must_redraw |= UIB_RECALC_MENU;
