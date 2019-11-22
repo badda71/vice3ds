@@ -251,19 +251,7 @@ static void sdl_ui_file_selector_redraw(ioutil_dir_t *directory, const char *tit
     }
 
 	// scrollbar
-	if (more || offset) {
-		havescrollbar=1;
-		int menu_max = menu_draw->max_text_y - (MENU_FIRST_Y + SDL_FILEREQ_META_NUM) - 1;
-		int beg = (float)(offset * menu_max) / (float)total + 0.5f;
-		int end = (float)((offset + num_items) * menu_max) / (float)total + 0.5f;
-		for (i=0; i<=menu_max; ++i) {
-			if (i==beg) sdl_ui_reverse_colors();
-			sdl_ui_putchar(' ', menu_draw->max_text_x-1, i + MENU_FIRST_Y + SDL_FILEREQ_META_NUM);
-			if (i==end) sdl_ui_reverse_colors();
-		}
-	} else {
-		havescrollbar=0;
-	}
+	havescrollbar = sdl_ui_draw_scrollbar(4, menu_draw->max_text_y - (MENU_FIRST_Y + SDL_FILEREQ_META_NUM), offset, total);
 }
 
 static void sdl_ui_file_selector_redraw_cursor(ioutil_dir_t *directory, int offset, int num_items, ui_menu_filereq_mode_t mode, int cur_offset, int old_offset)
@@ -632,7 +620,9 @@ char* sdl_ui_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mod
 								y < menu_draw->max_text_y &&
 								y <= MENU_FIRST_Y + total - offset + 1) {
 								if (havescrollbar && (dragging || x==menu_draw->max_text_x-1)) {
-									offset = ((y - MENU_FIRST_Y - SDL_FILEREQ_META_NUM) * total) / menu_max - menu_max/2;
+									offset = sdl_calc_scrollbar_pos(
+										(lastevent.button.y*240) / sdl_active_canvas->screen->h,
+										4, menu_max, total);
 									dragging=1;
 								} else {
 									if (cur != y - MENU_FIRST_Y - SDL_FILEREQ_META_NUM) {

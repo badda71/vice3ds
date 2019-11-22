@@ -203,6 +203,8 @@ extern int sdl_ui_set_toggle_colors(int state);
 extern int sdl_ui_set_default_colors(void);
 extern void sdl_ui_menu_shutdown(void);
 extern int sdl_ui_adjust_offset(int *offset, int *cur,int menu_max, int total);
+extern int sdl_ui_draw_scrollbar(int menu_off, int menu_max, int offset, int total);
+extern int sdl_calc_scrollbar_pos(int y, int menu_off, int menu_max, int total);
 
 extern const char *sdl_ui_menu_video_slider_helper(int activated, ui_callback_data_t param, const char *resource_name, const int min, const int max);
 

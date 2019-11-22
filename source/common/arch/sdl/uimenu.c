@@ -217,6 +217,40 @@ static const uint8_t sdl_char_to_screen_monitor[256] = {
 
 static ui_menu_retval_t sdl_ui_menu_item_activate(ui_menu_entry_t *item);
 
+int sdl_ui_draw_scrollbar(int menu_off, int menu_max, int offset, int total)
+{
+	if (total <= menu_max && offset <=0) return 0;
+	int sb_offset = menu_off * activefont.h;
+	int sb_len = menu_max * activefont.h;
+	int sb_bar_offset = (offset * sb_len) / total;
+	int sb_bar_length = MAX((menu_max * sb_len) / total, 3);
+
+	uint8_t *draw_pos = &(menu_draw_buffer[sb_offset * menu_draw.pitch + (menu_draw.max_text_x - 1) * activefont.w]) + menu_draw.offset;
+
+	for (int y = 0; y < sb_len; ++y) {
+		if (y == 0 || y == sb_len-1 || (y >= sb_bar_offset && y < sb_bar_offset + sb_bar_length)) 
+			for (int x = 0; x < activefont.w; ++x)
+				draw_pos[x]= menu_draw.color_front;
+		else 
+			for (int x = 0; x < activefont.w; ++x)
+				draw_pos[x]= x==0 ? menu_draw.color_front : menu_draw.color_back;
+		draw_pos += menu_draw.pitch;
+	}
+	return 1;
+}
+
+int sdl_calc_scrollbar_pos(int y, int menu_off, int menu_max, int total)
+{
+	if (total <= menu_max) return 0;
+	y=y-menu_off * activefont.h;
+	int sb_len = menu_max * activefont.h;
+	int sb_bar_length = MAX((menu_max * sb_len) / total, 3);
+	int offset = (total * (y - sb_bar_length/2))/sb_len;
+	if (offset<0) offset=0;
+	if (offset>total-menu_max) offset=total-menu_max;
+	return offset;
+}
+
 void sdl_ui_putchar(uint8_t c, int pos_x, int pos_y)
 {
     int x, y;
@@ -485,14 +519,7 @@ static void sdl_ui_menu_redraw(ui_menu_entry_t *menu, const char *title, int off
 
 	// scrollbar
 	if (havescrollbar) {
-		int menu_max = menu_draw.max_text_y - MENU_FIRST_Y - 1;
-		int beg = (float)(offset * menu_max) / (float)total + 0.5f;
-		int end = (float)((offset + menu_max) * menu_max) / (float)total + 0.5f;
-		for (i=0; i<=menu_max; ++i) {
-			if (i==beg) sdl_ui_reverse_colors();
-			sdl_ui_putchar(' ', menu_draw.max_text_x-1, i + MENU_FIRST_Y);
-			if (i==end) sdl_ui_reverse_colors();
-		}
+		sdl_ui_draw_scrollbar(MENU_FIRST_Y, menu_draw.max_text_y - MENU_FIRST_Y, offset, total);		
 	}
 }
 
@@ -678,6 +705,9 @@ static ui_menu_retval_t sdl_ui_menu_display(ui_menu_entry_t *menu, const char *t
 								y < menu_draw.max_text_y &&
 								y <= MENU_FIRST_Y + num_items - cur_offset - 1) {
 								if (havescrollbar && (dragging || x==menu_draw.max_text_x-1)) {
+									cur_offset = sdl_calc_scrollbar_pos(
+										(lastevent.button.y*240) / sdl_active_canvas->screen->h,
+										MENU_FIRST_Y, menu_max, num_items);
 									cur_offset = ((y - MENU_FIRST_Y) * num_items) / menu_max - menu_max/2;
 									dragging=1;
 								} else {
