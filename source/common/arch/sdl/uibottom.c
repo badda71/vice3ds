@@ -367,6 +367,7 @@ static int help_button_on;
 static Handle repaintRequired;
 static volatile int help_anim;
 static volatile int menu_anim=0;
+static u8 *gpusrc=NULL;
 
 // sprite handling funtions
 // ========================
@@ -425,7 +426,7 @@ static inline void  drawImage( DS3_Image *img, int x, int y, int width, int heig
 	C3D_ImmDrawEnd();
 }
 
-static void makeTexture(C3D_Tex *tex, u8 *gpusrc, unsigned hw, unsigned hh) {
+static void makeTexture(C3D_Tex *tex, u8 *mygpusrc, unsigned hw, unsigned hh) {
 	s32 i;
 	svcWaitSynchronization(privateSem1, U64_MAX);
 	// init texture
@@ -434,8 +435,8 @@ static void makeTexture(C3D_Tex *tex, u8 *gpusrc, unsigned hw, unsigned hh) {
 	C3D_TexSetFilter(tex, GPU_NEAREST, GPU_NEAREST);
 
 	// Convert image to 3DS tiled texture format
-	GSPGPU_FlushDataCache(gpusrc, hw*hh*4);
-	C3D_SyncDisplayTransfer ((u32*)gpusrc, GX_BUFFER_DIM(hw,hh), (u32*)(tex->data), GX_BUFFER_DIM(hw,hh), TEXTURE_TRANSFER_FLAGS);
+	GSPGPU_FlushDataCache(mygpusrc, hw*hh*4);
+	C3D_SyncDisplayTransfer ((u32*)mygpusrc, GX_BUFFER_DIM(hw,hh), (u32*)(tex->data), GX_BUFFER_DIM(hw,hh), TEXTURE_TRANSFER_FLAGS);
 	GSPGPU_FlushDataCache(tex->data, hw*hh*4);
 	svcReleaseSemaphore(&i, privateSem1, 1);
 }
@@ -449,13 +450,11 @@ static void makeImage(DS3_Image *img, u8 *pixels, unsigned w, unsigned h, int no
 	unsigned hh=mynext_pow2(h);
 	img->fh=(float)(h)/hh;
 
-	u8 *gpusrc;
 	if (noconv) { // pixels are already in a transferable format (buffer in linear RAM, ABGR pixel format, pow2-dimensions)
-		gpusrc = pixels;
+		makeTexture(&(img->tex), pixels, hw, hh);
 	} else {
 		// GX_DisplayTransfer needs input buffer in linear RAM
-		gpusrc = linearAlloc(hw*hh*4);
-		memset(gpusrc,0,hw*hh*4);
+		// memset(gpusrc,0,hw*hh*4);
 
 		// copy to linear buffer, convert from RGBA to ABGR
 		u8* src=pixels; u8 *dst;
@@ -473,12 +472,9 @@ static void makeImage(DS3_Image *img, u8 *pixels, unsigned w, unsigned h, int no
 				*dst++ = r;
 			}
 		}
+		makeTexture(&(img->tex), gpusrc, hw, hh);
 	}
 
-	makeTexture(&(img->tex), gpusrc, hw, hh);
-
-	// cleanup
-	if (!noconv) linearFree(gpusrc);
 	return;
 }
 
@@ -1188,7 +1184,7 @@ static void sbuttons_recalc() {
 static int uibottom_isinit=0;
 static void uibottom_init() {
 	uibottom_isinit=1;
-
+	
 	// pre-load images
 	sb_img=IMG_Load("romfs:/sb.png");
 	SDL_SetAlpha(sb_img, 0, 255);
@@ -1248,9 +1244,6 @@ void menu_recalc() {
 	menu_spr.fh=(float)(menu_spr.h)/hh;
 	int y,x;
 
-	// GX_DisplayTransfer needs input buffer in linear RAM
-	u8 *gpusrc = linearAlloc(hw*hh*4);
-
 	// convert the paletted menu draw buffer to ABGR
 	u8* src=menu_draw_buffer;
 	u8 *dst;
@@ -1280,9 +1273,6 @@ void menu_recalc() {
 	memset(gpusrc+239*hw*4,255,310*4);
 
 	makeTexture(&(menu_spr.tex), gpusrc, hw, hh);
-
-	// cleanup
-	linearFree(gpusrc);
 }
 
 // update the whole bottom screen
@@ -1780,6 +1770,9 @@ int uibottom_resources_init() {
 		sbutton_dang[i] = (rand()%2) ? (32-sbutton_dang[i]) : sbutton_dang[i];
 	}
 
+	// init gpusrc
+	gpusrc = linearAlloc(512*256*4);	
+
 	if (resources_register_string(resources_string) < 0) {
 		return -1;
 	}
@@ -1792,6 +1785,10 @@ int uibottom_resources_init() {
 void uibottom_resources_shutdown() {
 	lib_free(soft_button_positions);
 	soft_button_positions=NULL;
+
+	linearFree(gpusrc);
+	gpusrc=NULL;
+
 	// free the hash
 	for (int i=0; i<HASHSIZE;++i)
 		free(iconHash[i].key);
