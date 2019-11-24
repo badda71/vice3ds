@@ -373,7 +373,7 @@ const ui_menu_entry_t misc_menu[] = {
     { "Add key mapping (key -> key)",
 		MENU_ENTRY_OTHER,
 		add_keymapping_callback,
-		(ui_callback_data_t)SDL_POLL_KEYBOARD },
+		(ui_callback_data_t)(SDL_POLL_KEYBOARD | SDL_POLL_MODIFIER) },
 #ifdef HAVE_SDL_NUMJOYSTICKS
 	{ "Add key mapping (key -> joystick)",
 		MENU_ENTRY_OTHER,
