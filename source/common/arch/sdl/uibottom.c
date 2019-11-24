@@ -113,7 +113,7 @@ uikbd_key uikbd_keypos_C64[] = {
 	{ 281, 21,  20,  20,  19,   0,   0,  0,  "CLR/HOME"}, // CLR/HOME
 	{ 301, 21,  19,  20,  20,   0,   0,  0,  "INST/DEL"}, // INST/DEL
 	// 2nd row	
-	{   1, 41,  30,  20,  24,   0,   4,  0,  "CTRL"}, // CTRL - sticky ctrl
+	{   1, 41,  30,  20,  24,   0,   KMOD_LCTRL,  0,  "CTRL"}, // CTRL - sticky ctrl
 	{  31, 41,  20,  20, 113,  81,   0,  0,  "Q"}, // Q
 	{  51, 41,  20,  20, 119,  87,   0,  0,  "W"}, // W
 	{  71, 41,  20,  20, 101,  69,   0,  0,  "E"}, // E
@@ -130,7 +130,7 @@ uikbd_key uikbd_keypos_C64[] = {
 	{ 291, 41,  29,  20,  25,   0,   0,  0,  "RESTORE"}, // RESTORE
 	// 3rd row	
 	{   1, 61,  20,  20,   3,   0,   0,  0,  "RUN/STOP"}, // RUN/STOP
-	{  21, 61,  20,  20,  21,   0,   1,  0,  "SHIFT"}, // SHIFT LOCK - sticky shift
+	{  21, 61,  20,  20,  21,   0,   KMOD_LSHIFT,  0,  "SHIFT"}, // SHIFT LOCK - sticky shift
 	{  41, 61,  20,  20,  97,  65,   0,  0,  "A"}, // A
 	{  61, 61,  20,  20, 115,  83,   0,  0,  "S"}, // S
 	{  81, 61,  20,  20, 100,  68,   0,  0,  "D"}, // D
@@ -145,8 +145,8 @@ uikbd_key uikbd_keypos_C64[] = {
 	{ 261, 61,  20,  20,  61,   0,   0,  0,  "="}, // =
 	{ 281, 61,  39,  20,  13,   0,   0,  0,  "RETURN"}, // RETURN
 	// 4th row	
-	{   1, 81,  20,  20,  23,   0,   2,  0,  "C="}, // cbm - sticky cbm
-	{  21, 81,  30,  20,  21,   0,   1,  0,  "SHIFT"}, // LSHIFT - sticky shift
+	{   1, 81,  20,  20,  23,   0,   KMOD_LALT,  0,  "C="}, // cbm - sticky cbm
+	{  21, 81,  30,  20,  21,   0,   KMOD_LSHIFT,  0,  "SHIFT"}, // LSHIFT - sticky shift
 	{  51, 81,  20,  20, 122,  90,   0,  0,  "Z"}, // Z
 	{  71, 81,  20,  20, 120,  88,   0,  0,  "X"}, // X
 	{  91, 81,  20,  20,  99,  67,   0,  0,  "C"}, // C
@@ -157,7 +157,7 @@ uikbd_key uikbd_keypos_C64[] = {
 	{ 191, 81,  20,  20,  44,  60,   0,  0,  ","}, // ,
 	{ 211, 81,  20,  20,  46,  62,   0,  0,  "."}, // .
 	{ 231, 81,  20,  20,  47,  63,   0,  0,  "/"}, // /
-	{ 251, 81,  30,  20,  21,   0,   1,  0,  "SHIFT"}, // RSHIFT - sticky shift
+	{ 251, 81,  30,  20,  21,   0,   KMOD_LSHIFT,  0,  "SHIFT"}, // RSHIFT - sticky shift
 	// SPACE	
 	{  61,101, 180,  19,  32,   0,   0,  0,  "SPACE"},  // SPACE
 	// Cursor Keys
@@ -230,7 +230,7 @@ uikbd_key uikbd_keypos_C128[] = {
 	{ 281, 21,  20,  20,  19,   0,   0,  0,  "CLR/HOME"}, // CLR/HOME
 	{ 301, 21,  19,  20,  20,   0,   0,  0,  "INST/DEL"}, // INST/DEL
 	// 2nd row	
-	{   1, 41,  30,  20,  24,   0,   4,  0,  "CTRL"}, // CTRL - sticky ctrl
+	{   1, 41,  30,  20,  24,   0,   KMOD_LCTRL,  0,  "CTRL"}, // CTRL - sticky ctrl
 	{  31, 41,  20,  20, 113,  81,   0,  0,  "Q"}, // Q
 	{  51, 41,  20,  20, 119,  87,   0,  0,  "W"}, // W
 	{  71, 41,  20,  20, 101,  69,   0,  0,  "E"}, // E
@@ -247,7 +247,7 @@ uikbd_key uikbd_keypos_C128[] = {
 	{ 291, 41,  29,  20,  25,   0,   0,  0,  "RESTORE"}, // RESTORE
 	// 3rd row	
 	{   1, 61,  20,  20,   3,   0,   0,  0,  "RUN/STOP"}, // RUN/STOP
-	{  21, 61,  20,  20,  21,   0,   1,  0,  "SHIFT"}, // SHIFT LOCK - sticky shift
+	{  21, 61,  20,  20,  21,   0,   KMOD_LSHIFT,  0,  "SHIFT"}, // SHIFT LOCK - sticky shift
 	{  41, 61,  20,  20,  97,  65,   0,  0,  "A"}, // A
 	{  61, 61,  20,  20, 115,  83,   0,  0,  "S"}, // S
 	{  81, 61,  20,  20, 100,  68,   0,  0,  "D"}, // D
@@ -262,8 +262,8 @@ uikbd_key uikbd_keypos_C128[] = {
 	{ 261, 61,  20,  20,  61,   0,   0,  0,  "="}, // =
 	{ 281, 61,  39,  20,  13,   0,   0,  0,  "RETURN"}, // RETURN
 	// 4th row	
-	{   1, 81,  20,  20,  23,   0,   2,  0,  "C="}, // cbm - sticky cbm
-	{  21, 81,  30,  20,  21,   0,   1,  0,  "SHIFT"}, // LSHIFT - sticky shift
+	{   1, 81,  20,  20,  23,   0,   KMOD_LALT,  0,  "C="}, // cbm - sticky cbm
+	{  21, 81,  30,  20,  21,   0,   KMOD_LSHIFT,  0,  "SHIFT"}, // LSHIFT - sticky shift
 	{  51, 81,  20,  20, 122,  90,   0,  0,  "Z"}, // Z
 	{  71, 81,  20,  20, 120,  88,   0,  0,  "X"}, // X
 	{  91, 81,  20,  20,  99,  67,   0,  0,  "C"}, // C
@@ -274,7 +274,7 @@ uikbd_key uikbd_keypos_C128[] = {
 	{ 191, 81,  20,  20,  44,  60,   0,  0,  ","}, // ,
 	{ 211, 81,  20,  20,  46,  62,   0,  0,  "."}, // .
 	{ 231, 81,  20,  20,  47,  63,   0,  0,  "/"}, // /
-	{ 251, 81,  30,  20,  21,   0,   1,  0,  "SHIFT"}, // RSHIFT - sticky shift
+	{ 251, 81,  30,  20,  21,   0,   KMOD_LSHIFT,  0,  "SHIFT"}, // RSHIFT - sticky shift
 	// SPACE	
 	{  61,101, 180,  19,  32,   0,   0,  0,  "SPACE"},  // SPACE
 	// Cursor Keys
@@ -360,7 +360,6 @@ static int sb_paintlast;
 static int kb_y_pos = 0;
 static volatile int set_kb_y_pos = -10000;
 static int kb_activekey=-1;
-static int sticky=0;
 static unsigned char keysPressed[256];
 static int editmode_on=0;
 static int help_button_on;
@@ -656,11 +655,12 @@ static void uibottom_repaint(void *param, int topupdated) {
 		drawImage(&(colkey_spr[i]),k->x,k->y+kb_y_pos,k->w,k->h);
 	}
 	// keyboard
+	SDLMod sticky = SDL_GetModState();
 	drawImage(
-		(sticky&7) == 1 ? &(kbd2_spr):
-		(sticky&7) == 2 ? &(kbd3_spr):
-		(sticky&7) >= 4 ? &(kbd4_spr):
-		&(kbd1_spr), 0, kb_y_pos, 0, 0);
+		(sticky & KMOD_CTRL) ? &(kbd4_spr): // ctrl
+		(sticky & KMOD_SHIFT) ? &(kbd2_spr): // shift
+		(sticky & KMOD_ALT) ? &(kbd3_spr): // cmb
+		&(kbd1_spr), 0, kb_y_pos, 0, 0); // normal
 	// keyboard twisty
 	drawImage(
 		kb_y_pos >= 240 ? &(twistyup_spr):&(twistydn_spr),
@@ -718,7 +718,7 @@ static void keypress_recalc() {
 			(s=item->callback(0, item->data)) != NULL &&
 			s[0]==UIFONT_CHECKMARK_CHECKED_CHAR)
 			state=1;
-		else if (uikbd_keypos[key].sticky & sticky) state=1;
+		else if (uikbd_keypos[key].sticky & SDL_GetModState()) state=1;
 		keysPressed[key]=state;
 	}
 }
@@ -729,7 +729,7 @@ static void keyboard_recalc() {
 	static void *pal=NULL;
 	u8 r=0,g=0,b=0;
 
-	int kb = (sticky&7) == 2 ? 8: 0;
+	int kb = (SDL_GetModState() & KMOD_ALT) ? 8: 0;
 
 	if (kb!=oldkb || pal == NULL || pal != sdl_active_canvas->palette->entries) {
 		oldkb=kb;
@@ -1672,6 +1672,7 @@ ui_menu_action_t sdl_uibottom_mouseevent(SDL_Event *e) {
 	}
 
 	// sticky key press
+	SDLMod sticky = SDL_GetModState();
 	if (uikbd_keypos[i].sticky>0) {
 		if (e->button.type == SDL_MOUSEBUTTONDOWN) {
 			sticky = sticky ^ uikbd_keypos[i].sticky;
@@ -1679,13 +1680,15 @@ ui_menu_action_t sdl_uibottom_mouseevent(SDL_Event *e) {
 			sdl_e.key.keysym.sym = uikbd_keypos[i].key;
 			sdl_e.key.keysym.unicode = 0;
 			SDL_PushEvent(&sdl_e);
+			SDL_SetModState(sticky);
 			uibottom_must_redraw |= UIB_RECALC_KEYBOARD;
 		}
 	} else {
 		// normal key press
 		sdl_e.type = e->button.type == SDL_MOUSEBUTTONDOWN ? SDL_KEYDOWN : SDL_KEYUP;
 		sdl_e.key.keysym.sym = uikbd_keypos[i].key;
-		if ((sticky & 1) && uikbd_keypos[i].shift)
+		sdl_e.key.keysym.mod = sticky;
+		if ((sticky & KMOD_SHIFT) && uikbd_keypos[i].shift)
 			sdl_e.key.keysym.unicode = uikbd_keypos[i].shift;
 		else
 			sdl_e.key.keysym.unicode = sdl_e.key.keysym.sym;

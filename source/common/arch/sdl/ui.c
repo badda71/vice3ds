@@ -768,9 +768,9 @@ ui_menu_action_t ui_dispatch_events(void)
 		// check event queue
 		while (SDL_PollEvent(&e)) {
 
-			if (!sdl_menu_state) do_3ds_mapping(&e); // apply 3ds-specific extra key mappings
-
 			if (do_common_3DS_actions(&e)) continue;
+
+			if (!sdl_menu_state) do_3ds_mapping(&e); // apply 3ds-specific extra key mappings
 	
 			switch (e.type) {
 				case SDL_KEYDOWN:
