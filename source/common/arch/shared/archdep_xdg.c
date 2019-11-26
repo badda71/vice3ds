@@ -37,8 +37,20 @@
 #include "archdep_xdg.h"
 
 static char *xdg_data_home = "/3ds/vice3ds";
-static char *xdg_config_home = "/3ds/vice3ds/config";
-static char *xdg_cache_home = "/3ds/vice3ds/cache";
+static char *xdg_config_home = NULL;
+static char *xdg_cache_home = NULL;
+
+static void archdep_xdg_free(void)
+{
+    if (xdg_config_home != NULL) {
+        lib_free(xdg_config_home);
+        xdg_config_home = NULL;
+    }
+    if (xdg_cache_home != NULL) {
+        lib_free(xdg_cache_home);
+        xdg_cache_home = NULL;
+    }
+}
 
 char *archdep_xdg_data_home(void)
 {
@@ -47,10 +59,18 @@ char *archdep_xdg_data_home(void)
 
 char *archdep_xdg_config_home(void)
 {
+	if (xdg_config_home == NULL) {
+		xdg_config_home = archdep_join_paths(archdep_xdg_data_home(), "config", NULL);
+		atexit(archdep_xdg_free);
+	}
 	return xdg_config_home;
 }
 
 char *archdep_xdg_cache_home(void)
 {
+	if (xdg_cache_home == NULL) {
+		xdg_cache_home = archdep_join_paths(archdep_xdg_data_home(), "cache", NULL);
+		atexit(archdep_xdg_free);
+	}
 	return xdg_cache_home;
 }

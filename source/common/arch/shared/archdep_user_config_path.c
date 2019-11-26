@@ -82,6 +82,7 @@ char *archdep_user_config_path(void)
 {
     if (user_config_dir == NULL) {
 		user_config_dir = lib_stralloc(archdep_xdg_config_home());
+		atexit(archdep_user_config_path_free);
 	}
     return user_config_dir;
 }
