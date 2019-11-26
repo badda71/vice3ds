@@ -31,4 +31,6 @@
 
 extern const ui_menu_entry_t misc_menu[];
 extern UI_MENU_CALLBACK(type_command_callback);
+extern UI_MENU_CALLBACK(activate_KeyCombo_callback);
+extern void get_combo_name(int combo, char *buf, int maxlen);
 #endif

@@ -905,9 +905,38 @@ static void printstring(SDL_Surface *s, const char *str, int x, int y, int maxch
 	SDL_SetPalette(f.img, SDL_LOGPAL, &(SDL_Color){0xff,0xff,0xff,0}, 1, 1);
 }
 
+static void blitKey(SDL_Surface *s, char *name, int y, enum str_alignment align) {
+	int w;
+	char *p=NULL;
+	if (strlen(name)<=2) w=strlen(name)*8+7;
+	else if ((p=strchr(name,'/'))!=NULL) w=MAX(p-name,strlen(p+1))*4+1;
+	else w=strlen(name)*4+1;
+	if (w<15) w=15;
+	if (w>34) w=34;
+	int xoff=
+		align == ALIGN_CENTER? (34-w)/2:
+		align == ALIGN_LEFT? 0:
+		34-w;
+
+	// blit the empty key width the right size
+	SDL_BlitSurface(keyimg, &(SDL_Rect){.x=0, .y=0, .w=4, .h=21},
+		s, &(SDL_Rect){.x=xoff, .y=y});
+	SDL_BlitSurface(keyimg, &(SDL_Rect){.x=38-w, .y=0, .w=w+2, .h=21},
+		s, &(SDL_Rect){.x=xoff + 4, .y=y });
+	// blit the characters
+	if (strlen(name)<=2) {
+		printstring(s, name, xoff+(w+6)/2, y+6, 0, ALIGN_CENTER, FONT_BIG, (SDL_Color){0xff,0xff,0xff,0});
+	} else {
+		// small characters, one or two lines
+		printstring(s, name, xoff+(w+8)/2, p?y+4:y+7, p?MIN(p-name,w/4):w/4, ALIGN_CENTER, FONT_SMALL, (SDL_Color){0xff,0xff,0xff,0});
+		if (p)
+			printstring(s, p+1,xoff+(w+8)/2, y+10, w/4, ALIGN_CENTER, FONT_SMALL, (SDL_Color){0xff,0xff,0xff,0});
+	}
+}
+
 static SDL_Surface *createIcon(char *name) {
 //log_citra("enter %s: %s",__func__,name);
-	int i,c,w,xof,yof;
+	int i,c,xof,yof;
 
 	SDL_Surface *icon=SDL_CreateRGBSurface(SDL_SWSURFACE,ICON_W,ICON_H,32,0xff000000,0x00ff0000,0x0000ff00,0x000000ff);
 //	SDL_FillRect(icon, NULL, SDL_MapRGBA(icon->format, 0, 0, 0, 0));
@@ -920,28 +949,22 @@ static SDL_Surface *createIcon(char *name) {
 	} else if (strncmp("Key ",name,4)==0) {
 		// make a key icon
 		// check width
-		char *p=NULL;
-		name+=4;
-		if (strlen(name)<=2) w=strlen(name)*8+7;
-		else if ((p=strchr(name,'/'))!=NULL) w=MAX(p-name,strlen(p+1))*4+1;
-		else w=strlen(name)*4+1;
-		if (w<15) w=15;
-		if (w>34) w=34;
-
-		// blit the empty key width the right size
-		SDL_BlitSurface(keyimg, &(SDL_Rect){.x=0, .y=0, .w=4, .h=21},
-			icon, &(SDL_Rect){.x=(34-w)/2 , .y=9 });
-		SDL_BlitSurface(keyimg, &(SDL_Rect){.x=38-w, .y=0, .w=w+2, .h=21},
-			icon, &(SDL_Rect){.x=(34-w)/2+4 , .y=9 });
-
-		// blit the characters
-		if (strlen(name)<=2) {
-			printstring(icon, name, 19, 15, 0, ALIGN_CENTER, FONT_BIG, (SDL_Color){0xff,0xff,0xff,0});
-		} else {
-			// small characters, one or two lines
-			printstring(icon, name, 20, p?13:16, p?MIN(p-name,w/4):w/4, ALIGN_CENTER, FONT_SMALL, (SDL_Color){0xff,0xff,0xff,0});
-			if (p)
-				printstring(icon, p+1, 20, 19, w/4, ALIGN_CENTER, FONT_SMALL, (SDL_Color){0xff,0xff,0xff,0});
+		blitKey(icon, name+4, 9, ALIGN_CENTER);
+	} else if (strncmp("Combo ",name,6)==0) {
+		// make a Combo icon
+		// check width
+		char *saveptr1, *p;
+		i=0;
+		const int pos[4][2]={
+			{19, ALIGN_LEFT},
+			{0, ALIGN_RIGHT},
+			{0, ALIGN_LEFT},
+			{19, ALIGN_RIGHT}};
+		p = strtok_r(name+6, " + ", &saveptr1);
+		while(p != NULL && i < 4) {
+			blitKey(icon, p, pos[i][0], pos[i][1]);
+			p = strtok_r(NULL, " + ", &saveptr1);
+			++i;
 		}
 	} else {
 		// Just write the name on the surface
@@ -1038,6 +1061,14 @@ char *get_key_help(int key, int inmenu, int trylen) {
 				resources_get_string(item->data, (const char**)&p);
 				snprintf(buf,100,"%s",p);
 				for (p = buf; (p = strchr(p, '\\')) != NULL; *p = ' ');
+				return buf;
+			}
+
+			// Combo hotkey -> return combo keys
+			if (item->callback == activate_KeyCombo_callback) {
+				resources_get_int(item->data, &i1);
+				sprintf(buf, "Combo ");
+				get_combo_name(i1, buf+6, 94);
 				return buf;
 			}
 

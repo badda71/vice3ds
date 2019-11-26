@@ -250,6 +250,15 @@ static int set_command(const char *val, void *param)
     return 0;
 }
 
+static int keycombo[20];
+
+static int set_key_combo(int val, void *param)
+{
+	keycombo[(int)param] = (int)val;
+    return 0;
+}
+
+
 static resource_string_t resources_string[] = {
 	{ "Command01", "load\"*\",8,1\\run\\", RES_EVENT_NO, NULL,
 		&command[0], set_command, (void*)0},
@@ -294,15 +303,58 @@ static resource_string_t resources_string[] = {
 	RESOURCE_STRING_LIST_END
 };
 
+static resource_int_t resources_int[] = {
+	{ "KeyCombo01", 3 | (25 << 8), RES_EVENT_NO, NULL, // R/S / RESTORE
+		&keycombo[0], set_key_combo, (void*)0},
+	{ "KeyCombo02", 23 | (21 << 8), RES_EVENT_NO, NULL, // CMB / SHIFT
+		&keycombo[1], set_key_combo, (void*)1},
+	{ "KeyCombo03", 0, RES_EVENT_NO, NULL,
+		&keycombo[2], set_key_combo, (void*)2},
+	{ "KeyCombo04", 0, RES_EVENT_NO, NULL,
+		&keycombo[3], set_key_combo, (void*)3},
+	{ "KeyCombo05", 0, RES_EVENT_NO, NULL,
+		&keycombo[4], set_key_combo, (void*)4},
+	{ "KeyCombo06", 0, RES_EVENT_NO, NULL,
+		&keycombo[5], set_key_combo, (void*)5},
+	{ "KeyCombo07", 0, RES_EVENT_NO, NULL,
+		&keycombo[6], set_key_combo, (void*)6},
+	{ "KeyCombo08", 0, RES_EVENT_NO, NULL,
+		&keycombo[7], set_key_combo, (void*)7},
+	{ "KeyCombo09", 0, RES_EVENT_NO, NULL,
+		&keycombo[8], set_key_combo, (void*)8},
+	{ "KeyCombo10", 0, RES_EVENT_NO, NULL,
+		&keycombo[9], set_key_combo, (void*)9},
+	{ "KeyCombo11", 0, RES_EVENT_NO, NULL,
+		&keycombo[10], set_key_combo, (void*)10},
+	{ "KeyCombo12", 0, RES_EVENT_NO, NULL,
+		&keycombo[11], set_key_combo, (void*)11},
+	{ "KeyCombo13", 0, RES_EVENT_NO, NULL,
+		&keycombo[12], set_key_combo, (void*)12},
+	{ "KeyCombo14", 0, RES_EVENT_NO, NULL,
+		&keycombo[13], set_key_combo, (void*)13},
+	{ "KeyCombo15", 0, RES_EVENT_NO, NULL,
+		&keycombo[14], set_key_combo, (void*)14},
+	{ "KeyCombo16", 0, RES_EVENT_NO, NULL,
+		&keycombo[15], set_key_combo, (void*)15},
+	{ "KeyCombo17", 0, RES_EVENT_NO, NULL,
+		&keycombo[16], set_key_combo, (void*)16},
+	{ "KeyCombo18", 0, RES_EVENT_NO, NULL,
+		&keycombo[17], set_key_combo, (void*)17},
+	{ "KeyCombo19", 0, RES_EVENT_NO, NULL,
+		&keycombo[18], set_key_combo, (void*)18},
+	{ "KeyCombo20", 0, RES_EVENT_NO, NULL,
+		&keycombo[19], set_key_combo, (void*)19},
+	RESOURCE_INT_LIST_END
+};
 
 int vice3ds_resources_init(void)
 {
 	if (resources_register_string(resources_string) < 0) {
 		return -1;
 	}
-//	if (resources_register_int(resources_int) < 0) {
-//		return -1;
-//	}
+	if (resources_register_int(resources_int) < 0) {
+		return -1;
+	}
 	return 0;
 }
 

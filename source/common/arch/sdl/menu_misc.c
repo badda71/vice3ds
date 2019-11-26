@@ -64,14 +64,6 @@ static void kb_feed(const char *text) {
 	lib_free(text_in_petscii);
 }
 
-static UI_MENU_CALLBACK(keystroke_callback)
-{
-	if (activated) {
-		start_worker(ui_key_press_sequence, (int(*)[3])param);
-    }
-    return NULL;
-}
-
 static UI_MENU_CALLBACK(toggle_bottomoff_callback)
 {
 	int r=getBottomBacklight();
@@ -281,6 +273,63 @@ UI_MENU_CALLBACK(type_command_callback)
 	return ostr;
 }
 
+void get_combo_name(int combo, char *buf, int maxlen) {
+	char* p=buf;
+	char* q=buf+maxlen;
+	*p=0;
+	for(int i=0; i<4 && p<q; i++) {
+		if (combo >> (i*8)) {
+			p += snprintf(p, q-p, "%s%s",
+				p==buf?"":" + ",
+				get_3ds_keyname((combo >> (i*8)) & 0xff));
+		}
+	}
+}
+
+UI_MENU_CALLBACK(edit_KeyCombo_callback)
+{
+	SDL_Event s;
+	char *name=(char *)param;
+	int combo=0;
+	int i=0;
+	static char buf[40];
+	if (activated) {
+		for (i=0; i<4; i++) { // max 4 keys in a combo
+			snprintf(buf,20,"Combo-Key %d of 2-4",i+1);
+			s = sdl_ui_poll_event(buf, name, SDL_POLL_KEYBOARD | SDL_POLL_MODIFIER , 5);
+			if (s.type != SDL_KEYDOWN) break;
+			combo |= s.key.keysym.sym << (i*8);
+		}
+		if (i<=1) combo=0; // at least 2 keys in a combo
+		resources_set_int(name, combo);
+	} else resources_get_int(name, &combo);
+
+	get_combo_name(combo, buf, 40);
+	return buf;
+}
+
+UI_MENU_CALLBACK(activate_KeyCombo_callback)
+{
+	static char buf[40];
+	int seq[9][3]={{0,0,0}};
+	int combo;
+	resources_get_int((char *)param, &combo);
+	if (activated && combo) {
+		int max=1+fls(combo)/8;
+		for (int i=0; i < max; ++i) {
+			seq[i][0]= 0;
+			seq[i][1]= SDL_KEYDOWN;
+			seq[i][2]= seq[max*2-i-1][2]= (combo >> (i*8)) & 0xff;
+			seq[max*2-i-1][0]= i==(max-1) ? 120:0;
+			seq[max*2-i-1][1]= SDL_KEYUP;
+		}
+		start_worker(ui_key_press_sequence, seq);
+		return sdl_menu_text_exit_ui;
+    }
+	get_combo_name(combo, buf, 40);
+	return buf;
+}
+
 UI_MENU_DEFINE_STRING(Command01)
 UI_MENU_DEFINE_STRING(Command02)
 UI_MENU_DEFINE_STRING(Command03)
@@ -350,6 +399,54 @@ const ui_menu_entry_t type_commands_menu[] = {
     SDL_MENU_LIST_END
 };	
 
+const ui_menu_entry_t edit_keycombos_menu[] = {
+    { "Edit 01", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo01" },
+    { "Edit 02", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo02" },
+    { "Edit 03", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo03" },
+    { "Edit 04", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo04" },
+    { "Edit 05", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo05" },
+    { "Edit 06", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo06" },
+    { "Edit 07", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo07" },
+    { "Edit 08", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo08" },
+    { "Edit 09", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo09" },
+    { "Edit 10", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo10" },
+    { "Edit 11", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo11" },
+    { "Edit 12", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo12" },
+    { "Edit 13", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo13" },
+    { "Edit 14", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo14" },
+    { "Edit 15", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo15" },
+    { "Edit 16", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo16" },
+    { "Edit 17", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo17" },
+    { "Edit 18", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo18" },
+    { "Edit 19", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo19" },
+    { "Edit 20", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo20" },
+    SDL_MENU_LIST_END
+};	
+
+const ui_menu_entry_t type_keycombos_menu[] = {
+    { "Combo 01", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo01" },
+    { "Combo 02", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo02" },
+    { "Combo 03", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo03" },
+    { "Combo 04", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo04" },
+    { "Combo 05", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo05" },
+    { "Combo 06", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo06" },
+    { "Combo 07", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo07" },
+    { "Combo 08", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo08" },
+    { "Combo 09", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo09" },
+    { "Combo 10", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo10" },
+    { "Combo 11", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo11" },
+    { "Combo 12", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo12" },
+    { "Combo 13", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo13" },
+    { "Combo 14", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo14" },
+    { "Combo 15", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo15" },
+    { "Combo 16", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo16" },
+    { "Combo 17", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo17" },
+    { "Combo 18", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo18" },
+    { "Combo 19", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo19" },
+    { "Combo 20", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo20" },
+    SDL_MENU_LIST_END
+};	
+
 const ui_menu_entry_t misc_menu[] = {
     SDL_MENU_ITEM_TITLE("3DS specific"),
     { "Power off bottom screen backlight",
@@ -413,16 +510,15 @@ const ui_menu_entry_t misc_menu[] = {
       submenu_callback,
       (ui_callback_data_t)type_commands_menu },
     SDL_MENU_ITEM_SEPARATOR,
-    SDL_MENU_ITEM_TITLE("Keystrokes"),
-	{ "RUN/STOP + RESTORE",
-		MENU_ENTRY_OTHER,
-		keystroke_callback,
-		(ui_callback_data_t)((int[][3]){
-		{0,   SDL_KEYDOWN,  3}, //R/S
-		{20,  SDL_KEYDOWN, 25}, //Restore
-		{100, SDL_KEYUP,   25},
-		{0,   SDL_KEYUP,    3},
-		{0,   0,            0}})},
+    SDL_MENU_ITEM_TITLE("Key Combos"),
+    { "Edit Key Combos",
+      MENU_ENTRY_SUBMENU,
+      submenu_callback,
+      (ui_callback_data_t)edit_keycombos_menu },
+    { "Activate Key Combo",
+      MENU_ENTRY_SUBMENU,
+      submenu_callback,
+      (ui_callback_data_t)type_keycombos_menu },
 	SDL_MENU_LIST_END
 };
  
