@@ -53,8 +53,8 @@
 static vice_network_socket_t * listen_socket = NULL;
 static vice_network_socket_t * connected_socket = NULL;
 
-static char * monitor_server_address = NULL;
-static int monitor_enabled = 0;
+//static char * monitor_server_address = "ip4://127.0.0.1:6510";
+//static int monitor_enabled = 0;
 
 static int monitor_binary_input = 0;
 
@@ -374,6 +374,7 @@ char * monitor_network_get_command_line(void)
     return p;
 }
 
+/*
 static int monitor_network_activate(void)
 {
     vice_network_socket_address_t * server_addr = NULL;
@@ -403,7 +404,8 @@ static int monitor_network_activate(void)
 
     return error;
 }
-
+*/
+/*
 static int monitor_network_deactivate(void)
 {
     if (listen_socket) {
@@ -413,7 +415,7 @@ static int monitor_network_deactivate(void)
 
     return 0;
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 /*! \internal \brief set the network monitor to the enabled or disabled state
@@ -427,6 +429,7 @@ static int monitor_network_deactivate(void)
  \return
    0 on success. else -1.
 */
+/*
 static int set_monitor_enabled(int value, void *param)
 {
     int val = value ? 1 : 0;
@@ -450,7 +453,7 @@ static int set_monitor_enabled(int value, void *param)
         return 0;
     }
 }
-
+*/
 /*! \internal \brief set the network address of the network monitor
 
  \param name
@@ -462,6 +465,7 @@ static int set_monitor_enabled(int value, void *param)
  \return
    0 on success, else -1.
 */
+/*
 static int set_server_address(const char *name, void *param)
 {
     if (monitor_server_address != NULL && name != NULL
@@ -480,20 +484,20 @@ static int set_server_address(const char *name, void *param)
 
     return 0;
 }
-
+*/
 /*! \brief string resources used by the network monitor module */
-static const resource_string_t resources_string[] = {
-    { "MonitorServerAddress", "ip4://127.0.0.1:6510", RES_EVENT_NO, NULL,
-      &monitor_server_address, set_server_address, NULL },
-    RESOURCE_STRING_LIST_END
-};
+//static const resource_string_t resources_string[] = {
+//    { "MonitorServerAddress", "ip4://127.0.0.1:6510", RES_EVENT_NO, NULL,
+//      &monitor_server_address, set_server_address, NULL },
+//    RESOURCE_STRING_LIST_END
+//};
 
 /*! \brief integer resources used by the network monitor module */
-static const resource_int_t resources_int[] = {
-    { "MonitorServer", 0, RES_EVENT_STRICT, (resource_value_t)0,
-      &monitor_enabled, set_monitor_enabled, NULL },
-    RESOURCE_INT_LIST_END
-};
+//static const resource_int_t resources_int[] = {
+//    { "MonitorServer", 0, RES_EVENT_STRICT, (resource_value_t)0,
+//      &monitor_enabled, set_monitor_enabled, NULL },
+//    RESOURCE_INT_LIST_END
+//};
 
 /*! \brief initialize the network monitor resources
  \return
@@ -504,20 +508,21 @@ static const resource_int_t resources_int[] = {
 */
 int monitor_network_resources_init(void)
 {
-    if (resources_register_string(resources_string) < 0) {
-        return -1;
-    }
+//    if (resources_register_string(resources_string) < 0) {
+//        return -1;
+//    }
 
-    return resources_register_int(resources_int);
+//    return resources_register_int(resources_int);
+    return 0;
 }
 
 /*! \brief uninitialize the network monitor resources */
 void monitor_network_resources_shutdown(void)
 {
-    monitor_network_deactivate();
+//    monitor_network_deactivate();
     monitor_network_quit();
 
-    lib_free(monitor_server_address);
+//    lib_free(monitor_server_address);
 }
 
 /* ------------------------------------------------------------------------- */
