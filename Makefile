@@ -258,12 +258,9 @@ SUBLIBS_CLEAN := $(SUBLIBS:%=clean-%)
 .PHONY: $(SUBLIBS_CLEAN)
 
 #---------------------------------------------------------------------------------
-all: $(SUBLIBS) $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES) $(ROMFS)/kbd1.png $(ROMFS)/kbd2.png $(ROMFS)/kbd3.png $(ROMFS)/kbd4.png
+all: $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES) $(ROMFS)/kbd1.png $(ROMFS)/kbd2.png $(ROMFS)/kbd3.png $(ROMFS)/kbd4.png
 	@echo building $(APP_TITLE)
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile VICETARGET=$(VICETARGET)
-
-$(SUBLIBS):
-	@$(MAKE) -C $@
 
 $(BUILD):
 	@mkdir -p $@
@@ -307,11 +304,14 @@ else
 #---------------------------------------------------------------------------------
 all	:	$(OUTPUT).3dsx $(OUTPUT).cia $(OUTPUT).3ds
 
+$(SUBLIBS):
+	@$(MAKE) -C ../$@
+
 $(OUTPUT).3dsx	:	$(OUTPUT).elf $(_3DSXDEPS)
 
 $(OFILES_SOURCES) : $(HFILES)
 
-$(OUTPUT).elf	:	$(OFILES)
+$(OUTPUT).elf	:	$(OFILES) $(SUBLIBS)
 
 %.opp: %.cpp
 	@echo $(notdir $<)
