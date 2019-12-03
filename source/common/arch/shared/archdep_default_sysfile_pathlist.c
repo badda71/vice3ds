@@ -67,7 +67,7 @@ char *archdep_default_sysfile_pathlist(const char *emu_id)
 {
     
 	sysfile_path=malloc(SYSFILE_PATH_MAXlEN);
-	snprintf(sysfile_path,SYSFILE_PATH_MAXlEN,"%s/%s;%s;romfs:/config/%s;romfs:/config",archdep_xdg_config_home(),archdep_xdg_config_home(),emu_id,emu_id);
+	snprintf(sysfile_path,SYSFILE_PATH_MAXlEN,"%s/%s;%s;romfs:/config/%s;romfs:/config",archdep_xdg_config_home(),emu_id,archdep_xdg_config_home(),emu_id);
 
     /* sysfile.c appears to free() this (ie TODO: fix sysfile.c) */
     return lib_stralloc(sysfile_path);
