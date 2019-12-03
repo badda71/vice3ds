@@ -47,6 +47,8 @@
 #include "archdep_join_paths.h"
 #include "uimsgbox.h"
 #include "archdep_cp.h"
+#include "interrupt.h"
+#include "vice3ds.h"
 
 static UI_MENU_CALLBACK(save_settings_callback)
 {
@@ -114,10 +116,17 @@ static UI_MENU_CALLBACK(load_settings_from_callback)
     return NULL;
 }
 
+static void default_settings_trap(uint16_t addr, void *data)
+{
+    resources_set_defaults();
+	triggerSync(0);
+}
+
 static UI_MENU_CALLBACK(default_settings_callback)
 {
     if (activated) {
-        resources_set_defaults();
+        interrupt_maincpu_trigger_trap(default_settings_trap, NULL);
+		waitSync(0);
         ui_message("Default settings restored.");
     }
     return NULL;

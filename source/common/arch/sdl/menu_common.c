@@ -48,6 +48,7 @@
 #include "uibottom.h"
 #include "uimsgbox.h"
 #include "interrupt.h"
+#include "vice3ds.h"
 
 /* ------------------------------------------------------------------ */
 /* Common strings */
@@ -181,6 +182,7 @@ static void toggle_helper_trap(uint16_t addr, void *data)
 {
     int i;
 	resources_toggle((char *)data, &i);
+	triggerSync(0);
 }
 
 const char *sdl_ui_menu_toggle_helper_trap(int activated, const char *resource_name)
@@ -189,8 +191,8 @@ const char *sdl_ui_menu_toggle_helper_trap(int activated, const char *resource_n
 
     if (activated) {
         interrupt_maincpu_trigger_trap(toggle_helper_trap, (char *)resource_name);
-		SDL_Delay(100);
-        r = resources_get_int(resource_name, &value);
+		waitSync(0);
+		r = resources_get_int(resource_name, &value);
 		// update keypresses on bottom screen in case we have anything mapped
 		uibottom_must_redraw |= UIB_RECALC_KEYPRESS;
 	} else {
@@ -240,6 +242,7 @@ static void radio_helper_trap(uint16_t addr, void *data)
 		resources_set_string(r->resource_name, (char *)r->param);
 	}
 	free(r);
+	triggerSync(0);
 }
 
 const char *sdl_ui_menu_radio_helper_trap(int activated, ui_callback_data_t param, const char *resource_name)
@@ -249,7 +252,7 @@ const char *sdl_ui_menu_radio_helper_trap(int activated, ui_callback_data_t para
 		r->param=param;
 		r->resource_name=resource_name;
         interrupt_maincpu_trigger_trap(radio_helper_trap, r);
-		SDL_Delay(100);
+		waitSync(0);
 		// update keypresses on bottom screen in case we have anything mapped
 		uibottom_must_redraw |= UIB_RECALC_KEYPRESS;
     } else {

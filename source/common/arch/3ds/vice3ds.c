@@ -347,6 +347,9 @@ static resource_int_t resources_int[] = {
 	RESOURCE_INT_LIST_END
 };
 
+#define MAX_SYNC_HANDLES 1
+static Handle sync_handle[MAX_SYNC_HANDLES] = {0L};
+
 int vice3ds_resources_init(void)
 {
 	if (resources_register_string(resources_string) < 0) {
@@ -354,6 +357,9 @@ int vice3ds_resources_init(void)
 	}
 	if (resources_register_int(resources_int) < 0) {
 		return -1;
+	}
+	for (int i=0; i<MAX_SYNC_HANDLES;i++) {
+		svcCreateEvent(&(sync_handle[i]),0);
 	}
 	return 0;
 }
@@ -363,6 +369,12 @@ void vice3ds_resources_shutdown(void)
 	LED3DS_Off();
 	lib_free(keymap3ds_resource);
 	keymap3ds_resource=NULL;
+	for (int i=0; i<MAX_SYNC_HANDLES;i++) {
+		if (sync_handle[i]) {
+			svcCloseHandle(sync_handle[i]);
+			sync_handle[i]=0L;
+		}
+	}
 }
 
 int do_common_3DS_actions(SDL_Event *e){
@@ -392,4 +404,17 @@ int do_common_3DS_actions(SDL_Event *e){
 		}
 	}
 	return 0;
+}
+
+void waitSync(int i)
+{
+	if (i>=MAX_SYNC_HANDLES) return;
+	svcWaitSynchronization(sync_handle[i], U64_MAX);
+	svcClearEvent(sync_handle[i]);
+}
+
+void triggerSync(int i)
+{
+	if (i>=MAX_SYNC_HANDLES) return;
+	svcSignalEvent(sync_handle[i]);
 }
