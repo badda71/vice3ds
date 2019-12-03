@@ -64,7 +64,7 @@ GITHASH		:= $(shell git rev-parse --short HEAD)
 ifeq ($(VICETARGET), C64)
 	VERSION_MAJOR :=	2
 	VERSION_MINOR :=	0
-	VERSION_MICRO :=	0
+	VERSION_MICRO :=	1
 else
 	VERSION_MAJOR :=	0
 	VERSION_MINOR :=	2
