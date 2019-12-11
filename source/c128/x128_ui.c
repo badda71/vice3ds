@@ -149,11 +149,11 @@ static const ui_menu_entry_t x128_main_menu[] = {
     { "Virtual keyboard",
       MENU_ENTRY_OTHER,
       vkbd_callback,
-      NULL },
+      NULL },*/
     { "Statusbar",
       MENU_ENTRY_OTHER_TOGGLE,
       statusbar_callback,
-      NULL },*/
+      NULL },
 #ifdef DEBUG
     { "Debug",
       MENU_ENTRY_SUBMENU,
@@ -200,7 +200,7 @@ static void c128ui_set_menu_params(int index, menu_draw_t *menu_draw)
         menu_draw->color_inactive_grey = 11;
     } else {
         /* VDC */
-        menu_draw->max_text_x = 80;
+        menu_draw->max_text_x = 40;
         menu_draw->color_front = menu_draw->color_default_front = 15;
         menu_draw->color_back = menu_draw->color_default_back = 0;
         menu_draw->color_cursor_back = 2;
