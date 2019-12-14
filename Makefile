@@ -58,7 +58,7 @@ ROMFS		:=	romfs-$(VICETARGET)
 APP_TITLE	:=	vice3DS-$(VICETARGET)
 APP_DESCRIPTION	:=	Vice $(VICETARGET) emulator for Nintendo 3DS
 APP_AUTHOR	:=	badda71 <me@badda.de>
-ICON		:=	$(META)/icon_3ds_$(VICETARGET).png
+ICON		:=	icon_3ds_$(VICETARGET).png
 GITHASH		:= $(shell git rev-parse --short HEAD)
 
 ifeq ($(VICETARGET), C64)
@@ -89,10 +89,14 @@ LOGO			:=	$(TOPDIR)/$(META)/logo-padded.lz11
 
 ifeq (, $(shell which gm))
 	MKKBDPNG := cp -f
+	MKICOPNG := cp -f
+
 else
 	MKKBDPNG := gm convert -fill white -font "Picopixel-Standard"\
 		-draw "font-size 8;text 3,109 'vice3DS - $(VICETARGET)';"\
 		-draw "font-size 8;text 3,116 'v$(VERSION) by badda71';"
+	MKICOPNG := gm convert -fill white -font "Picopixel-Standard"\
+		-draw "font-size 8;text 1,47 'v$(VERSION)';"
 endif
 
 #---------------------------------------------------------------------------------
@@ -240,7 +244,8 @@ ifeq ($(strip $(ICON)),)
 		endif
 	endif
 else
-	export APP_ICON := $(TOPDIR)/$(ICON)
+	export RAW_ICON := $(TOPDIR)/$(META)/$(ICON)
+	export APP_ICON := $(CURDIR)/$(BUILD)/$(ICON)
 endif
 
 ifeq ($(strip $(NO_SMDH)),)
@@ -283,7 +288,7 @@ $(ROMFS)/kbd%.png: $(META)/kbd%_$(VICETARGET).png Makefile
 #---------------------------------------------------------------------------------
 clean: $(SUBLIBS_CLEAN)
 	@echo cleaning $(TARGET) 
-	@rm -fr $(BUILD) $(TARGET).3dsx $(TARGET).cia $(TARGET).3ds $(OUTPUT).smdh $(TARGET).elf $(GFXBUILD) $(ROMFS)/keyboard.png
+	@rm -fr $(BUILD) $(TARGET).3dsx $(TARGET).cia $(TARGET).3ds $(OUTPUT).smdh $(TARGET).elf $(GFXBUILD) $(ROMFS)/kbd?.png
 
 $(SUBLIBS_CLEAN):
 	@echo cleaning $(@:clean-%=%)
@@ -320,6 +325,11 @@ $(OUTPUT).elf	:	$(OFILES) $(SUBLIBS)
 #---------------------------------------------------------------------------------
 # cia/3ds generation targets
 #---------------------------------------------------------------------------------
+$(APP_ICON): $(RAW_ICON) $(TOPDIR)/Makefile
+	@echo -n generating $@ ...
+	@$(MKICOPNG) $< $@
+	@echo OK
+
 icon_$(VICETARGET).icn: $(APP_ICON)
 	@echo -n generating $(notdir $@) ...
 	@bannertool makesmdh -s "$(APP_TITLE)" -l "$(APP_TITLE) - $(APP_DESCRIPTION)" -p "$(APP_AUTHOR)" -i $(APP_ICON) -o $@
