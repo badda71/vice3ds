@@ -108,17 +108,15 @@ int start_worker(int (*fn)(void *), void *data) {
 }
 
 // additional input mapping functions
-
 char *keymap3ds_resource=NULL;
-int keymap3ds[256] = {0}; // active(1|0) - type (1|2|4) - (mod|value|0) - (sym|axis|button)
+int keymap3ds[256] = {0}; // type (1|2) - (key|mousebutton) - (combokey2) - (combokey3)
 
 static int load_3ds_mapping(char *s) {
-	char *p;
-	unsigned long int i;
+	unsigned long int i,k;
 	memset(keymap3ds,0,sizeof(keymap3ds));
-	while((i=strtoul(s,&p,16))!=0) {
-		keymap3ds[i>>24] = (i & 0xFFFFFF) | 0x01000000;
-		s=p;
+	while(s && (i=strtoul(s,&s,16))!=0 && i<256 && s) {
+		k=strtoul(s,&s,16);
+		keymap3ds[i] = k;
 	}
 	uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
 
@@ -130,97 +128,72 @@ static int save_3ds_mapping() {
 	if (keymap3ds_resource != NULL) free(keymap3ds_resource);
 	for (i=1;i<255;i++)
 		if (keymap3ds[i]) ++c;
-	keymap3ds_resource=malloc(c*9+1);
+	keymap3ds_resource=malloc(c*12+1);
 	c=0;
 	for (i=1;i<255;i++)
 		if (keymap3ds[i])
-			c+=sprintf(keymap3ds_resource+c,"%02x%06x ",i,keymap3ds[i] & 0xffffff);
+			c+=sprintf(keymap3ds_resource+c," %02x %08x",i,keymap3ds[i]);
 	keymap3ds_resource[c-1]=0;
 	return 0;
 }
 
 int do_3ds_mapping(SDL_Event *e) {
-	int i;
+	int i,x,i1;
 	if (e->type != SDL_KEYDOWN && e->type != SDL_KEYUP) return 0; // not the right event type
-	if (!((i=keymap3ds[e->key.keysym.sym]) & 0x01000000)) return 0; // not mapped
-	switch (i & 0x00FF0000) {
-		case 0x00010000:
-			e->key.keysym.unicode = e->key.keysym.sym = i & 0x000000FF;
-			e->key.keysym.mod = (i & 0x0000FF00) >> 8;
+	if (e->key.keysym.mod & KMOD_RESERVED) return 0; // event was already mapped - this prevents loops
+	if ((i=keymap3ds[e->key.keysym.sym]) == 0 ) return 0; // not mapped
+	switch (i >> 24) {
+		case 1:
+			// modify the current event
+			e->key.keysym.unicode = e->key.keysym.sym = (i >> 16) & 0xFF;
+			// fire additional events if needed
+			for (x=8; x >=0 ; x -= 8) {
+				if ((i1 = (i >> x) & 0xFF ) == 0) break;
+				SDL_Event sdl_e;
+				sdl_e.type = e->type;
+				sdl_e.key.keysym.unicode = sdl_e.key.keysym.sym = i1;
+				sdl_e.key.keysym.mod = KMOD_RESERVED;
+				SDL_PushEvent(&sdl_e);
+			}
 			break;
-#ifdef HAVE_SDL_NUMJOYSTICKS
-		case 0x00020000:
-			e->jaxis.which = 0;
-			e->jaxis.axis = i & 0x000000FF;
-			e->jaxis.value = e->type == SDL_KEYUP ? 0:
-				((i & 0x0000FF00) == 0x100 ? 32760 : -32760);
-			e->type = SDL_JOYAXISMOTION;
-			break;
-		case 0x00040000:
-			e->jbutton.which = 0;
-			e->jbutton.button = i & 0x000000FF;
-			e->jbutton.state = e->type == SDL_KEYDOWN ? SDL_PRESSED : SDL_RELEASED;
-			e->type = e->type == SDL_KEYDOWN ? SDL_JOYBUTTONDOWN : SDL_JOYBUTTONUP;
-			break;
-#endif
-		case 0x00080000:
+		case 2:
 			e->button.which = 1; // mouse 0 is the touchpad, mouse 1 is the mapped mouse keys
-			e->button.button = i & 0x000000FF;
+			e->button.button = (i >> 16) & 0xFF;
 			e->button.state = e->type == SDL_KEYDOWN ? SDL_PRESSED : SDL_RELEASED;
 			e->type = e->type == SDL_KEYDOWN ? SDL_MOUSEBUTTONDOWN : SDL_MOUSEBUTTONUP;
 			e->button.x = mousedrv_get_x();
-			e->button.y = mousedrv_get_x();
+			e->button.y = mousedrv_get_y();
 			break;
 	}
 	return 1;
 }
 
-void set_3ds_mapping(int sym, SDL_Event *e, int overwrite) {
+void set_3ds_mapping(int sym, int key_or_mouse, int key1, int key2, int key3) {
 	if (!sym) return;
-	int m=
-		e==NULL ? 0 :
-		(0x01000000 |	// active
-		(e->type==SDL_JOYBUTTONDOWN ? 0x00040000 : (e->type==SDL_JOYAXISMOTION ? 0x00020000 : (e->type==SDL_KEYDOWN ? 0x00010000 : 0x00080000))) | //type
-		(e->type==SDL_KEYDOWN ? ((e->key.keysym.mod & 0xFF) << 8) : (e->type==SDL_JOYAXISMOTION ? (e->jaxis.value <0 ? 0x200 : 0x100 ) : 0)) | // mod
-		(e->type==SDL_JOYBUTTONDOWN ? e->jbutton.button : (e->type==SDL_JOYAXISMOTION ? e->jaxis.axis : (e->type==SDL_KEYDOWN ? e->key.keysym.sym : e->button.button)))); //type
-	if (overwrite) {
-		for (int i=1; i<255; i++)
-			if (keymap3ds[i]==m) keymap3ds[i]=0;
-	}
+	int m = key_or_mouse == 0 ? 0 : (key_or_mouse << 24 | key1 << 16 | key2 <<8 | key3);
 	keymap3ds[sym]=m;
 	save_3ds_mapping();
 }
 
-static char buf[21];
+static char buf[41];
 static char *buttonname[SDL_BUTTON_WHEELDOWN+1]={
 	"None","Left","Middle","Right","WheelUp","WheelDown"};
 
 char *get_3ds_mapping_name(int i) {
-	int k;
+	int k,k1;
 	
 	if (!keymap3ds[i]) return NULL;
 	k=keymap3ds[i];
-	switch(k & 0x00FF0000) {
-	case 0x00010000:	// key
-		snprintf(buf,20,"Key %s",get_3ds_keyname(k & 0xFF));
+	switch(k >> 24) {
+	case 1:	// key
+		snprintf(buf,41,"Key %s",get_3ds_keyname((k >> 16) & 0xFF));
+		for (int x=8; x>=0; x -= 8) {
+			if ((k1=(k >> x) & 0xFF)==0 || strlen(buf) >= 40) break;
+			snprintf(buf+strlen(buf), 41-strlen(buf), " + %s",get_3ds_keyname((k >> x) & 0xFF));
+		}
 		break;
-#ifdef HAVE_SDL_NUMJOYSTICKS
-	case 0x00020000:	// joy axis
-		int v,a;
-		a = k & 0xFF;
-		v = k>>8 &0xFF;
-		snprintf(buf,20,"Joy %s",
-			a == 1 && v==2 ? "Up":(
-			a == 1 && v==1 ? "Down":(
-			a == 0 && v==2 ? "Left":
-			"Right")));
-		break;
-	case 0x00040000:	// joy button
-		snprintf(buf,20,"Joy Fire%d",k & 0xFF);
-		break;
-#endif
-	case 0x00080000:	// joy button
-		snprintf(buf,20,"Mousebutton %s", buttonname[(k & 0xFF)%(SDL_BUTTON_WHEELDOWN+1)]);
+	case 2:	// mouse button
+		snprintf(buf,41,"Mousebutton %s", buttonname[((k >> 16) & 0xFF) % (SDL_BUTTON_WHEELDOWN+1) ]);
 		break;
 	default:
 		return NULL;
@@ -249,15 +222,6 @@ static int set_command(const char *val, void *param)
     }
     return 0;
 }
-
-static int keycombo[20];
-
-static int set_key_combo(int val, void *param)
-{
-	keycombo[(int)param] = (int)val;
-    return 0;
-}
-
 
 static resource_string_t resources_string[] = {
 	{ "Command01", "load\"*\",8,1\\run\\", RES_EVENT_NO, NULL,
@@ -303,50 +267,6 @@ static resource_string_t resources_string[] = {
 	RESOURCE_STRING_LIST_END
 };
 
-static resource_int_t resources_int[] = {
-	{ "KeyCombo01", 3 | (25 << 8), RES_EVENT_NO, NULL, // R/S / RESTORE
-		&keycombo[0], set_key_combo, (void*)0},
-	{ "KeyCombo02", 23 | (21 << 8), RES_EVENT_NO, NULL, // CMB / SHIFT
-		&keycombo[1], set_key_combo, (void*)1},
-	{ "KeyCombo03", 0, RES_EVENT_NO, NULL,
-		&keycombo[2], set_key_combo, (void*)2},
-	{ "KeyCombo04", 0, RES_EVENT_NO, NULL,
-		&keycombo[3], set_key_combo, (void*)3},
-	{ "KeyCombo05", 0, RES_EVENT_NO, NULL,
-		&keycombo[4], set_key_combo, (void*)4},
-	{ "KeyCombo06", 0, RES_EVENT_NO, NULL,
-		&keycombo[5], set_key_combo, (void*)5},
-	{ "KeyCombo07", 0, RES_EVENT_NO, NULL,
-		&keycombo[6], set_key_combo, (void*)6},
-	{ "KeyCombo08", 0, RES_EVENT_NO, NULL,
-		&keycombo[7], set_key_combo, (void*)7},
-	{ "KeyCombo09", 0, RES_EVENT_NO, NULL,
-		&keycombo[8], set_key_combo, (void*)8},
-	{ "KeyCombo10", 0, RES_EVENT_NO, NULL,
-		&keycombo[9], set_key_combo, (void*)9},
-	{ "KeyCombo11", 0, RES_EVENT_NO, NULL,
-		&keycombo[10], set_key_combo, (void*)10},
-	{ "KeyCombo12", 0, RES_EVENT_NO, NULL,
-		&keycombo[11], set_key_combo, (void*)11},
-	{ "KeyCombo13", 0, RES_EVENT_NO, NULL,
-		&keycombo[12], set_key_combo, (void*)12},
-	{ "KeyCombo14", 0, RES_EVENT_NO, NULL,
-		&keycombo[13], set_key_combo, (void*)13},
-	{ "KeyCombo15", 0, RES_EVENT_NO, NULL,
-		&keycombo[14], set_key_combo, (void*)14},
-	{ "KeyCombo16", 0, RES_EVENT_NO, NULL,
-		&keycombo[15], set_key_combo, (void*)15},
-	{ "KeyCombo17", 0, RES_EVENT_NO, NULL,
-		&keycombo[16], set_key_combo, (void*)16},
-	{ "KeyCombo18", 0, RES_EVENT_NO, NULL,
-		&keycombo[17], set_key_combo, (void*)17},
-	{ "KeyCombo19", 0, RES_EVENT_NO, NULL,
-		&keycombo[18], set_key_combo, (void*)18},
-	{ "KeyCombo20", 0, RES_EVENT_NO, NULL,
-		&keycombo[19], set_key_combo, (void*)19},
-	RESOURCE_INT_LIST_END
-};
-
 #define MAX_SYNC_HANDLES 1
 static Handle sync_handle[MAX_SYNC_HANDLES] = {0L};
 
@@ -355,9 +275,9 @@ int vice3ds_resources_init(void)
 	if (resources_register_string(resources_string) < 0) {
 		return -1;
 	}
-	if (resources_register_int(resources_int) < 0) {
-		return -1;
-	}
+//	if (resources_register_int(resources_int) < 0) {
+//		return -1;
+//	}
 	for (int i=0; i<MAX_SYNC_HANDLES;i++) {
 		svcCreateEvent(&(sync_handle[i]),0);
 	}

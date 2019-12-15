@@ -42,21 +42,6 @@
 #include "ui.h"
 #include <3ds.h>
 
-static int ui_key_press_sequence (void *param) {
-	int (*keyseq)[3]=param;
-	SDL_Event sdl_e;
-	events_to_emu=1;
-	for (int i=0;keyseq[i][2]!=0;++i) {
-		SDL_Delay(keyseq[i][0]);
-		sdl_e.type = keyseq[i][1];
-		sdl_e.key.keysym.unicode = sdl_e.key.keysym.sym = keyseq[i][2];
-		SDL_PushEvent(&sdl_e);
-	}
-	SDL_Delay(50);
-	events_to_emu=0;
-	return 0;
-}
-
 static void kb_feed(const char *text) {
 	char *text_in_petscii = lib_stralloc(text);
 	charset_petconvstring((unsigned char*)text_in_petscii, 0);
@@ -134,18 +119,43 @@ static UI_MENU_CALLBACK(toggle_MaxScreen_callback)
 static UI_MENU_CALLBACK(add_keymapping_callback)
 {
 	SDL_Event e;
+	int m[3]={0,0,0};
+	char buf[40];
+
 	if (activated) {
 		SDL_Event s = sdl_ui_poll_event("source key", 
 			(int)param & SDL_POLL_JOYSTICK ? "Key->Joystick mapping" : "Key->Key mapping",
 			SDL_POLL_KEYBOARD, 5);
         if (s.type == SDL_KEYDOWN) {
-			while (SDL_PollEvent(&e)); // clear event queue
-			SDL_Event t = sdl_ui_poll_event("mapping target", get_3ds_keyname(s.key.keysym.sym),
-				(int)param, 5);
-			set_3ds_mapping(s.key.keysym.sym, t.type == SDL_USEREVENT ? NULL : &t, 0); // set or clear mapping
+			for (int x=0; x<3 ;++x) {
+				while (SDL_PollEvent(&e)); // clear event queue
+				snprintf(buf, 40, "map target %d of max 3", x+1);
+				SDL_Event t = sdl_ui_poll_event(buf, get_3ds_keyname(s.key.keysym.sym),
+					(int)param, 5);
+				if (t.type != SDL_KEYDOWN) break;
+				m[x]=t.key.keysym.sym;
+			}
+			if (m[0]!=0) {
+				set_3ds_mapping(s.key.keysym.sym, 1, m[0], m[1], m[2]); // set mapping
+				// recalc the soft buttons just in case the mapping was done there
+				uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
+				ui_message("Set key mapping for %s", get_3ds_keyname(s.key.keysym.sym));
+			}
+		}
+	}
+	return NULL;
+}
 
+static UI_MENU_CALLBACK(del_keymapping_callback)
+{
+	if (activated) {
+		SDL_Event s = sdl_ui_poll_event("source key", "Key mapping",
+			SDL_POLL_KEYBOARD, 5);
+        if (s.type == SDL_KEYDOWN) {
+			set_3ds_mapping(s.key.keysym.sym, 0, 0, 0, 0); // clear mapping
 			// recalc the soft buttons just in case the mapping was done there
 			uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
+			ui_message("Removed mapping for %s", get_3ds_keyname(s.key.keysym.sym));
 		}
 	}
 	return NULL;
@@ -158,15 +168,11 @@ static UI_MENU_CALLBACK(add_keymousemapping_callback)
 			(int)param == SDL_BUTTON_LEFT ? "Key->Mousebutton LEFT mapping" : "Key->Mousebutton RIGHT mapping",
 			SDL_POLL_KEYBOARD, 5);
 		if (s.type == SDL_KEYDOWN) {
-			// delete previous mapping if applicable
-			set_3ds_mapping(s.key.keysym.sym,
-				&(SDL_Event){
-					.type = SDL_MOUSEBUTTONDOWN,
-					.button.button = (int)param
-				}, 1); // set mapping
+			set_3ds_mapping(s.key.keysym.sym, 2, (int)param, 0, 0);
+			// recalc the soft buttons just in case the mapping was done there
+			uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
+			ui_message("Set mouse button mapping for %s", get_3ds_keyname(s.key.keysym.sym));
 		}
-		// recalc the soft buttons just in case the mapping was done there
-		uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
 	}
 	return NULL;
 }
@@ -187,7 +193,7 @@ static UI_MENU_CALLBACK(list_keymappings_callback)
 		} else {
 			for (int i=1;i<254;i++) {
 				if (keymap3ds[i] == 0) continue;
-				snprintf(buf+strlen(buf),41,"%-12s-> %s",get_3ds_keyname(i), get_3ds_mapping_name(i));
+				snprintf(buf+strlen(buf),41,"%-10s: %s",get_3ds_keyname(i), get_3ds_mapping_name(i));
 				sprintf(buf+strlen(buf),"\n");
 			}
 		}
@@ -273,63 +279,6 @@ UI_MENU_CALLBACK(type_command_callback)
 	return ostr;
 }
 
-void get_combo_name(int combo, char *buf, int maxlen) {
-	char* p=buf;
-	char* q=buf+maxlen;
-	*p=0;
-	for(int i=0; i<4 && p<q; i++) {
-		if (combo >> (i*8)) {
-			p += snprintf(p, q-p, "%s%s",
-				p==buf?"":" + ",
-				get_3ds_keyname((combo >> (i*8)) & 0xff));
-		}
-	}
-}
-
-UI_MENU_CALLBACK(edit_KeyCombo_callback)
-{
-	SDL_Event s;
-	char *name=(char *)param;
-	int combo=0;
-	int i=0;
-	static char buf[40];
-	if (activated) {
-		for (i=0; i<4; i++) { // max 4 keys in a combo
-			snprintf(buf,20,"Combo-Key %d of 2-4",i+1);
-			s = sdl_ui_poll_event(buf, name, SDL_POLL_KEYBOARD | SDL_POLL_MODIFIER , 5);
-			if (s.type != SDL_KEYDOWN) break;
-			combo |= s.key.keysym.sym << (i*8);
-		}
-		if (i<=1) combo=0; // at least 2 keys in a combo
-		resources_set_int(name, combo);
-	} else resources_get_int(name, &combo);
-
-	get_combo_name(combo, buf, 40);
-	return buf;
-}
-
-UI_MENU_CALLBACK(activate_KeyCombo_callback)
-{
-	static char buf[40];
-	int seq[9][3]={{0,0,0}};
-	int combo;
-	resources_get_int((char *)param, &combo);
-	if (activated && combo) {
-		int max=1+fls(combo)/8;
-		for (int i=0; i < max; ++i) {
-			seq[i][0]= 0;
-			seq[i][1]= SDL_KEYDOWN;
-			seq[i][2]= seq[max*2-i-1][2]= (combo >> (i*8)) & 0xff;
-			seq[max*2-i-1][0]= i==(max-1) ? 120:0;
-			seq[max*2-i-1][1]= SDL_KEYUP;
-		}
-		start_worker(ui_key_press_sequence, seq);
-		return sdl_menu_text_exit_ui;
-    }
-	get_combo_name(combo, buf, 40);
-	return buf;
-}
-
 UI_MENU_DEFINE_STRING(Command01)
 UI_MENU_DEFINE_STRING(Command02)
 UI_MENU_DEFINE_STRING(Command03)
@@ -399,54 +348,6 @@ const ui_menu_entry_t type_commands_menu[] = {
     SDL_MENU_LIST_END
 };	
 
-const ui_menu_entry_t edit_keycombos_menu[] = {
-    { "Edit 01", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo01" },
-    { "Edit 02", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo02" },
-    { "Edit 03", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo03" },
-    { "Edit 04", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo04" },
-    { "Edit 05", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo05" },
-    { "Edit 06", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo06" },
-    { "Edit 07", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo07" },
-    { "Edit 08", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo08" },
-    { "Edit 09", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo09" },
-    { "Edit 10", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo10" },
-    { "Edit 11", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo11" },
-    { "Edit 12", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo12" },
-    { "Edit 13", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo13" },
-    { "Edit 14", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo14" },
-    { "Edit 15", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo15" },
-    { "Edit 16", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo16" },
-    { "Edit 17", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo17" },
-    { "Edit 18", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo18" },
-    { "Edit 19", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo19" },
-    { "Edit 20", MENU_ENTRY_OTHER, edit_KeyCombo_callback, (ui_callback_data_t)"KeyCombo20" },
-    SDL_MENU_LIST_END
-};	
-
-const ui_menu_entry_t type_keycombos_menu[] = {
-    { "Combo 01", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo01" },
-    { "Combo 02", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo02" },
-    { "Combo 03", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo03" },
-    { "Combo 04", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo04" },
-    { "Combo 05", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo05" },
-    { "Combo 06", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo06" },
-    { "Combo 07", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo07" },
-    { "Combo 08", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo08" },
-    { "Combo 09", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo09" },
-    { "Combo 10", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo10" },
-    { "Combo 11", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo11" },
-    { "Combo 12", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo12" },
-    { "Combo 13", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo13" },
-    { "Combo 14", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo14" },
-    { "Combo 15", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo15" },
-    { "Combo 16", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo16" },
-    { "Combo 17", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo17" },
-    { "Combo 18", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo18" },
-    { "Combo 19", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo19" },
-    { "Combo 20", MENU_ENTRY_OTHER, activate_KeyCombo_callback, (ui_callback_data_t)"KeyCombo20" },
-    SDL_MENU_LIST_END
-};	
-
 const ui_menu_entry_t misc_menu[] = {
     SDL_MENU_ITEM_TITLE("3DS specific"),
     { "Power off bottom screen backlight",
@@ -471,12 +372,6 @@ const ui_menu_entry_t misc_menu[] = {
 		MENU_ENTRY_OTHER,
 		add_keymapping_callback,
 		(ui_callback_data_t)(SDL_POLL_KEYBOARD | SDL_POLL_MODIFIER) },
-#ifdef HAVE_SDL_NUMJOYSTICKS
-	{ "Add key mapping (key -> joystick)",
-		MENU_ENTRY_OTHER,
-		add_keymapping_callback,
-		(ui_callback_data_t)SDL_POLL_JOYSTICK },
-#endif
     { "Add key mapping (key -> MouseB LEFT)",
 		MENU_ENTRY_OTHER,
 		add_keymousemapping_callback,
@@ -485,6 +380,10 @@ const ui_menu_entry_t misc_menu[] = {
 		MENU_ENTRY_OTHER,
 		add_keymousemapping_callback,
 		(ui_callback_data_t)SDL_BUTTON_RIGHT },
+    { "Delete key mapping",
+		MENU_ENTRY_OTHER,
+		del_keymapping_callback,
+		NULL},
     { "List key mappings",
 		MENU_ENTRY_OTHER,
 		list_keymappings_callback,
@@ -509,16 +408,6 @@ const ui_menu_entry_t misc_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)type_commands_menu },
-    SDL_MENU_ITEM_SEPARATOR,
-    SDL_MENU_ITEM_TITLE("Key Combos"),
-    { "Edit Key Combos",
-      MENU_ENTRY_SUBMENU,
-      submenu_callback,
-      (ui_callback_data_t)edit_keycombos_menu },
-    { "Activate Key Combo",
-      MENU_ENTRY_SUBMENU,
-      submenu_callback,
-      (ui_callback_data_t)type_keycombos_menu },
 	SDL_MENU_LIST_END
 };
  

@@ -23,7 +23,7 @@
  *  02111-1307  USA.
  *
  */
-#define KEYMAPPINGS_DEFAULT "cc080001 ce080003 d601001e d7010011 d801001f d901001d f6010003 f7010020 f801000d"
+#define KEYMAPPINGS_DEFAULT "cc 02010000 ce 02030000 d6 011e0000 d7 01110000 d8 011f0000 d9 011d0000 e8 01031900 f6 01030000 f7 01200000 f8 010d0000"
 
 extern int LED3DS_On(unsigned char r, unsigned char g, unsigned char b);
 extern int LED3DS_Off(void);
@@ -33,7 +33,7 @@ extern int start_worker(int (*fn)(void *), void *data);
 extern int keymap3ds[256];
 extern char *keymap3ds_resource;
 extern int do_3ds_mapping(SDL_Event *e);
-extern void set_3ds_mapping(int sym, SDL_Event *e, int overwrite);
+extern void set_3ds_mapping(int sym, int key_or_mouse, int key1, int key2, int key3);
 extern char *get_3ds_mapping_name(int i);
 extern int keymap3ds_resource_set(const char *val, void *param);
 extern int vice3ds_resources_init(void);

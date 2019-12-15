@@ -769,6 +769,7 @@ static u32 hashKey(u8 *key) {
 }
 
 static void *hash_get(char *key) {
+//log_citra("enter %s: %s",__func__,key);
 	if (key==NULL) return NULL;
 	int i=hashKey((u8*)key) % HASHSIZE;
 	while (iconHash[i].key != NULL) {
@@ -779,6 +780,7 @@ static void *hash_get(char *key) {
 }
 
 static void hash_put(char *key, void *val) {
+//log_citra("enter %s: %s",__func__,key);
 	if (key==NULL) return;
 	int i=hashKey((u8*)key) % HASHSIZE;
 	while (iconHash[i].key!=NULL && strcmp(iconHash[i].key,key)!=0) {
@@ -799,7 +801,7 @@ static SDL_Surface *loadIcon(char *name) {
 	}
 	strcpy(s+i+5,".png");
 	
-//log_3ds("loadIcon: %s",s);
+//log_citra("loadIcon: %s",s);
 	SDL_Surface *r=NULL;
 	FILE *fp=sysfile_open(s,NULL,"r");
 	if (fp) r=IMG_Load_RW(SDL_RWFromFP(fp,1),1);
@@ -947,25 +949,36 @@ static SDL_Surface *createIcon(char *name) {
 		printstring(icon, name+3, 0, 0, 1, ALIGN_LEFT, FONT_BIG, (SDL_Color){0xff,0xff,0xff,0});
 		printstring(icon, name+5, 20, 32, 5, ALIGN_CENTER, FONT_BIG, (SDL_Color){0xff,0xff,0xff,0});
 	} else if (strncmp("Key ",name,4)==0) {
-		// make a key icon
-		// check width
-		blitKey(icon, name+4, 9, ALIGN_CENTER);
-	} else if (strncmp("Combo ",name,6)==0) {
-		// make a Combo icon
-		// check width
-		char *saveptr1, *p;
-		i=0;
-		const int pos[4][2]={
+		char *saveptr1, *p, *s;
+		// make a (multi) key icon
+		// how many keys do we have?
+		i = 0;
+		s = p = lib_stralloc(name+4);
+		while((p = strstr(p, " + "))!=NULL)
+		{
+		   i++;
+		   p+=3;
+		}
+		// set up my key positions depending on the number of keys
+		int pos[4][2]={
 			{19, ALIGN_LEFT},
 			{0, ALIGN_RIGHT},
 			{0, ALIGN_LEFT},
 			{19, ALIGN_RIGHT}};
-		p = strtok_r(name+6, " + ", &saveptr1);
+
+		if(i == 0) {
+			pos[0][0]=9; pos[0][1]=ALIGN_CENTER;
+		}
+		
+		// paint the keys to the icon
+		i = 0;
+		p = strtok_r(s, " + ", &saveptr1);
 		while(p != NULL && i < 4) {
 			blitKey(icon, p, pos[i][0], pos[i][1]);
 			p = strtok_r(NULL, " + ", &saveptr1);
 			++i;
 		}
+		free(s);
 	} else {
 		// Just write the name on the surface
 		int maxw=ICON_W/8;
@@ -1038,10 +1051,10 @@ char *get_key_help(int key, int inmenu, int trylen) {
 
 	if (!inmenu) {
 		// check key mapping
-		if (resolvemapping && ((i1=keymap3ds[key]) & 0x01000000)) {
-			if (i1 & 0x00010000) { // keymap
+		if (resolvemapping && (i1=keymap3ds[key])!=0) {
+			if (i1 & 0x01000000) { // keymap
 				resolvemapping=0;
-				r=get_key_help(i1 & 0xFF, 0, trylen);
+				r=get_key_help((i1>>16) & 0xFF, 0, trylen);
 				resolvemapping=1;
 				if (r) return r;
 			}
@@ -1061,14 +1074,6 @@ char *get_key_help(int key, int inmenu, int trylen) {
 				resources_get_string(item->data, (const char**)&p);
 				snprintf(buf,100,"%s",p);
 				for (p = buf; (p = strchr(p, '\\')) != NULL; *p = ' ');
-				return buf;
-			}
-
-			// Combo hotkey -> return combo keys
-			if (item->callback == activate_KeyCombo_callback) {
-				resources_get_int(item->data, &i1);
-				sprintf(buf, "Combo ");
-				get_combo_name(i1, buf+6, 94);
 				return buf;
 			}
 
@@ -1136,8 +1141,8 @@ char *get_key_help(int key, int inmenu, int trylen) {
 	return r;
 }
 
-#define LMASK 0x01080001
-#define RMASK 0x01080003
+#define LMASK 0x02010000
+#define RMASK 0x02030000
 
 static void sbuttons_recalc() {
 //log_citra("enter %s",__func__);
