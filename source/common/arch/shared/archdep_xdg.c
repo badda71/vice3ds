@@ -36,7 +36,7 @@
 
 #include "archdep_xdg.h"
 
-static char *xdg_data_home = "/3ds/vice3ds";
+static char *xdg_data_home = "/3ds/" TARGETNAME;
 static char *xdg_config_home = NULL;
 static char *xdg_cache_home = NULL;
 

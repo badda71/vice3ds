@@ -109,7 +109,7 @@ CFLAGS		:=	-g -Wall -O2 -mword-relocations \
 			-ffast-math -std=gnu11 \
 			$(ARCH)
 
-CFLAGS		+=	$(INCLUDE) -DARM11 -D_3DS -DVERSION3DS=\"$(VERSION)\" -DGITHASH=\"$(GITHASH)\"
+CFLAGS		+=	$(INCLUDE) -DARM11 -D_3DS -DVERSION3DS=\"$(VERSION)\" -DGITHASH=\"$(GITHASH)\" -DTARGETNAME=\"$(TARGET)\"
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 
@@ -312,7 +312,7 @@ all	:	$(OUTPUT).3dsx $(OUTPUT).cia $(OUTPUT).3ds
 $(SUBLIBS):
 	@$(MAKE) -C ../$@
 
-$(OUTPUT).3dsx	:	$(OUTPUT).elf $(_3DSXDEPS)
+$(OUTPUT).3dsx	:	$(OUTPUT).elf $(_3DSXDEPS) $(TOPDIR)/$(ROMFS)
 
 $(OFILES_SOURCES) : $(HFILES)
 
