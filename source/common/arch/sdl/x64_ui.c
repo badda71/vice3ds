@@ -65,6 +65,7 @@
 #include "ui.h"
 #include "uifonts.h"
 #include "uimenu.h"
+#include "update.h"
 //#include "vkbd.h"
 
 static const ui_menu_entry_t x64_main_menu[] = {
@@ -180,6 +181,10 @@ static const ui_menu_entry_t x64_main_menu[] = {
 	{ "Quit emulator",
       MENU_ENTRY_OTHER,
       quit_callback,
+      NULL },
+	{ "Check for updates",
+      MENU_ENTRY_DIALOG,
+      update_callback,
       NULL },
     SDL_MENU_LIST_END
 };

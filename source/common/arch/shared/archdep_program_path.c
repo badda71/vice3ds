@@ -38,6 +38,7 @@
 
 #include "vice.h"
 #include "archdep_defs.h"
+#include "archdep_xdg.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,6 +47,15 @@
 
 #include "lib.h"
 #include "log.h"
+
+#ifdef _3DS
+# include <3ds.h>
+
+	extern int __system_argc;
+	extern char** __system_argv;
+	__attribute__((weak)) const char* __romfs_path = NULL;
+
+#endif
 
 #ifdef ARCHDEP_OS_AMIGA
 /* some includes */
@@ -195,8 +205,22 @@ const char *archdep_program_path(void)
     /* zero out the buffer since readlink(2) doesn't add a nul character */
     memset(buffer, 0, PATH_BUFSIZE);
 
+#ifdef _3DS
+	const char* filename = __romfs_path;
+	if (__system_argc > 0 && __system_argv[0])
+		filename = __system_argv[0];
+	if (filename) {
+		if (strncmp(filename, "sdmc:/", 6) == 0)
+			snprintf(buffer, PATH_BUFSIZE, "%s", filename + 5);
+		else if (strncmp(filename, "3dslink:/", 9) == 0)
+			snprintf(buffer, PATH_BUFSIZE, "/3ds%s", filename + 8);
+	}
+	if (buffer[0] == 0) {
+		// fallback - guess my location
+		snprintf(buffer, PATH_BUFSIZE, "%s%s.3dsx", archdep_xdg_data_home(), strrchr(archdep_xdg_data_home(),'/'));
+	}
 
-#ifdef ARCHDEP_OS_AMIGA
+#elif defined(ARCHDEP_OS_AMIGA)
 
     /* do I need a header for this? */
     GetProgramName(buffer, PATH_BUFSIZE - 1);
