@@ -64,14 +64,34 @@ struct MemoryStruct {
 static int sdl_ui_update_progress_bar(int total, int now)
 {
 //log_citra("enter %s",__func__);
+	static int oldtotal=-1, oldnow=-1;
+
+	// process events - check for menu close or cancel
+	int action;
+	while ((action=ui_dispatch_events()) != MENU_ACTION_NONE) {
+		switch (action) {
+			case MENU_ACTION_CANCEL:
+			case MENU_ACTION_EXIT:
+				return -1;
+			default:
+				break;
+		}
+	}
+
+	if (oldtotal == total && oldnow == now) return 0;
+
+	// update progress bar
 	char buf[100];
 	int xmax = menu_draw->max_text_x;
 	int cutoff = total == 0 ? 0 : (now * xmax) / total;
 	int percent = total == 0 ? 0 : (now * 100) / total;
 	int y=2;
 
+	oldtotal = total;
+	oldnow = now;
 	snprintf(buf, 100, "Progress: %d / %d (%d%%)", now, total, percent);
 	sdl_ui_print(buf, 0, y++);
+	++y;
 
 	for (int loop = 0; loop < xmax; loop++) {
 		sdl_ui_putchar (
@@ -238,7 +258,10 @@ static int downloadFile(char *url,
 	curl_easy_cleanup(curl);
 
 	if(res != CURLE_OK) {
-		snprintf(errbuf,ERRBUFSIZE,"curl_easy_perform failed: %s", curl_easy_strerror(res));
+		if (res == CURLE_ABORTED_BY_CALLBACK)
+			snprintf(errbuf,ERRBUFSIZE,"Aborted by user");
+		else
+			snprintf(errbuf,ERRBUFSIZE,"curl_easy_perform failed: %s", curl_easy_strerror(res));
 		if (chunk.memory) free(chunk.memory);
 		return -1;
 	}
@@ -248,8 +271,7 @@ static int downloadFile(char *url,
 static int downloadProgress(void *clientp,   curl_off_t dltotal,   curl_off_t dlnow,   curl_off_t ultotal,   curl_off_t ulnow)
 {
 //log_citra("enter %s",__func__);
-	sdl_ui_update_progress_bar(dltotal, dlnow);
-	return 0;
+	return sdl_ui_update_progress_bar(dltotal, dlnow);
 }
 
 // *******************************************************
@@ -335,7 +357,7 @@ UI_MENU_CALLBACK(update_callback)
 
 	sdl_ui_init_progress_bar("Downloading Update");
 	if (downloadFile(update_url, update_fname, downloadProgress, MODE_FILE) < 1) {
-		ui_error("Could not download update %s : %s",update_url,errbuf);
+		ui_error("Could not download update: %s",errbuf);
 		free(update_info);
 		free(update_fname);
 		return NULL;
@@ -354,6 +376,7 @@ UI_MENU_CALLBACK(update_callback)
 			unlink(update_fname);
 			free(update_fname);
 			ui_error("Could not install update: %s",errbuf);
+			return NULL;
 		} else {
 			unlink(update_fname);
 			free(update_fname);

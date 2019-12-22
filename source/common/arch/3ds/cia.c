@@ -59,21 +59,28 @@ Result CIA_InstallTitle(char *path,
 	}
 
 	if (R_FAILED(ret = FSUSER_OpenFile(&src_handle, archive, fsMakePath(PATH_ASCII, path), FS_OPEN_READ, 0))) {
+		FSUSER_CloseArchive(archive);
 		if (ciaerror) sprintf(ciaerror, "FSUSER_OpenFile failed: 0x%lx", ret);
 		goto errorexit;
 	}
 	
 	if (R_FAILED(ret = AM_GetCiaFileInfo(MEDIATYPE_SD, &title, src_handle))) {
+		FSFILE_Close(src_handle);
+		FSUSER_CloseArchive(archive);
 		if (ciaerror) sprintf(ciaerror, "AM_GetCiaFileInfo failed: 0x%lx", ret);
 		goto errorexit;
 	}
 	
 	if (R_FAILED(ret = FSFILE_GetSize(src_handle, &size))) {
+		FSFILE_Close(src_handle);
+		FSUSER_CloseArchive(archive);
 		if (ciaerror) sprintf(ciaerror, "FSFILE_GetSize failed: 0x%lx", ret);
 		goto errorexit;
 	}
 	
 	if (R_FAILED(ret = AM_StartCiaInstall(MEDIATYPE_SD, &dst_handle))) {
+		FSFILE_Close(src_handle);
+		FSUSER_CloseArchive(archive);
 		if (ciaerror) sprintf(ciaerror, "AM_StartCiaInstall failed: 0x%lx", ret);
 		goto errorexit;
 	}
@@ -88,7 +95,7 @@ Result CIA_InstallTitle(char *path,
 			free(buf);
 			AM_CancelCIAInstall(dst_handle);
 			FSFILE_Close(src_handle);
-			FSFILE_Close(dst_handle);
+			FSUSER_CloseArchive(archive);
 			if (ciaerror) sprintf(ciaerror, "FSFILE_Read failed: 0x%lx", ret);
 			goto errorexit;
 		}
@@ -96,38 +103,43 @@ Result CIA_InstallTitle(char *path,
 			free(buf);
 			AM_CancelCIAInstall(dst_handle);
 			FSFILE_Close(src_handle);
-			FSFILE_Close(dst_handle);
+			FSUSER_CloseArchive(archive);
 			if (ciaerror) sprintf(ciaerror, "FSFILE_Write failed at offset 0x%llx: 0x%lx", offset, ret);
 			goto errorexit;
 		}
 
 		offset += bytes_read;
-		if (progress_callback) progress_callback(size,offset);
+		if (progress_callback && progress_callback(size,offset)!=0) {
+			free(buf);
+			AM_CancelCIAInstall(dst_handle);
+			FSFILE_Close(src_handle);
+			FSUSER_CloseArchive(archive);
+			if (ciaerror) sprintf(ciaerror, "Aborted by user");
+			goto errorexit;
+		};
 	} while(offset < size);
+
+	free(buf);
 
 	if (bytes_read != bytes_written) {
 		AM_CancelCIAInstall(dst_handle);
-		free(buf);
+		FSFILE_Close(src_handle);
+		FSUSER_CloseArchive(archive);
 		if (ciaerror) sprintf(ciaerror, "CIA bytes written mismatch");
 		goto errorexit;
 	}
 
-	free(buf);
-
 	if (R_FAILED(ret = AM_FinishCiaInstall(dst_handle))) {
+		AM_CancelCIAInstall(dst_handle);
+		FSFILE_Close(src_handle);
+		FSUSER_CloseArchive(archive);
 		if (ciaerror) sprintf(ciaerror, "AM_FinishCiaInstall failed: 0x%lx", ret);
 		goto errorexit;
 	}
 
-	if (R_FAILED(ret = FSFILE_Close(src_handle))) {
-		if (ciaerror) sprintf(ciaerror, "FSFILE_Close failed: 0x%lx", ret);
-		goto errorexit;
-	}
+	FSFILE_Close(src_handle);
+	FSUSER_CloseArchive(archive);
 
-	if (R_FAILED(ret = FSUSER_CloseArchive(archive))) {
-		if (ciaerror) sprintf(ciaerror, "FSUSER_CloseArchive failed: 0x%lx", ret);
-		goto errorexit;
-	}
 	lastTID=title.titleID;
 
 commonexit:
