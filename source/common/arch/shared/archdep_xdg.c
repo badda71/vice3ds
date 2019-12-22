@@ -36,12 +36,16 @@
 
 #include "archdep_xdg.h"
 
-static char *xdg_data_home = "/3ds/" TARGETNAME;
+static char *xdg_data_home = NULL;
 static char *xdg_config_home = NULL;
 static char *xdg_cache_home = NULL;
 
 static void archdep_xdg_free(void)
 {
+    if (xdg_data_home != NULL) {
+        lib_free(xdg_data_home);
+        xdg_data_home = NULL;
+    }
     if (xdg_config_home != NULL) {
         lib_free(xdg_config_home);
         xdg_config_home = NULL;
@@ -54,6 +58,20 @@ static void archdep_xdg_free(void)
 
 char *archdep_xdg_data_home(void)
 {
+	if (xdg_data_home == NULL) {
+		char buf[128];
+		char *p=NULL;
+		FILE *f;
+
+		memset(buf, 0, sizeof(buf));
+		if ((f=fopen("romfs:/prefix.txt","r"))!=NULL) {
+			fread (buf, 1, 127, f);
+			fclose(f);
+			if (*buf) p=buf;
+		}
+		xdg_data_home = archdep_join_paths("/3ds", TARGETNAME, p?p:"default", NULL);
+		atexit(archdep_xdg_free);
+	}
 	return xdg_data_home;
 }
 
