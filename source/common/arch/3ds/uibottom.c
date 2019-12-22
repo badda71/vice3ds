@@ -364,6 +364,7 @@ static int sticky=0;
 static unsigned char keysPressed[256];
 static int editmode_on=0;
 static int help_button_on;
+static int menu_button_on;
 static Handle repaintRequired;
 static volatile int help_anim;
 static volatile int menu_anim=0;
@@ -647,7 +648,7 @@ static void uibottom_repaint(void *param, int topupdated) {
 		drawImage(&menu_spr, (menu_anim*-305)/100, (menu_anim*-225)/100, 0, 0);
 		drawImage(&menubut_spr, ((menu_anim*-305)/100)+305,((menu_anim*-225)/100)+225,0,0);
 	} else {
-		drawImage(&menubut_spr, 0,0,0,0);
+		if (menu_button_on) drawImage(&menubut_spr, 0,0,0,0);
 	}
 	
 	// color sprites for keyboard
@@ -1662,7 +1663,7 @@ ui_menu_action_t sdl_uibottom_mouseevent(SDL_Event *e) {
 			return 0;
 		}
 		// menu button
-		if (!(sdl_menu_state) && x<=15 && y<=15) {
+		if (menu_button_on && !(sdl_menu_state) && x<=15 && y<=15) {
 			sdl_ui_activate();
 			return 0;
 		}
@@ -1770,6 +1771,12 @@ static int set_help_button_on(int val, void *param)
 	return 0;
 }
 
+static int set_menu_button_on(int val, void *param)
+{
+	menu_button_on = val ? 1 : 0;
+	return 0;
+}
+
 static resource_string_t resources_string[] = {
 	{ "SoftButtonPositions",
 		" 0 0 64 0 128 0 192 0 256 0 0 60 64 60 128 60 192 60 256 60 0 120 64 120 128 120 192 120 256 120 0 180 64 180 128 180 192 180 256 180",
@@ -1782,6 +1789,8 @@ static resource_string_t resources_string[] = {
 static const resource_int_t resources_int[] = {
     { "HelpButtonOn", 1, RES_EVENT_NO, (resource_value_t)1,
       &help_button_on, set_help_button_on, NULL },
+    { "MenuButtonOn", 1, RES_EVENT_NO, (resource_value_t)1,
+      &menu_button_on, set_menu_button_on, NULL },
     RESOURCE_INT_LIST_END
 };
 

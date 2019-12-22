@@ -348,6 +348,8 @@ const ui_menu_entry_t type_commands_menu[] = {
     SDL_MENU_LIST_END
 };	
 
+UI_MENU_DEFINE_TOGGLE(MenuButtonOn)
+
 const ui_menu_entry_t misc_menu[] = {
     SDL_MENU_ITEM_TITLE("3DS specific"),
     { "Power off bottom screen backlight",
@@ -366,6 +368,10 @@ const ui_menu_entry_t misc_menu[] = {
 		MENU_ENTRY_OTHER_TOGGLE,
 		toggle_editmode_callback,
 		NULL},
+    { "Show menu button on bottom screen",
+      MENU_ENTRY_RESOURCE_TOGGLE,
+      toggle_MenuButtonOn_callback,
+      NULL },
 	SDL_MENU_ITEM_SEPARATOR,
     SDL_MENU_ITEM_TITLE("Key mappings"),
     { "Add key mapping (key -> key)",
