@@ -246,6 +246,9 @@ static int ioutil_check_dir_filter(struct dirent *dp, int mode)
     NOTE: even when _DIRENT_HAVE_D_TYPE is defined, d_type may still be returned
           as DT_UNKNOWN - in that case we must fall back to using stat instead.
  */
+
+#include "vice3ds.h"
+
 static int ioutil_count_dir_items(const char *path, int mode)
 {
     DIR *dirp;
@@ -275,7 +278,10 @@ static int ioutil_count_dir_items(const char *path, int mode)
         dp = readdir(dirp);
     }
 	// add one dir item for .. (3DS does not return .. or . with readdir)
-	if (strchr(path, ARCHDEP_DIR_SEPARATOR)-path != strlen(path)-1) {
+	const char *p=path;
+	if (*chg_root_directory && strncmp(p,chg_root_directory,strlen(chg_root_directory))==0)
+		p+=strlen(chg_root_directory);
+	if (strchr(p, ARCHDEP_DIR_SEPARATOR)-p != strlen(p)-1) {
 		dirs_amount++;
 	}
 
@@ -309,8 +315,12 @@ static void ioutil_filldir(const char *path, ioutil_name_table_t *dirs, ioutil_n
 		dp = readdir(dirp);
     }
 	closedir(dirp);
-	// add the ".." directory
-	if (strchr(path, ARCHDEP_DIR_SEPARATOR)-path != strlen(path)-1) {
+	// add the ".." directory if we are NOT in (virtual) toplevel
+	const char *p=path;
+	if (*chg_root_directory && strncmp(p,chg_root_directory,strlen(chg_root_directory))==0)
+		p+=strlen(chg_root_directory);
+
+	if (strchr(p, ARCHDEP_DIR_SEPARATOR)-p != strlen(p)-1) {
 		dirs[dir_count].name = lib_stralloc("..");
 		dir_count++;
 	}

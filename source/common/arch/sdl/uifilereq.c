@@ -30,6 +30,7 @@
 
 #include "vice_sdl.h"
 #include <string.h>
+#include <limits.h>
 
 #include "archdep.h"
 #include "ioutil.h"
@@ -41,6 +42,7 @@
 #include "uifilereq.h"
 #include "util.h"
 #include "videoarch.h"
+#include "vice3ds.h"
 #include <unistd.h>
 
 static menu_draw_t *menu_draw;
@@ -373,6 +375,56 @@ static char * display_drive_menu(void)
 }
 #endif
 
+static ioutil_dir_t *safe_opendir(const char *path, int mode)
+{
+	if (*chg_root_directory == 0)
+		return ioutil_opendir(path, mode);
+
+	ioutil_dir_t *r;
+	char *p = archdep_join_paths(chg_root_directory, path, NULL);
+	r=ioutil_opendir(p, mode);
+	free(p);	
+	return r;
+}
+
+static char *safe_getcwd(char *buf, int size)
+{
+	ioutil_getcwd(buf,size);
+	if (*chg_root_directory == 0) return buf;
+
+	if (strncmp(buf, chg_root_directory, strlen(chg_root_directory)) == 0) {
+		memmove(buf, buf+strlen(chg_root_directory), strlen(buf)+1);
+	} else {
+		strcpy(buf,"/");
+	}
+	return buf;	
+}
+
+static int safe_chdir(const char *path)
+{
+	if (*chg_root_directory == 0)
+		return ioutil_chdir(path);
+
+	int r;
+	char p[PATH_MAX];
+	if (*path == FSDEV_DIR_SEP_CHR) { // absolute path
+		snprintf(p, PATH_MAX, "%s%s", chg_root_directory, path);
+		if ((r=ioutil_chdir(p))!=0)
+			ioutil_chdir(chg_root_directory);
+		return r;
+	} else { // relative path
+		if ((r=ioutil_chdir(path))==0) {
+			// check if we are still within root
+			ioutil_getcwd(p,PATH_MAX);
+			if (strncmp(p, chg_root_directory, strlen(chg_root_directory))==0) {
+				return 0;
+			}
+		}
+		ioutil_chdir(chg_root_directory);
+		return r;
+	}
+}
+
 /* ------------------------------------------------------------------ */
 /* External UI interface */
 
@@ -408,14 +460,14 @@ char* sdl_ui_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mod
 
     strncpy(current_dir,persistence_get("cwd","/"),maxpathlen);
 
-    ioutil_chdir(current_dir);
+    safe_chdir(current_dir);
     backup_dir = lib_stralloc(current_dir);
 
     // clear screen
     sdl_ui_file_selector_redraw(NULL, title, current_dir, offset, 0, 0, mode, 0, 0);
     sdl_ui_refresh();
 
-    directory = ioutil_opendir(current_dir, SDL_FILESELECTOR_DIRMODE);
+    directory = safe_opendir(current_dir, SDL_FILESELECTOR_DIRMODE);
     if (directory == NULL) {
         return NULL;
     }
@@ -509,11 +561,11 @@ char* sdl_ui_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mod
 						case SDL_FILEREQ_META_PATH:
 							inputstring = sdl_ui_text_input_dialog("Enter path", NULL);
 							if (inputstring != NULL) {
-								ioutil_chdir(inputstring);
+								safe_chdir(inputstring);
 								lib_free(inputstring);
 								ioutil_closedir(directory);
-								ioutil_getcwd(current_dir, maxpathlen);
-								directory = ioutil_opendir(current_dir, SDL_FILESELECTOR_DIRMODE);
+								safe_getcwd(current_dir, maxpathlen);
+								directory = safe_opendir(current_dir, SDL_FILESELECTOR_DIRMODE);
 								offset = 0;
 								cur_old = -1;
 								cur = 0;
@@ -531,8 +583,8 @@ char* sdl_ui_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mod
 								archdep_set_current_drive(inputstring);
 								lib_free(inputstring);
 								ioutil_closedir(directory);
-								ioutil_getcwd(current_dir, maxpathlen);
-								directory = ioutil_opendir(current_dir, SDL_FILESELECTOR_DIRMODE);
+								safe_getcwd(current_dir, maxpathlen);
+								directory = safe_opendir(current_dir, SDL_FILESELECTOR_DIRMODE);
 								offset = 0;
 								cur_old = -1;
 								cur = 0;
@@ -549,10 +601,10 @@ char* sdl_ui_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mod
 								for (i=0, y=0; current_dir[i] && y<255; i++) if (current_dir[i]=='/') ++y;
 								poscache[y]=cur + (offset<<16);
 								/* enter subdirectory */
-								ioutil_chdir(directory->dirs[offset + cur - SDL_FILEREQ_META_NUM].name);
+								safe_chdir(directory->dirs[offset + cur - SDL_FILEREQ_META_NUM].name);
 								ioutil_closedir(directory);
-								ioutil_getcwd(current_dir, maxpathlen);
-								directory = ioutil_opendir(current_dir, SDL_FILESELECTOR_DIRMODE);
+								safe_getcwd(current_dir, maxpathlen);
+								directory = safe_opendir(current_dir, SDL_FILESELECTOR_DIRMODE);
 								// recall cursor pos if going up directory
 								for (i=0, x=0; current_dir[i] && y<255; i++) if (current_dir[i]=='/') ++x;
 								cur_old = -1;
@@ -669,7 +721,12 @@ char* sdl_ui_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mod
     lib_free(current_dir);
     lib_free(backup_dir);
 
-    return retval;
+	if (*chg_root_directory != 0 && retval!=NULL) {
+		char *p=archdep_join_paths(chg_root_directory, retval, NULL);
+		free (retval);
+		retval=p;
+	}
+	return retval;
 }
 
 void sdl_ui_file_selection_dialog_shutdown(void)

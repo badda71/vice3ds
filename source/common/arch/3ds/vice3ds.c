@@ -27,6 +27,8 @@
 #include <3ds.h>
 #include <string.h>
 #include <SDL/SDL.h>
+#include <sys/stat.h>
+#include "archdep.h"
 #include "vice3ds.h"
 #include "uibottom.h"
 #include "util.h"
@@ -223,6 +225,35 @@ static int set_command(const char *val, void *param)
     return 0;
 }
 
+char *chg_root_directory;
+
+static int set_chg_root_directory(const char *val, void *param)
+{
+    const char *s = val;
+
+	if (s==NULL || s[0]==0) {
+		if (chg_root_directory) free(chg_root_directory);
+		chg_root_directory=lib_stralloc("");
+		return 0;
+	}
+
+	char *p = malloc(strlen(s)+2);
+	strcpy(p,s);
+	// Make sure string does not end with FSDEV_DIR_SEP_STR
+    while (p[0]!=0 && p[strlen(p) - 1] == FSDEV_DIR_SEP_CHR) {
+		p[strlen(p) - 1]=0;
+	}
+	struct stat sb;
+	if (stat(p, &sb) == 0 && S_ISDIR(sb.st_mode)) {
+//		strcpy(p+strlen(p),FSDEV_DIR_SEP_STR); // add the trailing '/'
+		if (chg_root_directory) free(chg_root_directory);
+		chg_root_directory=p;
+		return 0;
+	}
+	free(p);
+	return -1;
+}
+
 static resource_string_t resources_string[] = {
 	{ "Command01", "load\"*\",8,1\\run\\", RES_EVENT_NO, NULL,
 		&command[0], set_command, (void*)0},
@@ -264,9 +295,18 @@ static resource_string_t resources_string[] = {
 		&command[18], set_command, (void*)18},
 	{ "Command20", "", RES_EVENT_NO, NULL,
 		&command[19], set_command, (void*)19},
+	
+	{ "ChgRootDirectory", "", RES_EVENT_NO, NULL,
+		&chg_root_directory, set_chg_root_directory, NULL},
 	RESOURCE_STRING_LIST_END
 };
-
+/*
+static const resource_int_t resources_int[] = {
+    { "ChgRootEnable", 0, RES_EVENT_NO, (resource_value_t)0,
+      &chg_root_enable, set_chg_root_enable, NULL },
+	RESOURCE_INT_LIST_END
+};
+*/
 #define MAX_SYNC_HANDLES 1
 static Handle sync_handle[MAX_SYNC_HANDLES] = {0L};
 
@@ -275,9 +315,9 @@ int vice3ds_resources_init(void)
 	if (resources_register_string(resources_string) < 0) {
 		return -1;
 	}
-//	if (resources_register_int(resources_int) < 0) {
-//		return -1;
-//	}
+/*	if (resources_register_int(resources_int) < 0) {
+		return -1;
+	}*/
 	for (int i=0; i<MAX_SYNC_HANDLES;i++) {
 		svcCreateEvent(&(sync_handle[i]),0);
 	}

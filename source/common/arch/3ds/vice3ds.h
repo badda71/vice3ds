@@ -25,13 +25,13 @@
  */
 #define KEYMAPPINGS_DEFAULT "cc 02010000 ce 02030000 d6 011e0000 d7 01110000 d8 011f0000 d9 011d0000 e8 01031900 f6 01030000 f7 01200000 f8 010d0000"
 
-extern int LED3DS_On(unsigned char r, unsigned char g, unsigned char b);
-extern int LED3DS_Off(void);
-
-extern int start_worker(int (*fn)(void *), void *data);
-
+extern char *chg_root_directory;
 extern int keymap3ds[256];
 extern char *keymap3ds_resource;
+
+extern int LED3DS_On(unsigned char r, unsigned char g, unsigned char b);
+extern int LED3DS_Off(void);
+extern int start_worker(int (*fn)(void *), void *data);
 extern int do_3ds_mapping(SDL_Event *e);
 extern void set_3ds_mapping(int sym, int key_or_mouse, int key1, int key2, int key3);
 extern char *get_3ds_mapping_name(int i);
