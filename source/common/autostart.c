@@ -173,6 +173,7 @@ static int AutostartDelayRandom = 0;
 static int AutostartPrgMode = AUTOSTART_PRG_MODE_VFS;
 
 static char *AutostartPrgDiskImage = NULL;
+static char *AutostartImage = NULL;
 
 static const char * const AutostartRunCommandsAvailable[] = {
     "RUN\r", "RUN:\r"
@@ -284,10 +285,21 @@ static int set_autostart_prg_disk_image(const char *val, void *param)
     return 0;
 }
 
+static int set_autostart_image(const char *val, void *param)
+{
+    if (util_string_set(&AutostartImage, val)) {
+        return 0;
+    }
+
+    return 0;
+}
+
 /*! \brief string resources used by autostart */
 static resource_string_t resources_string[] = {
     { "AutostartPrgDiskImage", NULL, RES_EVENT_NO, NULL,
       &AutostartPrgDiskImage, set_autostart_prg_disk_image, NULL },
+    { "AutostartImage", "", RES_EVENT_NO, NULL,
+      &AutostartImage, set_autostart_image, NULL },
     RESOURCE_STRING_LIST_END
 };
 

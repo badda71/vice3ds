@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
+#include <unistd.h>
 
 #include "archdep.h"
 #include "attach.h"
@@ -330,9 +331,10 @@ int initcmdline_check_args(int argc, char **argv)
     }
     DBG(("initcmdline_check_args 2 (argc:%d)\n", argc));
 
-	// 3DS - check for autostart file in romfs and vice dir
+	// 3DS - check for autostart file: first resource name AutostartImage, then in romfs and vice dir
 	char *p;
-	if ((p=check_autostart_file("romfs:/"))!=NULL ||
+	if ((resources_get_string("AutostartImage", (const char **)(&p)) == 0 && p != NULL && *p != 0 && access( p, F_OK ) != -1) ||
+		(p=check_autostart_file("romfs:/"))!=NULL ||
 		(p=check_autostart_file(archdep_xdg_data_home()))!=NULL) {
 		autostart_string = p;
         autostart_mode = AUTOSTART_MODE_RUN;
