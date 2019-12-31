@@ -68,7 +68,7 @@ static int filecopy (char *src, char *dest)
 	char buf[BUFFERSIZE];
 
 	// file exists?
-	if (stat(dest, &path_stat) == 0) {
+	if (access(dest, F_OK) == 0) {
 		if (overwrite==0) goto filecopy_ok;
 	} else {
 		mkpath(dest, 0);
