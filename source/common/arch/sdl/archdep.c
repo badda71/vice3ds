@@ -110,6 +110,8 @@ int archdep_init(int *argc, char **argv)
 
     archdep_create_user_config_dir();
 
+	copy_autocopy_dir();
+
     if (SDL_REALINIT(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
         log_debug("SDL error: %s\n", SDL_GetError());
         return 1;

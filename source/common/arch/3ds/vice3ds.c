@@ -36,6 +36,8 @@
 #include "mousedrv.h"
 #include "lib.h"
 #include "resources.h"
+#include "archdep_xdg.h"
+#include "archdep_cp.h"
 
 // LED-related vars / functions
 static Handle ptmsysmHandle = 0;
@@ -377,4 +379,8 @@ void triggerSync(int i)
 {
 	if (i>=MAX_SYNC_HANDLES) return;
 	svcSignalEvent(sync_handle[i]);
+}
+
+void copy_autocopy_dir() {
+	xcopy("romfs:/autocopy",archdep_xdg_data_home(),0,NULL);
 }

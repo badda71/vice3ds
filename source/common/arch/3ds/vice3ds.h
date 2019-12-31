@@ -41,3 +41,5 @@ extern void vice3ds_resources_shutdown(void);
 extern int do_common_3DS_actions(SDL_Event *e);
 extern void waitSync(int);
 extern void triggerSync(int);
+extern void copy_autocopy_dir();
+
