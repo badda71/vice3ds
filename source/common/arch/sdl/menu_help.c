@@ -38,10 +38,13 @@
 #include "menu_help.h"
 #include "ui.h"
 #include "uimenu.h"
+#include "uipoll.h"
 #include "util.h"
 #include "version.h"
 #include "vicefeatures.h"
 #include "uibottom.h"
+#include "kbd.h"
+#include "vice3ds.h"
 
 const char info_about_text[] =
         "                Vice3DS\n"
@@ -102,6 +105,67 @@ static UI_MENU_CALLBACK(helpscreen_callback)
     return NULL;
 }
 
+static UI_MENU_CALLBACK(help_text_add_callback)
+{
+	SDL_Event e;
+	char buf[40];
+    char *value = NULL;
+
+	if (activated) {
+		SDL_Event s = sdl_ui_poll_event("Key", "Custom Help Text", SDL_POLL_KEYBOARD, 5);
+		if (s.type == SDL_KEYDOWN) {
+			while (SDL_PollEvent(&e)); // clear event queue
+			int key=s.key.keysym.sym;
+			if (key>0 && key<HELPTEXT_MAX) {
+				snprintf(buf, 40, "Custom Help Text for: %s", get_3ds_keyname(key));
+				value = sdl_ui_text_input_dialog(buf, custom_help_text[key]?custom_help_text[key]:"");
+				if (value) {
+					if (custom_help_text[key]) free(custom_help_text[key]);
+					if (value[0]==0) {
+						custom_help_text[key]=NULL;
+						free(value);
+						uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
+						ui_message("Deleted help text for key %s", get_3ds_keyname(key));
+					} else {
+						custom_help_text[key]=value;
+						uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
+						ui_message("Set help text for key %s to \"%s\"", get_3ds_keyname(key),value);
+					}
+					save_help_texts_to_resource();
+					// recalc sbuttons in case the help text is stated there
+				}
+			}
+		}
+	}
+	return NULL;
+}
+
+static UI_MENU_CALLBACK(help_text_list_callback)
+{
+	int i,count=0;
+	char *buf;
+	if (activated) {
+		for (i=1;i<HELPTEXT_MAX;i++)
+			if (custom_help_text[i]!=0) count++;
+
+		buf=malloc(40*(count+3));
+		buf[0]=0;
+
+		if (count == 0) {
+			sprintf(buf+strlen(buf),"-- NONE --");
+		} else {
+			for (int i=1;i<HELPTEXT_MAX;i++) {
+				if (custom_help_text[i] == NULL) continue;
+				snprintf(buf+strlen(buf),41,"%-10s: %s",get_3ds_keyname(i), custom_help_text[i]);
+				sprintf(buf+strlen(buf),"\n");
+			}
+		}
+		ui_show_text("Custom Help Texts",buf);
+		free(buf);
+	}
+	return NULL;
+}
+
 const ui_menu_entry_t help_menu[] = {
     { "About",
       MENU_ENTRY_DIALOG,
@@ -122,6 +186,16 @@ const ui_menu_entry_t help_menu[] = {
     { "Show help button on bottom screen",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_HelpButtonOn_callback,
+      NULL },
+	SDL_MENU_ITEM_SEPARATOR,
+    SDL_MENU_ITEM_TITLE("Custom help texts"),
+	{ "Add/delete custom help text",
+      MENU_ENTRY_DIALOG,
+      help_text_add_callback,
+      NULL },
+	{ "List custom help texts",
+      MENU_ENTRY_DIALOG,
+      help_text_list_callback,
       NULL },
 	SDL_MENU_LIST_END
 };

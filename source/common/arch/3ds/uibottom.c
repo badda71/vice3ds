@@ -1051,6 +1051,8 @@ char *get_key_help(int key, int inmenu, int trylen) {
 	resources_get_int( "JoyDevice2", &dev2);
 
 	if (!inmenu) {
+		if (custom_help_text[key]) return custom_help_text[key];
+
 		// check key mapping
 		if (resolvemapping && (i1=keymap3ds[key])!=0) {
 			if (i1 & 0x01000000) { // keymap

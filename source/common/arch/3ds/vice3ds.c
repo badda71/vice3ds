@@ -35,6 +35,7 @@
 #include "kbd.h"
 #include "mousedrv.h"
 #include "lib.h"
+#include "log.h"
 #include "resources.h"
 #include "archdep_xdg.h"
 #include "archdep_cp.h"
@@ -256,6 +257,62 @@ static int set_chg_root_directory(const char *val, void *param)
 	return -1;
 }
 
+char *custom_help_text[HELPTEXT_MAX]={NULL};
+static char* custom_help_texts=NULL;
+
+static int load_help_texts_from_resource() {
+    char *p,*saveptr;
+    int keynum;
+
+	if (custom_help_texts == NULL) return 0;
+	char *buffer=lib_stralloc(custom_help_texts);
+    // clear help texts
+	for (int i = 0; i < HELPTEXT_MAX; ++i) {
+		if (custom_help_text[i]) free(custom_help_text[i]);
+		custom_help_text[i] = NULL;
+    }
+
+	p = strtok_r(buffer, " \t:", &saveptr);
+	while (p) {
+		keynum = (int)strtol(p,NULL,10);
+
+		if (keynum >= HELPTEXT_MAX || keynum<1) {
+			log_error(LOG_ERR, "Help text keynum not valid: %i!", keynum);
+			strtok_r(NULL, "|\r\n", &saveptr);
+		} else if ((p = strtok_r(NULL, "|\r\n", &saveptr)) != NULL) {
+			custom_help_text[keynum]=lib_stralloc(p);
+		}
+		p = strtok_r(NULL, " \t:", &saveptr);
+	}
+	lib_free(buffer);
+	uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
+	return 0;
+}
+
+int save_help_texts_to_resource() {
+	if (custom_help_texts) free(custom_help_texts);
+	custom_help_texts=malloc(1);
+	custom_help_texts[0]=0;
+	int count=0;
+
+	// write the hotkeys
+	for (int i = 0; i < HELPTEXT_MAX; ++i) {
+		if (custom_help_text[i]) {
+			custom_help_texts=realloc(custom_help_texts, strlen(custom_help_texts) + strlen (custom_help_text[i]) + 7);
+			sprintf(custom_help_texts + strlen(custom_help_texts), "%s%d %s", count++?"|":"", i, custom_help_text[i]);
+		}
+	}
+	return 0;
+}
+
+static int set_custom_help_texts(const char *val, void *param)
+{
+	if (util_string_set(&custom_help_texts, val)) {
+		return 0;
+	}
+	return load_help_texts_from_resource();
+}
+
 static resource_string_t resources_string[] = {
 	{ "Command01", "load\"*\",8,1\\run\\", RES_EVENT_NO, NULL,
 		&command[0], set_command, (void*)0},
@@ -300,6 +357,9 @@ static resource_string_t resources_string[] = {
 	
 	{ "ChgRootDirectory", "", RES_EVENT_NO, NULL,
 		&chg_root_directory, set_chg_root_directory, NULL},
+
+	{ "CustomHelpTexts", "", RES_EVENT_NO, NULL,
+		&custom_help_texts, set_custom_help_texts, NULL},
 	RESOURCE_STRING_LIST_END
 };
 /*
@@ -337,6 +397,11 @@ void vice3ds_resources_shutdown(void)
 			sync_handle[i]=0L;
 		}
 	}
+	// free custom help texts
+	for (int i = 0; i < HELPTEXT_MAX; ++i) {
+		if (custom_help_text[i]) free(custom_help_text[i]);
+		custom_help_text[i] = NULL;
+    }
 }
 
 int do_common_3DS_actions(SDL_Event *e){

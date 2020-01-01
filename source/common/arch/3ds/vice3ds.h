@@ -24,10 +24,12 @@
  *
  */
 #define KEYMAPPINGS_DEFAULT "cc 02010000 ce 02030000 d6 011e0000 d7 01110000 d8 011f0000 d9 011d0000 e8 01031900 f6 01030000 f7 01200000 f8 010d0000"
+#define HELPTEXT_MAX 256
 
 extern char *chg_root_directory;
 extern int keymap3ds[256];
 extern char *keymap3ds_resource;
+extern char *custom_help_text[HELPTEXT_MAX];
 
 extern int LED3DS_On(unsigned char r, unsigned char g, unsigned char b);
 extern int LED3DS_Off(void);
@@ -42,4 +44,6 @@ extern int do_common_3DS_actions(SDL_Event *e);
 extern void waitSync(int);
 extern void triggerSync(int);
 extern void copy_autocopy_dir();
+extern int save_help_texts_to_resource();
+
 
