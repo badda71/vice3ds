@@ -38,19 +38,21 @@ ifndef VICETARGET
 all:
 	@$(MAKE) VICETARGET=C64
 	@$(MAKE) VICETARGET=C128
+	@$(MAKE) VICETARGET=SCPU64
 
 clean:
 	@$(MAKE) VICETARGET=C64 clean
 	@$(MAKE) VICETARGET=C128 clean
+	@$(MAKE) VICETARGET=SCPU64 clean
 
 else
 
 TARGET		:=	vice3DS-$(VICETARGET)
 BUILD		:=	build
-SOURCES		:=	$(shell find source/common source/$(VICETARGET) -type d 2> /dev/null)
+SOURCES		:=	$(shell find -L source/common source/$(VICETARGET) -type d 2> /dev/null)
 DATA		:=	data
 META		:=	meta
-INCLUDES	:=	$(SOURCES)
+INCLUDES	:=	source/include
 GRAPHICS	:=	gfx
 GFXBUILD	:=	$(BUILD)
 ROMFS		:=	romfs-$(VICETARGET)
@@ -65,9 +67,13 @@ ifeq ($(VICETARGET), C64)
 	VERSION_MAJOR :=	2
 	VERSION_MINOR :=	1
 	VERSION_MICRO :=	0
-else
+else ifeq ($(VICETARGET), C128)
 	VERSION_MAJOR :=	0
 	VERSION_MINOR :=	2
+	VERSION_MICRO :=	0
+else
+	VERSION_MAJOR :=	0
+	VERSION_MINOR :=	1
 	VERSION_MICRO :=	0
 endif
 

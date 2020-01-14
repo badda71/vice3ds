@@ -152,10 +152,10 @@ static resource_string_t resources_string[] = {
 
 int sdlkbd_init_resources(void)
 {
-	if (machine_class == VICE_MACHINE_C64)
-		resources_string[1].factory_value = hotkeys_default_C64;
-	else if (machine_class == VICE_MACHINE_C128)
+	if (machine_class == VICE_MACHINE_C128)
 		resources_string[1].factory_value = hotkeys_default_C128;
+	else
+		resources_string[1].factory_value = hotkeys_default_C64;
 
 	if (resources_register_string(resources_string) < 0) {
         return -1;

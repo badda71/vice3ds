@@ -40,7 +40,7 @@
 #include "uimenu.h"
 #include "menu_common.h"
 #include "uimsgbox.h"
-#include "cia.h"
+#include "3ds_cia.h"
 #include "archdep_atexit.h"
 #include "update.h"
 
