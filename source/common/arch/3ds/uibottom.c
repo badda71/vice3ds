@@ -937,6 +937,40 @@ static void blitKey(SDL_Surface *s, char *name, int y, enum str_alignment align)
 	}
 }
 
+static char *strtokstr_r(char *s, char *delim, char **save_ptr)
+{
+	char *end;
+	if (s == NULL)
+		s = *save_ptr;
+
+	if (s == NULL || *s == '\0')
+	{
+		*save_ptr = s;
+		return NULL;
+	}
+
+	// Skip leading delimiters.
+	while (strstr(s,delim)==s) s+=strlen(delim);
+	if (*s == '\0')
+	{
+		*save_ptr = s;
+		return NULL;
+	}
+
+	// Find the end of the token.
+	end = strstr (s, delim);
+	if (end == NULL)
+	{
+		*save_ptr = s + strlen(s);
+		return s;
+	}
+
+	// Terminate the token and make *SAVE_PTR point past it.
+	memset(end, 0, strlen(delim));
+	*save_ptr = end + strlen(delim);
+	return s;
+}
+
 static SDL_Surface *createIcon(char *name) {
 //log_citra("enter %s: %s",__func__,name);
 	int i,c,xof,yof;
@@ -973,10 +1007,10 @@ static SDL_Surface *createIcon(char *name) {
 		
 		// paint the keys to the icon
 		i = 0;
-		p = strtok_r(s, " + ", &saveptr1);
+		p = strtokstr_r(s, " + ", &saveptr1);
 		while(p != NULL && i < 4) {
 			blitKey(icon, p, pos[i][0], pos[i][1]);
-			p = strtok_r(NULL, " + ", &saveptr1);
+			p = strtokstr_r(NULL, " + ", &saveptr1);
 			++i;
 		}
 		free(s);
