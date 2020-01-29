@@ -64,6 +64,7 @@
 #include "menu_video.h"
 #include "ui.h"
 #include "uifonts.h"
+#include "uigb64.h"
 #include "uimenu.h"
 #include "update.h"
 //#include "vkbd.h"
@@ -72,6 +73,10 @@ static const ui_menu_entry_t x64_main_menu[] = {
     { "Autostart image",
       MENU_ENTRY_DIALOG,
       autostart_callback,
+      NULL },
+    { "Gamebase64",
+      MENU_ENTRY_DIALOG,
+      gb64_callback,
       NULL },
     { "Drive",
       MENU_ENTRY_SUBMENU,

@@ -39,6 +39,117 @@
 #include "resources.h"
 #include "archdep_xdg.h"
 #include "archdep_cp.h"
+#include "uigb64.h"
+
+// thread safe hash functions
+
+// Fowler-Noll-Vo Hash (FNV1a)
+u32 hashKey(u8 *key) {
+	u32 hash=0x811C9DC5;
+	while (*key!=0) hash=(*(key++)^hash) * 0x01000193;
+	return hash;
+}
+
+void tsh_init(tsh_object *o, int size, void (*free_callback)(void *val)) {
+	svcCreateMutex(&(o->mutex), false);
+	o->hash=malloc(size*sizeof(tsh_item));
+	memset(o->hash, 0, size*sizeof(tsh_item));
+	o->size=size;
+	o->locked=0;
+	o->free_callback=free_callback;
+}
+
+void tsh_free(tsh_object *o) {
+	// free all emements
+	int i;
+	for (i=0;i<o->size;i++) {
+		if (o->hash[i].key != NULL)
+			free(o->hash[i].key);
+		if (o->hash[i].val != NULL && o->free_callback)
+			o->free_callback(o->hash[i].val);
+	}
+	free(o->hash);
+}
+
+void *tsh_get(tsh_object *o, char *key) {
+//log_citra("enter %s: %s",__func__,key);
+	if (key==NULL) return NULL;
+	int i=hashKey((u8*)key) % o->size;
+	int count=0;
+	void *r=NULL;
+	svcWaitSynchronization(o->mutex, U64_MAX);
+	while (o->hash[i].key != NULL && ++count <= o->size) {
+		if (strcmp(key,o->hash[i].key)==0) {
+			r=o->hash[i].val;
+			break;
+		}
+		++i; i %= o->size;
+	}
+	svcReleaseMutex(o->mutex);
+	return r;
+}
+
+void tsh_put(tsh_object *o, char *key, void *val) {
+//log_citra("enter %s: %s",__func__,key);
+	if (key==NULL) return;
+	int i=hashKey((u8*)key) % o->size;
+	int count = 0;
+	svcWaitSynchronization(o->mutex, U64_MAX);
+	while (o->hash[i].key != NULL && strcmp(o->hash[i].key, key) != 0) {
+		++i; i %= o->size;
+		if (++count >= o->size) {
+			svcReleaseMutex(o->mutex);
+			return;
+		}
+	}
+	if (o->hash[i].key != NULL) {
+		lib_free(o->hash[i].key);
+		if (o->free_callback) o->free_callback(o->hash[i].val);
+	}
+	o->hash[i].key = (val == NULL) ? NULL : lib_stralloc(key);
+	o->hash[i].val = val;
+	svcReleaseMutex(o->mutex);
+}
+
+// thread safe queue functions
+void tsq_init(tsq_object *o, int size) {
+	svcCreateMutex(&(o->mutex), false);
+	o->queue=malloc(size*sizeof(void*));
+	o->size=size;
+	o->head=o->tail=0;
+	o->locked=0;
+}
+
+void tsq_free(tsq_object *o) {
+	tsq_lock(o, 1);
+	free(o->queue);
+}
+
+void tsq_lock(tsq_object *o, int lock) {
+	svcWaitSynchronization(o->mutex, U64_MAX);
+	o->locked=lock;
+	svcReleaseMutex(o->mutex);
+}
+
+void *tsq_get(tsq_object* o) {
+	void *r = NULL;
+	svcWaitSynchronization(o->mutex, U64_MAX);
+	if (o->tail != o->head) {
+		r = o->queue[o->tail++];
+		o->tail %= o->size;
+	}
+	svcReleaseMutex(o->mutex);
+	return r;
+}
+
+void tsq_put(tsq_object* o, void *p) {
+	svcWaitSynchronization(o->mutex, U64_MAX);
+	if (!o->locked) {
+		o->queue[o->head++]=p;
+		o->head %= o->size;
+	}
+	svcReleaseMutex(o->mutex);
+}
 
 // LED-related vars / functions
 static Handle ptmsysmHandle = 0;
@@ -138,7 +249,7 @@ static int save_3ds_mapping() {
 	for (i=1;i<255;i++)
 		if (keymap3ds[i])
 			c+=sprintf(keymap3ds_resource+c," %02x %08x",i,keymap3ds[i]);
-	keymap3ds_resource[c-1]=0;
+	keymap3ds_resource[c]=0;
 	return 0;
 }
 
@@ -402,6 +513,9 @@ void vice3ds_resources_shutdown(void)
 		if (custom_help_text[i]) free(custom_help_text[i]);
 		custom_help_text[i] = NULL;
     }
+
+	// shutdown other 3ds stuff
+	gb64_shutdown();
 }
 
 int do_common_3DS_actions(SDL_Event *e){

@@ -1,10 +1,11 @@
 /*
- * update.h - Update support
+ * uigb64.h - Functions specific to gamebase64 interface
  *
  * Written by
  *  Sebastian Weber <me@badda.de>
  *
- * This file is part of VICE3DS
+ * This file is part of vice3DS
+ * See README for copyright notice.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,5 +23,9 @@
  *  02111-1307  USA.
  *
  */
+#include "menu_common.h"
 
-extern UI_MENU_CALLBACK(update_callback);
+extern UI_MENU_CALLBACK(gb64_callback);
+extern void gb64_shutdown();
+
+extern SDL_Surface *uigb64_top;

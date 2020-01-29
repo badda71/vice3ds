@@ -709,7 +709,6 @@ static ui_menu_retval_t sdl_ui_menu_display(ui_menu_entry_t *menu, const char *t
 									cur_offset = sdl_calc_scrollbar_pos(
 										(lastevent.button.y*240) / sdl_active_canvas->screen->h,
 										MENU_FIRST_Y, menu_max, num_items);
-									cur_offset = ((y - MENU_FIRST_Y) * num_items) / menu_max - menu_max/2;
 									dragging=1;
 								} else {
 									if (menu[y - MENU_FIRST_Y + cur_offset].type != MENU_ENTRY_TEXT &&
@@ -1112,6 +1111,66 @@ static int sdl_ui_slider(const char* title, const int cur, const int min, const 
 
 
 //#define MAX(x,y) (x)<(y)?(y):(x)
+
+
+int sdl_ui_update_progress_bar(int total, int now)
+{
+//log_citra("enter %s",__func__);
+	static int oldtotal=-1, oldnow=-1;
+
+	// process events - check for menu close or cancel
+	int action;
+	while ((action=ui_dispatch_events()) != MENU_ACTION_NONE) {
+		switch (action) {
+			case MENU_ACTION_CANCEL:
+			case MENU_ACTION_EXIT:
+				return -1;
+			default:
+				break;
+		}
+	}
+
+	if (oldtotal == total && oldnow == now) return 0;
+
+	// update progress bar
+	char buf[100];
+	int xmax = menu_draw.max_text_x;
+	int cutoff = total == 0 ? 0 : (now * xmax) / total;
+	int percent = total == 0 ? 0 : (now * 100) / total;
+	int y=2;
+
+	oldtotal = total;
+	oldnow = now;
+	snprintf(buf, 100, "Progress: %d / %d (%d%%)", now, total, percent);
+	sdl_ui_print(buf, 0, y++);
+	++y;
+
+	for (int loop = 0; loop < xmax; loop++) {
+		sdl_ui_putchar (
+			loop < cutoff ? UIFONT_SLIDERACTIVE_CHAR : UIFONT_SLIDERINACTIVE_CHAR,
+			loop,
+			y);
+	}
+	sdl_ui_refresh();
+	return 0;
+}
+
+void sdl_ui_init_progress_bar(char *title)
+{
+//log_citra("enter %s",__func__);
+
+	int i=0;
+
+	sdl_ui_init_draw_params();
+    sdl_ui_clear();
+
+    sdl_ui_reverse_colors();
+	i += sdl_ui_print(title, i, 0);
+    i += sdl_ui_print_eol(i, 0);
+    sdl_ui_reverse_colors();
+
+	sdl_ui_update_progress_bar(0,0);
+}
 
 int sdl_ui_adjust_offset(int *offset, int *cur,int menu_max, int total)
 {

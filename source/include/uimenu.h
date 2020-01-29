@@ -160,13 +160,12 @@ typedef enum {
     MENU_ACTION_HOME_RELEASE,
 	MENU_ACTION_EMU_RELEASE,
     MENU_ACTION_END_RELEASE,
-	MENU_ACTION_MOUSE_RELEASE,
-	MENU_ACTION_DOWN_NOWRAP,
-	MENU_ACTION_UP_NOWRAP
+	MENU_ACTION_MOUSE_RELEASE
 } ui_menu_action_t;
 
 extern menufont_t activefont;
-
+extern int sdl_ui_update_progress_bar(int total, int now);
+extern void sdl_ui_init_progress_bar(char *title);
 
 extern void sdl_ui_set_main_menu(const ui_menu_entry_t *menu);
 extern ui_menu_entry_t *sdl_ui_get_main_menu(void);

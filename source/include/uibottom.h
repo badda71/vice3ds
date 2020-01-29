@@ -28,20 +28,6 @@
 
 #include "uimenu.h"
 
-// exposed function
-extern void sdl_uibottom_draw(void);
-extern ui_menu_action_t sdl_uibottom_mouseevent(SDL_Event *);
-extern void toggle_keyboard(void);
-extern void setBottomBacklight (int on);
-extern int getBottomBacklight();
-extern int is_keyboard_hidden();
-extern int uibottom_resources_init();
-extern void uibottom_resources_shutdown();
-extern int uibottom_editmode_is_on();
-extern void uibottom_toggle_editmode();
-extern void toggle_help(int inmenu);
-extern void toggle_menu(int active, ui_menu_entry_t *item);
-
 // exposed definitions
 typedef struct {
 	int x,y,w,h,key,shift,sticky,flags;
@@ -59,7 +45,8 @@ enum bottom_action {
 	UIB_GET_RECALC_KEYPRESS =	0x02,
 	UIB_GET_RECALC_KEYBOARD =	0x04,
 	UIB_GET_RECALC_SBUTTONS =	0x08,
-	UIB_RECALC_MENU =			0x10
+	UIB_RECALC_MENU =			0x10,
+	UIB_RECALC_GB64 =			0x20
 };
 
 enum str_alignment {
@@ -71,8 +58,25 @@ enum str_alignment {
 enum font_size {
 	FONT_SMALL,
 	FONT_MEDIUM,
-	FONT_BIG
+	FONT_BIG,
+	FONT_SYM
 };
+
+// exposed functions
+extern void sdl_uibottom_draw(void);
+extern ui_menu_action_t sdl_uibottom_mouseevent(SDL_Event *);
+extern void toggle_keyboard(void);
+extern void setBottomBacklight (int on);
+extern int getBottomBacklight();
+extern int is_keyboard_hidden();
+extern int uibottom_resources_init();
+extern void uibottom_resources_shutdown();
+extern int uibottom_editmode_is_on();
+extern void uibottom_toggle_editmode();
+extern void toggle_help(int inmenu);
+extern void toggle_menu(int active, ui_menu_entry_t *item);
+extern void uib_printtext(SDL_Surface *s, const char *str, int xo, int yo, int w, int h, enum font_size size, SDL_Color col);
+extern void uib_printstring(SDL_Surface *s, const char *str, int x, int y, int maxchars, enum str_alignment align, enum font_size size, SDL_Color col);
 
 // exposed variables
 extern uikbd_key *uikbd_keypos;
@@ -81,5 +85,6 @@ extern int help_on;
 extern int grab_sbuttons;
 extern SDL_Event lastevent;
 extern int menu_invisible;
+SDL_Surface *mediumchars;
 
 #endif

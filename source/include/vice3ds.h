@@ -23,8 +23,44 @@
  *  02111-1307  USA.
  *
  */
-#define KEYMAPPINGS_DEFAULT "cc 02010000 ce 02030000 d6 011e0000 d7 01110000 d8 011f0000 d9 011d0000 e8 01031900 f6 01030000 f7 01200000 f8 010d0000"
+#include <3ds.h>
+
+#define KEYMAPPINGS_DEFAULT "cc 02010000 ce 02030000 d6 011e0000 d7 01110000 d8 011f0000 d9 011d0000 f6 01030000 f7 01200000 f8 010d0000 f9 01031900"
 #define HELPTEXT_MAX 256
+
+typedef struct {
+	Handle mutex;
+	void **queue;
+	int size;
+	int head;
+	int tail;
+	int locked;
+} tsq_object;
+
+typedef struct {
+	char *key;
+	void *val;
+} tsh_item;
+
+typedef struct {
+	Handle mutex;
+	tsh_item *hash;
+	int size;
+	int locked;
+	void (*free_callback)(void *val);
+} tsh_object;
+
+extern u32 hashKey(u8 *key);
+extern void tsh_init(tsh_object *o, int size, void (*free_callback)(void *val));
+extern void *tsh_get(tsh_object *o, char *key);
+extern void tsh_put(tsh_object *o, char *key, void *val);
+extern void tsh_free(tsh_object *o);
+
+extern void tsq_init(tsq_object *o, int size);
+extern void tsq_lock(tsq_object *o, int lock);
+extern void tsq_free(tsq_object *o);
+extern void *tsq_get(tsq_object *o);
+extern void tsq_put(tsq_object *o, void *p);
 
 extern char *chg_root_directory;
 extern int keymap3ds[256];

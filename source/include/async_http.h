@@ -1,10 +1,11 @@
 /*
- * update.h - Update support
+ * async_http.h - Functions specific to async file retrieval
  *
  * Written by
  *  Sebastian Weber <me@badda.de>
  *
- * This file is part of VICE3DS
+ * This file is part of vice3DS
+ * See README for copyright notice.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,4 +24,6 @@
  *
  */
 
-extern UI_MENU_CALLBACK(update_callback);
+extern void async_http_shutdown();
+extern void async_http_init(int numworkers);
+extern int async_http_get(char *url, char *fname, void (*callback)(char *url, char *fname, int result,  void *param), void *param);

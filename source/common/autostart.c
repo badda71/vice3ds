@@ -309,7 +309,7 @@ static const resource_int_t resources_int[] = {
       &autostart_basic_load, set_autostart_basic_load, NULL },
     { "AutostartRunWithColon", 0, RES_EVENT_NO, (resource_value_t)0,
       &AutostartRunWithColon, set_autostart_run_with_colon, NULL },
-    { "AutostartHandleTrueDriveEmulation", 0, RES_EVENT_NO, (resource_value_t)0,
+    { "AutostartHandleTrueDriveEmulation", 1, RES_EVENT_NO, (resource_value_t)0,
       &AutostartHandleTrueDriveEmulation, set_autostart_handle_tde, NULL },
     { "AutostartWarp", 1, RES_EVENT_NO, (resource_value_t)0,
       &AutostartWarp, set_autostart_warp, NULL },
@@ -750,11 +750,13 @@ static void advance_loadingtape(void)
 {
     switch (check("READY.", AUTOSTART_WAIT_BLINK)) {
         case YES:
-            disable_warp_if_was_requested();
+            datasette_control(DATASETTE_CONTROL_STOP);
+			disable_warp_if_was_requested();
             autostart_finish();
             autostart_done();
             break;
         case NO:
+            datasette_control(DATASETTE_CONTROL_STOP);
             disable_warp_if_was_requested();
             autostart_disable();
             break;

@@ -45,6 +45,7 @@
 #include "uibottom.h"
 #include "uifonts.h"
 #include "uihotkey.h"
+#include "uigb64.h"
 #include "util.h"
 #include "vice3ds.h"
 #include "vice_sdl.h"
@@ -95,7 +96,7 @@ uikbd_key uikbd_keypos_C64[] = {
 	{ 231,  1,  30,  20, 139,   0,   0,  0,  "F6"}, // F6
 	{ 261,  1,  30,  20, 136,   0,   0,  0,  "F7"}, // F7
 	{ 291,  1,  29,  20, 140,   0,   0,  0,  "F8"}, // F8
-	// top row	
+	// top row
 	{   1, 21,  20,  20,  95,   0,   0,  0,  "ArrowLeft"}, // <-
 	{  21, 21,  20,  20,  49,  33,   0,  0,  "1"}, // 1 / !
 	{  41, 21,  20,  20,  50,  34,   0,  0,  "2"}, // 2 / "
@@ -112,7 +113,7 @@ uikbd_key uikbd_keypos_C64[] = {
 	{ 261, 21,  20,  20,  92,   0,   0,  0,  "Pound"}, // Pound / ..
 	{ 281, 21,  20,  20,  19,   0,   0,  0,  "CLR/HOME"}, // CLR/HOME
 	{ 301, 21,  19,  20,  20,   0,   0,  0,  "INST/DEL"}, // INST/DEL
-	// 2nd row	
+	// 2nd row
 	{   1, 41,  30,  20,  24,   0,   4,  0,  "CTRL"}, // CTRL - sticky ctrl
 	{  31, 41,  20,  20, 113,  81,   0,  0,  "Q"}, // Q
 	{  51, 41,  20,  20, 119,  87,   0,  0,  "W"}, // W
@@ -128,7 +129,7 @@ uikbd_key uikbd_keypos_C64[] = {
 	{ 251, 41,  20,  20,  42,   0,   0,  0,  "*"}, // *
 	{ 271, 41,  20,  20,  94, 227,   0,  0,  "ArrowUp"}, // ^| / π
 	{ 291, 41,  29,  20,  25,   0,   0,  0,  "RESTORE"}, // RESTORE
-	// 3rd row	
+	// 3rd row
 	{   1, 61,  20,  20,   3,   0,   0,  0,  "RUN/STOP"}, // RUN/STOP
 	{  21, 61,  20,  20,  21,   0,   1,  0,  "SHIFT"}, // SHIFT LOCK - sticky shift
 	{  41, 61,  20,  20,  97,  65,   0,  0,  "A"}, // A
@@ -144,7 +145,7 @@ uikbd_key uikbd_keypos_C64[] = {
 	{ 241, 61,  20,  20,  59,  93,   0,  0,  ";"}, // ; / ]
 	{ 261, 61,  20,  20,  61,   0,   0,  0,  "="}, // =
 	{ 281, 61,  39,  20,  13,   0,   0,  0,  "RETURN"}, // RETURN
-	// 4th row	
+	// 4th row
 	{   1, 81,  20,  20,  23,   0,   2,  0,  "C="}, // cbm - sticky cbm
 	{  21, 81,  30,  20,  21,   0,   1,  0,  "SHIFT"}, // LSHIFT - sticky shift
 	{  51, 81,  20,  20, 122,  90,   0,  0,  "Z"}, // Z
@@ -158,7 +159,7 @@ uikbd_key uikbd_keypos_C64[] = {
 	{ 211, 81,  20,  20,  46,  62,   0,  0,  "."}, // .
 	{ 231, 81,  20,  20,  47,  63,   0,  0,  "/"}, // /
 	{ 251, 81,  30,  20,  21,   0,   1,  0,  "SHIFT"}, // RSHIFT - sticky shift
-	// SPACE	
+	// SPACE
 	{  61,101, 180,  19,  32,   0,   0,  0,  "SPACE"},  // SPACE
 	// Cursor Keys
 	{ 281, 81,  20,  20,  30,   0,   0,  0,  "C_UP"}, // DOWN
@@ -212,7 +213,7 @@ uikbd_key uikbd_keypos_C128[] = {
 	{ 281,  1,  20,  20, 136,   0,   0,  0,  "F7"}, // F7
 	{ 301,  1,  19,  20, 140,   0,   0,  0,  "F8"}, // F8
 
-	// top row	
+	// top row
 	{   1, 21,  20,  20,  95,   0,   0,  0,  "ArrowLeft"}, // <-
 	{  21, 21,  20,  20,  49,  33,   0,  0,  "1"}, // 1 / !
 	{  41, 21,  20,  20,  50,  34,   0,  0,  "2"}, // 2 / "
@@ -229,7 +230,7 @@ uikbd_key uikbd_keypos_C128[] = {
 	{ 261, 21,  20,  20,  92,   0,   0,  0,  "Pound"}, // Pound / ..
 	{ 281, 21,  20,  20,  19,   0,   0,  0,  "CLR/HOME"}, // CLR/HOME
 	{ 301, 21,  19,  20,  20,   0,   0,  0,  "INST/DEL"}, // INST/DEL
-	// 2nd row	
+	// 2nd row
 	{   1, 41,  30,  20,  24,   0,   4,  0,  "CTRL"}, // CTRL - sticky ctrl
 	{  31, 41,  20,  20, 113,  81,   0,  0,  "Q"}, // Q
 	{  51, 41,  20,  20, 119,  87,   0,  0,  "W"}, // W
@@ -245,7 +246,7 @@ uikbd_key uikbd_keypos_C128[] = {
 	{ 251, 41,  20,  20,  42,   0,   0,  0,  "*"}, // *
 	{ 271, 41,  20,  20,  94, 227,   0,  0,  "ArrowUp"}, // ^| / π
 	{ 291, 41,  29,  20,  25,   0,   0,  0,  "RESTORE"}, // RESTORE
-	// 3rd row	
+	// 3rd row
 	{   1, 61,  20,  20,   3,   0,   0,  0,  "RUN/STOP"}, // RUN/STOP
 	{  21, 61,  20,  20,  21,   0,   1,  0,  "SHIFT"}, // SHIFT LOCK - sticky shift
 	{  41, 61,  20,  20,  97,  65,   0,  0,  "A"}, // A
@@ -261,7 +262,7 @@ uikbd_key uikbd_keypos_C128[] = {
 	{ 241, 61,  20,  20,  59,  93,   0,  0,  ";"}, // ; / ]
 	{ 261, 61,  20,  20,  61,   0,   0,  0,  "="}, // =
 	{ 281, 61,  39,  20,  13,   0,   0,  0,  "RETURN"}, // RETURN
-	// 4th row	
+	// 4th row
 	{   1, 81,  20,  20,  23,   0,   2,  0,  "C="}, // cbm - sticky cbm
 	{  21, 81,  30,  20,  21,   0,   1,  0,  "SHIFT"}, // LSHIFT - sticky shift
 	{  51, 81,  20,  20, 122,  90,   0,  0,  "Z"}, // Z
@@ -275,7 +276,7 @@ uikbd_key uikbd_keypos_C128[] = {
 	{ 211, 81,  20,  20,  46,  62,   0,  0,  "."}, // .
 	{ 231, 81,  20,  20,  47,  63,   0,  0,  "/"}, // /
 	{ 251, 81,  30,  20,  21,   0,   1,  0,  "SHIFT"}, // RSHIFT - sticky shift
-	// SPACE	
+	// SPACE
 	{  61,101, 180,  19,  32,   0,   0,  0,  "SPACE"},  // SPACE
 	// Cursor Keys
 	{ 281, 81,  20,  20,  30,   0,   0,  0,  "C_UP"}, // DOWN
@@ -338,12 +339,14 @@ static int sbutton_dang[20];
 static DS3_Image colkey_spr[8];
 static int colkey_nr[8];
 static DS3_Image note_spr;
+static DS3_Image gb64_spr;
 
 // SDL Surfaces
 static SDL_Surface *sb_img=NULL;
 static SDL_Surface *chars=NULL;
-static SDL_Surface *mediumchars=NULL;
+SDL_Surface *mediumchars=NULL;
 static SDL_Surface *smallchars=NULL;
+static SDL_Surface *symchars=NULL;
 static SDL_Surface *keyimg=NULL;
 static SDL_Surface *joyimg=NULL;
 static SDL_Surface *touchpad_img=NULL;
@@ -369,6 +372,9 @@ static Handle repaintRequired;
 static volatile int help_anim;
 static volatile int menu_anim=0;
 static u8 *gpusrc=NULL;
+
+#define HASHSIZE 256
+static tsh_object iconHash;
 
 // sprite handling funtions
 // ========================
@@ -410,7 +416,7 @@ static inline void  drawImage( DS3_Image *img, int x, int y, int width, int heig
 	width=(int)(((float)width*400.0f)/320.0f+0.5f);
 
 	C3D_TexBind(0, &(img->tex));
-		
+
 	// Draw a textured quad directly
 	C3D_ImmDrawBegin(GPU_TRIANGLE_STRIP);
 		C3D_ImmSendAttrib( x, y, 0.5f, 0.0f);		// v0 = position
@@ -530,7 +536,7 @@ static int soft_button_positions_set(const char *val, void *param) {
 
 struct SDL_PrivateVideoData {
 //GPU drawing specific
-	int x1,y1,w1,h1; // drawing window for top screen          width and height of top screen part of the video buffer 
+	int x1,y1,w1,h1; // drawing window for top screen          width and height of top screen part of the video buffer
 	int x2,y2,w2,h2; //drawing window for bottom screen  and height of bottom part of the video buffer
 	float l1,r1,t1,b1; // GPU source window for the top part of the video buffer
 	float l2,r2,t2,b2; // GPU source window for the bottom part of the video buffer
@@ -549,7 +555,7 @@ struct SDL_PrivateVideoData {
 	int byteperpixel;
 	int bpp;
 // video surface
-	SDL_Surface* currentVideoSurface;	
+	SDL_Surface* currentVideoSurface;
 // Video process flags
 	bool blockVideo;  // block video output and events handlings on SDL_QUIT
 };
@@ -563,14 +569,14 @@ static void uibottom_repaint(void *param, int topupdated) {
 	int drag_i=-1;
 	int last_i=-1;
 	s32 c;
-	
+
 	if (svcWaitSynchronization(repaintRequired, 0)) update=0;
-	
+
 	// help on top screen
 	if (help_on && (topupdated || update)) {
 		int x,y,w,h;
 		drawImage(&black_spr, 0,0,320,240);
-		
+
 		// midpoint: 200, 55, 144 -> 44
 		x=200-((help_anim+44)*(200-(400-vdev_hidden->w1*vdev_hidden->scalex)/2))/144;
 		y=55-((help_anim+44)*(55-(240-vdev_hidden->h1*vdev_hidden->scaley)/2))/144;
@@ -583,15 +589,21 @@ static void uibottom_repaint(void *param, int topupdated) {
 		x = (help_anim*-363)/100;
 		y = (help_anim*-123)/100;
 		w = 320+(help_anim*728)/100;
-		h = 240+(help_anim*547)/100; 
+		h = 240+(help_anim*547)/100;
 		drawImage(&help_top_spr, x, y, w, h);
 	}
-	
+
+	// paint gb64 topscreen
+	if (sdl_menu_state && uigb64_top != NULL) {
+//		drawImage(&black_spr, 0,0,320,240);
+		drawImage(&gb64_spr, 0,0, 320, 240);
+	}
+
 	if (!update) return;
 
 	svcClearEvent(repaintRequired);
 	svcWaitSynchronization(privateSem1, U64_MAX);
-	
+
 	if (set_kb_y_pos != -10000) {
 		kb_y_pos=set_kb_y_pos;
 		set_kb_y_pos=-10000;
@@ -650,7 +662,7 @@ static void uibottom_repaint(void *param, int topupdated) {
 	} else {
 		if (menu_button_on) drawImage(&menubut_spr, 0,0,0,0);
 	}
-	
+
 	// color sprites for keyboard
 	for (i=0;i<8;i++) {
 		k=&(uikbd_keypos[colkey_nr[i]]);
@@ -684,8 +696,7 @@ static void uibottom_repaint(void *param, int topupdated) {
 	}
 	// editmode notifiction
 	if (editmode_on) {
-		drawImage(&keymask_spr,150,230,170,10);
-		drawImage(&note_spr, 152,232,0,0);
+		drawImage(&note_spr, 150,230,0,0);
 	}
 	// help screen (bottom part & button)
 	if (help_on && !sdl_menu_state && !_mouse_enabled) {
@@ -693,7 +704,7 @@ static void uibottom_repaint(void *param, int topupdated) {
 		int y=(help_anim*-225)/100;
 		drawImage(&help_bot_spr, x, y, 0, 0);
 	} else {
-		if (help_button_on && !(sdl_menu_state & ~MENU_ACTIVE)) drawImage(&help_spr,305,0,0,0);
+		if (help_button_on && !(sdl_menu_state & ~MENU_ACTIVE) && uigb64_top == NULL) drawImage(&help_spr,305,0,0,0);
 	}
 
 	svcReleaseSemaphore(&c, privateSem1, 1);
@@ -706,12 +717,12 @@ static void keypress_recalc() {
 
 	memset(keysPressed,0,sizeof(keysPressed));
 
-	for (key = 0; uikbd_keypos[key].key!=0; ++key) {		
+	for (key = 0; uikbd_keypos[key].key!=0; ++key) {
 		if (key<0 || uikbd_keypos[key].key==0) return;
 
 		state=0;
 		if (key == kb_activekey) state=1;
-		else if (uikbd_keypos[key].flags==1 && 
+		else if (uikbd_keypos[key].flags==1 &&
 			(item=sdlkbd_ui_hotkeys[uikbd_keypos[key].key]) != NULL &&
 			(item->type == MENU_ENTRY_RESOURCE_TOGGLE ||
 			 item->type == MENU_ENTRY_RESOURCE_RADIO ||
@@ -754,45 +765,6 @@ static void keyboard_recalc() {
 	}
 }
 
-typedef struct {
-	char *key;
-	void *val;
-} hash_item;
-
-#define HASHSIZE 256
-static hash_item iconHash[HASHSIZE]={{0,NULL}};
-
-// Fowler-Noll-Vo Hash (FNV1a)
-static u32 hashKey(u8 *key) {
-	u32 hash=0x811C9DC5;
-	while (*key!=0) hash=(*(key++)^hash) * 0x01000193;
-	return hash;
-}
-
-static void *hash_get(char *key) {
-//log_citra("enter %s: %s",__func__,key);
-	if (key==NULL) return NULL;
-	int i=hashKey((u8*)key) % HASHSIZE;
-	while (iconHash[i].key != NULL) {
-		if (strcmp(key,iconHash[i].key)==0) return iconHash[i].val;
-		++i; i %= HASHSIZE;
-	}
-	return NULL;
-}
-
-static void hash_put(char *key, void *val) {
-//log_citra("enter %s: %s",__func__,key);
-	if (key==NULL) return;
-	int i=hashKey((u8*)key) % HASHSIZE;
-	while (iconHash[i].key!=NULL && strcmp(iconHash[i].key,key)!=0) {
-		++i; i %= HASHSIZE;
-	}
-	if (iconHash[i].key != NULL)
-		lib_free(iconHash[i].key);
-	iconHash[i].key=lib_stralloc(key);
-	iconHash[i].val=val;
-}
-
 static SDL_Surface *loadIcon(char *name) {
 	char s[100];
 	int i;
@@ -801,7 +773,7 @@ static SDL_Surface *loadIcon(char *name) {
 		s[i+5]=isalnum((int)(name[i]))?name[i]:'_';
 	}
 	strcpy(s+i+5,".png");
-	
+
 //log_citra("loadIcon: %s",s);
 	SDL_Surface *r=NULL;
 	FILE *fp=sysfile_open(s,NULL,"r");
@@ -826,13 +798,17 @@ void get_font_info(font_info *f, enum font_size size) {
 			f->img = mediumchars;
 			f->w=5; f->h=8;
 			break;
+		case FONT_SYM:
+			f->img = symchars;
+			f->w = f->h = 8;
+			break;
 		default:
 			f->img = chars;
 			f->w = f->h = 8;
 	}
 }
 
-static void printtext(SDL_Surface *s, const char *str, int xo, int yo, int w, int h, enum font_size size, SDL_Color col) {
+void uib_printtext(SDL_Surface *s, const char *str, int xo, int yo, int w, int h, enum font_size size, SDL_Color col) {
 	font_info f;
 	if (str==NULL) return;
 
@@ -875,7 +851,7 @@ static void printtext(SDL_Surface *s, const char *str, int xo, int yo, int w, in
 	free(buf);
 }
 
-static void printstring(SDL_Surface *s, const char *str, int x, int y, int maxchars, enum str_alignment align, enum font_size size, SDL_Color col) {
+void uib_printstring(SDL_Surface *s, const char *str, int x, int y, int maxchars, enum str_alignment align, enum font_size size, SDL_Color col) {
 	int xof, w;
 	if (str==NULL || str[0]==0) return;
 	font_info f;
@@ -928,12 +904,12 @@ static void blitKey(SDL_Surface *s, char *name, int y, enum str_alignment align)
 		s, &(SDL_Rect){.x=xoff + 4, .y=y });
 	// blit the characters
 	if (strlen(name)<=2) {
-		printstring(s, name, xoff+(w+6)/2, y+6, 0, ALIGN_CENTER, FONT_BIG, (SDL_Color){0xff,0xff,0xff,0});
+		uib_printstring(s, name, xoff+(w+6)/2, y+6, 0, ALIGN_CENTER, FONT_BIG, (SDL_Color){0xff,0xff,0xff,0});
 	} else {
 		// small characters, one or two lines
-		printstring(s, name, xoff+(w+8)/2, p?y+4:y+7, p?MIN(p-name,w/4):w/4, ALIGN_CENTER, FONT_SMALL, (SDL_Color){0xff,0xff,0xff,0});
+		uib_printstring(s, name, xoff+(w+8)/2, p?y+4:y+7, p?MIN(p-name,w/4):w/4, ALIGN_CENTER, FONT_SMALL, (SDL_Color){0xff,0xff,0xff,0});
 		if (p)
-			printstring(s, p+1,xoff+(w+8)/2, y+10, w/4, ALIGN_CENTER, FONT_SMALL, (SDL_Color){0xff,0xff,0xff,0});
+			uib_printstring(s, p+1,xoff+(w+8)/2, y+10, w/4, ALIGN_CENTER, FONT_SMALL, (SDL_Color){0xff,0xff,0xff,0});
 	}
 }
 
@@ -975,14 +951,14 @@ static SDL_Surface *createIcon(char *name) {
 //log_citra("enter %s: %s",__func__,name);
 	int i,c,xof,yof;
 
-	SDL_Surface *icon=SDL_CreateRGBSurface(SDL_SWSURFACE,ICON_W,ICON_H,32,0xff000000,0x00ff0000,0x0000ff00,0x000000ff);
+	SDL_Surface *icon=SDL_CreateRGBSurface(SDL_SWSURFACE,ICON_W,ICON_H,32,0x000000ff,0x0000ff00,0x00ff0000,0xff000000);
 //	SDL_FillRect(icon, NULL, SDL_MapRGBA(icon->format, 0, 0, 0, 0));
 
 	if (strncmp("Joy",name,3)==0 && name[4]==' ') {
 		// make a joy icon
 		SDL_BlitSurface(joyimg,NULL,icon,NULL);
-		printstring(icon, name+3, 0, 0, 1, ALIGN_LEFT, FONT_BIG, (SDL_Color){0xff,0xff,0xff,0});
-		printstring(icon, name+5, 20, 32, 5, ALIGN_CENTER, FONT_BIG, (SDL_Color){0xff,0xff,0xff,0});
+		uib_printstring(icon, name+3, 0, 0, 1, ALIGN_LEFT, FONT_BIG, (SDL_Color){0xff,0xff,0xff,0});
+		uib_printstring(icon, name+5, 20, 32, 5, ALIGN_CENTER, FONT_BIG, (SDL_Color){0xff,0xff,0xff,0});
 	} else if (strncmp("Key ",name,4)==0) {
 		char *saveptr1, *p, *s;
 		// make a (multi) key icon
@@ -1004,7 +980,7 @@ static SDL_Surface *createIcon(char *name) {
 		if(i == 0) {
 			pos[0][0]=9; pos[0][1]=ALIGN_CENTER;
 		}
-		
+
 		// paint the keys to the icon
 		i = 0;
 		p = strtokstr_r(s, " + ", &saveptr1);
@@ -1057,10 +1033,10 @@ static SDL_Surface *sbuttons_getIcon(char *name) {
 //log_citra("enter %s: %s",__func__,name);
 	SDL_Surface *img=NULL;
 	if (name==NULL) return NULL;
-	if ((img=hash_get(name))!=NULL) return img;
+	if ((img=tsh_get(&iconHash, name))!=NULL) return img;
 	if ((img=loadIcon(name))==NULL &&
 		(img=createIcon(name))==NULL) return NULL;
-	hash_put(name, img);
+	tsh_put(&iconHash, name, img);
 	return img;
 }
 
@@ -1216,7 +1192,7 @@ static void sbuttons_recalc() {
 		rbut == 0 ||
 		keymap3ds[lbut] != LMASK ||
 		keymap3ds[rbut] != RMASK) {
-	
+
 		// check which buttons are mapped to mouse buttons
 		for (i=1; i<255; i++) {
 			switch (keymap3ds[i]) {
@@ -1239,25 +1215,25 @@ static void sbuttons_recalc() {
 		SDL_FillRect(touchpad_img, &(SDL_Rect){
 			.x = 0,	.y = y, .w = x+1, .h = 9},
 			SDL_MapRGB(touchpad_img->format, 0, 0, 0));
-		printstring(touchpad_img, lbuf, x, y, 0, ALIGN_RIGHT, FONT_BIG, (SDL_Color){0x5d,0x5d,0x5d,0});
+		uib_printstring(touchpad_img, lbuf, x, y, 0, ALIGN_RIGHT, FONT_BIG, (SDL_Color){0x5d,0x5d,0x5d,0});
 
 		x=167,y=148;
 		i=strlen(rbuf);
 		SDL_FillRect(touchpad_img, &(SDL_Rect) {
 			.x = x-1,.y = y, .w = 321-x, .h = 9},
 			SDL_MapRGB(touchpad_img->format, 0, 0, 0));
-		printstring(touchpad_img, rbuf, x, y, 0, ALIGN_LEFT, FONT_BIG, (SDL_Color){0x5d,0x5d,0x5d,0});
+		uib_printstring(touchpad_img, rbuf, x, y, 0, ALIGN_LEFT, FONT_BIG, (SDL_Color){0x5d,0x5d,0x5d,0});
 		// create the sprite
 		makeImage(&(touchpad_spr), touchpad_img->pixels, touchpad_img->w, touchpad_img->h, 0);
 	}
-	
+
 }
 
 // init bottom
 static int uibottom_isinit=0;
 static void uibottom_init() {
 	uibottom_isinit=1;
-	
+
 	// pre-load images
 	sb_img=IMG_Load("romfs:/sb.png");
 	SDL_SetAlpha(sb_img, 0, 255);
@@ -1267,6 +1243,8 @@ static void uibottom_init() {
 	SDL_SetColorKey(smallchars, SDL_SRCCOLORKEY, 0x00000000);
 	mediumchars=IMG_Load("romfs:/mediumchars.png");
 	SDL_SetColorKey(mediumchars, SDL_SRCCOLORKEY, 0x00000000);
+	symchars=IMG_Load("romfs:/symchars.png");
+	SDL_SetColorKey(symchars, SDL_SRCCOLORKEY, 0x00000000);
 	keyimg=IMG_Load("romfs:/keyimg.png");
 	SDL_SetAlpha(keyimg, 0, 255);
 	joyimg=IMG_Load("romfs:/joyimg.png");
@@ -1294,8 +1272,9 @@ static void uibottom_init() {
 	makeImage(&black_spr, (u8[]){0, 0, 0, 0xFF},1,1,0);
 
 	// create sprites
-	SDL_Surface *s=SDL_CreateRGBSurface(SDL_SWSURFACE,256,64,32,0xff000000,0x00ff0000,0x0000ff00,0x000000ff);
-	printstring(s, "Press START to finish", 0, 0, 0, ALIGN_LEFT, FONT_BIG, (SDL_Color){0xff,0xff,0xff,0});
+	SDL_Surface *s=SDL_CreateRGBSurface(SDL_SWSURFACE,256,64,32,0x000000ff,0x0000ff00,0x00ff0000,0xff000000);
+	SDL_FillRect(s, NULL, SDL_MapRGBA(s->format,0,0,0,128));
+	uib_printstring(s, "Press START to finish", 2, 2, 0, ALIGN_LEFT, FONT_BIG, (SDL_Color){0xff,0xff,0xff,0});
 	makeImage(&note_spr, s->pixels, s->w, s->h, 0);
 
 	svcCreateEvent(&repaintRequired,0);
@@ -1324,7 +1303,7 @@ void menu_recalc() {
 	u8 alpha=menu_alpha_value;
 	u8 alpha2=255;
 	if (events_to_emu) alpha=alpha2=128;
-	
+
 	for(y = 0; y < 240; ++y) {
 		dst=gpusrc+y*hw*4;
 		if (y==menu_alpha_max_y) alpha=0;
@@ -1348,9 +1327,14 @@ void menu_recalc() {
 	makeTexture(&(menu_spr.tex), gpusrc, hw, hh);
 }
 
+void gb64_recalc() {
+	if (uigb64_top == NULL) makeImage(&gb64_spr, (u8[]){0, 0, 0, 0},1,1,0);
+	else makeImage(&gb64_spr, uigb64_top->pixels, uigb64_top->w, uigb64_top->h, 0);
+}
+
 // update the whole bottom screen
 void sdl_uibottom_draw(void)
-{	
+{
 	enum bottom_action uibottom_must_redraw_local;
 
 	// init if needed
@@ -1378,6 +1362,10 @@ void sdl_uibottom_draw(void)
 		}
 		if (sdl_menu_state && (uibottom_must_redraw_local & UIB_RECALC_MENU)) {
 			menu_recalc();
+		}
+
+		if (sdl_menu_state && (uibottom_must_redraw_local & UIB_RECALC_GB64)) {
+			gb64_recalc();
 		}
 /*
 		// check if our internal state matches the SDL state
@@ -1481,11 +1469,11 @@ void anim_callback4(void *param) {
 void toggle_menu(int active, ui_menu_entry_t *item)
 {
 	static int movekb=0, movemenu=0, old_kb_y_pos;
-	
+
 	if (active) {
 		SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 		menu_anim=movekb=movemenu=0;
-		if (item == NULL || 
+		if (item == NULL ||
 			item->type == MENU_ENTRY_DIALOG ||
 			item->type == MENU_ENTRY_SUBMENU ||
 			item->type == MENU_ENTRY_DYNAMIC_SUBMENU)
@@ -1533,10 +1521,10 @@ void toggle_help(int inmenu)
 		char *p;
 		SDL_Color w=(SDL_Color){255,255,255,0};
 
-		printstring(help_img,
+		uib_printstring(help_img,
 			inmenu?"Vice3DS Menu Help":"Vice3DS Emulator Help",
 			8, 1, 0, ALIGN_LEFT, FONT_BIG, w);
-		printstring(help_img,
+		uib_printstring(help_img,
 			inmenu?"=================":"=====================",
 			8, 9, 0, ALIGN_LEFT, FONT_BIG, w);
 
@@ -1544,7 +1532,7 @@ void toggle_help(int inmenu)
 		for (int i=0; help_pos[i][0]!=0; i++) {
 			p=get_key_help(help_pos[i][0],inmenu,0);
 			snprintf(buf, 40, "%s", p?p:"-");
-			printstring(help_img, buf, help_pos[i][1], help_pos[i][2], 0, help_pos[i][3], FONT_MEDIUM, w);
+			uib_printstring(help_img, buf, help_pos[i][1], help_pos[i][2], 0, help_pos[i][3], FONT_MEDIUM, w);
 		}
 		// print 3ds slider
 		switch (slider3d_func) {
@@ -1556,11 +1544,11 @@ void toggle_help(int inmenu)
 				break;
 			default: //speedup
 				p="Speed up Emulation";
-		}	
-		printstring(help_img, p, 297, 72, 0, ALIGN_LEFT, FONT_MEDIUM, w);
-	
+		}
+		uib_printstring(help_img, p, 297, 72, 0, ALIGN_LEFT, FONT_MEDIUM, w);
+
 		// volume
-		printstring(help_img, "Volume", 101, 88, 0, ALIGN_RIGHT, FONT_MEDIUM, w);
+		uib_printstring(help_img, "Volume", 101, 88, 0, ALIGN_RIGHT, FONT_MEDIUM, w);
 
 		// create the sprite
 		makeImage(&(help_top_spr), help_img->pixels, help_img->w, help_img->h, 0);
@@ -1574,13 +1562,13 @@ void toggle_help(int inmenu)
 			for (int i = 0; uikbd_keypos[i].key != 0 ; ++i) {
 				if (uikbd_keypos[i].flags != 1) continue;	// not a soft button
 				char *name=get_key_help(uikbd_keypos[i].key,0,20);
-				printtext(help_img, name, uikbd_keypos[i].x+5, uikbd_keypos[i].y+6, 55, 48, FONT_MEDIUM, w);
+				uib_printtext(help_img, name, uikbd_keypos[i].x+5, uikbd_keypos[i].y+6, 55, 48, FONT_MEDIUM, w);
 			}
 		}
 		// create the sprite
 		makeImage(&(help_bot_spr), help_img->pixels, help_img->w, help_img->h, 0);
 		SDL_FreeSurface(help_img);
-		
+
 		old_kb_y_pos=kb_y_pos;
 
 		help_anim=100;
@@ -1608,7 +1596,7 @@ static SDL_Event sdl_e;
 SDL_Event lastevent;
 
 ui_menu_action_t sdl_uibottom_mouseevent(SDL_Event *e) {
-	
+
 	int x = e->button.x*320/sdl_active_canvas->screen->w;
 	int y = e->button.y*240/sdl_active_canvas->screen->h;
 	uikbd_key *k;
@@ -1733,7 +1721,7 @@ ui_menu_action_t sdl_uibottom_mouseevent(SDL_Event *e) {
 		}
 		if (i==kb_activekey) return 0; // ignore button down on an already pressed key
 		kb_activekey=i;
-		
+
 		// start sbutton drag
 		if (editmode_on && uikbd_keypos[i].flags) {
 			dragging=1;
@@ -1838,7 +1826,7 @@ int uibottom_resources_init() {
 	}
 
 	// calc global vars
-	kb_y_pos = 
+	kb_y_pos =
 		persistence_getInt("kbd_hidden",0) ? 240 : 240 - uikbd_pos[0][3];
 
 	for (int i = 0; uikbd_keypos[i].key != 0 ; ++i)
@@ -1852,7 +1840,7 @@ int uibottom_resources_init() {
 	}
 
 	// init gpusrc
-	gpusrc = linearAlloc(512*256*4);	
+	gpusrc = linearAlloc(512*256*4);
 
 	if (resources_register_string(resources_string) < 0) {
 		return -1;
@@ -1860,6 +1848,10 @@ int uibottom_resources_init() {
 	if (resources_register_int(resources_int) < 0) {
         return -1;
     }
+
+	// init icon hash
+	tsh_init(&iconHash, HASHSIZE, (void (*)(void *))SDL_FreeSurface);
+
 	return 0;
 }
 
@@ -1870,9 +1862,7 @@ void uibottom_resources_shutdown() {
 	linearFree(gpusrc);
 	gpusrc=NULL;
 
-	// free the hash
-	for (int i=0; i<HASHSIZE;++i)
-		free(iconHash[i].key);
+	tsh_free(&iconHash);
 }
 
 int uibottom_editmode_is_on() {
