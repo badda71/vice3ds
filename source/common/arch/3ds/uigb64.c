@@ -84,6 +84,7 @@ static char *gamedir=NULL;
 static int list_filter;
 static picoDB *db=NULL;
 static u32 wifi_status = 0;
+static int *searchresult=NULL;
 
 static picoDB *pdb_initDB(char *filename) {
 	// read in the file
@@ -454,102 +455,108 @@ static void uigb64_update_topscreen(SDL_Surface *s, int entry, int *screenshotid
 
 	// clear surface
 	SDL_FillRect(s, NULL, SDL_MapRGBA(s->format,208,209,203,255));
+	if (entry>=0) {
+		// write info to screen
+		j=snprintf(buf, 51, "%s", pdb_getEntry(db, entry, 1));
+		uib_printstring(s, buf, 0, 200, 50, ALIGN_LEFT, FONT_BIG, (SDL_Color){0x00,0x00,0x00,0x00});
 
-	// write info to screen
-	j=snprintf(buf, 51, "%s", pdb_getEntry(db, entry, 1));
-	uib_printstring(s, buf, 0, 200, 50, ALIGN_LEFT, FONT_BIG, (SDL_Color){0x00,0x00,0x00,0x00});
+		j=snprintf(buf, 81, "Published: ");
+		uib_printstring(s, buf, 0, 208, 80, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0xff,0});
+		p=pdb_getEntry(db, entry, 10);
+		snprintf(buf, 81-j, "%s, %s", pdb_getEntry(db, entry, 2), *p?p:"(unknown)");
+		uib_printstring(s, buf, j*5, 208, 81-j, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
 
+		j=snprintf(buf, 81, "Language:  ");
+		uib_printstring(s, buf, 0, 216, 80, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0xff,0});
+		snprintf(buf, 81-j, "%s", pdb_getEntry(db, entry, 14));
+		uib_printstring(s, buf, j*5, 216, 80, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
 
+		j=snprintf(buf, 42, " Genre: ");
+		uib_printstring(s, buf, 195, 216, 40, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0xff,0});
+		p=pdb_getEntry(db, entry, 8);
+		p1=pdb_getEntry(db, entry, 9);
 
-	j=snprintf(buf, 81, "Published: ");
-	uib_printstring(s, buf, 0, 208, 80, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0xff,0});
-	p=pdb_getEntry(db, entry, 10);
-	snprintf(buf, 81-j, "%s, %s", pdb_getEntry(db, entry, 2), *p?p:"(unknown)");
-	uib_printstring(s, buf, j*5, 208, 81-j, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
+		snprintf(buf, 42-j,	"%s%s%s", pdb_getEntry(db, entry, 9),(*p && *p1)?" - ":"", pdb_getEntry(db, entry, 8));
+		uib_printstring(s, buf, 195+j*5, 216, 40, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
 
-	j=snprintf(buf, 81, "Language:  ");
-	uib_printstring(s, buf, 0, 216, 80, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0xff,0});
-	snprintf(buf, 81-j, "%s", pdb_getEntry(db, entry, 14));
-	uib_printstring(s, buf, j*5, 216, 80, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
+		p=pdb_getEntry(db, entry, 18);
+		p1=pdb_getEntry(db, entry, 19);
+		uib_printstring(s, p, 0, 224, 80, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
+		uib_printstring(s, p1, 0, *p?232:224, 80, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
 
-	j=snprintf(buf, 42, " Genre: ");
-	uib_printstring(s, buf, 195, 216, 40, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0xff,0});
-	p=pdb_getEntry(db, entry, 8);
-	p1=pdb_getEntry(db, entry, 9);
+		// check if all screenshots exist, request loading if not
+		p=pdb_getEntry(db, entry, 6);
+		char *pimg_fpath=util_concat(archdep_xdg_cache_home(), "/", p, NULL);
+		char *base_fname=lib_stralloc(p);
+		*(strrchr(base_fname,'.'))=0;
+		char *base_fpath=util_concat(archdep_xdg_cache_home(), "/", base_fname, NULL);
 
-	snprintf(buf, 42-j,	"%s%s%s", pdb_getEntry(db, entry, 9),(*p && *p1)?" - ":"", pdb_getEntry(db, entry, 8));
-	uib_printstring(s, buf, 195+j*5, 216, 40, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
+		// check primary image
+		if (access(pimg_fpath,R_OK) != 0) {
+			snprintf(url, 256, "%s%s", GB64_SS_URL, p);
+			async_http_get(url, pimg_fpath, uigb64_callback_imgLoad, 0);
+		} else numimg=1;
 
-	p=pdb_getEntry(db, entry, 18);
-	p1=pdb_getEntry(db, entry, 19);
-	uib_printstring(s, p, 0, 224, 80, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
-	uib_printstring(s, p1, 0, *p?232:224, 80, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
+		// check all other images (max 9)
+		for(j=1; j<10; j++) {
+			// check end file
+			snprintf(buf2, 256, "%s_%d.x", base_fpath, j);
+			if (access(buf2,F_OK) ==0) break;
 
-	// check if all screenshots exist, request loading if not
-	p=pdb_getEntry(db, entry, 6);
-	char *pimg_fpath=util_concat(archdep_xdg_cache_home(), "/", p, NULL);
-	char *base_fname=lib_stralloc(p);
-	*(strrchr(base_fname,'.'))=0;
-	char *base_fpath=util_concat(archdep_xdg_cache_home(), "/", base_fname, NULL);
+			// check img file
+			snprintf(buf2, 256, "%s_%d.png", base_fpath, j);
+			if (access(buf2,R_OK) != 0) {
+				snprintf(url, 256, "%s%s_%d.png", GB64_SS_URL, base_fname, j);
+				async_http_get(url, buf2, uigb64_callback_imgLoad, (void*)j);
+				break;
+			} else numimg=j+1;
+		}
 
-	// check primary image
-	if (access(pimg_fpath,R_OK) != 0) {
-		snprintf(url, 256, "%s%s", GB64_SS_URL, p);
-		async_http_get(url, pimg_fpath, uigb64_callback_imgLoad, 0);
-	} else numimg=1;
+		// paint image
+		if (*screenshotidx > numimg-1) *screenshotidx = 0;
+		if (*screenshotidx < 0 && numimg > 0) *screenshotidx = numimg-1;
+		if (*screenshotidx == 0)
+			snprintf(buf2, 256, "%s", pimg_fpath);
+		else
+			snprintf(buf2, 256, "%s_%d.png", base_fpath, *screenshotidx);
+		SDL_Surface *i=IMG_Load(buf2);
+		if (i) {
+			SDL_BlitSurface ( i, NULL, s, &(SDL_Rect){.x=0, .y=0, .w=320, .h=200});
+			SDL_FreeSurface(i);
+		} else {
+			SDL_BlitSurface ( loading_img, NULL, s, &(SDL_Rect){.x=0, .y=0, .w=320, .h=200});
+		}
 
-	// check all other images (max 9)
-	for(j=1; j<10; j++) {
-		// check end file
-		snprintf(buf2, 256, "%s_%d.x", base_fpath, j);
-		if (access(buf2,F_OK) ==0) break;
+		// free allocated buffers
+		free(pimg_fpath);
+		free(base_fname);
+		free(base_fpath);
 
-		// check img file
-		snprintf(buf2, 256, "%s_%d.png", base_fpath, j);
-		if (access(buf2,R_OK) != 0) {
-			snprintf(url, 256, "%s%s_%d.png", GB64_SS_URL, base_fname, j);
-			async_http_get(url, buf2, uigb64_callback_imgLoad, (void*)j);
-			break;
-		} else numimg=j+1;
-	}
+		// draw right side info
+		if (numimg>1) {
+			uib_printstring(s, "Screenshots", 324, 4, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0xff,0});
+			uib_printstring(s, " ", 324, 12, 0, ALIGN_LEFT, FONT_SYM, (SDL_Color){0x00,0x00,0xff,0});
+			if (snprintf(buf, 8, "%d/%d", *screenshotidx+1, numimg) < 0)
+				log_error(LOG_ERR,"screenshot index out of bounds");
+			uib_printstring(s, buf, 336, 12, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
+			uib_printstring(s, "!", 358, 12, 0, ALIGN_LEFT, FONT_SYM, (SDL_Color){0x00,0x00,0xff,0});
+		}
+		if (downloaded[entry]) {
+			uib_printstring(s, "DOWNLOADED", 324, 28, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x80,0x00,0});
+		}
+		uib_printstring(s, "\"", 324, 44, 0, ALIGN_LEFT, FONT_SYM, (SDL_Color){0x00,0x00,0xff,0});
+		uib_printstring(s, downloaded[entry]?"Start":"Download", 336, 44, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
+		if (downloaded[entry]) {
+			uib_printstring(s, "$", 324, 52, 0, ALIGN_LEFT, FONT_SYM, (SDL_Color){0x00,0x00,0xff,0});
+			uib_printstring(s, "Delete", 336, 52, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
+		}
 
-	// paint image
-	if (*screenshotidx > numimg-1) *screenshotidx = 0;
-	if (*screenshotidx < 0 && numimg > 0) *screenshotidx = numimg-1;
-	if (*screenshotidx == 0)
-		snprintf(buf2, 256, "%s", pimg_fpath);
-	else
-		snprintf(buf2, 256, "%s_%d.png", base_fpath, *screenshotidx);
-	SDL_Surface *i=IMG_Load(buf2);
-	if (i) {
-		SDL_BlitSurface ( i, NULL, s, &(SDL_Rect){.x=0, .y=0, .w=320, .h=200});
-		SDL_FreeSurface(i);
-	} else {
-		SDL_BlitSurface ( loading_img, NULL, s, &(SDL_Rect){.x=0, .y=0, .w=320, .h=200});
-	}
-
-	// free allocated buffers
-	free(pimg_fpath);
-	free(base_fname);
-	free(base_fpath);
-
-	// draw right side info
-	if (numimg>1) {
-		uib_printstring(s, "Screenshots", 324, 4, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0xff,0});
-		uib_printstring(s, " ", 324, 12, 0, ALIGN_LEFT, FONT_SYM, (SDL_Color){0x00,0x00,0xff,0});
-		if (snprintf(buf, 8, "%d/%d", *screenshotidx+1, numimg) < 0)
-			log_error(LOG_ERR,"screenshot index out of bounds");
-		uib_printstring(s, buf, 336, 12, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
-		uib_printstring(s, "!", 358, 12, 0, ALIGN_LEFT, FONT_SYM, (SDL_Color){0x00,0x00,0xff,0});
-	}
-	if (downloaded[entry]) {
-		uib_printstring(s, "DOWNLOADED", 324, 28, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x80,0x00,0});
-	}
-	uib_printstring(s, "\"", 324, 44, 0, ALIGN_LEFT, FONT_SYM, (SDL_Color){0x00,0x00,0xff,0});
-	uib_printstring(s, downloaded[entry]?"Start":"Download", 336, 44, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
-	if (downloaded[entry]) {
-		uib_printstring(s, "$", 324, 52, 0, ALIGN_LEFT, FONT_SYM, (SDL_Color){0x00,0x00,0xff,0});
-		uib_printstring(s, "Delete", 336, 52, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
+			// 0=PAL, 1=PAL+NTSC, 2=NTSC, 3=PAL(+NTSC?)
+		uib_printstring(s, "Mode:", 324, 92, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0xff,0});
+		uib_printstring(s, *(pdb_getEntry(db, entry, 20))=='2'?"NTSC":"PAL", 354, 92, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
+		// TDE
+		uib_printstring(s, "TDE:", 324, 100, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0xff,0});
+		uib_printstring(s, *(pdb_getEntry(db, entry, 21))=='0'?"No":"Yes", 354, 100, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
 	}
 
 	uib_printstring(s, "%", 324, 60, 0, ALIGN_LEFT, FONT_SYM, (SDL_Color){0x00,0x00,0xff,0});
@@ -561,13 +568,6 @@ static void uigb64_update_topscreen(SDL_Surface *s, int entry, int *screenshotid
 	if (list_filter & 2)
 		uib_printstring(s, "x", 324, 76, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0xff,0});
 
-	// 0=PAL, 1=PAL+NTSC, 2=NTSC, 3=PAL(+NTSC?)
-	uib_printstring(s, "Mode:", 324, 92, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0xff,0});
-	uib_printstring(s, *(pdb_getEntry(db, entry, 20))=='2'?"NTSC":"PAL", 354, 92, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
-	// TDE
-	uib_printstring(s, "TDE:", 324, 100, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0xff,0});
-	uib_printstring(s, *(pdb_getEntry(db, entry, 21))=='0'?"No":"Yes", 354, 100, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
-
 	uibottom_must_redraw |= UIB_RECALC_GB64;
 }
 
@@ -576,12 +576,9 @@ extern char *strcasestr(const char *haystack, const char *needle);
 
 static char *uigb64_start()
 {
-	int total, menu_max;
-	int top_shows = -1;
+	int menu_max;
 	int active = 1;
-	int offset = 0;
-	int redraw;
-	int cur = 0, cur_old = -1;
+	int redraw = 1, cur_old = -1;
 	int i, y, x, action, old_y=-1, dragging=0;
 	char *title="Gamebase 64";
 	char search[41];
@@ -589,11 +586,13 @@ static char *uigb64_start()
     int retval = -1;
 	int key;
 	SDLMod mod;
-	int searchpos=0,searchsize,search_changed=1,redraw_search=0;
-	int *searchresult;
+	int searchpos=0,searchsize,redraw_search=0;
 	int screenshotidx=0;
 	char *p;
 	char buf[256];
+
+	static int top_shows = -1;
+	static int offset = 0, cur = 0, search_changed=1, total=0;
 
 	acInit();
 	ACU_GetWifiStatus(&wifi_status);
@@ -654,7 +653,8 @@ dldb:
 	}
 
 	// init search result array
-	searchresult=malloc(db->num_entries * sizeof(int));
+	if (searchresult == NULL)
+		searchresult=malloc(db->num_entries * sizeof(int));
 	if (searchresult == NULL) {
 		ui_error("Cannot allocate searchresult");
 		return NULL;
@@ -663,6 +663,7 @@ dldb:
 	// init my top screen
 	if (uigb64_top) SDL_FreeSurface(uigb64_top);
 	uigb64_top = SDL_CreateRGBSurface(SDL_SWSURFACE,400,240,32,0x000000ff,0x0000ff00,0x00ff0000,0xff000000);
+	gb64_top_must_redraw=1;
 
 	// init file getter
 	async_http_init(1);
@@ -695,22 +696,28 @@ dldb:
 		closedir(dir);
 	}
 
-    while (active) {
+	while (active) {
 		searchsize=strlen(search);
 		if (search_changed) {
 			total=0;
+			int curset=0;
+			cur = offset = 0;
+			cur_old=-1;
 			for (i=0; i < db->num_entries; ++i) {
-				if ((list_filter & 1) &&
-					*(pdb_getEntry(db, i, 16)) == '0') continue;
-				if ((list_filter & 2) &&
-					downloaded[i] != 1) continue;
-				if (searchsize == 0 || (
+				if (!((list_filter & 1) && *(pdb_getEntry(db, i, 16)) == '0') &&
+					!((list_filter & 2) && downloaded[i] != 1) &&
+					(searchsize == 0 || (
 					(p=pdb_getEntry(db, i, NAMECOL)) !=NULL &&
-					strcasestr(p, search))) {
+					strcasestr(p, search)))) {
 					searchresult[total++]=i;
 				}
+				if (!curset && i >= top_shows) {
+					curset=1;
+					if (total) cur=total-1;
+				}
 			}
-			search_changed=cur=offset=0;
+			sdl_ui_adjust_offset(&offset, &cur,menu_max,total);
+			search_changed=0;
 			redraw=1;
 			strcpy(oldsearch,search);
 		}
@@ -730,7 +737,7 @@ dldb:
 		if (top_shows != searchresult[offset+cur] || gb64_top_must_redraw) {
 			if (top_shows != searchresult[offset+cur]) screenshotidx=0;
 			gb64_top_must_redraw=0;
-			top_shows=searchresult[offset+cur];
+			top_shows = total==0 ? -1 : searchresult[offset+cur];
 			uigb64_update_topscreen(uigb64_top, top_shows, &screenshotidx);
 		}
 
@@ -757,6 +764,7 @@ dldb:
 			case MENU_ACTION_LEFT:
 				cur_old = cur;
 				cur -= menu_max;
+				if (cur_old + offset != 0 && cur + offset < 0) cur=-offset;
 				redraw |= sdl_ui_adjust_offset(&offset, &cur,menu_max,total);
 				break;
 			case MENU_ACTION_DOWN:
@@ -768,9 +776,11 @@ dldb:
 			case MENU_ACTION_RIGHT:
 				cur_old = cur;
 				cur += menu_max;
+				if (cur_old + offset != total-1 && cur + offset > total-1) cur=total-offset-1;
 				redraw |= sdl_ui_adjust_offset(&offset, &cur,menu_max,total);
 				break;
 			case MENU_ACTION_SELECT:
+				if (top_shows<0) break;
 				if (!downloaded[top_shows]) {
 					snprintf(buf,256,"Download \"%s\"?",pdb_getEntry(db, top_shows, NAMECOL));
 					if (message_box("Download Game", buf, MESSAGE_YESNO) == 0) {
@@ -845,14 +855,14 @@ dldb:
 						screenshotidx++;
 						gb64_top_must_redraw = 1;
 						break;
-					case 202:	// Y-button
+					case 203:	// Y-button
 						list_filter++;
 						if (list_filter > 2) list_filter=0;
 						persistence_putInt("gb64_list_filter",list_filter);
 						search_changed = gb64_top_must_redraw = 1;
 						break;
-					case 203:	// X-button
-						if (downloaded[top_shows]) {
+					case 202:	// X-button
+						if (top_shows >= 0 && downloaded[top_shows]) {
 							snprintf(buf,256,"Really delete game \"%s\"?",pdb_getEntry(db, top_shows, NAMECOL));
 							if (message_box("Delete Game", buf, MESSAGE_YESNO) == 0) {
 								gb64_delete(top_shows);
@@ -923,7 +933,6 @@ dldb:
 	SDL_FreeSurface(uigb64_top);
 	uigb64_top=NULL;
 	uibottom_must_redraw |= UIB_RECALC_GB64;
-	free (searchresult);
 	SDL_FreeSurface(loading_img);
 	async_http_shutdown();
 	free (gamedir);
@@ -953,5 +962,6 @@ UI_MENU_CALLBACK(gb64_callback)
 
 void gb64_shutdown() {
 	if (db != NULL) pdb_freeDB(db);
+	if (searchresult != NULL) free(searchresult);
 	db=NULL;
 }

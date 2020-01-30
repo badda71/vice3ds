@@ -89,9 +89,9 @@ void *tsh_get(tsh_object *o, char *key) {
 	return r;
 }
 
-void tsh_put(tsh_object *o, char *key, void *val) {
+int tsh_put(tsh_object *o, char *key, void *val) {
 //log_citra("enter %s: %s",__func__,key);
-	if (key==NULL) return;
+	if (key==NULL) return -1;
 	int i=hashKey((u8*)key) % o->size;
 	int count = 0;
 	svcWaitSynchronization(o->mutex, U64_MAX);
@@ -99,7 +99,7 @@ void tsh_put(tsh_object *o, char *key, void *val) {
 		++i; i %= o->size;
 		if (++count >= o->size) {
 			svcReleaseMutex(o->mutex);
-			return;
+			return -1;
 		}
 	}
 	if (o->hash[i].key != NULL) {
@@ -109,12 +109,14 @@ void tsh_put(tsh_object *o, char *key, void *val) {
 	o->hash[i].key = (val == NULL) ? NULL : lib_stralloc(key);
 	o->hash[i].val = val;
 	svcReleaseMutex(o->mutex);
+	return 0;
 }
 
 // thread safe queue functions
 void tsq_init(tsq_object *o, int size) {
 	svcCreateMutex(&(o->mutex), false);
 	o->queue=malloc(size*sizeof(void*));
+	memset(o->queue, 0, size*sizeof(void*));
 	o->size=size;
 	o->head=o->tail=0;
 	o->locked=0;
@@ -135,20 +137,26 @@ void *tsq_get(tsq_object* o) {
 	void *r = NULL;
 	svcWaitSynchronization(o->mutex, U64_MAX);
 	if (o->tail != o->head) {
-		r = o->queue[o->tail++];
+		r = o->queue[o->tail];
+		o->queue[o->tail]=NULL;
+		++o->tail;
 		o->tail %= o->size;
 	}
 	svcReleaseMutex(o->mutex);
 	return r;
 }
 
-void tsq_put(tsq_object* o, void *p) {
+void *tsq_put(tsq_object* o, void *p) {
+	void *r = NULL;
 	svcWaitSynchronization(o->mutex, U64_MAX);
 	if (!o->locked) {
-		o->queue[o->head++]=p;
+		r=o->queue[o->head];
+		o->queue[o->head]=p;
+		++o->head;
 		o->head %= o->size;
 	}
 	svcReleaseMutex(o->mutex);
+	return r;
 }
 
 // LED-related vars / functions

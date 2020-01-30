@@ -372,6 +372,7 @@ static Handle repaintRequired;
 static volatile int help_anim;
 static volatile int menu_anim=0;
 static u8 *gpusrc=NULL;
+static u8 *menusrc=NULL;
 
 #define HASHSIZE 256
 static tsh_object iconHash;
@@ -448,6 +449,7 @@ static void makeTexture(C3D_Tex *tex, u8 *mygpusrc, unsigned hw, unsigned hh) {
 	svcReleaseSemaphore(&i, privateSem1, 1);
 }
 
+// this function is NOT thread safe - it uses static buffer gpusrc!!
 static void makeImage(DS3_Image *img, u8 *pixels, unsigned w, unsigned h, int noconv) {
 
 	img->w=w;
@@ -1305,7 +1307,7 @@ void menu_recalc() {
 	if (events_to_emu) alpha=alpha2=128;
 
 	for(y = 0; y < 240; ++y) {
-		dst=gpusrc+y*hw*4;
+		dst=menusrc+y*hw*4;
 		if (y==menu_alpha_max_y) alpha=0;
 		for (x=0; x<320; ++x) {
 			if (*src==0) *dst++ = alpha;// alpha
@@ -1319,12 +1321,12 @@ void menu_recalc() {
 
 	// draw white lines
 	for (y=0;y<230;++y) {
-		dst=gpusrc+y*hw*4+4*319;
+		dst=menusrc+y*hw*4+4*319;
 		*((int*)dst)=0xFFFFFFFF;
 	}
-	memset(gpusrc+239*hw*4,255,310*4);
+	memset(menusrc+239*hw*4,255,310*4);
 
-	makeTexture(&(menu_spr.tex), gpusrc, hw, hh);
+	makeTexture(&(menu_spr.tex), menusrc, hw, hh);
 }
 
 void gb64_recalc() {
@@ -1356,7 +1358,6 @@ void sdl_uibottom_draw(void)
 			keyboard_recalc();
 		}
 
-		// zero keypress status if we updated anything
 		if (uibottom_must_redraw_local & UIB_GET_RECALC_KEYPRESS) {
 			keypress_recalc();
 		}
@@ -1367,12 +1368,7 @@ void sdl_uibottom_draw(void)
 		if (sdl_menu_state && (uibottom_must_redraw_local & UIB_RECALC_GB64)) {
 			gb64_recalc();
 		}
-/*
-		// check if our internal state matches the SDL state
-		// (actually a stupid workaround for the issue that fullscreen sbutton does not unstick)
-		if (!_mouse_enabled && kb_activekey != -1 && !SDL_GetMouseState(NULL, NULL))
-			SDL_PushEvent( &(SDL_Event){ .type = SDL_MOUSEBUTTONUP });
-*/
+
 		requestRepaint();
 	}
 }
@@ -1841,6 +1837,7 @@ int uibottom_resources_init() {
 
 	// init gpusrc
 	gpusrc = linearAlloc(512*256*4);
+	menusrc = linearAlloc(512*256*4);
 
 	if (resources_register_string(resources_string) < 0) {
 		return -1;
@@ -1861,6 +1858,8 @@ void uibottom_resources_shutdown() {
 
 	linearFree(gpusrc);
 	gpusrc=NULL;
+	linearFree(menusrc);
+	menusrc=NULL;
 
 	tsh_free(&iconHash);
 }

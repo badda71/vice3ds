@@ -149,7 +149,7 @@ int downloadFile(char *url,
 	}
 
 	curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, 128 * 1024);
-	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5L);
+	curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 	curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 	curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");

@@ -53,14 +53,14 @@ typedef struct {
 extern u32 hashKey(u8 *key);
 extern void tsh_init(tsh_object *o, int size, void (*free_callback)(void *val));
 extern void *tsh_get(tsh_object *o, char *key);
-extern void tsh_put(tsh_object *o, char *key, void *val);
+extern int tsh_put(tsh_object *o, char *key, void *val);
 extern void tsh_free(tsh_object *o);
 
 extern void tsq_init(tsq_object *o, int size);
 extern void tsq_lock(tsq_object *o, int lock);
 extern void tsq_free(tsq_object *o);
 extern void *tsq_get(tsq_object *o);
-extern void tsq_put(tsq_object *o, void *p);
+extern void *tsq_put(tsq_object *o, void *p);
 
 extern char *chg_root_directory;
 extern int keymap3ds[256];

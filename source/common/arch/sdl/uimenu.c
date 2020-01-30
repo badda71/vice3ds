@@ -1174,6 +1174,8 @@ void sdl_ui_init_progress_bar(char *title)
 
 int sdl_ui_adjust_offset(int *offset, int *cur,int menu_max, int total)
 {
+	if (*offset<0) {*cur-=*offset; *offset=0;}
+	if (total==0) *offset=*cur=0;
 	if (*offset + *cur < 0) *cur=total-*offset-1;
 	if (*offset + *cur >= total) *cur=-*offset;
 	if (*cur >= 0 && *cur < menu_max && *cur < total - *offset) return 0;

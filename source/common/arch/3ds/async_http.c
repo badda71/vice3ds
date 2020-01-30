@@ -124,17 +124,21 @@ int async_http_get(char *url, char *fname, void (*callback)(char *url, char *fna
 	if (!isinit) return -1;
 
 	// check if we are already downloading this file
-	if (tsh_get(&async_hash, url)) {
-		return 0;
-	}
-	tsh_put(&async_hash, url, (void*)1);
+	if (tsh_get(&async_hash, url)) return 0;
+	if (tsh_put(&async_hash, url, (void*)1) == -1) return -1;
 
 	async_http_request *gf = malloc(sizeof(async_http_request));
 	gf->url=lib_stralloc(url);
 	gf->fname=lib_stralloc(fname);
 	gf->callback=callback;
 	gf->param=param;
-	tsq_put(&async_queue, gf);
+	gf=tsq_put(&async_queue, gf);
+	if (gf) { // we overwrote an existing queue entry, so clean up the old one
+		tsh_put(&async_hash, gf->url, NULL);
+		free(gf->fname);
+		free(gf->url);
+		free(gf);
+	}
 	svcReleaseSemaphore(&x, workerRequest, 1);
 	return 0;
 }
