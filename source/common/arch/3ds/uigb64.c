@@ -85,6 +85,7 @@ static int list_filter;
 static picoDB *db=NULL;
 static u32 wifi_status = 0;
 static int *searchresult=NULL;
+static int gb64_set_modes = 3;
 
 static picoDB *pdb_initDB(char *filename) {
 	// read in the file
@@ -461,37 +462,41 @@ static void uigb64_update_topscreen(SDL_Surface *s, int entry, int *screenshotid
 	char buf[256],buf2[256],url[256];
 	int j=0,numimg=0;
 	char *p,*p1;
+	static SDL_Color c_gray=(SDL_Color){0x70,0x70,0x70,0};
+	static SDL_Color c_black=(SDL_Color){0x00,0x00,0x00,0};
+	static SDL_Color c_blue=(SDL_Color){0x00,0x00,0xff,0};
+	static SDL_Color c_green=(SDL_Color){0x00,0x80,0x00,0};
 
 	// clear surface
 	SDL_FillRect(s, NULL, SDL_MapRGBA(s->format,208,209,203,255));
 	if (entry>=0) {
 		// write info to screen
 		j=snprintf(buf, 51, "%s", pdb_getEntry(db, entry, 1));
-		uib_printstring(s, buf, 0, 200, 50, ALIGN_LEFT, FONT_BIG, (SDL_Color){0x00,0x00,0x00,0x00});
+		uib_printstring(s, buf, 0, 200, 50, ALIGN_LEFT, FONT_BIG, c_black);
 
 		j=snprintf(buf, 81, "Published: ");
-		uib_printstring(s, buf, 0, 208, 80, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0xff,0});
+		uib_printstring(s, buf, 0, 208, 80, ALIGN_LEFT, FONT_MEDIUM, c_blue);
 		p=pdb_getEntry(db, entry, 10);
 		snprintf(buf, 81-j, "%s, %s", pdb_getEntry(db, entry, 2), *p?p:"(unknown)");
-		uib_printstring(s, buf, j*5, 208, 81-j, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
+		uib_printstring(s, buf, j*5, 208, 81-j, ALIGN_LEFT, FONT_MEDIUM, c_black);
 
 		j=snprintf(buf, 81, "Language:  ");
-		uib_printstring(s, buf, 0, 216, 80, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0xff,0});
+		uib_printstring(s, buf, 0, 216, 80, ALIGN_LEFT, FONT_MEDIUM, c_blue);
 		snprintf(buf, 81-j, "%s", pdb_getEntry(db, entry, 14));
-		uib_printstring(s, buf, j*5, 216, 80, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
+		uib_printstring(s, buf, j*5, 216, 80, ALIGN_LEFT, FONT_MEDIUM, c_black);
 
 		j=snprintf(buf, 42, " Genre: ");
-		uib_printstring(s, buf, 195, 216, 40, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0xff,0});
+		uib_printstring(s, buf, 195, 216, 40, ALIGN_LEFT, FONT_MEDIUM, c_blue);
 		p=pdb_getEntry(db, entry, 8);
 		p1=pdb_getEntry(db, entry, 9);
 
 		snprintf(buf, 42-j,	"%s%s%s", pdb_getEntry(db, entry, 9),(*p && *p1)?" - ":"", pdb_getEntry(db, entry, 8));
-		uib_printstring(s, buf, 195+j*5, 216, 40, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
+		uib_printstring(s, buf, 195+j*5, 216, 40, ALIGN_LEFT, FONT_MEDIUM, c_black);
 
 		p=pdb_getEntry(db, entry, 18);
 		p1=pdb_getEntry(db, entry, 19);
-		uib_printstring(s, p, 0, 224, 80, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
-		uib_printstring(s, p1, 0, *p?232:224, 80, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
+		uib_printstring(s, p, 0, 224, 80, ALIGN_LEFT, FONT_MEDIUM, c_black);
+		uib_printstring(s, p1, 0, *p?232:224, 80, ALIGN_LEFT, FONT_MEDIUM, c_black);
 
 		// check if all screenshots exist, request loading if not
 		p=pdb_getEntry(db, entry, 6);
@@ -543,39 +548,41 @@ static void uigb64_update_topscreen(SDL_Surface *s, int entry, int *screenshotid
 
 		// draw right side info
 		if (numimg>1) {
-			uib_printstring(s, "Screenshots", 324, 4, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0xff,0});
-			uib_printstring(s, " ", 324, 12, 0, ALIGN_LEFT, FONT_SYM, (SDL_Color){0x00,0x00,0xff,0});
+			uib_printstring(s, "Screenshots", 324, 4, 0, ALIGN_LEFT, FONT_MEDIUM, c_blue);
+			uib_printstring(s, " ", 324, 12, 0, ALIGN_LEFT, FONT_SYM, c_blue);
 			if (snprintf(buf, 8, "%d/%d", *screenshotidx+1, numimg) < 0)
 				log_error(LOG_ERR,"screenshot index out of bounds");
-			uib_printstring(s, buf, 336, 12, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
-			uib_printstring(s, "!", 358, 12, 0, ALIGN_LEFT, FONT_SYM, (SDL_Color){0x00,0x00,0xff,0});
+			uib_printstring(s, buf, 336, 12, 0, ALIGN_LEFT, FONT_MEDIUM, c_black);
+			uib_printstring(s, "!", 358, 12, 0, ALIGN_LEFT, FONT_SYM, c_blue);
 		}
 		if (downloaded[entry]) {
-			uib_printstring(s, "DOWNLOADED", 324, 28, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x80,0x00,0});
+			uib_printstring(s, "DOWNLOADED", 324, 28, 0, ALIGN_LEFT, FONT_MEDIUM, c_green);
 		}
-		uib_printstring(s, "\"", 324, 44, 0, ALIGN_LEFT, FONT_SYM, (SDL_Color){0x00,0x00,0xff,0});
-		uib_printstring(s, downloaded[entry]?"Start":"Download", 336, 44, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
+		uib_printstring(s, "\"", 324, 44, 0, ALIGN_LEFT, FONT_SYM, c_blue);
+		uib_printstring(s, downloaded[entry]?"Start":"Download", 336, 44, 0, ALIGN_LEFT, FONT_MEDIUM, c_black);
 		if (downloaded[entry]) {
-			uib_printstring(s, "$", 324, 52, 0, ALIGN_LEFT, FONT_SYM, (SDL_Color){0x00,0x00,0xff,0});
-			uib_printstring(s, "Delete", 336, 52, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
+			uib_printstring(s, "$", 324, 52, 0, ALIGN_LEFT, FONT_SYM, c_blue);
+			uib_printstring(s, "Delete", 336, 52, 0, ALIGN_LEFT, FONT_MEDIUM, c_black);
 		}
 
-			// 0=PAL, 1=PAL+NTSC, 2=NTSC, 3=PAL(+NTSC?)
-		uib_printstring(s, "Mode:", 324, 92, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0xff,0});
-		uib_printstring(s, *(pdb_getEntry(db, entry, 20))=='2'?"NTSC":"PAL", 354, 92, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
+		uib_printstring(s, "*+,", 324, 92, 0, ALIGN_LEFT, FONT_SYM, c_blue);
+		uib_printstring(s, "Automode", 344, 92, 0, ALIGN_LEFT, FONT_MEDIUM, c_black);
+		// 0=PAL, 1=PAL+NTSC, 2=NTSC, 3=PAL(+NTSC?)
+		uib_printstring(s, "Mode:", 324, 100, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&1)?c_blue:c_gray);
+		uib_printstring(s, *(pdb_getEntry(db, entry, 20))=='2'?"NTSC":"PAL", 354, 100, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&1)?c_black:c_gray);
 		// TDE
-		uib_printstring(s, "TDE:", 324, 100, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0xff,0});
-		uib_printstring(s, *(pdb_getEntry(db, entry, 21))=='0'?"No":"Yes", 354, 100, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
+		uib_printstring(s, "TDE:", 324, 108, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&2)?c_blue:c_gray);
+		uib_printstring(s, *(pdb_getEntry(db, entry, 21))=='0'?"No":"Yes", 354, 108, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&2)?c_black:c_gray);
 	}
 
-	uib_printstring(s, "%", 324, 60, 0, ALIGN_LEFT, FONT_SYM, (SDL_Color){0x00,0x00,0xff,0});
-	uib_printstring(s, "List Filter", 336, 60, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
-	uib_printstring(s, "Popular", 336, 68, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
-	uib_printstring(s, "Downloaded", 336, 76, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0x00,0});
+	uib_printstring(s, "%", 324, 60, 0, ALIGN_LEFT, FONT_SYM, c_blue);
+	uib_printstring(s, "List Filter", 336, 60, 0, ALIGN_LEFT, FONT_MEDIUM, c_black);
+	uib_printstring(s, "Popular", 336, 68, 0, ALIGN_LEFT, FONT_MEDIUM, c_black);
+	uib_printstring(s, "Downloaded", 336, 76, 0, ALIGN_LEFT, FONT_MEDIUM, c_black);
 	if (list_filter & 1)
-		uib_printstring(s, "x", 324, 68, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0xff,0});
+		uib_printstring(s, ">", 332, 68, 0, ALIGN_LEFT, FONT_MEDIUM, c_blue);
 	if (list_filter & 2)
-		uib_printstring(s, "x", 324, 76, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0x00,0x00,0xff,0});
+		uib_printstring(s, ">", 332, 76, 0, ALIGN_LEFT, FONT_MEDIUM, c_blue);
 
 	uibottom_must_redraw |= UIB_RECALC_GB64;
 }
@@ -943,6 +950,10 @@ dldb:
 							redraw = 1;
 						}
 						break;
+					case 208:	// START-button
+						gb64_set_modes = (gb64_set_modes + 1) % 4;
+						gb64_top_must_redraw = 1;
+						break;
 					case VICE_SDLK_LEFT:
 					case 31:
 						if (searchpos > 0) {
@@ -997,8 +1008,10 @@ dldb:
 		free (p);
 
 		// set TDE & video mode
-		resources_set_int("DriveTrueEmulation", *(pdb_getEntry(db, top_shows, 21))=='0' ? 0 : 1);
-		c64model_set(*(pdb_getEntry(db, top_shows, 20))=='2' ? C64MODEL_C64C_NTSC : C64MODEL_C64C_PAL);
+		if (gb64_set_modes & 3) 
+			resources_set_int("DriveTrueEmulation", *(pdb_getEntry(db, top_shows, 21))=='0' ? 0 : 1);
+		if (gb64_set_modes & 1)
+			c64model_set(*(pdb_getEntry(db, top_shows, 20))=='2' ? C64MODEL_C64C_NTSC : C64MODEL_C64C_PAL);
 	}
 
 	// clean up
