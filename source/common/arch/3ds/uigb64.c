@@ -362,7 +362,8 @@ static void rmtree(char *path)
 	rmdir(path);
 }
 
-static char *gb64_gamedir(int idx) {
+/*
+static char *gb64_gamedir_old(int idx) {
 	char buf[256];
 	char *f = pdb_getEntry(db, idx, 3);
 	char *p = strrchr(f,'/');
@@ -371,6 +372,14 @@ static char *gb64_gamedir(int idx) {
 	p = strrchr(buf,'.');
 	if (p) *p=0;
 	return (lib_stralloc(buf));
+}
+*/
+
+static char *gb64_gamedir(int idx) {
+	char *f = util_concat(gamedir, "/", pdb_getEntry(db, idx, 3), NULL);
+	char *p = strrchr(f,'.');
+	if (p) *p=0;
+	return f;
 }
 
 static void gb64_delete(int idx) {
@@ -675,27 +684,90 @@ dldb:
     menu_max = menu_draw->max_text_y - GB64_FIRST_Y;
 	memset(search,0,41);
 
+	// migrate old download directory structure to new download structure
+	DIR *dir;
+    struct dirent *dent;
+	char **dname;
+
+	if (persistence_getInt("gb64_migrated",0) == 0) {
+		dir=opendir(gamedir);
+		if (dir) {
+			int migcount=0;
+			dname=NULL;
+			while ((dent = readdir(dir)) != NULL) {
+				if (dent->d_type == DT_DIR && strchr(dent->d_name, '_') != NULL) {
+					if ((migcount & 0xff) == 0)
+						dname=realloc(dname, migcount+256);
+					dname[migcount++]=lib_stralloc(dent->d_name);
+				}
+			}
+			closedir(dir);
+			
+			for (i=0; i<migcount; i++) {
+				x = atoi(dname[i]);
+				char *ndir = gb64_gamedir(x);
+				snprintf(buf,256,"%s/%s",gamedir,dname[i]);
+				mkpath(ndir, 0);
+				rename(buf, ndir);
+				free(ndir);
+				free(dname[i]);
+			}
+			if (dname) free (dname);
+		}
+		persistence_putInt("gb64_migrated",1);
+	}
+
 	// check what is downloaded
+	DIR *dir2;
+    struct dirent *dent2;
 	downloaded = malloc(db->num_entries);
 	memset(downloaded, 0, db->num_entries);
-    struct dirent *dent;
-    DIR *dir;
 	dir=opendir(gamedir);
 	if (dir) {
-		// game directories are <nr>_<zipname>
+		// get a list of all game directories
+		int nr_downloaded=0;
+		dname=NULL;
 		while((dent = readdir(dir)) != NULL) {
 			if (dent->d_type == DT_DIR) {
-				i = atoi(dent->d_name);
-				// check if start image exists in the directory
-				if (snprintf(buf, 256, "%s/%s/%s", gamedir, dent->d_name, pdb_getEntry(db, i, 4))<0)
-					log_error(LOG_ERR,"bummer!");
-				if (access(buf,R_OK)==0)
-					downloaded[i]=1;
+				char *sdir_name=util_concat(gamedir,"/",dent->d_name,NULL);
+				dir2=opendir(sdir_name);
+				if (dir2) {
+					while((dent2 = readdir(dir2)) != NULL) {
+						if ((nr_downloaded & 0xff) == 0)
+							dname=realloc(dname, nr_downloaded+256);
+						dname[nr_downloaded++]=util_concat(dent->d_name, "/", dent2->d_name, NULL);
+					}
+				}
+				closedir(dir2);
+				free(sdir_name);
 			}
 		}
 		closedir(dir);
+
+		// check all games if they are already downloaded
+		if (nr_downloaded) {
+			for (i=0; i < db->num_entries; ++i) {
+				p=pdb_getEntry(db, i, 3);
+				y=strlen(p)-4;
+				for (x=0; x < nr_downloaded; ++x) {
+					if (dname[x] != NULL && strncmp(dname[x], p, y) == 0) {
+						// check if start image exists in the directory
+						snprintf(buf, 256, "%s/%s/%s", gamedir, dname[x], pdb_getEntry(db, i, 4));
+						if (access(buf,R_OK)==0)
+							downloaded[i]=1;
+						free (dname[x]);
+						dname[x]=NULL;
+						break;
+					}
+				}
+			}
+			for (x=0; x < nr_downloaded; ++x)
+				if (dname[x]) free(dname[x]);
+			free(dname);
+		}					
 	}
 
+	// main gb64 interface loop
 	while (active) {
 		searchsize=strlen(search);
 		if (search_changed) {
