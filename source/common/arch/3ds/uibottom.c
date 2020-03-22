@@ -1057,7 +1057,7 @@ static SDL_Surface *sbuttons_getIcon(char *name, int hot) {
 	SDL_Surface *img=NULL;
 	if (name==NULL) return NULL;
 	if (hot) {
-		char *name1 = util_concat(name, hot?"1":NULL, NULL);
+		char *name1 = util_concat(name, hot?"_H":NULL, NULL);
 		if ((img=tsh_get(&iconHash, name1))==NULL)
 			img=loadIcon(name1);
 		if (img) tsh_put(&iconHash, name1, img);
