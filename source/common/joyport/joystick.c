@@ -612,7 +612,7 @@ static resource_int_t joy1_resources_int[] = {
 };
 
 static resource_int_t joy2_resources_int[] = {
-    { "JoyDevice2", JOYDEV_KEYSET2, RES_EVENT_NO, NULL,
+    { "JoyDevice2", JOYDEV_KEYSET1, RES_EVENT_NO, NULL,
       &joystick_port_map[JOYPORT_2], set_joystick_device, (void *)JOYPORT_2 },
     RESOURCE_INT_LIST_END
 };

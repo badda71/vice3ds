@@ -31,7 +31,6 @@
 #include "c64dtvmodel.h"
 #include "menu_common.h"
 #include "menu_joyport.h"
-#include "menu_joystick.h"
 #include "menu_ram.h"
 #include "menu_rom.h"
 #include "menu_sid.h"
@@ -110,10 +109,6 @@ const ui_menu_entry_t c64dtv_hardware_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)joyport_menu },
-    { "Joystick settings",
-      MENU_ENTRY_SUBMENU,
-      submenu_callback,
-      (ui_callback_data_t)joystick_c64dtv_menu },
     { "SID settings",
       MENU_ENTRY_SUBMENU,
       submenu_callback,

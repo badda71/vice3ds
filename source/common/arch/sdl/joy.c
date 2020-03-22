@@ -1160,27 +1160,18 @@ static int _sdljoy_swap_userport_ports = 0;
 void sdljoy_swap_ports(void)
 {
     int i, k;
-    sdljoystick_input_t j;
 
-    resources_get_int("JoyDevice1", &i);
-    resources_get_int("JoyDevice2", &k);
-    resources_set_int("JoyDevice1", k);
-    resources_set_int("JoyDevice2", i);
+    resources_get_int("JoyPort1Device", &i);
+    resources_get_int("JoyPort2Device", &k);
+    resources_set_int("JoyPort1Device", JOYPORT_ID_NONE);
+    resources_set_int("JoyPort2Device", i);
+    resources_set_int("JoyPort1Device", k);
     _sdljoy_swap_ports ^= 1;
 
-    for (i = 0; i < num_joysticks; ++i) {
-        for (j = AXIS; j < NUM_INPUT_TYPES; ++j) {
-            for (k = 0; k < sdljoystick[i].input_max[j] * input_mult[j]; ++k) {
-                if (sdljoystick[i].input[j][k].action == JOYSTICK) {
-                    sdljoystick[i].input[j][k].value.joy[0] ^= 1;
-                }
-            }
-        }
-    }
 	// update sbuttons just in case this was triggered from a button there
 	uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
 }
-
+/*
 void sdljoy_swap_userport_ports(void)
 {
     int i, k;
@@ -1196,7 +1187,7 @@ int sdljoy_get_swap_userport_ports(void)
 {
     return _sdljoy_swap_userport_ports;
 }
-
+*/
 
 /* ------------------------------------------------------------------------- */
 
@@ -1206,10 +1197,11 @@ void sdljoy_swap_ports(void)
 {
     int i, k;
 
-    resources_get_int("JoyDevice1", &i);
-    resources_get_int("JoyDevice2", &k);
-    resources_set_int("JoyDevice1", k);
-    resources_set_int("JoyDevice2", i);
+    resources_get_int("JoyPort1Device", &i);
+    resources_get_int("JoyPort2Device", &k);
+    resources_set_int("JoyPort1Device", JOYPORT_ID_NONE);
+    resources_set_int("JoyPort2Device", i);
+    resources_set_int("JoyPort1Device", k);
     _sdljoy_swap_ports ^= 1;
 
 	// update sbuttons just in case this was triggered from a button there

@@ -32,7 +32,6 @@
 
 #include "menu_common.h"
 #include "menu_joyport.h"
-#include "menu_joystick.h"
 #include "menu_ram.h"
 #include "menu_rom.h"
 #include "plus4memhacks.h"
@@ -138,10 +137,6 @@ const ui_menu_entry_t plus4_hardware_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)joyport_menu },
-    { "Joystick settings",
-      MENU_ENTRY_SUBMENU,
-      submenu_callback,
-      (ui_callback_data_t)joystick_plus4_menu },
 #ifdef HAVE_MOUSE
     { "Mouse emulation",
       MENU_ENTRY_SUBMENU,

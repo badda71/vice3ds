@@ -480,7 +480,7 @@ static int set_joyport_device(int val, void *param)
 }
 
 static const resource_int_t resources_int_port1[] = {
-    { "JoyPort1Device", JOYPORT_ID_JOYSTICK, RES_EVENT_NO, NULL,
+    { "JoyPort1Device", JOYPORT_ID_MOUSE_1351, RES_EVENT_NO, NULL,
       &joy_port[JOYPORT_1], set_joyport_device, (void *)JOYPORT_1 },
     RESOURCE_INT_LIST_END
 };

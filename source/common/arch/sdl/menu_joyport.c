@@ -34,26 +34,23 @@
 #include "joyport.h"
 #include "uimenu.h"
 #include "lib.h"
+#include "joy.h"
+#include "resources.h"
+#include "joystick.h"
+#include "uipoll.h"
+#include "kbd.h"
+#include "uibottom.h"
 
 #include "menu_joyport.h"
 
 UI_MENU_DEFINE_RADIO(JoyPort1Device)
 UI_MENU_DEFINE_RADIO(JoyPort2Device)
-UI_MENU_DEFINE_RADIO(JoyPort3Device)
-UI_MENU_DEFINE_RADIO(JoyPort4Device)
-UI_MENU_DEFINE_RADIO(JoyPort5Device)
 
 static ui_menu_entry_t joyport1_dyn_menu[JOYPORT_MAX_DEVICES + 1];
 static ui_menu_entry_t joyport2_dyn_menu[JOYPORT_MAX_DEVICES + 1];
-static ui_menu_entry_t joyport3_dyn_menu[JOYPORT_MAX_DEVICES + 1];
-static ui_menu_entry_t joyport4_dyn_menu[JOYPORT_MAX_DEVICES + 1];
-static ui_menu_entry_t joyport5_dyn_menu[JOYPORT_MAX_DEVICES + 1];
 
 static int joyport1_dyn_menu_init = 0;
 static int joyport2_dyn_menu_init = 0;
-static int joyport3_dyn_menu_init = 0;
-static int joyport4_dyn_menu_init = 0;
-static int joyport5_dyn_menu_init = 0;
 
 static void sdl_menu_joyport1_free(void)
 {
@@ -73,37 +70,13 @@ static void sdl_menu_joyport2_free(void)
     }
 }
 
-static void sdl_menu_joyport3_free(void)
-{
-    int i;
-
-    for (i = 0; joyport3_dyn_menu[i].string != NULL; i++) {
-        lib_free(joyport3_dyn_menu[i].string);
-    }
-}
-
-static void sdl_menu_joyport4_free(void)
-{
-    int i;
-
-    for (i = 0; joyport4_dyn_menu[i].string != NULL; i++) {
-        lib_free(joyport4_dyn_menu[i].string);
-    }
-}
-
-static void sdl_menu_joyport5_free(void)
-{
-    int i;
-
-    for (i = 0; joyport5_dyn_menu[i].string != NULL; i++) {
-        lib_free(joyport5_dyn_menu[i].string);
-    }
-}
-
 static UI_MENU_CALLBACK(JoyPort1Device_dynmenu_callback)
 {
     joyport_desc_t *devices = joyport_get_valid_devices(JOYPORT_1);
     int i;
+    static char buf[100] = MENU_SUBMENU_STRING " ";
+    char *dest = &(buf[3]);
+    const char *src = NULL;
 
     /* rebuild menu if it already exists. */
     if (joyport1_dyn_menu_init != 0) {
@@ -117,6 +90,8 @@ static UI_MENU_CALLBACK(JoyPort1Device_dynmenu_callback)
         joyport1_dyn_menu[i].type = MENU_ENTRY_RESOURCE_RADIO;
         joyport1_dyn_menu[i].callback = radio_JoyPort1Device_callback;
         joyport1_dyn_menu[i].data = (ui_callback_data_t)int_to_void_ptr(devices[i].id);
+        if (radio_JoyPort1Device_callback(0, joyport1_dyn_menu[i].data) != NULL)
+            src = joyport1_dyn_menu[i].string;
     }
 
     joyport1_dyn_menu[i].string = NULL;
@@ -126,13 +101,23 @@ static UI_MENU_CALLBACK(JoyPort1Device_dynmenu_callback)
 
     lib_free(devices);
 
-    return MENU_SUBMENU_STRING;
+    if (src == NULL) {
+        return MENU_SUBMENU_STRING " ???";
+    }
+
+    while ((*dest++ = *src++)) {
+    }
+
+    return buf;
 }
 
 static UI_MENU_CALLBACK(JoyPort2Device_dynmenu_callback)
 {
     joyport_desc_t *devices = joyport_get_valid_devices(JOYPORT_2);
     int i;
+    static char buf[100] = MENU_SUBMENU_STRING " ";
+    char *dest = &(buf[3]);
+    const char *src = NULL;
 
     /* rebuild menu if it already exists. */
     if (joyport2_dyn_menu_init != 0) {
@@ -146,7 +131,9 @@ static UI_MENU_CALLBACK(JoyPort2Device_dynmenu_callback)
         joyport2_dyn_menu[i].type = MENU_ENTRY_RESOURCE_RADIO;
         joyport2_dyn_menu[i].callback = radio_JoyPort2Device_callback;
         joyport2_dyn_menu[i].data = (ui_callback_data_t)int_to_void_ptr(devices[i].id);
-    }
+        if (radio_JoyPort2Device_callback(0, joyport2_dyn_menu[i].data) != NULL)
+            src = joyport2_dyn_menu[i].string;
+	}
 
     joyport2_dyn_menu[i].string = NULL;
     joyport2_dyn_menu[i].type = 0;
@@ -155,156 +142,124 @@ static UI_MENU_CALLBACK(JoyPort2Device_dynmenu_callback)
 
     lib_free(devices);
 
-    return MENU_SUBMENU_STRING;
+    if (src == NULL) {
+        return MENU_SUBMENU_STRING " ???";
+    }
+
+    while ((*dest++ = *src++)) {
+    }
+
+    return buf;
 }
 
-static UI_MENU_CALLBACK(JoyPort3Device_dynmenu_callback)
+static UI_MENU_CALLBACK(custom_swap_ports_callback)
 {
-    joyport_desc_t *devices = joyport_get_valid_devices(JOYPORT_3);
-    int i;
+    if (activated) {
+        sdljoy_swap_ports();
+    }
+    return sdljoy_get_swap_ports() ? MENU_CHECKMARK_CHECKED_STRING : NULL;
+}
 
-    /* rebuild menu if it already exists. */
-    if (joyport3_dyn_menu_init != 0) {
-        sdl_menu_joyport3_free();
+static UI_MENU_CALLBACK(custom_joy_auto_speed_callback)
+{
+    static char buf[20];
+    int previous, new_value;
+
+    resources_get_int("JoyAutoSpeed", &previous);
+
+    if (activated) {
+        new_value = sdl_ui_slider_input_dialog("Select speed (clks/s)", previous, 2, 100);
+        if (new_value != previous) {
+            resources_set_int("JoyAutoSpeed", joy_auto_speed=new_value);
+        }
     } else {
-        joyport3_dyn_menu_init = 1;
+        sprintf(buf, "%3i", previous);
+        return buf;
     }
-
-    for (i = 0; devices[i].name; ++i) {
-        joyport3_dyn_menu[i].string = (char *)lib_stralloc(devices[i].name);
-        joyport3_dyn_menu[i].type = MENU_ENTRY_RESOURCE_RADIO;
-        joyport3_dyn_menu[i].callback = radio_JoyPort3Device_callback;
-        joyport3_dyn_menu[i].data = (ui_callback_data_t)int_to_void_ptr(devices[i].id);
-    }
-
-    joyport3_dyn_menu[i].string = NULL;
-    joyport3_dyn_menu[i].type = 0;
-    joyport3_dyn_menu[i].callback = NULL;
-    joyport3_dyn_menu[i].data = NULL;
-
-    lib_free(devices);
-
-    return MENU_SUBMENU_STRING;
+    return NULL;
 }
 
-static UI_MENU_CALLBACK(JoyPort4Device_dynmenu_callback)
-{
-    joyport_desc_t *devices = joyport_get_valid_devices(JOYPORT_4);
-    int i;
+UI_MENU_DEFINE_TOGGLE(JoyOpposite)
 
-    /* rebuild menu if it already exists. */
-    if (joyport4_dyn_menu_init != 0) {
-        sdl_menu_joyport4_free();
+static UI_MENU_CALLBACK(custom_keyset_callback)
+{
+    SDL_Event e;
+    int previous;
+
+    if (activated) {
+        e = sdl_ui_poll_event("key", (const char *)param, SDL_POLL_KEYBOARD | SDL_POLL_MODIFIER, 5);
+
+        if (e.type == SDL_KEYDOWN) {
+            resources_set_int((const char *)param, (int)SDL2x_to_SDL1x_Keys(e.key.keysym.sym));
+        }
+		// recalc the soft buttons just in case the mapping was done there
+		uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
     } else {
-        joyport4_dyn_menu_init = 1;
+		if (resources_get_int((const char *)param, &previous)) {
+			return sdl_menu_text_unknown;
+		}
+		return get_3ds_keyname(previous);
     }
-
-    for (i = 0; devices[i].name; ++i) {
-        joyport4_dyn_menu[i].string = (char *)lib_stralloc(devices[i].name);
-        joyport4_dyn_menu[i].type = MENU_ENTRY_RESOURCE_RADIO;
-        joyport4_dyn_menu[i].callback = radio_JoyPort4Device_callback;
-        joyport4_dyn_menu[i].data = (ui_callback_data_t)int_to_void_ptr(devices[i].id);
-    }
-
-    joyport4_dyn_menu[i].string = NULL;
-    joyport4_dyn_menu[i].type = 0;
-    joyport4_dyn_menu[i].callback = NULL;
-    joyport4_dyn_menu[i].data = NULL;
-
-    lib_free(devices);
-
-    return MENU_SUBMENU_STRING;
+    return NULL;
 }
 
+static const ui_menu_entry_t define_keyset_menu[] = {
+    { "Keyset Up",
+      MENU_ENTRY_DIALOG,
+      custom_keyset_callback,
+      (ui_callback_data_t)"KeySet1North" },
+    { "Keyset Down",
+      MENU_ENTRY_DIALOG,
+      custom_keyset_callback,
+      (ui_callback_data_t)"KeySet1South" },
+    { "Keyset Left",
+      MENU_ENTRY_DIALOG,
+      custom_keyset_callback,
+      (ui_callback_data_t)"KeySet1West" },
+    { "Keyset Right",
+      MENU_ENTRY_DIALOG,
+      custom_keyset_callback,
+      (ui_callback_data_t)"KeySet1East" },
+    { "Keyset Fire",
+      MENU_ENTRY_DIALOG,
+      custom_keyset_callback,
+      (ui_callback_data_t)"KeySet1Fire" },
+    { "Keyset Autofire",
+      MENU_ENTRY_DIALOG,
+      custom_keyset_callback,
+      (ui_callback_data_t)"KeySet1AFire" },
+    SDL_MENU_LIST_END
+};
 
-static UI_MENU_CALLBACK(JoyPort5Device_dynmenu_callback)
-{
-    joyport_desc_t *devices = joyport_get_valid_devices(JOYPORT_5);
-    int i;
-
-    /* rebuild menu if it already exists. */
-    if (joyport5_dyn_menu_init != 0) {
-        sdl_menu_joyport5_free();
-    } else {
-        joyport5_dyn_menu_init = 1;
-    }
-
-    for (i = 0; devices[i].name; ++i) {
-        joyport5_dyn_menu[i].string = (char *)lib_stralloc(devices[i].name);
-        joyport5_dyn_menu[i].type = MENU_ENTRY_RESOURCE_RADIO;
-        joyport5_dyn_menu[i].callback = radio_JoyPort5Device_callback;
-        joyport5_dyn_menu[i].data = (ui_callback_data_t)int_to_void_ptr(devices[i].id);
-    }
-
-    joyport5_dyn_menu[i].string = NULL;
-    joyport5_dyn_menu[i].type = 0;
-    joyport5_dyn_menu[i].callback = NULL;
-    joyport5_dyn_menu[i].data = NULL;
-
-    lib_free(devices);
-
-    return MENU_SUBMENU_STRING;
-}
-
-ui_menu_entry_t joyport_menu[JOYPORT_MAX_PORTS + 2];
-
-//UI_MENU_DEFINE_TOGGLE(BBRTCSave)
-
-void uijoyport_menu_create(int port1, int port2, int port3, int port4, int port5)
-{
-    int j = 0;
-/*
-    joyport_menu[j].string = "Save BBRTC data when changed";
-    joyport_menu[j].type = MENU_ENTRY_RESOURCE_TOGGLE;
-    joyport_menu[j].callback = toggle_BBRTCSave_callback;
-    joyport_menu[j].data = NULL;
-    ++j;
-*/
-    if (port1) {
-        joyport_menu[j].string = joyport_get_port_name(JOYPORT_1);
-        joyport_menu[j].type = MENU_ENTRY_DYNAMIC_SUBMENU;
-        joyport_menu[j].callback = JoyPort1Device_dynmenu_callback;
-        joyport_menu[j].data = (ui_callback_data_t)joyport1_dyn_menu;
-        ++j;
-    }
-
-    if (port2) {
-        joyport_menu[j].string = joyport_get_port_name(JOYPORT_2);
-        joyport_menu[j].type = MENU_ENTRY_DYNAMIC_SUBMENU;
-        joyport_menu[j].callback = JoyPort2Device_dynmenu_callback;
-        joyport_menu[j].data = (ui_callback_data_t)joyport2_dyn_menu;
-        ++j;
-    }
-
-    if (port3) {
-        joyport_menu[j].string = joyport_get_port_name(JOYPORT_3);
-        joyport_menu[j].type = MENU_ENTRY_DYNAMIC_SUBMENU;
-        joyport_menu[j].callback = JoyPort3Device_dynmenu_callback;
-        joyport_menu[j].data = (ui_callback_data_t)joyport3_dyn_menu;
-        ++j;
-    }
-
-    if (port4) {
-        joyport_menu[j].string = joyport_get_port_name(JOYPORT_4);
-        joyport_menu[j].type = MENU_ENTRY_DYNAMIC_SUBMENU;
-        joyport_menu[j].callback = JoyPort4Device_dynmenu_callback;
-        joyport_menu[j].data = (ui_callback_data_t)joyport4_dyn_menu;
-        ++j;
-    }
-
-    if (port5) {
-        joyport_menu[j].string = joyport_get_port_name(JOYPORT_5);
-        joyport_menu[j].type = MENU_ENTRY_DYNAMIC_SUBMENU;
-        joyport_menu[j].callback = JoyPort5Device_dynmenu_callback;
-        joyport_menu[j].data = (ui_callback_data_t)joyport5_dyn_menu;
-        ++j;
-    }
-    joyport_menu[j].string = NULL;
-    joyport_menu[j].type = MENU_ENTRY_TEXT;
-    joyport_menu[j].callback = NULL;
-    joyport_menu[j].data = NULL;
-}
-
+ui_menu_entry_t joyport_menu[] = {
+	{ "Control port 1",
+	  MENU_ENTRY_DYNAMIC_SUBMENU,
+	  JoyPort1Device_dynmenu_callback,
+	  (ui_callback_data_t)joyport1_dyn_menu},
+	{ "Control port 2",
+	  MENU_ENTRY_DYNAMIC_SUBMENU,
+	  JoyPort2Device_dynmenu_callback,
+	  (ui_callback_data_t)joyport2_dyn_menu},
+	{ "Swap joyports",
+      MENU_ENTRY_OTHER_TOGGLE,
+      custom_swap_ports_callback,
+      NULL },
+	SDL_MENU_ITEM_SEPARATOR,
+    SDL_MENU_ITEM_TITLE("Joystick settings"),
+	{ "Joystick Autofire speed",
+      MENU_ENTRY_DIALOG,
+      custom_joy_auto_speed_callback,
+      NULL },
+    { "Allow opposite directions",
+      MENU_ENTRY_RESOURCE_TOGGLE,
+      toggle_JoyOpposite_callback,
+      NULL },
+    { "Define keyset",
+      MENU_ENTRY_SUBMENU,
+      submenu_callback,
+      (ui_callback_data_t)define_keyset_menu },
+	SDL_MENU_LIST_END
+};
 
 /** \brief  Clean up memory used by the dynamically created joyport menus
  */
@@ -315,15 +270,6 @@ void uijoyport_menu_shutdown(void)
     }
     if (joyport2_dyn_menu_init) {
         sdl_menu_joyport2_free();
-    }
-    if (joyport3_dyn_menu_init) {
-        sdl_menu_joyport3_free();
-    }
-    if (joyport4_dyn_menu_init) {
-        sdl_menu_joyport4_free();
-    }
-    if (joyport5_dyn_menu_init) {
-        sdl_menu_joyport5_free();
     }
 }
 

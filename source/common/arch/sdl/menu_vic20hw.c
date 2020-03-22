@@ -35,7 +35,6 @@
 
 #include "menu_common.h"
 #include "menu_joyport.h"
-#include "menu_joystick.h"
 
 #ifdef HAVE_MIDI
 #include "menu_midi.h"
@@ -217,10 +216,6 @@ const ui_menu_entry_t vic20_hardware_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)joyport_menu },
-    { "Joystick settings",
-      MENU_ENTRY_SUBMENU,
-      submenu_callback,
-      (ui_callback_data_t)joystick_vic20_menu },
 #ifdef HAVE_MOUSE
     { "Mouse emulation",
       MENU_ENTRY_SUBMENU,

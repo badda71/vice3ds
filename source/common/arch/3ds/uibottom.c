@@ -27,6 +27,7 @@
 #include "archdep_user_config_path.h"
 #include "archdep_xdg.h"
 #include "joystick.h"
+#include "joyport.h"
 #include "kbd.h"
 #include "keyboard.h"
 #include "lib.h"
@@ -1083,12 +1084,9 @@ static char buf[100];
 
 char *get_key_help(int key, int inmenu, int trylen) {
 	static int resolvemapping=1;
-	int dev1,dev2,i1,i2;
+	int dev1,dev2,i1;
 	ui_menu_entry_t *item;
 	char *r=NULL,*p;
-
-	resources_get_int( "JoyDevice1", &dev1);
-	resources_get_int( "JoyDevice2", &dev2);
 
 	if (!inmenu) {
 		if (custom_help_text[key]) return custom_help_text[key];
@@ -1129,43 +1127,28 @@ char *get_key_help(int key, int inmenu, int trylen) {
 			return buf;
 		}
 
-		// Joyport1 keys (f,u,d,l,r)
-		resources_get_int( "KeySet1Fire", &i1);
-		resources_get_int( "KeySet2Fire", &i2);
-		if ((dev1 == 2 && key == i1) || (dev1 == 3 && key == i2))
-			return "Joy1 Fire";
-		if ((dev2 == 2 && key == i1) || (dev2 == 3 && key == i2))
-			return "Joy2 Fire";
-		resources_get_int( "KeySet1AFire", &i1);
-		resources_get_int( "KeySet2AFire", &i2);
-		if ((dev1 == 2 && key == i1) || (dev1 == 3 && key == i2))
-			return "Joy1 AutoF";
-		if ((dev2 == 2 && key == i1) || (dev2 == 3 && key == i2))
-			return "Joy2 AutoF";
-		resources_get_int( "KeySet1North", &i1);
-		resources_get_int( "KeySet2North", &i2);
-		if ((dev1 == 2 && key == i1) || (dev1 == 3 && key == i2))
-			return "Joy1 Up";
-		if ((dev2 == 2 && key == i1) || (dev2 == 3 && key == i2))
-			return "Joy2 Up";
-		resources_get_int( "KeySet1South", &i1);
-		resources_get_int( "KeySet2South", &i2);
-		if ((dev1 == 2 && key == i1) || (dev1 == 3 && key == i2))
-			return "Joy1 Down";
-		if ((dev2 == 2 && key == i1) || (dev2 == 3 && key == i2))
-			return "Joy2 Down";
-		resources_get_int( "KeySet1West", &i1);
-		resources_get_int( "KeySet2West", &i2);
-		if ((dev1 == 2 && key == i1) || (dev1 == 3 && key == i2))
-			return "Joy1 Left";
-		if ((dev2 == 2 && key == i1) || (dev2 == 3 && key == i2))
-			return "Joy2 Left";
-		resources_get_int( "KeySet1East", &i1);
-		resources_get_int( "KeySet2East", &i2);
-		if ((dev1 == 2 && key == i1) || (dev1 == 3 && key == i2))
-			return "Joy1 Right";
-		if ((dev2 == 2 && key == i1) || (dev2 == 3 && key == i2))
-			return "Joy2 Right";
+		resources_get_int( "JoyPort1Device", &dev1);
+		resources_get_int( "JoyPort2Device", &dev2);
+
+		char *ports= dev1 == JOYPORT_ID_JOYSTICK ?
+				(dev2 == JOYPORT_ID_JOYSTICK ? "1+2" : "1") :
+				(dev2 == JOYPORT_ID_JOYSTICK ? "2" : NULL);
+
+		if (ports) {
+			// Joyport1 keys (f,u,d,l,r)
+			resources_get_int( "KeySet1Fire", &i1);
+			if (key == i1) {sprintf(buf,"Joy%s Fire", ports); return buf;}
+			resources_get_int( "KeySet1AFire", &i1);
+			if (key == i1) {sprintf(buf,"Joy%s AutoF", ports); return buf;}
+			resources_get_int( "KeySet1North", &i1);
+			if (key == i1) {sprintf(buf,"Joy%s Up", ports); return buf;}
+			resources_get_int( "KeySet1South", &i1);
+			if (key == i1) {sprintf(buf,"Joy%s Down", ports); return buf;}
+			resources_get_int( "KeySet1West", &i1);
+			if (key == i1) {sprintf(buf,"Joy%s Left", ports); return buf;}
+			resources_get_int( "KeySet1East", &i1);
+			if (key == i1) {sprintf(buf,"Joy%s Right", ports); return buf;}
+		}
 	} else {
 		resources_get_int( "MenuKeyMap", &i1); if (key == i1) return "Map Hotkey";
 		resources_get_int( "MenuKeyUp", &i1); if (key == i1) return "Up";
