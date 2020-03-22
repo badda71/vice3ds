@@ -332,6 +332,7 @@ static DS3_Image help_top_spr;
 static DS3_Image help_bot_spr;
 static DS3_Image help_spr;
 static DS3_Image sbutton_spr[20]={0};
+static DS3_Image sbutton_spr1[20]={0};
 static u32 sbutton_name_hash[20]={0};
 static int sbutton_nr[20];
 static int sbutton_ang[20];
@@ -365,6 +366,7 @@ static volatile int set_kb_y_pos = -10000;
 static int kb_activekey=-1;
 static int sticky=0;
 static unsigned char keysPressed[256];
+static unsigned char keysHot[256];
 static int editmode_on=0;
 static int help_button_on;
 static int menu_button_on;
@@ -641,18 +643,27 @@ static void uibottom_repaint(void *param, int topupdated) {
 			}
 
 			k=&(uikbd_keypos[sbutton_nr[i]]);
-
-			drawImage(&(sbutton_spr[i]),k->x+dx,k->y-dy,0,0);
-			if (keysPressed[sbutton_nr[i]])
+			if (keysHot[sbutton_nr[i]] && sbutton_spr1[i].w != 0) {
+				drawImage(&(sbutton_spr1[i]),k->x+dx,k->y-dy,0,0);
+			} else {
+				drawImage(&(sbutton_spr[i]),k->x+dx,k->y-dy,0,0);
+			}
+			if (keysPressed[sbutton_nr[i]] || (keysHot[sbutton_nr[i]] && sbutton_spr1[i].w == 0)) {
 				drawImage(&(sbmask_spr),k->x+dx,k->y-dy,0,0);
+			}
 			if (dragging && sbutton_nr[i] != kb_activekey && sbutton_nr[i] == drag_over)
 				drawImage(&(sbdrag_spr),k->x+dx,k->y-dy,0,0);
 		}
 		if (last_i!=-1) {
 			k=&(uikbd_keypos[sbutton_nr[last_i]]);
-			drawImage(&(sbutton_spr[last_i]),k->x,k->y,0,0);
-			if (keysPressed[sbutton_nr[last_i]])
+			if (keysHot[sbutton_nr[last_i]] && sbutton_spr1[last_i].w != 0) {
+				drawImage(&(sbutton_spr1[last_i]),k->x,k->y,0,0);
+			} else {
+				drawImage(&(sbutton_spr[last_i]),k->x,k->y,0,0);
+			}
+			if (keysPressed[sbutton_nr[last_i]] || (keysHot[sbutton_nr[last_i]] && sbutton_spr1[last_i].w == 0)) {
 				drawImage(&(sbmask_spr),k->x,k->y,0,0);
+			}
 			if (dragging && sbutton_nr[last_i] != kb_activekey && sbutton_nr[last_i] == drag_over)
 				drawImage(&(sbdrag_spr),k->x,k->y,0,0);
 		}
@@ -692,9 +703,14 @@ static void uibottom_repaint(void *param, int topupdated) {
 		int y=dragy-sb_img->h / 2;
 		int w=sb_img->w * 1.125;
 		int h=sb_img->h * 1.125;
-		drawImage(&(sbutton_spr[drag_i]),x,y,w,h);
-		if (keysPressed[sbutton_nr[drag_i]])
+		if (keysHot[sbutton_nr[drag_i]] && sbutton_spr1[drag_i].w != 0) {
+			drawImage(&(sbutton_spr1[drag_i]),x,y,w,h);
+		} else {
+			drawImage(&(sbutton_spr[drag_i]),x,y,w,h);
+		}
+		if (keysPressed[sbutton_nr[drag_i]] || (keysHot[sbutton_nr[drag_i]] && sbutton_spr1[drag_i].w == 0)) {
 			drawImage(&(sbmask_spr),x,y,w,h);
+		}
 	}
 	// editmode notifiction
 	if (editmode_on) {
@@ -715,16 +731,21 @@ static void uibottom_repaint(void *param, int topupdated) {
 static void keypress_recalc() {
 	const char *s;
 	ui_menu_entry_t *item;
-	int state,key;
-
-	memset(keysPressed,0,sizeof(keysPressed));
+	int key;
+	unsigned char state;
+//	memset(keysPressed,0,sizeof(keysPressed));
+//	memset(keysHot,0,sizeof(keysHot));
 
 	for (key = 0; uikbd_keypos[key].key!=0; ++key) {
 		if (key<0 || uikbd_keypos[key].key==0) return;
 
 		state=0;
 		if (key == kb_activekey) state=1;
-		else if (uikbd_keypos[key].flags==1 &&
+		else if (uikbd_keypos[key].sticky & sticky) state=1;
+		keysPressed[key]=state;
+
+		state=0;
+		if (uikbd_keypos[key].flags==1 &&
 			(item=sdlkbd_ui_hotkeys[uikbd_keypos[key].key]) != NULL &&
 			(item->type == MENU_ENTRY_RESOURCE_TOGGLE ||
 			 item->type == MENU_ENTRY_RESOURCE_RADIO ||
@@ -732,8 +753,7 @@ static void keypress_recalc() {
 			(s=item->callback(0, item->data)) != NULL &&
 			s[0]==UIFONT_CHECKMARK_CHECKED_CHAR)
 			state=1;
-		else if (uikbd_keypos[key].sticky & sticky) state=1;
-		keysPressed[key]=state;
+		keysHot[key]=state;
 	}
 }
 
@@ -1031,14 +1051,22 @@ static SDL_Surface *createIcon(char *name) {
 	return icon;
 }
 
-static SDL_Surface *sbuttons_getIcon(char *name) {
+static SDL_Surface *sbuttons_getIcon(char *name, int hot) {
 //log_citra("enter %s: %s",__func__,name);
 	SDL_Surface *img=NULL;
 	if (name==NULL) return NULL;
-	if ((img=tsh_get(&iconHash, name))!=NULL) return img;
-	if ((img=loadIcon(name))==NULL &&
-		(img=createIcon(name))==NULL) return NULL;
-	tsh_put(&iconHash, name, img);
+	if (hot) {
+		char *name1 = util_concat(name, hot?"1":NULL, NULL);
+		if ((img=tsh_get(&iconHash, name1))==NULL)
+			img=loadIcon(name1);
+		if (img) tsh_put(&iconHash, name1, img);
+		lib_free(name1);
+	} else {
+		if ((img=tsh_get(&iconHash, name))==NULL &&
+			((img=loadIcon(name))!=NULL ||
+			(img=createIcon(name))!=NULL))
+			tsh_put(&iconHash, name, img);
+	}
 	return img;
 }
 
@@ -1176,14 +1204,24 @@ static void sbuttons_recalc() {
 		if ((h=hashKey((u8*)name))==sbutton_name_hash[x] && sbutton_spr[x].w != 0) continue; // already up to date
 		SDL_Surface *s = SDL_ConvertSurface(sb_img, sb_img->format, SDL_SWSURFACE);
 		SDL_SetAlpha(s, 0, 255);
-		if (name && (img = sbuttons_getIcon(name)) != NULL) {
+		if (name && (img = sbuttons_getIcon(name, 0)) != NULL) {
 			SDL_BlitSurface(img, NULL, s, &(SDL_Rect){
 				.x = (s->w - img->w) / 2,
 				.y = (s->h - img->h) /2});
 		}
 		makeImage(&(sbutton_spr[x]), s->pixels, s->w, s->h, 0);
-		sbutton_name_hash[x]=h;
 		SDL_FreeSurface(s);
+
+		if (name && (img = sbuttons_getIcon(name, 1)) != NULL) {
+			SDL_Surface *s = SDL_ConvertSurface(sb_img, sb_img->format, SDL_SWSURFACE);
+			SDL_SetAlpha(s, 0, 255);
+			SDL_BlitSurface(img, NULL, s, &(SDL_Rect){
+				.x = (s->w - img->w) / 2,
+				.y = (s->h - img->h) /2});
+			makeImage(&(sbutton_spr1[x]), s->pixels, s->w, s->h, 0);
+			SDL_FreeSurface(s);
+		} else sbutton_spr1[x].w=0;
+		sbutton_name_hash[x]=h;
 	}
 
 	// recalc touchpad image
