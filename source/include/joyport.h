@@ -122,6 +122,8 @@ typedef struct joyport_port_props_s {
     int active;
 } joyport_port_props_t;
 
+extern int joy_port[JOYPORT_MAX_PORTS];
+
 extern int joyport_device_register(int id, joyport_t *device);
 
 extern uint8_t read_joyport_dig(int port);

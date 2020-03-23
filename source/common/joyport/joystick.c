@@ -377,8 +377,9 @@ static const resource_int_t joykeys_resources_int[] = {
       &joykeys[JOYSTICK_KEYSET_IDX_A][JOYSTICK_KEYSET_W], set_keyset1, (void *)JOYSTICK_KEYSET_W },
     { "KeySet1Fire", 200, RES_EVENT_NO, NULL, // 3ds A button
       &joykeys[JOYSTICK_KEYSET_IDX_A][JOYSTICK_KEYSET_FIRE], set_keyset1, (void *)JOYSTICK_KEYSET_FIRE },
-    { "KeySet1AFire", 205, RES_EVENT_NO, NULL, // 3ds A button
+    { "KeySet1AFire", 205, RES_EVENT_NO, NULL, // 3ds R button
       &joykeys[JOYSTICK_KEYSET_IDX_A][JOYSTICK_KEYSET_AFIRE], set_keyset1, (void *)JOYSTICK_KEYSET_AFIRE },
+
 	{ "KeySet2NorthWest", ARCHDEP_KEYBOARD_SYM_NONE, RES_EVENT_NO, NULL,
       &joykeys[JOYSTICK_KEYSET_IDX_B][JOYSTICK_KEYSET_NW], set_keyset2, (void *)JOYSTICK_KEYSET_NW },
     { "KeySet2North", 210, RES_EVENT_NO, NULL,	// 3ds dpad up
@@ -395,10 +396,11 @@ static const resource_int_t joykeys_resources_int[] = {
       &joykeys[JOYSTICK_KEYSET_IDX_B][JOYSTICK_KEYSET_SW], set_keyset2, (void *)JOYSTICK_KEYSET_SW },
     { "KeySet2West", 212, RES_EVENT_NO, NULL, 	// 3ds dpad left
       &joykeys[JOYSTICK_KEYSET_IDX_B][JOYSTICK_KEYSET_W], set_keyset2, (void *)JOYSTICK_KEYSET_W },
-    { "KeySet2Fire", 201, RES_EVENT_NO, NULL,	// 3ds B button
+    { "KeySet2Fire", 200, RES_EVENT_NO, NULL,	// 3ds A button
       &joykeys[JOYSTICK_KEYSET_IDX_B][JOYSTICK_KEYSET_FIRE], set_keyset2, (void *)JOYSTICK_KEYSET_FIRE },
-    { "KeySet2AFire", 207, RES_EVENT_NO, NULL, // 3ds A button
+    { "KeySet2AFire", 205, RES_EVENT_NO, NULL, // 3ds R button
       &joykeys[JOYSTICK_KEYSET_IDX_B][JOYSTICK_KEYSET_AFIRE], set_keyset2, (void *)JOYSTICK_KEYSET_AFIRE },
+
 	{ "JoyAutoSpeed", 10, RES_EVENT_NO, (resource_value_t)10,
       &joy_auto_speed, set_joy_auto_speed, NULL },
 	{ "KeySetEnable", 1, RES_EVENT_NO, NULL,

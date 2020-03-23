@@ -1242,7 +1242,7 @@ ui_menu_action_t sdl_ui_menu_poll_input(void)
 
 int sdl_ui_print(const char *text, int pos_x, int pos_y)
 {
-    int i = 0;
+    int i = 0, x = pos_x;
     uint8_t c;
 
     if (text == NULL) {
@@ -1253,12 +1253,12 @@ int sdl_ui_print(const char *text, int pos_x, int pos_y)
         return -1;
     }
 
-    while (((c = text[i]) != 0) && ((pos_x + i) < menu_draw.max_text_x)) {
-        sdl_ui_putchar(c, pos_x + i, pos_y);
+    while (((c = text[i]) != 0) && (x < menu_draw.max_text_x)) {
+        if (c < 0xf0) sdl_ui_putchar(c, x++, pos_y); // charcaters >=0xf0 are control characters for sbutton icon generation
         ++i;
     }
 
-    return i;
+    return x-pos_x;
 }
 
 int sdl_ui_print_eol(int pos_x, int pos_y)

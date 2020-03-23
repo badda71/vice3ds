@@ -40,6 +40,8 @@
 #include "uipoll.h"
 #include "kbd.h"
 #include "uibottom.h"
+#include "archdep.h"
+#include "vice3ds.h"
 
 #include "menu_joyport.h"
 
@@ -111,6 +113,37 @@ static UI_MENU_CALLBACK(JoyPort1Device_dynmenu_callback)
     return buf;
 }
 
+static UI_MENU_CALLBACK(custom_joyport_toggle_callback)
+{
+    int i, k, s;
+
+    i=joy_port[JOYPORT_1];
+    k=joy_port[JOYPORT_2];
+	//resources_get_int("JoyPort1Device", &i);
+    //resources_get_int("JoyPort2Device", &k);
+	if (activated) {
+		if (i == JOYPORT_ID_JOYSTICK && k == JOYPORT_ID_JOYSTICK) {
+			i = JOYPORT_ID_MOUSE_1351;
+		} else if (i != JOYPORT_ID_JOYSTICK && k != JOYPORT_ID_JOYSTICK) {
+			k = JOYPORT_ID_JOYSTICK;
+		} else {
+			s=k;k=i;i=s;
+		}
+	    resources_set_int("JoyPort2Device", JOYPORT_ID_NONE);
+	    resources_set_int("JoyPort1Device", i);
+	    resources_set_int("JoyPort2Device", k);
+		// update sbuttons just in case this was triggered from a button there
+		uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
+	}
+	if (i == JOYPORT_ID_JOYSTICK && k == JOYPORT_ID_JOYSTICK)
+		return "\xf3" MENU_SUBMENU_STRING " Port 1+2";
+	if (i != JOYPORT_ID_JOYSTICK && k != JOYPORT_ID_JOYSTICK)
+		return "\xf0" MENU_SUBMENU_STRING " not connected";
+	if (i == JOYPORT_ID_JOYSTICK)
+		return "\xf1" MENU_SUBMENU_STRING " Port 1";
+	return "\xf2" MENU_SUBMENU_STRING " Port 2";
+}
+
 static UI_MENU_CALLBACK(JoyPort2Device_dynmenu_callback)
 {
     joyport_desc_t *devices = joyport_get_valid_devices(JOYPORT_2);
@@ -152,14 +185,6 @@ static UI_MENU_CALLBACK(JoyPort2Device_dynmenu_callback)
     return buf;
 }
 
-static UI_MENU_CALLBACK(custom_swap_ports_callback)
-{
-    if (activated) {
-        sdljoy_swap_ports();
-    }
-    return sdljoy_get_swap_ports() ? MENU_CHECKMARK_CHECKED_STRING : NULL;
-}
-
 static UI_MENU_CALLBACK(custom_joy_auto_speed_callback)
 {
     static char buf[20];
@@ -181,55 +206,50 @@ static UI_MENU_CALLBACK(custom_joy_auto_speed_callback)
 
 UI_MENU_DEFINE_TOGGLE(JoyOpposite)
 
-static UI_MENU_CALLBACK(custom_keyset_callback)
+static UI_MENU_CALLBACK(toggle_dpad_callback)
 {
-    SDL_Event e;
-    int previous;
+	int k, src, dst, i, ms, md, x;
+	u32 j;
+	k=joystick_port_map[JOYPORT_1];
+	//resources_get_int("JoyDevice1", &k);
 
-    if (activated) {
-        e = sdl_ui_poll_event("key", (const char *)param, SDL_POLL_KEYBOARD | SDL_POLL_MODIFIER, 5);
-
-        if (e.type == SDL_KEYDOWN) {
-            resources_set_int((const char *)param, (int)SDL2x_to_SDL1x_Keys(e.key.keysym.sym));
-        }
-		// recalc the soft buttons just in case the mapping was done there
-		uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
-    } else {
-		if (resources_get_int((const char *)param, &previous)) {
-			return sdl_menu_text_unknown;
+	if (activated) {
+		k = ((k == JOYDEV_KEYSET1) ? JOYDEV_KEYSET2 : JOYDEV_KEYSET1);
+		resources_set_int("JoyDevice1", k);
+		resources_set_int("JoyDevice2", k);
+		if (k == JOYDEV_KEYSET1) {
+			src = JOYSTICK_KEYSET_IDX_B;
+			dst = JOYSTICK_KEYSET_IDX_A;
+		} else {
+			src = JOYSTICK_KEYSET_IDX_A;
+			dst = JOYSTICK_KEYSET_IDX_B;
 		}
-		return get_3ds_keyname(previous);
-    }
-    return NULL;
+		for (i = 0; i < JOYSTICK_KEYSET_NUM_KEYS; ++i) {
+			ms = joykeys[src][i];
+			if (ms == ARCHDEP_KEYBOARD_SYM_NONE) continue;
+			md = joykeys[dst][i];
+			if (md == ARCHDEP_KEYBOARD_SYM_NONE ||
+				ms == md) continue;
+			// remap all keys that point to old joystick key
+			for (j=1;j<255;++j) {
+				x = keymap3ds[j];
+				if (!x || (x >> 24) != 1) continue;
+				if (((x >> 16) & 0xff) == ms)
+					x = (x & 0xff00ffff) + (md << 16);
+				if (((x >> 8) & 0xff) == ms)
+					x = (x & 0xffff00ff) + (md << 8);
+				if ((x & 0xff) == ms)
+					x = (x & 0xffffff00) + md;
+				keymap3ds[j] = x;
+			}
+			// now swap mappings between c-pad and d-pad
+			j = keymap3ds[ms];
+			keymap3ds[ms] = keymap3ds[md];
+			keymap3ds[md] = j;
+		}
+	}
+	return k == JOYDEV_KEYSET2 ? sdl_menu_text_tick : NULL;
 }
-
-static const ui_menu_entry_t define_keyset_menu[] = {
-    { "Keyset Up",
-      MENU_ENTRY_DIALOG,
-      custom_keyset_callback,
-      (ui_callback_data_t)"KeySet1North" },
-    { "Keyset Down",
-      MENU_ENTRY_DIALOG,
-      custom_keyset_callback,
-      (ui_callback_data_t)"KeySet1South" },
-    { "Keyset Left",
-      MENU_ENTRY_DIALOG,
-      custom_keyset_callback,
-      (ui_callback_data_t)"KeySet1West" },
-    { "Keyset Right",
-      MENU_ENTRY_DIALOG,
-      custom_keyset_callback,
-      (ui_callback_data_t)"KeySet1East" },
-    { "Keyset Fire",
-      MENU_ENTRY_DIALOG,
-      custom_keyset_callback,
-      (ui_callback_data_t)"KeySet1Fire" },
-    { "Keyset Autofire",
-      MENU_ENTRY_DIALOG,
-      custom_keyset_callback,
-      (ui_callback_data_t)"KeySet1AFire" },
-    SDL_MENU_LIST_END
-};
 
 ui_menu_entry_t joyport_menu[] = {
 	{ "Control port 1",
@@ -240,24 +260,24 @@ ui_menu_entry_t joyport_menu[] = {
 	  MENU_ENTRY_DYNAMIC_SUBMENU,
 	  JoyPort2Device_dynmenu_callback,
 	  (ui_callback_data_t)joyport2_dyn_menu},
-	{ "Swap joyports",
-      MENU_ENTRY_OTHER_TOGGLE,
-      custom_swap_ports_callback,
-      NULL },
 	SDL_MENU_ITEM_SEPARATOR,
     SDL_MENU_ITEM_TITLE("Joystick settings"),
 	{ "Joystick Autofire speed",
       MENU_ENTRY_DIALOG,
       custom_joy_auto_speed_callback,
       NULL },
+	{ "Toggle joystick port",
+      MENU_ENTRY_OTHER,
+      custom_joyport_toggle_callback,
+      NULL },
+    { "Toggle D-Pad joystick",
+	  MENU_ENTRY_OTHER_TOGGLE,
+	  toggle_dpad_callback,
+	  NULL },
     { "Allow opposite directions",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_JoyOpposite_callback,
       NULL },
-    { "Define keyset",
-      MENU_ENTRY_SUBMENU,
-      submenu_callback,
-      (ui_callback_data_t)define_keyset_menu },
 	SDL_MENU_LIST_END
 };
 

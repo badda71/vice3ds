@@ -26,6 +26,7 @@
 #include "archdep_join_paths.h"
 #include "archdep_user_config_path.h"
 #include "archdep_xdg.h"
+#include "joy.h"
 #include "joystick.h"
 #include "joyport.h"
 #include "kbd.h"
@@ -332,8 +333,7 @@ static DS3_Image menu_spr;
 static DS3_Image help_top_spr;
 static DS3_Image help_bot_spr;
 static DS3_Image help_spr;
-static DS3_Image sbutton_spr[20]={0};
-static DS3_Image sbutton_spr1[20]={0};
+static DS3_Image sbutton_spr[20][4]={0};
 static u32 sbutton_name_hash[20]={0};
 static int sbutton_nr[20];
 static int sbutton_ang[20];
@@ -569,7 +569,7 @@ extern void drawMainSpritesheetAt(int x, int y, int w, int h);
 extern struct SDL_PrivateVideoData *vdev_hidden;
 
 static void uibottom_repaint(void *param, int topupdated) {
-	int i,update=1;
+	int i,update=1,j;
 	uikbd_key *k;
 	int drag_i=-1;
 	int last_i=-1;
@@ -644,12 +644,13 @@ static void uibottom_repaint(void *param, int topupdated) {
 			}
 
 			k=&(uikbd_keypos[sbutton_nr[i]]);
-			if (keysHot[sbutton_nr[i]] && sbutton_spr1[i].w != 0) {
-				drawImage(&(sbutton_spr1[i]),k->x+dx,k->y-dy,0,0);
+			j=keysHot[sbutton_nr[i]];
+			if (j && sbutton_spr[i][j].w != 0) {
+				drawImage(&(sbutton_spr[i][j]),k->x+dx,k->y-dy,0,0);
 			} else {
-				drawImage(&(sbutton_spr[i]),k->x+dx,k->y-dy,0,0);
+				drawImage(&(sbutton_spr[i][0]),k->x+dx,k->y-dy,0,0);
 			}
-			if (keysPressed[sbutton_nr[i]] || (keysHot[sbutton_nr[i]] && sbutton_spr1[i].w == 0)) {
+			if (keysPressed[sbutton_nr[i]] || (j && sbutton_spr[i][j].w == 0)) {
 				drawImage(&(sbmask_spr),k->x+dx,k->y-dy,0,0);
 			}
 			if (dragging && sbutton_nr[i] != kb_activekey && sbutton_nr[i] == drag_over)
@@ -657,12 +658,13 @@ static void uibottom_repaint(void *param, int topupdated) {
 		}
 		if (last_i!=-1) {
 			k=&(uikbd_keypos[sbutton_nr[last_i]]);
-			if (keysHot[sbutton_nr[last_i]] && sbutton_spr1[last_i].w != 0) {
-				drawImage(&(sbutton_spr1[last_i]),k->x,k->y,0,0);
+			j=keysHot[sbutton_nr[last_i]];
+			if (j && sbutton_spr[last_i][j].w != 0) {
+				drawImage(&(sbutton_spr[last_i][j]),k->x,k->y,0,0);
 			} else {
-				drawImage(&(sbutton_spr[last_i]),k->x,k->y,0,0);
+				drawImage(&(sbutton_spr[last_i][0]),k->x,k->y,0,0);
 			}
-			if (keysPressed[sbutton_nr[last_i]] || (keysHot[sbutton_nr[last_i]] && sbutton_spr1[last_i].w == 0)) {
+			if (keysPressed[sbutton_nr[last_i]] || (j && sbutton_spr[last_i][j].w == 0)) {
 				drawImage(&(sbmask_spr),k->x,k->y,0,0);
 			}
 			if (dragging && sbutton_nr[last_i] != kb_activekey && sbutton_nr[last_i] == drag_over)
@@ -704,12 +706,13 @@ static void uibottom_repaint(void *param, int topupdated) {
 		int y=dragy-sb_img->h / 2;
 		int w=sb_img->w * 1.125;
 		int h=sb_img->h * 1.125;
-		if (keysHot[sbutton_nr[drag_i]] && sbutton_spr1[drag_i].w != 0) {
-			drawImage(&(sbutton_spr1[drag_i]),x,y,w,h);
+		j=keysHot[sbutton_nr[drag_i]];
+		if (j && sbutton_spr[drag_i][j].w != 0) {
+			drawImage(&(sbutton_spr[drag_i][j]),x,y,w,h);
 		} else {
-			drawImage(&(sbutton_spr[drag_i]),x,y,w,h);
+			drawImage(&(sbutton_spr[drag_i][0]),x,y,w,h);
 		}
-		if (keysPressed[sbutton_nr[drag_i]] || (keysHot[sbutton_nr[drag_i]] && sbutton_spr1[drag_i].w == 0)) {
+		if (keysPressed[sbutton_nr[drag_i]] || (j && sbutton_spr[drag_i][j].w == 0)) {
 			drawImage(&(sbmask_spr),x,y,w,h);
 		}
 	}
@@ -750,10 +753,15 @@ static void keypress_recalc() {
 			(item=sdlkbd_ui_hotkeys[uikbd_keypos[key].key]) != NULL &&
 			(item->type == MENU_ENTRY_RESOURCE_TOGGLE ||
 			 item->type == MENU_ENTRY_RESOURCE_RADIO ||
-			 item->type == MENU_ENTRY_OTHER_TOGGLE) &&
-			(s=item->callback(0, item->data)) != NULL &&
-			s[0]==UIFONT_CHECKMARK_CHECKED_CHAR)
-			state=1;
+			 item->type == MENU_ENTRY_OTHER_TOGGLE ||
+			 item->type == MENU_ENTRY_OTHER) &&
+			(s=item->callback(0, item->data)) != NULL)
+		{
+			if (item->type == MENU_ENTRY_OTHER && (s[0] & 0xf0) == 0xf0)
+				state = s[0] & 0x0f;
+			else if (s[0]==UIFONT_CHECKMARK_CHECKED_CHAR)
+				state=1;
+		}
 		keysHot[key]=state;
 	}
 }
@@ -1057,7 +1065,8 @@ static SDL_Surface *sbuttons_getIcon(char *name, int hot) {
 	SDL_Surface *img=NULL;
 	if (name==NULL) return NULL;
 	if (hot) {
-		char *name1 = util_concat(name, hot?"_H":NULL, NULL);
+		char ext[3]={'_', hot+48, 0};
+		char *name1 = util_concat(name, ext, NULL);
 		if ((img=tsh_get(&iconHash, name1))==NULL)
 			img=loadIcon(name1);
 		if (img) tsh_put(&iconHash, name1, img);
@@ -1135,18 +1144,18 @@ char *get_key_help(int key, int inmenu, int trylen) {
 				(dev2 == JOYPORT_ID_JOYSTICK ? "2" : NULL);
 
 		if (ports) {
-			// Joyport1 keys (f,u,d,l,r)
-			resources_get_int( "KeySet1Fire", &i1);
+			resources_get_int("JoyDevice1", &dev1);
+			resources_get_int( dev1==JOYDEV_KEYSET1?"KeySet1Fire":"KeySet2Fire", &i1);
 			if (key == i1) {sprintf(buf,"Joy%s Fire", ports); return buf;}
-			resources_get_int( "KeySet1AFire", &i1);
+			resources_get_int( dev1==JOYDEV_KEYSET1?"KeySet1AFire":"KeySet2AFire", &i1);
 			if (key == i1) {sprintf(buf,"Joy%s AutoF", ports); return buf;}
-			resources_get_int( "KeySet1North", &i1);
+			resources_get_int( dev1==JOYDEV_KEYSET1?"KeySet1North":"KeySet2North", &i1);
 			if (key == i1) {sprintf(buf,"Joy%s Up", ports); return buf;}
-			resources_get_int( "KeySet1South", &i1);
+			resources_get_int( dev1==JOYDEV_KEYSET1?"KeySet1South":"KeySet2South", &i1);
 			if (key == i1) {sprintf(buf,"Joy%s Down", ports); return buf;}
-			resources_get_int( "KeySet1West", &i1);
+			resources_get_int( dev1==JOYDEV_KEYSET1?"KeySet1West":"KeySet2West", &i1);
 			if (key == i1) {sprintf(buf,"Joy%s Left", ports); return buf;}
-			resources_get_int( "KeySet1East", &i1);
+			resources_get_int( dev1==JOYDEV_KEYSET1?"KeySet1East":"KeySet2East", &i1);
 			if (key == i1) {sprintf(buf,"Joy%s Right", ports); return buf;}
 		}
 	} else {
@@ -1172,7 +1181,7 @@ char *get_key_help(int key, int inmenu, int trylen) {
 
 static void sbuttons_recalc() {
 //log_citra("enter %s",__func__);
-	int i,x,y;
+	int i,x,y,j;
 	char *name;
 	static int lbut=0,rbut=0;
 	SDL_Surface *img;
@@ -1184,7 +1193,7 @@ static void sbuttons_recalc() {
 		name=get_key_help(uikbd_keypos[i].key,0,0);
 		x=uikbd_keypos[i].key-231;
 		if (!name) name="";
-		if ((h=hashKey((u8*)name))==sbutton_name_hash[x] && sbutton_spr[x].w != 0) continue; // already up to date
+		if ((h=hashKey((u8*)name))==sbutton_name_hash[x] && sbutton_spr[x][0].w != 0) continue; // already up to date
 		SDL_Surface *s = SDL_ConvertSurface(sb_img, sb_img->format, SDL_SWSURFACE);
 		SDL_SetAlpha(s, 0, 255);
 		if (name && (img = sbuttons_getIcon(name, 0)) != NULL) {
@@ -1192,18 +1201,21 @@ static void sbuttons_recalc() {
 				.x = (s->w - img->w) / 2,
 				.y = (s->h - img->h) /2});
 		}
-		makeImage(&(sbutton_spr[x]), s->pixels, s->w, s->h, 0);
+		makeImage(&(sbutton_spr[x][0]), s->pixels, s->w, s->h, 0);
 		SDL_FreeSurface(s);
 
-		if (name && (img = sbuttons_getIcon(name, 1)) != NULL) {
-			SDL_Surface *s = SDL_ConvertSurface(sb_img, sb_img->format, SDL_SWSURFACE);
-			SDL_SetAlpha(s, 0, 255);
-			SDL_BlitSurface(img, NULL, s, &(SDL_Rect){
-				.x = (s->w - img->w) / 2,
-				.y = (s->h - img->h) /2});
-			makeImage(&(sbutton_spr1[x]), s->pixels, s->w, s->h, 0);
-			SDL_FreeSurface(s);
-		} else sbutton_spr1[x].w=0;
+		for (j=1;j<4;++j) {
+			if (name && (img = sbuttons_getIcon(name, j)) != NULL) {
+				SDL_Surface *s = SDL_ConvertSurface(sb_img, sb_img->format, SDL_SWSURFACE);
+				SDL_SetAlpha(s, 0, 255);
+				SDL_BlitSurface(img, NULL, s, &(SDL_Rect){
+					.x = (s->w - img->w) / 2,
+					.y = (s->h - img->h) /2});
+				makeImage(&(sbutton_spr[x][j]), s->pixels, s->w, s->h, 0);
+				SDL_FreeSurface(s);
+			} else break;
+		}
+		for (;j<4;++j) sbutton_spr[x][j].w=0;
 		sbutton_name_hash[x]=h;
 	}
 

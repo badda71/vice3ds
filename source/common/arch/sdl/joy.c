@@ -335,15 +335,6 @@ int joy_arch_cmdline_options_init(void)
     return 0;
 }
 
-static int _sdljoy_swap_ports = 0;
-
-int sdljoy_get_swap_ports(void) 
-{
-    return _sdljoy_swap_ports;
-}
-
-
-
 /* ------------------------------------------------------------------------- */
 
 #ifdef HAVE_SDL_NUMJOYSTICKS
@@ -1157,20 +1148,6 @@ void sdljoy_unset(SDL_Event e)
 
 static int _sdljoy_swap_userport_ports = 0;
 
-void sdljoy_swap_ports(void)
-{
-    int i, k;
-
-    resources_get_int("JoyPort1Device", &i);
-    resources_get_int("JoyPort2Device", &k);
-    resources_set_int("JoyPort1Device", JOYPORT_ID_NONE);
-    resources_set_int("JoyPort2Device", i);
-    resources_set_int("JoyPort1Device", k);
-    _sdljoy_swap_ports ^= 1;
-
-	// update sbuttons just in case this was triggered from a button there
-	uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
-}
 /*
 void sdljoy_swap_userport_ports(void)
 {
@@ -1193,20 +1170,6 @@ int sdljoy_get_swap_userport_ports(void)
 
 #else
 /* !HAVE_SDL_NUMJOYSTICKS */
-void sdljoy_swap_ports(void)
-{
-    int i, k;
-
-    resources_get_int("JoyPort1Device", &i);
-    resources_get_int("JoyPort2Device", &k);
-    resources_set_int("JoyPort1Device", JOYPORT_ID_NONE);
-    resources_set_int("JoyPort2Device", i);
-    resources_set_int("JoyPort1Device", k);
-    _sdljoy_swap_ports ^= 1;
-
-	// update sbuttons just in case this was triggered from a button there
-	uibottom_must_redraw |= UIB_RECALC_SBUTTONS;
-}
 
 void joystick_close(void)
 {
