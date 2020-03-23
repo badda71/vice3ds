@@ -1027,57 +1027,59 @@ dldb:
 		c=util_concat(p, "/", pdb_getEntry(db, top_shows, 4), NULL);
 		free (p);
 
-		// set TDE
-		if (gb64_set_modes & 3) 
-			resources_set_int("DriveTrueEmulation", *(pdb_getEntry(db, top_shows, 21))=='0' ? 0 : 1);
 		// set video mode
 		if (gb64_set_modes & 1)
 			c64model_set(*(pdb_getEntry(db, top_shows, 20))=='2' ? C64MODEL_C64C_NTSC : C64MODEL_C64C_PAL);
+		// set TDE
+		if (gb64_set_modes & 2) 
+			resources_set_int("DriveTrueEmulation", *(pdb_getEntry(db, top_shows, 21))=='0' ? 0 : 1);
 		// set controller
-		p = pdb_getEntry(db, top_shows, 24);
-		if (p != NULL && p[0]!=0) {
-			switch (p[0]) {
-				case '0': // Joy Port2
-					custom_joyport_toggle_callback(1, (void*)2);
-					break;
-				case '1': // Joy Port1
-					custom_joyport_toggle_callback(1, (void*)1);
-					break;
-				case '2': // Keyboard
-					if (is_keyboard_hidden()) toggle_keyboard();
-					break;
-				case '3': // Paddle 2
-					custom_joyport_toggle_callback(1, (void*)1);
-				    resources_set_int("JoyPort2Device", JOYPORT_ID_PADDLES);
-					set_mouse_enabled(1,NULL);
-					break;
-				case '4': // Paddle 1
-					custom_joyport_toggle_callback(1, (void*)2);
-				    resources_set_int("JoyPort1Device", JOYPORT_ID_PADDLES);
-					set_mouse_enabled(1,NULL);
-					break;
-				case '5': // Mouse
-					custom_joyport_toggle_callback(1, (void*)2);
-				    resources_set_int("JoyPort1Device", JOYPORT_ID_MOUSE_1351);
-					set_mouse_enabled(1,NULL);
-					break;
-				case '6': // Light Pen
-					custom_joyport_toggle_callback(1, (void*)2);
-				    resources_set_int("JoyPort1Device", JOYPORT_ID_LIGHTPEN_U);
-					set_mouse_enabled(1,NULL);
-					break;
-				case '7': // Koala Pad
-					custom_joyport_toggle_callback(1, (void*)2);
-				    resources_set_int("JoyPort1Device", JOYPORT_ID_KOALAPAD);
-					set_mouse_enabled(1,NULL);
-					break;
-				case '8': // Light Gun
-					custom_joyport_toggle_callback(1, (void*)2);
-				    resources_set_int("JoyPort1Device", JOYPORT_ID_LIGHTGUN_Y);
-					set_mouse_enabled(1,NULL);
-					break;
-				default:
-					break;
+		if (gb64_set_modes & 4) {
+			p = pdb_getEntry(db, top_shows, 24);
+			if (p != NULL && p[0]!=0) {
+				switch (p[0]) {
+					case '0': // Joy Port2
+						custom_joyport_toggle_callback(1, (void*)2);
+						break;
+					case '1': // Joy Port1
+						custom_joyport_toggle_callback(1, (void*)1);
+						break;
+					case '2': // Keyboard
+						if (is_keyboard_hidden()) toggle_keyboard();
+						break;
+					case '3': // Paddle 2
+						custom_joyport_toggle_callback(1, (void*)1);
+						resources_set_int("JoyPort2Device", JOYPORT_ID_PADDLES);
+						set_mouse_enabled(1,NULL);
+						break;
+					case '4': // Paddle 1
+						custom_joyport_toggle_callback(1, (void*)2);
+						resources_set_int("JoyPort1Device", JOYPORT_ID_PADDLES);
+						set_mouse_enabled(1,NULL);
+						break;
+					case '5': // Mouse
+						custom_joyport_toggle_callback(1, (void*)2);
+						resources_set_int("JoyPort1Device", JOYPORT_ID_MOUSE_1351);
+						set_mouse_enabled(1,NULL);
+						break;
+					case '6': // Light Pen
+						custom_joyport_toggle_callback(1, (void*)2);
+						resources_set_int("JoyPort1Device", JOYPORT_ID_LIGHTPEN_U);
+						set_mouse_enabled(1,NULL);
+						break;
+					case '7': // Koala Pad
+						custom_joyport_toggle_callback(1, (void*)2);
+						resources_set_int("JoyPort1Device", JOYPORT_ID_KOALAPAD);
+						set_mouse_enabled(1,NULL);
+						break;
+					case '8': // Light Gun
+						custom_joyport_toggle_callback(1, (void*)2);
+						resources_set_int("JoyPort1Device", JOYPORT_ID_LIGHTGUN_Y);
+						set_mouse_enabled(1,NULL);
+						break;
+					default:
+						break;
+				}
 			}
 		}
 	}
