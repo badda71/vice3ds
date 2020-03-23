@@ -113,7 +113,7 @@ static UI_MENU_CALLBACK(JoyPort1Device_dynmenu_callback)
     return buf;
 }
 
-static UI_MENU_CALLBACK(custom_joyport_toggle_callback)
+UI_MENU_CALLBACK(custom_joyport_toggle_callback)
 {
     int i, k, s;
 
@@ -121,13 +121,35 @@ static UI_MENU_CALLBACK(custom_joyport_toggle_callback)
     k=joy_port[JOYPORT_2];
 	//resources_get_int("JoyPort1Device", &i);
     //resources_get_int("JoyPort2Device", &k);
+
+	
 	if (activated) {
-		if (i == JOYPORT_ID_JOYSTICK && k == JOYPORT_ID_JOYSTICK) {
-			i = JOYPORT_ID_MOUSE_1351;
-		} else if (i != JOYPORT_ID_JOYSTICK && k != JOYPORT_ID_JOYSTICK) {
+		switch ((int)param) {
+		case 0: // unplug joy
+			if (i == JOYPORT_ID_JOYSTICK) i = JOYPORT_ID_NONE;
+			if (k == JOYPORT_ID_JOYSTICK) k = JOYPORT_ID_NONE;
+			break;
+		case 1: // set port 1
+			if (i == JOYPORT_ID_JOYSTICK) break;
+			if (k == JOYPORT_ID_JOYSTICK || k == JOYPORT_ID_NONE) k = i;
+			i = JOYPORT_ID_JOYSTICK;
+			break;
+		case 2: // set port 2
+			if (k == JOYPORT_ID_JOYSTICK) break;
+			if (i == JOYPORT_ID_JOYSTICK || i == JOYPORT_ID_NONE) i = k;
 			k = JOYPORT_ID_JOYSTICK;
-		} else {
-			s=k;k=i;i=s;
+			break;
+		case 3: // set both
+			i = k = JOYPORT_ID_JOYSTICK;
+			break;
+		default: // toggle
+			if (i == JOYPORT_ID_JOYSTICK && k == JOYPORT_ID_JOYSTICK) {
+				i = JOYPORT_ID_MOUSE_1351;
+			} else if (i != JOYPORT_ID_JOYSTICK && k != JOYPORT_ID_JOYSTICK) {
+				k = JOYPORT_ID_JOYSTICK;
+			} else {
+				s=k;k=i;i=s;
+			}
 		}
 	    resources_set_int("JoyPort2Device", JOYPORT_ID_NONE);
 	    resources_set_int("JoyPort1Device", i);
@@ -269,7 +291,7 @@ ui_menu_entry_t joyport_menu[] = {
 	{ "Toggle joystick port",
       MENU_ENTRY_OTHER,
       custom_joyport_toggle_callback,
-      NULL },
+      (ui_callback_data_t)-1},
     { "Toggle D-Pad joystick",
 	  MENU_ENTRY_OTHER_TOGGLE,
 	  toggle_dpad_callback,

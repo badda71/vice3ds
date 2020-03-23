@@ -33,17 +33,20 @@
 #include <SDL/SDL_image.h>
 #include <zip.h>
 
-#include "archdep_xdg.h"
 #include "archdep_cp.h"
+#include "archdep_xdg.h"
 #include "async_http.h"
 #include "attach.h"
 #include "autostart.h"
 #include "c64model.h"
+#include "joyport.h"
 #include "http.h"
 #include "kbd.h"
 #include "lib.h"
+#include "mouse.h"
 #include "log.h"
 #include "menu_common.h"
+#include "menu_joyport.h"
 #include "palette.h"
 #include "persistence.h"
 #include "resources.h"
@@ -85,7 +88,7 @@ static int list_filter;
 static picoDB *db=NULL;
 static u32 wifi_status = 0;
 static int *searchresult=NULL;
-static int gb64_set_modes = 3;
+static int gb64_set_modes = 7;
 
 static picoDB *pdb_initDB(char *filename) {
 	// read in the file
@@ -569,10 +572,27 @@ static void uigb64_update_topscreen(SDL_Surface *s, int entry, int *screenshotid
 		uib_printstring(s, "Automode", 344, 92, 0, ALIGN_LEFT, FONT_MEDIUM, c_black);
 		// 0=PAL, 1=PAL+NTSC, 2=NTSC, 3=PAL(+NTSC?)
 		uib_printstring(s, "Mode:", 324, 100, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&1)?c_blue:c_gray);
-		uib_printstring(s, *(pdb_getEntry(db, entry, 20))=='2'?"NTSC":"PAL", 354, 100, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&1)?c_black:c_gray);
+		uib_printstring(s, *(pdb_getEntry(db, entry, 20))=='2'?"NTSC":"PAL", 350, 100, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&1)?c_black:c_gray);
 		// TDE
 		uib_printstring(s, "TDE:", 324, 108, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&2)?c_blue:c_gray);
-		uib_printstring(s, *(pdb_getEntry(db, entry, 21))=='0'?"No":"Yes", 354, 108, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&2)?c_black:c_gray);
+		uib_printstring(s, *(pdb_getEntry(db, entry, 21))=='0'?"No":"Yes", 350, 108, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&2)?c_black:c_gray);
+		// Control
+		char *con = pdb_getEntry(db, entry, 24);
+		if (con != NULL && con[0]!=0) {
+			uib_printstring(s, "Ctrl:", 324, 116, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&4)?c_blue:c_gray);
+			switch(con[0]) {
+				case '0': con="Joy Port2";	break;
+				case '1': con="Joy Port1";	break;
+				case '2': con="Keyboard";	break;
+				case '3': con="Paddle 2";	break;
+				case '4': con="Paddle 1";	break;
+				case '5': con="Mouse";		break;
+				case '6': con="Light Pen";	break;
+				case '7': con="Koala Pad";	break;
+				case '8': con="Light Gun";	break;
+			}
+			uib_printstring(s, con, 350, 116, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&4)?c_black:c_gray);
+		}
 	}
 
 	uib_printstring(s, "%", 324, 60, 0, ALIGN_LEFT, FONT_SYM, c_blue);
@@ -951,7 +971,7 @@ dldb:
 						}
 						break;
 					case 208:	// START-button
-						gb64_set_modes = (gb64_set_modes + 1) % 4;
+						gb64_set_modes = (gb64_set_modes + 1) % 8;
 						gb64_top_must_redraw = 1;
 						break;
 					case VICE_SDLK_LEFT:
@@ -1007,11 +1027,59 @@ dldb:
 		c=util_concat(p, "/", pdb_getEntry(db, top_shows, 4), NULL);
 		free (p);
 
-		// set TDE & video mode
+		// set TDE
 		if (gb64_set_modes & 3) 
 			resources_set_int("DriveTrueEmulation", *(pdb_getEntry(db, top_shows, 21))=='0' ? 0 : 1);
+		// set video mode
 		if (gb64_set_modes & 1)
 			c64model_set(*(pdb_getEntry(db, top_shows, 20))=='2' ? C64MODEL_C64C_NTSC : C64MODEL_C64C_PAL);
+		// set controller
+		p = pdb_getEntry(db, top_shows, 24);
+		if (p != NULL && p[0]!=0) {
+			switch (p[0]) {
+				case '0': // Joy Port2
+					custom_joyport_toggle_callback(1, (void*)2);
+					break;
+				case '1': // Joy Port1
+					custom_joyport_toggle_callback(1, (void*)1);
+					break;
+				case '2': // Keyboard
+					if (is_keyboard_hidden()) toggle_keyboard();
+					break;
+				case '3': // Paddle 2
+					custom_joyport_toggle_callback(1, (void*)1);
+				    resources_set_int("JoyPort2Device", JOYPORT_ID_PADDLES);
+					set_mouse_enabled(1,NULL);
+					break;
+				case '4': // Paddle 1
+					custom_joyport_toggle_callback(1, (void*)2);
+				    resources_set_int("JoyPort1Device", JOYPORT_ID_PADDLES);
+					set_mouse_enabled(1,NULL);
+					break;
+				case '5': // Mouse
+					custom_joyport_toggle_callback(1, (void*)2);
+				    resources_set_int("JoyPort1Device", JOYPORT_ID_MOUSE_1351);
+					set_mouse_enabled(1,NULL);
+					break;
+				case '6': // Light Pen
+					custom_joyport_toggle_callback(1, (void*)2);
+				    resources_set_int("JoyPort1Device", JOYPORT_ID_LIGHTPEN_U);
+					set_mouse_enabled(1,NULL);
+					break;
+				case '7': // Koala Pad
+					custom_joyport_toggle_callback(1, (void*)2);
+				    resources_set_int("JoyPort1Device", JOYPORT_ID_KOALAPAD);
+					set_mouse_enabled(1,NULL);
+					break;
+				case '8': // Light Gun
+					custom_joyport_toggle_callback(1, (void*)2);
+				    resources_set_int("JoyPort1Device", JOYPORT_ID_LIGHTGUN_Y);
+					set_mouse_enabled(1,NULL);
+					break;
+				default:
+					break;
+			}
+		}
 	}
 
 	// clean up

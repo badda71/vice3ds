@@ -34,5 +34,6 @@
 extern ui_menu_entry_t joyport_menu[];
 
 extern void uijoyport_menu_shutdown(void);
+extern UI_MENU_CALLBACK(custom_joyport_toggle_callback);
 
 #endif
