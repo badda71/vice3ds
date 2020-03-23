@@ -641,6 +641,7 @@ static char *uigb64_start()
 
 	// init the database
 	if (db == NULL) {
+		FILE *fd;
 		// check if file exists
 		char *dbname=util_concat(archdep_xdg_data_home(),"/gb64.db",NULL);
 		if (access(dbname, R_OK)!=0) {
@@ -656,8 +657,9 @@ dldb:
 				free(dbname);
 				return NULL;
 			}
+tagdb:
 			// write the file mtime into the file (because 3DS SD library does not suppot setting mtimes)
-			FILE *fd=fopen(dbname,"r+");
+			fd=fopen(dbname,"r+");
 			if (fd) {
 				fseek(fd, 1, SEEK_SET);
 				snprintf(buf, 256, "%ld ", http_last_req_info.mtime);
@@ -675,6 +677,10 @@ dldb:
 						if (message_box("Gamebase64", "Gamebase64 database update found. Download now?", MESSAGE_YESNO) == 0) {
 							unlink(dbname);
 							goto dldb;
+						} else {
+							if (message_box("Gamebase64", "Keep prompting for updates when opening gamebase64?", MESSAGE_YESNO) != 0) {
+								goto tagdb;
+							}
 						}
 					}
 				}
