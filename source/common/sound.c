@@ -510,8 +510,8 @@ static int set_volume(int val, void *param)
         volume = 0;
     }
 
-    if (volume > 100) {
-        volume = 100;
+    if (volume > 200) {
+        volume = 200;
     }
 
     amp = (int)((exp((double)volume / 100.0 * log(2.0)) - 1.0) * 4096.0);
@@ -1248,15 +1248,13 @@ static int sound_run_sound(void)
         snddata.fclk += nr * snddata.clkstep;
     }
 
-    if (amp < 4096) {
-        if (amp) {
-            for (i = 0; i < (nr * snddata.sound_output_channels); i++) {
-                bufferptr[i] = bufferptr[i] * amp / 4096;
-            }
-        } else {
-            memset(bufferptr, 0, nr * snddata.sound_output_channels * sizeof(int16_t));
-        }
-    }
+    if (!amp) {
+		memset(bufferptr, 0, nr * snddata.sound_output_channels * sizeof(int16_t));
+	} else if (amp != 4096) {
+		for (i = 0; i < (nr * snddata.sound_output_channels); i++) {
+			bufferptr[i] = bufferptr[i] * amp / 4096;
+		}
+	}
 
     snddata.bufptr += nr;
     snddata.lastclk = maincpu_clk;

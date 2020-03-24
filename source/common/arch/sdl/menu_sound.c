@@ -54,7 +54,7 @@ static UI_MENU_CALLBACK(custom_volume_callback)
     resources_get_int("SoundVolume", &previous);
 
     if (activated) {
-        new_value = sdl_ui_slider_input_dialog("Select volume", previous, 0, 100);
+        new_value = sdl_ui_slider_input_dialog_ext("Select volume", previous, 0, 200, 100);
         if (new_value != previous) {
             resources_set_int("SoundVolume", new_value);
         }

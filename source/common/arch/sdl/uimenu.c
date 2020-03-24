@@ -938,12 +938,13 @@ static int sdl_ui_readline_input(int *key, SDLMod *mod, Uint16 *c_uni)
  * - if resource is not NULL, update the respective resource in realtime for preview. however when leaving this
  *   function the original value will always get restored.
  */
-static int sdl_ui_slider(const char* title, const int cur, const int min, const int max, int pos_x, int pos_y, const char *resource)
+static int sdl_ui_slider(const char* title, const int cur, const int min, const int max, int pos_x, int pos_y, const char *resource, const int sensmax)
 {
     int i = 0, done = 0, loop = 0, screen_dirty = 1, step = 1, xsize = menu_draw.max_text_x, oldvalue = 0;
     float segment = 0, segment2 = 0, parts = 0, parts2 = 0;
     char *new_string = NULL, *value = NULL;
 	int xx, yy, action, oa;
+	uint8_t oldcol;
 
     new_string = lib_malloc(xsize + 1);
 
@@ -985,11 +986,17 @@ static int sdl_ui_slider(const char* title, const int cur, const int min, const 
                 new_string[(int)parts] = UIFONT_SLIDERACTIVE_CHAR + ((((int)parts2) & 1) ^ 1);
             }
             new_string[loop] = 0;
+			if (i>sensmax) {oldcol = menu_draw.color_front;	menu_draw.color_front = 10;} // bright red
             sdl_ui_print_wrap(new_string, pos_x, &pos_y);
+			if (i>sensmax) menu_draw.color_front = oldcol;
             pos_y++;
 
-            sprintf(new_string, "%-10i %3i%%", i, (100 * i) / max);
-            sdl_ui_print_wrap(new_string, pos_x, &pos_y);
+            sprintf(new_string, "%-10i ", i);
+            xx=sdl_ui_print_wrap(new_string, pos_x, &pos_y);
+			sprintf(new_string, "%3i%%", (100 * i) / sensmax);
+			if (i>sensmax) {oldcol = menu_draw.color_front;	menu_draw.color_front = 10;} // bright red
+			sdl_ui_print_wrap(new_string, pos_x + xx, &pos_y);
+			if (i>sensmax) menu_draw.color_front = oldcol;
 
 			sdl_ui_print_center(UIFONT_TOPLEFT_STRING UIFONT_HORIZONTAL_STRING UIFONT_HORIZONTAL_STRING UIFONT_TOPRIGHT_STRING, pos_y+1);
 			sdl_ui_print_center(UIFONT_VERTICAL_STRING "OK" UIFONT_VERTICAL_STRING, pos_y+2);
@@ -1531,14 +1538,17 @@ char* sdl_ui_text_input_dialog(const char* title, const char* previous)
 	if (kbdhidden!=is_keyboard_hidden()) toggle_keyboard();
 	return retval;
 }
+int sdl_ui_slider_input_dialog(const char* title, const int cur, const int min, const int max) {
+	return sdl_ui_slider_input_dialog_ext(title, cur, min, max, max);
+}
 
-int sdl_ui_slider_input_dialog(const char* title, const int cur, const int min, const int max)
+int sdl_ui_slider_input_dialog_ext(const char* title, const int cur, const int min, const int max, const int sensmax)
 {
     int i;
 
     sdl_ui_clear();
     i = sdl_ui_display_title(title) / menu_draw.max_text_x;
-    return sdl_ui_slider(title, cur, min, max, 0, i + MENU_FIRST_Y, NULL);
+    return sdl_ui_slider(title, cur, min, max, 0, i + MENU_FIRST_Y, NULL, sensmax);
 }
 
 ui_menu_entry_t *sdl_ui_get_main_menu(void)
@@ -1603,7 +1613,7 @@ const char *sdl_ui_menu_video_slider_helper(int activated, ui_callback_data_t pa
         menu_draw.color_back = menu_draw.color_default_back;
 
         i = sdl_ui_display_title((const char *)param) / menu_draw.max_text_x;
-        new_value = sdl_ui_slider((const char *)param, previous, min, max, 0, i + MENU_FIRST_Y, resource_name);
+        new_value = sdl_ui_slider((const char *)param, previous, min, max, 0, i + MENU_FIRST_Y, resource_name, max);
 
         if (new_value != previous) {
             resources_set_int(resource_name, new_value);
