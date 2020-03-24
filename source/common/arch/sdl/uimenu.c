@@ -65,6 +65,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 volatile menu_state sdl_menu_state = MENU_INACTIVE;
 
@@ -1112,6 +1113,35 @@ static int sdl_ui_slider(const char* title, const int cur, const int min, const 
     return i;
 }
 
+static const char *humanSize(uint64_t bytes)
+{
+	static char output[100];
+	char buf[90];
+	char *suffix[] = {"B", "KB", "MB", "GB", "TB"};
+	char length = sizeof(suffix) / sizeof(suffix[0]);
+
+	int i = 0,j;
+	double dblBytes = bytes;
+
+	if (bytes > 1024) {
+		for (i = 0; (bytes / 1024) > 0 && i<length-1; i++, bytes /= 1024)
+			dblBytes = bytes / 1024.0;
+	}
+	int digits = (fabs(dblBytes) < 1) ? 1 : (log10(fabs(dblBytes)) + 1);
+	digits = 3 - digits; if (digits<0) digits=0;
+	j=sprintf(buf, "%.*f", digits, dblBytes);
+	while(digits && --j > 0 ) {
+		if (buf[j] == '0') {
+			buf[j]=0;
+			continue;
+		}
+		if (buf[j] == '.') buf[j]=0;
+		break;
+	}
+
+	sprintf(output, "%s %s", buf, suffix[i]);
+	return output;
+}
 
 /* ------------------------------------------------------------------ */
 /* External UI interface */
@@ -1148,7 +1178,8 @@ int sdl_ui_update_progress_bar(int total, int now)
 
 	oldtotal = total;
 	oldnow = now;
-	snprintf(buf, 100, "Progress: %d / %d (%d%%)", now, total, percent);
+	int i=snprintf(buf, 100, "Progress: %s", humanSize(now));
+	snprintf(buf+i,100-i," / %s (%d%%)                 ", humanSize(total), percent);
 	sdl_ui_print(buf, 0, y++);
 	++y;
 
