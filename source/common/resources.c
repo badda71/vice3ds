@@ -1446,7 +1446,9 @@ int resources_snapshot_write_module(snapshot_t *s, int save_settings)
 		resources_add_to_buf("HotKeys");
 		resources_add_to_buf("Speed");
 		resources_add_to_buf("SoftButtonPositions");
-		
+		resources_add_to_buf("JoyDevice1");
+		resources_add_to_buf("JoyDevice2");
+
 		if (SMW_STR(m, resources_buffer) < 0) {
 			lib_free(resources_buffer);
 			resources_buffer = NULL;
