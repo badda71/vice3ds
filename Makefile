@@ -112,12 +112,12 @@ ARCH		:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
 CFLAGS		:=	-g -Wall -O3 -mword-relocations \
 			-fomit-frame-pointer -ffunction-sections \
-			-ffast-math -std=gnu11 \
-			$(ARCH)
+			-ffast-math $(ARCH)
 
 CFLAGS		+=	$(INCLUDE) -DARM11 -D_3DS -DVERSION3DS=\"$(VERSION)\" -DGITHASH=\"$(GITHASH)\" -DTARGETNAME=\"$(TARGET)\"
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
+CFLAGS		+= -std=gnu11
 
 ASFLAGS		:=	-g $(ARCH)
 LDFLAGS		=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
