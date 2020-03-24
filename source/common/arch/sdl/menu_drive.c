@@ -959,11 +959,11 @@ DRIVE_EXBOARD_MENU(11)
         { "Trap idle",                                               \
           MENU_ENTRY_OTHER_TOGGLE,                                   \
           set_idle_callback,                                         \
-          (ui_callback_data_t)(DRIVE_IDLE_SKIP_CYCLES + (x << 8)) }, \
+          (ui_callback_data_t)(DRIVE_IDLE_TRAP_IDLE + (x << 8)) }, \
         { "Skip cycles",                                             \
           MENU_ENTRY_OTHER_TOGGLE,                                   \
           set_idle_callback,                                         \
-          (ui_callback_data_t)(DRIVE_IDLE_TRAP_IDLE + (x << 8)) },   \
+          (ui_callback_data_t)(DRIVE_IDLE_SKIP_CYCLES + (x << 8)) },   \
         SDL_MENU_LIST_END                                            \
     };
 
