@@ -461,6 +461,7 @@ int hh= next_pow2(height);
 	if (mode==2) mode = 3; 
 
 	// Setup the textures
+	C3D_TexDelete(&spritesheet_tex);
 	C3D_TexInit(&spritesheet_tex, hw, hh, this->hidden->mode);
 	C3D_TexSetFilter(&spritesheet_tex,
 		this->hidden->fitscreen ? GPU_LINEAR : GPU_NEAREST,
@@ -560,7 +561,6 @@ static void drawBuffers(_THIS)
 		// next part needs to be synchronized with the videoThread
 		// because it is not possible to write a texture and draw it at the same time
 		svcWaitSynchronization(privateSem1, U64_MAX);
-
 			// Convert image to 3DS tiled texture format
 			GSPGPU_FlushDataCache(this->hidden->buffer, this->hidden->w*this->hidden->h*4);
 			C3D_SyncDisplayTransfer ((u32*)this->hidden->buffer, GX_BUFFER_DIM(this->hidden->w,this->hidden->h), (u32*)(spritesheet_tex.data), GX_BUFFER_DIM(this->hidden->w,this->hidden->h), textureTranferFlags[this->hidden->mode]);
@@ -722,13 +722,13 @@ static void sceneInit(GSPGPU_FramebufferFormats mode, bool scale) {
 	RenderClearColor = clearcolors[mode];
 
 	// Initialize the top screen render target
-	if (scale)
-		VideoSurface1 = C3D_RenderTargetCreate(240*2, 400*2, mode, GPU_RB_DEPTH24_STENCIL8);
-	else
+//	if (scale)
+//		VideoSurface1 = C3D_RenderTargetCreate(240*2, 400*2, mode, GPU_RB_DEPTH24_STENCIL8);
+//	else
 		VideoSurface1 = C3D_RenderTargetCreate(240, 400, mode, GPU_RB_DEPTH24_STENCIL8);
-	if(scale)	
-		C3D_RenderTargetSetOutput(VideoSurface1, GFX_TOP, GFX_LEFT, displayTranferFlags[mode] | GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_XY));
-	else
+//	if(scale)
+//		C3D_RenderTargetSetOutput(VideoSurface1, GFX_TOP, GFX_LEFT, displayTranferFlags[mode] | GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_XY));
+//	else
 		C3D_RenderTargetSetOutput(VideoSurface1, GFX_TOP, GFX_LEFT, displayTranferFlags[mode] | GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO));
 	
 	// Initialize the bottom screen render target
