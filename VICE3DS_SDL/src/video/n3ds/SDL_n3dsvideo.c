@@ -93,6 +93,8 @@ int uLoc_projection;
 C3D_Mtx projection;
 C3D_Mtx projection2;
 
+u8 *current_buffer;
+
 C3D_RenderTarget *VideoSurface1;
 C3D_RenderTarget *VideoSurface2;
 static C3D_Tex spritesheet_tex;
@@ -109,6 +111,8 @@ void drawTexture( int x, int y, int width, int height, float left, float right, 
 volatile bool runThread = false;
 Handle privateSem1;
 Handle repaintRequired;
+Handle buffer_mutex;
+
 Thread privateVideoThreadHandle = NULL;
 static void videoThread(void* data);
 static void (*addDrawCallback)(void *, int)=NULL;
@@ -365,6 +369,10 @@ int hh= next_pow2(height);
 		linearFree( this->hidden->buffer );
 		this->hidden->buffer = NULL;
 	}
+	if ( this->hidden->buffer2 ) {
+		linearFree( this->hidden->buffer2 );
+		this->hidden->buffer2 = NULL;
+	}
 	if ( this->hidden->palettedbuffer ) {
 		free( this->hidden->palettedbuffer );
 		this->hidden->palettedbuffer = NULL;
@@ -375,14 +383,20 @@ int hh= next_pow2(height);
 		SDL_SetError("Couldn't allocate buffer for requested mode");
 		return(NULL);
 	}
-
+	this->hidden->buffer2 = (u8*) linearAlloc(hw * hh * this->hidden->byteperpixel);
+	if ( ! this->hidden->buffer2 ) {
+		SDL_SetError("Couldn't allocate buffer2 for requested mode");
+		return(NULL);
+	}
 	SDL_memset(this->hidden->buffer, 0, hw * hh * this->hidden->byteperpixel);
+	SDL_memset(this->hidden->buffer2, 0, hw * hh * this->hidden->byteperpixel);
 
 	if(bpp==8) {
 		this->hidden->palettedbuffer = malloc(width * height);
 		if ( ! this->hidden->palettedbuffer ) {
 			SDL_SetError("Couldn't allocate buffer for requested mode");
 			linearFree(this->hidden->buffer);
+			linearFree(this->hidden->buffer2);
 			return(NULL);
 		}
 		SDL_memset(this->hidden->palettedbuffer, 0, width * height);
@@ -391,7 +405,8 @@ int hh= next_pow2(height);
 	/* Allocate the new pixel format for the screen */
 	if ( ! SDL_ReallocFormat(current, bpp, Rmask, Gmask, Bmask, Amask) ) {
 		linearFree(this->hidden->buffer);
-		this->hidden->buffer = NULL;
+		linearFree(this->hidden->buffer2);
+		this->hidden->buffer = this->hidden->buffer2 = NULL;
 		SDL_SetError("Couldn't allocate new pixel format for requested mode");
 		return(NULL);
 	}
@@ -471,6 +486,7 @@ int hh= next_pow2(height);
 	runThread = true;
 	svcCreateSemaphore(&privateSem1, 1, 255);
 	svcCreateEvent(&repaintRequired,0);
+	svcCreateMutex(&buffer_mutex,false);
 
 // ctrulib sys threads uses 0x18, so we use a lower priority, but higher than any other SDL thread
 	privateVideoThreadHandle = threadCreate(videoThread, (void *) this, STACKSIZE, 0x19, -2, true);
@@ -515,7 +531,7 @@ void drawMainSpritesheetAt(int x, int y, int w, int h) {
 	s32 i;
 	svcWaitSynchronization(privateSem1, U64_MAX);
 	C3D_TexBind(0, &spritesheet_tex);
-	drawTexture(x, y, w, h, vdev->hidden->l1, vdev->hidden->r1, vdev->hidden->t1, vdev->hidden->b1);  
+	drawTexture(x, y, w, h, vdev_hidden->l1, vdev_hidden->r1, vdev_hidden->t1, vdev_hidden->b1);  
 	svcReleaseSemaphore(&i, privateSem1, 1);
 }
 
@@ -523,6 +539,7 @@ static void videoThread(void* data)
 {
     vdev = (SDL_VideoDevice *) data;
 	vdev_hidden=vdev->hidden;
+	s32 i;
 
 	while(runThread) {
 		if(!app_pause && !app_exiting) {
@@ -533,13 +550,23 @@ static void videoThread(void* data)
 				}
 			} else {
 				svcClearEvent(repaintRequired);
+
 				if (C3D_FrameBegin(C3D_FRAME_NONBLOCK)){
 //				if (C3D_FrameBegin(C3D_FRAME_SYNCDRAW)){
+					// transfer the buffer
+					svcWaitSynchronization(privateSem1, U64_MAX);
+					svcWaitSynchronization(buffer_mutex, U64_MAX);
+						GSPGPU_FlushDataCache(current_buffer, vdev_hidden->w*vdev_hidden->h*4);
+						C3D_SyncDisplayTransfer ((u32*)current_buffer, GX_BUFFER_DIM(vdev_hidden->w,vdev_hidden->h), (u32*)(spritesheet_tex.data), GX_BUFFER_DIM(vdev_hidden->w,vdev_hidden->h), textureTranferFlags[vdev_hidden->mode]);
+						GSPGPU_FlushDataCache(spritesheet_tex.data, vdev_hidden->w*vdev_hidden->h*4);
+					svcReleaseMutex(buffer_mutex);
+					svcReleaseSemaphore(&i, privateSem1, 1);
+					
 					// Update the uniforms
 					C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, &projection2);
 					C3D_RenderTargetClear(VideoSurface1, C3D_CLEAR_ALL, RenderClearColor, 0);
 					C3D_FrameDrawOn(VideoSurface1);
-					drawMainSpritesheetAt((400-vdev->hidden->w1*vdev->hidden->scalex)/2,(240-vdev->hidden->h1*vdev->hidden->scaley)/2, vdev->hidden->w1*vdev->hidden->scalex, vdev->hidden->h1*vdev->hidden->scaley); 
+					drawMainSpritesheetAt((400-vdev_hidden->w1*vdev_hidden->scalex)/2,(240-vdev_hidden->h1*vdev_hidden->scaley)/2, vdev_hidden->w1*vdev_hidden->scalex, vdev_hidden->h1*vdev_hidden->scaley); 
 
 					if (addDrawCallback) addDrawCallback(addDrawParam,1);
 				
@@ -557,17 +584,15 @@ static void drawBuffers(_THIS)
 	if(this->hidden->buffer) {
 		s32 i;
 		if(app_pause || app_exiting) return; // Blocking video output if the application is closing 
-	
-		// next part needs to be synchronized with the videoThread
-		// because it is not possible to write a texture and draw it at the same time
-		svcWaitSynchronization(privateSem1, U64_MAX);
-			// Convert image to 3DS tiled texture format
-			GSPGPU_FlushDataCache(this->hidden->buffer, this->hidden->w*this->hidden->h*4);
-			C3D_SyncDisplayTransfer ((u32*)this->hidden->buffer, GX_BUFFER_DIM(this->hidden->w,this->hidden->h), (u32*)(spritesheet_tex.data), GX_BUFFER_DIM(this->hidden->w,this->hidden->h), textureTranferFlags[this->hidden->mode]);
-			GSPGPU_FlushDataCache(spritesheet_tex.data, this->hidden->w*this->hidden->h*4);
 
-			svcSignalEvent(repaintRequired);
-		svcReleaseSemaphore(&i, privateSem1, 1);
+		// flip my buffers and signal to draw
+		svcWaitSynchronization(buffer_mutex, U64_MAX);
+		current_buffer=this->hidden->buffer;
+		this->hidden->currentVideoSurface->pixels = this->hidden->buffer = this->hidden->buffer2;
+		this->hidden->buffer2 = current_buffer;
+		svcReleaseMutex(buffer_mutex);
+		svcSignalEvent(repaintRequired);
+//		memcpy((u32*)this->hidden->buffer,(u32 *)current_buffer,buffer_size);
 	}
 }
 
@@ -665,6 +690,11 @@ void N3DS_VideoQuit(_THIS)
 	{
 		linearFree(this->hidden->buffer);
 		this->hidden->buffer = NULL;
+	}
+	if (this->hidden->buffer2)
+	{
+		linearFree(this->hidden->buffer2);
+		this->hidden->buffer2 = NULL;
 	}
 	if (this->hidden->palettedbuffer)
 	{

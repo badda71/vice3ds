@@ -119,11 +119,11 @@ void raster_canvas_handle_end_of_frame(raster_t *raster)
         return;
     }
 
-    if (raster->dont_cache) {
+ //   if (raster->dont_cache) {
         video_canvas_refresh_all(raster->canvas);
-    } else {
-        refresh_canvas(raster);
-    }
+ //   } else {
+ //       refresh_canvas(raster);
+ //   }
 }
 
 void raster_canvas_init(raster_t *raster)
