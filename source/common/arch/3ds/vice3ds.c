@@ -571,3 +571,16 @@ void triggerSync(int i)
 void copy_autocopy_dir() {
 	xcopy("romfs:/autocopy",archdep_xdg_data_home(),0,NULL);
 }
+
+static int is_n3ds=-1;
+
+int isN3DS() {
+	if (is_n3ds == -1) {
+		u8 i;
+		cfguInit();
+		CFGU_GetSystemModel(&i);
+		cfguExit();
+		is_n3ds = (i==2 || i==4 || i==5) ? 1 : 0;
+	}
+	return is_n3ds;
+}

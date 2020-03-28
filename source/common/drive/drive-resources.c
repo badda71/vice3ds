@@ -45,7 +45,7 @@
 #include "machine-drive.h"
 #include "resources.h"
 #include "vdrive-bam.h"
-
+#include "vice3ds.h"
 
 /* Is true drive emulation switched on?  */
 static int drive_true_emulation;
@@ -387,6 +387,7 @@ int drive_resources_init(void)
         res_drive[0].value_ptr = (int *)&(drive->extend_image_policy);
         res_drive[0].param = uint_to_void_ptr(dnr);
         res_drive[1].name = lib_msprintf("Drive%iIdleMethod", dnr + 8);
+        res_drive[1].factory_value = isN3DS() ? DRIVE_IDLE_NO_IDLE : DRIVE_IDLE_SKIP_CYCLES;
         res_drive[1].value_ptr = &(drive->idling_method);
         res_drive[1].param = uint_to_void_ptr(dnr);
         res_drive[2].name = lib_msprintf("Drive%iRPM", dnr + 8);

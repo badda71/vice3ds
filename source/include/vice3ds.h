@@ -81,5 +81,4 @@ extern void waitSync(int);
 extern void triggerSync(int);
 extern void copy_autocopy_dir();
 extern int save_help_texts_to_resource();
-
-
+extern int isN3DS();

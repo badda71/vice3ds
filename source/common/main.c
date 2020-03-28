@@ -60,6 +60,7 @@
 #include "version.h"
 #include "video.h"
 #include "3ds.h"
+#include "vice3ds.h"
 
 #ifdef USE_SVN_REVISION
 #include "svnversion.h"
@@ -95,7 +96,7 @@ int main_program(int argc, char **argv)
     int ishelp = 0;
 
     // set 804 MHz
-	osSetSpeedupEnable(1);
+	if (isN3DS()) osSetSpeedupEnable(1);
 	
 	lib_init_rand();
 

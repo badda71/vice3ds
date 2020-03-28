@@ -45,6 +45,7 @@
 #include "sound.h"
 #include "types.h"
 #include "3ds.h"
+#include "vice3ds.h"
 
 /* Resource handling -- Added by Ettore 98-04-26.  */
 
@@ -84,15 +85,7 @@ static int set_sid_engine(int set_engine, void *param)
 
     if (engine == SID_ENGINE_DEFAULT) {
 #ifdef HAVE_RESID
-        u8 i;
-		cfguInit();
-		CFGU_GetSystemModel(&i);
-		cfguExit();
-		if (i>1) {	// n3ds
-			engine = SID_ENGINE_RESID;
-		} else {	// o3ds
-			engine = SID_ENGINE_FASTSID;
-		}
+		engine = isN3DS() ? SID_ENGINE_RESID : SID_ENGINE_FASTSID;
 #else
         engine = SID_ENGINE_FASTSID;
 #endif
@@ -406,7 +399,7 @@ static const resource_int_t resid_resources_int[] = {
 };
 #endif
 
-static const resource_int_t common_resources_int[] = {
+static resource_int_t common_resources_int[] = {
     { "SidEngine", SID_ENGINE_DEFAULT,
       RES_EVENT_STRICT, (resource_value_t)SID_ENGINE_RESID,
       &sid_engine, set_sid_engine, NULL },
@@ -442,6 +435,8 @@ int sid_common_resources_init(void)
         }
     }
 #endif
+	common_resources_int[0].factory_value =
+		isN3DS() ? SID_ENGINE_RESID : SID_ENGINE_FASTSID;
     return resources_register_int(common_resources_int);
 }
 
