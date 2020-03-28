@@ -71,14 +71,16 @@ static int ndsp_init(const char *param, int *speed, int *fragsize, int *fragnr, 
     return 0;
 }
 
+#define MAXTRY 500
 /* send number of bytes to the soundcard. it is assumed to block if kernel buffer is full */
 static int ndsp_write(int16_t *pbuf, size_t nr)
 {
 //log_3ds("enter %s: %d samples", __func__, nr);
-
+	int count=0;
 	// block until the active buffer is done playing
 	while (ndsp_waveBuf[ndsp_activeBuf].status != NDSP_WBUF_DONE)
 	{
+		if (++count > MAXTRY) return -1;
 		svcSleepThread(1000 * 1000); // 1/1000 second
 	}
 

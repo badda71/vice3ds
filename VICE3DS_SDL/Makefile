@@ -22,7 +22,7 @@ INCLUDES := $(addprefix -I,$(shell find $(SRCDIR) -type d))\
 	-I/opt/devkitpro/portlibs/3ds/include\
 	-I/opt/devkitpro/libctru/include
 
-CFLAGS := -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -g -O3 -mword-relocations -ffunction-sections -fdata-sections -D_3DS -D_GNU_SOURCE=1 -DARM11 -Wall -ffast-math -std=gnu11
+CFLAGS := -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -ggdb -O3 -mword-relocations -ffunction-sections -fdata-sections -D_3DS -D_GNU_SOURCE=1 -DARM11 -Wall -ffast-math -std=gnu11
 DEPFLAGS = -MT $@ -MMD -MP -MF $(ODIR)/$*.Td
 POSTCOMPILE = @mv -f $(ODIR)/$*.Td $(ODIR)/$*.d && touch $@
 

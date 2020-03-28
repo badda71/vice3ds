@@ -787,12 +787,12 @@ static ui_menu_retval_t sdl_ui_menu_item_activate(ui_menu_entry_t *item)
 }
 
 ui_menu_entry_t *menu_thread_item=NULL;
-SDL_Thread *menu_thread = NULL;
+Thread menu_thread = NULL;
 SDL_sem *menu_sem;
 unsigned int menu_width = 320;
 unsigned int menu_height = 240;
 
-static int menu_thread_func( void *data ) {
+static void menu_thread_func( void *data ) {
     static char msg[0x40];
 	while (1) {
 		SDL_SemWait(menu_sem);
@@ -808,8 +808,10 @@ static int menu_thread_func( void *data ) {
 		}
 		toggle_menu(0,NULL);
 	}
-	return 0;
+	return;
 }
+
+#define STACKSIZE (32 * 1024)
 
 static void sdl_ui_trap(void *data)
 {
@@ -822,7 +824,7 @@ static void sdl_ui_trap(void *data)
 
 		// start the menu thread
 		menu_sem = SDL_CreateSemaphore(0);
-		menu_thread = SDL_CreateThread(menu_thread_func, NULL);
+		menu_thread = threadCreate(menu_thread_func, NULL, STACKSIZE, 0x2F, -1, true);
 	}
 	menu_thread_item=(ui_menu_entry_t *)data;
 	SDL_SemPost(menu_sem);

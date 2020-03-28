@@ -438,7 +438,6 @@ static inline void  drawImage( DS3_Image *img, int x, int y, int width, int heig
 }
 
 static void makeTexture(C3D_Tex *tex, u8 *mygpusrc, unsigned hw, unsigned hh) {
-	s32 i;
 	svcWaitSynchronization(privateSem1, U64_MAX);
 	// init texture
 	C3D_TexDelete(tex);
@@ -449,7 +448,7 @@ static void makeTexture(C3D_Tex *tex, u8 *mygpusrc, unsigned hw, unsigned hh) {
 	GSPGPU_FlushDataCache(mygpusrc, hw*hh*4);
 	C3D_SyncDisplayTransfer ((u32*)mygpusrc, GX_BUFFER_DIM(hw,hh), (u32*)(tex->data), GX_BUFFER_DIM(hw,hh), TEXTURE_TRANSFER_FLAGS);
 	GSPGPU_FlushDataCache(tex->data, hw*hh*4);
-	svcReleaseSemaphore(&i, privateSem1, 1);
+	svcReleaseMutex(privateSem1);
 }
 
 // this function is NOT thread safe - it uses static buffer gpusrc!!
@@ -573,7 +572,6 @@ static void uibottom_repaint(void *param, int topupdated) {
 	uikbd_key *k;
 	int drag_i=-1;
 	int last_i=-1;
-	s32 c;
 
 	if (svcWaitSynchronization(repaintRequired, 0)) update=0;
 
@@ -729,7 +727,7 @@ static void uibottom_repaint(void *param, int topupdated) {
 		if (help_button_on && !(sdl_menu_state & ~MENU_ACTIVE) && uigb64_top == NULL) drawImage(&help_spr,305,0,0,0);
 	}
 
-	svcReleaseSemaphore(&c, privateSem1, 1);
+	svcReleaseMutex(privateSem1);
 }
 
 static void keypress_recalc() {

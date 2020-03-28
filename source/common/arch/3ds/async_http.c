@@ -58,6 +58,11 @@ static tsq_object async_queue;
 static tsh_object async_hash;
 
 // async http functions
+static int async_dlp(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
+{
+	return isinit?0:-1;
+}
+
 static void async_http_worker(void *arg) {
 	async_http_request *req;
 	int r=0;
@@ -68,10 +73,12 @@ static void async_http_worker(void *arg) {
 		if ((req=tsq_get(&async_queue))!=NULL) {
 			// got a request, work on it
 			partname = util_concat(req->fname, ".part", NULL);
-			if ((r = downloadFile(req->url, partname, NULL, MODE_FILE)) == 0 &&
+			if ((r = downloadFile(req->url, partname, async_dlp, MODE_FILE)) == 0 &&
 				access(partname,W_OK) == 0)
 			{
 				rename(partname,req->fname);
+			} else {
+				unlink(partname);
 			}
 			free(partname);
 			req->callback(req->url, req->fname, r, req->param);
@@ -110,7 +117,7 @@ void async_http_init(int numw)
 	// init and spawn my worker threads
 	svcCreateSemaphore(&workerRequest, 0, QUEUESIZE-1);
 	for (int i=0; i<num_workers; i++)
-		workerHandle[i] = threadCreate(async_http_worker, 0, STACKSIZE, 0x38, -2, true);
+		workerHandle[i] = threadCreate(async_http_worker, 0, STACKSIZE, 0x2F, -1, true);
 	atexit(async_http_shutdown);
 
 	tsq_init(&async_queue, QUEUESIZE);

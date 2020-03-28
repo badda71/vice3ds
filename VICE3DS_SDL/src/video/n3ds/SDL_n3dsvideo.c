@@ -93,7 +93,7 @@ int uLoc_projection;
 C3D_Mtx projection;
 C3D_Mtx projection2;
 
-u8 *current_buffer;
+u8 *current_buffer=NULL;
 
 C3D_RenderTarget *VideoSurface1;
 C3D_RenderTarget *VideoSurface2;
@@ -484,9 +484,10 @@ int hh= next_pow2(height);
 //	C3D_TexBind(0, &spritesheet_tex);
 	
 	runThread = true;
-	svcCreateSemaphore(&privateSem1, 1, 255);
+	svcCreateMutex(&privateSem1, false);
 	svcCreateEvent(&repaintRequired,0);
 	svcCreateMutex(&buffer_mutex,false);
+	current_buffer=NULL;
 
 // ctrulib sys threads uses 0x18, so we use a lower priority, but higher than any other SDL thread
 	privateVideoThreadHandle = threadCreate(videoThread, (void *) this, STACKSIZE, 0x19, -2, true);
@@ -528,18 +529,16 @@ SDL_VideoDevice *vdev;
 struct SDL_PrivateVideoData *vdev_hidden;
 
 void drawMainSpritesheetAt(int x, int y, int w, int h) {
-	s32 i;
 	svcWaitSynchronization(privateSem1, U64_MAX);
 	C3D_TexBind(0, &spritesheet_tex);
 	drawTexture(x, y, w, h, vdev_hidden->l1, vdev_hidden->r1, vdev_hidden->t1, vdev_hidden->b1);  
-	svcReleaseSemaphore(&i, privateSem1, 1);
+	svcReleaseMutex(privateSem1);
 }
 
 static void videoThread(void* data)
 {
     vdev = (SDL_VideoDevice *) data;
 	vdev_hidden=vdev->hidden;
-	s32 i;
 
 	while(runThread) {
 		if(!app_pause && !app_exiting) {
@@ -556,11 +555,13 @@ static void videoThread(void* data)
 					// transfer the buffer
 					svcWaitSynchronization(privateSem1, U64_MAX);
 					svcWaitSynchronization(buffer_mutex, U64_MAX);
+					if (current_buffer) {
 						GSPGPU_FlushDataCache(current_buffer, vdev_hidden->w*vdev_hidden->h*4);
 						C3D_SyncDisplayTransfer ((u32*)current_buffer, GX_BUFFER_DIM(vdev_hidden->w,vdev_hidden->h), (u32*)(spritesheet_tex.data), GX_BUFFER_DIM(vdev_hidden->w,vdev_hidden->h), textureTranferFlags[vdev_hidden->mode]);
 						GSPGPU_FlushDataCache(spritesheet_tex.data, vdev_hidden->w*vdev_hidden->h*4);
+					}
 					svcReleaseMutex(buffer_mutex);
-					svcReleaseSemaphore(&i, privateSem1, 1);
+					svcReleaseMutex(privateSem1);
 					
 					// Update the uniforms
 					C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, &projection2);
@@ -574,7 +575,10 @@ static void videoThread(void* data)
 				}
 			}
 		}
+		// protecting this with mutex really sucks ...
+		svcWaitSynchronization(privateSem1, U64_MAX);
 		gspWaitForVBlank();
+		svcReleaseMutex(privateSem1);
 	}
 	threadExit(0);
 }
@@ -582,7 +586,6 @@ static void videoThread(void* data)
 static void drawBuffers(_THIS)
 {
 	if(this->hidden->buffer) {
-		s32 i;
 		if(app_pause || app_exiting) return; // Blocking video output if the application is closing 
 
 		// flip my buffers and signal to draw
