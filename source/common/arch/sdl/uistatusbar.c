@@ -59,8 +59,8 @@
 #define STATUSBAR_DRIVE11_TRACK_POS 31
 #define STATUSBAR_TAPE_POS          37
 
-static char statusbar_text[MAX_STATUSBAR_LEN] = "                                        ";
-static char kbdstatusbar_text[MAX_STATUSBAR_LEN] = "                                        ";
+static char statusbar_text[MAX_STATUSBAR_LEN] = "                                                            ";
+static char kbdstatusbar_text[MAX_STATUSBAR_LEN] = "                                                            ";
 
 static menufont_t *menufont = NULL;
 static int pitch;

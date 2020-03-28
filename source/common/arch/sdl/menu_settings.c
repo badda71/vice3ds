@@ -514,7 +514,7 @@ static const ui_menu_entry_t define_ui_keyset_menu[] = {
     SDL_MENU_LIST_END
 };*/
 
-UI_MENU_DEFINE_TOGGLE(SDLKbdStatusbar)
+//UI_MENU_DEFINE_TOGGLE(SDLKbdStatusbar)
 
 ui_menu_entry_t settings_manager_menu[] = {
      SDL_MENU_ITEM_TITLE("VICE Settings"),
@@ -569,14 +569,13 @@ ui_menu_entry_t settings_manager_menu[] = {
     { "Load positional user keymap",
       MENU_ENTRY_OTHER,
       load_pos_keymap_callback,
-      NULL },*/
+      NULL },
     SDL_MENU_ITEM_SEPARATOR,
     SDL_MENU_ITEM_TITLE("Statusbar"),
 	{ "Show keyboard status in statusbar",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_SDLKbdStatusbar_callback,
       NULL },
- /* 3DS
 	SDL_MENU_ITEM_SEPARATOR,
     { "Save hotkeys",
       MENU_ENTRY_OTHER,
