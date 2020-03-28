@@ -63,9 +63,8 @@
 // defines
 #define GB64_FIRST_Y 3
 #define GB64_SS_URL "http://www.gb64.com/Screenshots/"
-#define GB64_GAME_URL "http://badda.de/vice3ds/gb64/index.php/"
+#define GB64_GAME_URL "ftp://8bitfiles.net/gamebase_64/Games/"
 #define GB64_DBGZ_URL "http://badda.de/vice3ds/gb64/gb64.db.gz"
-#define GB64_DBDATE_URL "http://badda.de/vice3ds/gb64/date.php"
 
 typedef struct {
 	char *blob;
