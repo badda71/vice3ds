@@ -77,6 +77,21 @@ static void socShutdown() {
 	}
 }
 
+struct FtpFile {
+  const char *filename;
+  FILE *stream;
+};
+ 
+static size_t my_fwrite(void *buffer, size_t size, size_t nmemb, void *stream)
+{
+	struct FtpFile *out = (struct FtpFile *)stream;
+	if(!out->stream) {
+		out->stream = fopen(out->filename, "wb");
+		if(!out->stream) return -1;
+	}
+	return fwrite(buffer, size, nmemb, out->stream);
+}
+
 int downloadFile(char *url,
 	void *arg,
 	int (*progress_callback)(void*, curl_off_t, curl_off_t, curl_off_t, curl_off_t),
@@ -123,11 +138,29 @@ int downloadFile(char *url,
 		case MODE_FILE:
 			path = (char*)arg;
 			mkpath(path, 0);
-			if (!(f = fopen(path,"w"))) {
+			if (strncmp(url,"ftp://",6)==0) {
+				struct FtpFile ftpfile = { path, NULL };
+				curl_easy_setopt(curl, CURLOPT_URL, url);
+			    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, my_fwrite);
+			    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &ftpfile); 
+			    curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
+				curl_easy_setopt(curl, CURLOPT_NOPROGRESS,
+					progress_callback != NULL ? 0L : 1L );
+				if (progress_callback != NULL)
+					curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progress_callback);
+			    res = curl_easy_perform(curl);
+			    curl_easy_cleanup(curl);
+				if(ftpfile.stream) fclose(ftpfile.stream);
+				if(res != CURLE_OK)
+					unlink(path);
+				return res;
+			}
+			if (!(f = fopen(path,"wb"))) {
 				curl_easy_cleanup(curl);
 				snprintf(http_errbuf,HTTP_ERRBUFSIZE,"Could not open %s for writing", path);
 				return -1;
 			};
+			curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, fwrite);
 			curl_easy_setopt(curl, CURLOPT_WRITEDATA, f);
 			break;
 		case MODE_MEMORY:
