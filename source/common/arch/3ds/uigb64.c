@@ -686,11 +686,15 @@ tagdb:
 			}
 		}
 		db = pdb_initDB(dbname);
-		free(dbname);
 		if (db == NULL) {
-			ui_error("Cannot read gamebase64 database");
+			if (message_box("Gamebase64", "Cannot read gamebase64 database - download again?", MESSAGE_YESNO) == 0) {
+				unlink(dbname);
+				goto dldb;
+			}
+			free(dbname);
 			return NULL;
 		}
+		free(dbname);
 	}
 
 	// init search result array
