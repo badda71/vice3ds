@@ -710,6 +710,8 @@ static void advance_hastape(void)
     switch (check("READY.", AUTOSTART_WAIT_BLINK)) {
         case YES:
             log_message(autostart_log, "Loading file.");
+            // stop tape first
+            datasette_control(DATASETTE_CONTROL_STOP);
             if (autostart_program_name) {
                 tmp = util_concat("LOAD\"", autostart_program_name, "\":\r", NULL);
                 kbdbuf_feed(tmp);
