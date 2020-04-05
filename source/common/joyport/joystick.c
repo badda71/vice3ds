@@ -608,13 +608,13 @@ static const resource_int_t joyopposite_resources_int[] = {
 };
 
 static resource_int_t joy1_resources_int[] = {
-    { "JoyDevice1", JOYDEV_KEYSET1, RES_EVENT_NO, NULL,
+    { "JoyDevice1", JOYDEV_KEYSET2, RES_EVENT_NO, NULL,
       &joystick_port_map[JOYPORT_1], set_joystick_device, (void *)JOYPORT_1 },
     RESOURCE_INT_LIST_END
 };
 
 static resource_int_t joy2_resources_int[] = {
-    { "JoyDevice2", JOYDEV_KEYSET1, RES_EVENT_NO, NULL,
+    { "JoyDevice2", JOYDEV_KEYSET2, RES_EVENT_NO, NULL,
       &joystick_port_map[JOYPORT_2], set_joystick_device, (void *)JOYPORT_2 },
     RESOURCE_INT_LIST_END
 };

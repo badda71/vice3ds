@@ -253,6 +253,7 @@ static UI_MENU_CALLBACK(toggle_dpad_callback)
 			if (md == ARCHDEP_KEYBOARD_SYM_NONE ||
 				ms == md) continue;
 			// remap all keys that point to old joystick key
+			int kmchanged=0;
 			for (j=1;j<255;++j) {
 				x = keymap3ds[j];
 				if (!x || (x >> 24) != 1) continue;
@@ -263,7 +264,10 @@ static UI_MENU_CALLBACK(toggle_dpad_callback)
 				if ((x & 0xff) == ms)
 					x = (x & 0xffffff00) + md;
 				keymap3ds[j] = x;
+				kmchanged = 1;
 			}
+			if (kmchanged) save_3ds_mapping();
+
 			// now swap mappings between c-pad and d-pad
 			j = keymap3ds[ms];
 			keymap3ds[ms] = keymap3ds[md];

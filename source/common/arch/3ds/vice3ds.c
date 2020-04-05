@@ -247,7 +247,7 @@ static int load_3ds_mapping(char *s) {
 	return 0;
 }
 
-static int save_3ds_mapping() {
+int save_3ds_mapping() {
 	int i,c=0;
 	if (keymap3ds_resource != NULL) free(keymap3ds_resource);
 	for (i=1;i<255;i++)
