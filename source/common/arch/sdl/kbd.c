@@ -382,7 +382,7 @@ ui_menu_action_t sdlkbd_press(SDLKey key, SDLMod mod, int sdl_menu_state)
         return retval;
     }
 
-    if ((int)(key) == sdl_ui_menukeys[0]) {
+    if ((int)(key) == sdl_ui_menukeys[0] && !events_to_emu) {
         sdl_ui_activate();
         return retval;
     }
