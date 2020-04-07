@@ -1032,7 +1032,7 @@ tagdb:
 	if (retval >= 0) {
 		// get the autostart image location
 		p=gb64_gamedir(top_shows);
-		persistence_put("cwd",p);
+//		persistence_put("cwd",p);
 		c=util_concat(p, "/", pdb_getEntry(db, top_shows, 4), NULL);
 		free (p);
 
