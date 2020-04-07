@@ -1583,6 +1583,7 @@ void toggle_help(int inmenu)
 
 		// **** paint the bottom screen help image ********************
 		// 11 x 6 at 5,6
+		SDL_Delay(10); // wait until previous makeImage has finished
 		help_img = SDL_ConvertSurface(help_bottom_img, help_bottom_img->format, SDL_SWSURFACE);
 		if (!inmenu) {
 			// write the help texts into the overlay
