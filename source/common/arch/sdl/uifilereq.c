@@ -436,7 +436,11 @@ static int safe_chdir(const char *path)
 
 #include "persistence.h"
 
-char* sdl_ui_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mode)
+char* sdl_ui_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mode) {
+	return sdl_ui_file_selection_dialog_dir(title, mode, NULL);
+}
+
+char* sdl_ui_file_selection_dialog_dir(const char* title, ui_menu_filereq_mode_t mode, char *dir)
 {
     unsigned int poscache[256]={0};
     int total, dirs, files, menu_max;
@@ -458,7 +462,7 @@ char* sdl_ui_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mod
     maxpathlen = ioutil_maxpathlen();
     current_dir = lib_malloc(maxpathlen);
 
-    strncpy(current_dir,persistence_get("cwd","/"),maxpathlen);
+ 	strncpy(current_dir,dir ? dir : persistence_get("cwd","/"), maxpathlen);
 
     safe_chdir(current_dir);
     backup_dir = lib_stralloc(current_dir);
@@ -716,7 +720,7 @@ char* sdl_ui_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mod
         }
     }
     ioutil_closedir(directory);
-    persistence_put("cwd",current_dir);
+    if (!dir) persistence_put("cwd",current_dir);
 
     lib_free(current_dir);
     lib_free(backup_dir);

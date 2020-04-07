@@ -31,6 +31,8 @@
 #include "charset.h"
 #include "drive.h"
 #include "diskimage.h"
+#include "fsimage.h"
+#include "rawimage.h"
 #include "fliplist.h"
 #include "lib.h"
 #include "machine.h"
@@ -243,9 +245,22 @@ static UI_MENU_CALLBACK(attach_disk_callback)
     char *name;
 
     if (activated) {
-        name = sdl_ui_file_selection_dialog("Select disk image", FILEREQ_MODE_CHOOSE_FILE);
+        int drive = vice_ptr_to_int(param);
+		char *dir=NULL;
+
+		// if we have a disk in the drive already, set the initial directory to this image
+		if (drive_context[drive-8]->drive->image != NULL) {
+			name = drive_context[drive-8]->drive->image->device == DISK_IMAGE_DEVICE_FS ?
+				drive_context[drive-8]->drive->image->media.fsimage->name :
+				drive_context[drive-8]->drive->image->media.rawimage->name;
+			dir = lib_stralloc(name);
+			if (strrchr(dir,'/')) *(strrchr(dir,'/')) = 0;
+		}
+
+        name = sdl_ui_file_selection_dialog_dir("Select disk image", FILEREQ_MODE_CHOOSE_FILE, dir);
+        if (dir) lib_free(dir);
         if (name != NULL) {
-            if (file_system_attach_disk(vice_ptr_to_int(param), name) < 0) {
+            if (file_system_attach_disk(drive, name) < 0) {
                 ui_error("Cannot attach disk image.");
             }
             lib_free(name);

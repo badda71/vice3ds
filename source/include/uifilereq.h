@@ -38,6 +38,7 @@ typedef enum {
 } ui_menu_filereq_mode_t;
 
 extern char *sdl_ui_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mode);
+extern char *sdl_ui_file_selection_dialog_dir(const char* title, ui_menu_filereq_mode_t mode, char *dir);
 extern void sdl_ui_file_selection_dialog_shutdown(void);
 extern int sdl_ui_image_file_selection_dialog(const char* title, ui_menu_filereq_mode_t mode);
 
