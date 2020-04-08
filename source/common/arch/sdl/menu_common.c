@@ -103,6 +103,29 @@ UI_MENU_CALLBACK(autostart_callback)
     if (activated) {
         while (repeat) {
 			repeat=0;
+			name = sdl_ui_file_selection_dialog("Choose autostart image", FILEREQ_MODE_CHOOSE_FILE);
+			if (name != NULL) {
+				/* FIXME: using last_selected_image_pos is kindof a hack */
+				if (autostart_autodetect(name, NULL, 0, AUTOSTART_MODE_RUN) < 0) {
+					ui_error("could not start auto-image");
+					repeat=1;
+				}
+				lib_free(name);
+				if (!repeat) return sdl_menu_text_exit_ui;
+			}
+		}
+    }
+    return NULL;
+}
+
+UI_MENU_CALLBACK(autostart_file_callback)
+{
+    char *name = NULL;
+	int repeat=1;
+
+    if (activated) {
+        while (repeat) {
+			repeat=0;
 			name = sdl_ui_file_selection_dialog("Choose autostart image", FILEREQ_MODE_CHOOSE_FILE_IN_IMAGE);
 			if (name != NULL) {
 				/* FIXME: using last_selected_image_pos is kindof a hack */

@@ -125,6 +125,7 @@ extern const char *sdl_ui_menu_file_string_helper(int activated, ui_callback_dat
 extern const char *sdl_ui_menu_slider_helper(int activated, ui_callback_data_t param, const char *resource_name, const int min, const int max);
 
 extern UI_MENU_CALLBACK(autostart_callback);
+extern UI_MENU_CALLBACK(autostart_file_callback);
 extern UI_MENU_CALLBACK(pause_callback);
 extern UI_MENU_CALLBACK(advance_frame_callback);
 extern UI_MENU_CALLBACK(vkbd_callback);
