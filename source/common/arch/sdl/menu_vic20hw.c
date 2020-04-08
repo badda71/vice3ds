@@ -43,10 +43,6 @@
 #include "menu_ram.h"
 #include "menu_rom.h"
 
-#ifdef HAVE_MOUSE
-#include "menu_mouse.h"
-#endif
-
 #if defined(HAVE_RS232DEV) || defined(HAVE_RS232NET)
 #include "menu_rs232.h"
 #endif
@@ -216,12 +212,6 @@ const ui_menu_entry_t vic20_hardware_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)joyport_menu },
-#ifdef HAVE_MOUSE
-    { "Mouse emulation",
-      MENU_ENTRY_SUBMENU,
-      submenu_callback,
-      (ui_callback_data_t)mouse_menu },
-#endif
     { "SID cart settings",
       MENU_ENTRY_SUBMENU,
       submenu_callback,

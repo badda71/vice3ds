@@ -33,5 +33,6 @@
 
 extern const ui_menu_entry_t sound_output_menu[];
 extern const ui_menu_entry_t sound_record_menu[];
+extern void uisampler_menu_create(void);
 
 #endif

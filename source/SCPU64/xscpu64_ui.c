@@ -41,7 +41,6 @@
 #include "menu_ethernetcart.h"
 //#include "menu_ffmpeg.h"
 #include "menu_help.h"
-#include "menu_jam.h"
 #include "menu_joyport.h"
 //#include "menu_media.h"
 #include "menu_midi.h"
@@ -50,7 +49,6 @@
 //#include "menu_printer.h"
 #include "menu_reset.h"
 #include "menu_misc.h"
-#include "menu_sampler.h"
 #include "menu_scpu64hw.h"
 //#include "menu_screenshot.h"
 #include "menu_settings.h"
@@ -95,10 +93,6 @@ static const ui_menu_entry_t xscpu64_main_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)sound_output_menu },
-    { "Sampler settings",
-      MENU_ENTRY_SUBMENU,
-      submenu_callback,
-      (ui_callback_data_t)sampler_menu },
     { "Snapshot",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
@@ -116,10 +110,6 @@ static const ui_menu_entry_t xscpu64_main_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)reset_menu },
-    { "Action on CPU JAM",
-      MENU_ENTRY_SUBMENU,
-      submenu_callback,
-      (ui_callback_data_t)jam_menu },
 /*
 #ifdef HAVE_NETWORK
     { "Network",

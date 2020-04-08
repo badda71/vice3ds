@@ -30,20 +30,20 @@
 
 #include "types.h"
 
-#include "menu_common.h"
-#include "joyport.h"
-#include "uimenu.h"
-#include "lib.h"
-#include "joy.h"
-#include "resources.h"
-#include "joystick.h"
-#include "uipoll.h"
-#include "kbd.h"
-#include "uibottom.h"
 #include "archdep.h"
-#include "vice3ds.h"
-
+#include "joy.h"
+#include "joyport.h"
+#include "joystick.h"
+#include "kbd.h"
+#include "lib.h"
+#include "menu_common.h"
 #include "menu_joyport.h"
+#include "mouse.h"
+#include "resources.h"
+#include "uibottom.h"
+#include "uimenu.h"
+#include "uipoll.h"
+#include "vice3ds.h"
 
 UI_MENU_DEFINE_RADIO(JoyPort1Device)
 UI_MENU_DEFINE_RADIO(JoyPort2Device)
@@ -277,6 +277,28 @@ static UI_MENU_CALLBACK(toggle_dpad_callback)
 	return k == JOYDEV_KEYSET2 ? sdl_menu_text_tick : NULL;
 }
 
+UI_MENU_DEFINE_TOGGLE(Mouse)
+UI_MENU_DEFINE_TOGGLE(SmartMouseRTCSave)
+
+static UI_MENU_CALLBACK(custom_MouseSensitivity_callback)
+{
+    static char buf[20];
+    int previous, new_value;
+
+    resources_get_int("MouseSensitivity", &previous);
+
+    if (activated) {
+        new_value = sdl_ui_slider_input_dialog("Select mouse sensitivity", previous, 10, 300);
+        if (new_value != previous) {
+            resources_set_int("MouseSensitivity", new_value);
+        }
+    } else {
+        sprintf(buf, "%3i%%", previous);
+        return buf;
+    }
+    return NULL;
+}
+
 ui_menu_entry_t joyport_menu[] = {
 	{ "Control port 1",
 	  MENU_ENTRY_DYNAMIC_SUBMENU,
@@ -303,6 +325,21 @@ ui_menu_entry_t joyport_menu[] = {
     { "Allow opposite directions",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_JoyOpposite_callback,
+      NULL },
+	SDL_MENU_ITEM_SEPARATOR,
+    SDL_MENU_ITEM_TITLE("Mouse settings"),
+    { "Enable mouse",
+      MENU_ENTRY_RESOURCE_TOGGLE,
+      toggle_Mouse_callback,
+      NULL },
+    { "Mouse sensitivity",
+      MENU_ENTRY_DIALOG,
+      custom_MouseSensitivity_callback,
+      NULL },
+    SDL_MENU_ITEM_SEPARATOR,
+	{ "Save Smart Mouse RTC data when changed",
+      MENU_ENTRY_RESOURCE_TOGGLE,
+      toggle_SmartMouseRTCSave_callback,
       NULL },
 	SDL_MENU_LIST_END
 };

@@ -44,7 +44,6 @@
 #include "menu_ethernetcart.h"
 //#include "menu_ffmpeg.h"
 #include "menu_help.h"
-#include "menu_jam.h"
 #include "menu_joyport.h"
 //#include "menu_media.h"
 #include "menu_midi.h"
@@ -53,7 +52,6 @@
 //#include "menu_printer.h"
 #include "menu_reset.h"
 #include "menu_misc.h"
-#include "menu_sampler.h"
 //#include "menu_screenshot.h"
 #include "menu_settings.h"
 #include "menu_sid.h"
@@ -73,10 +71,6 @@ static const ui_menu_entry_t x64_main_menu[] = {
     { "Autostart image",
       MENU_ENTRY_DIALOG,
       autostart_callback,
-      NULL },
-    { "Autostart file in image",
-      MENU_ENTRY_DIALOG,
-      autostart_file_callback,
       NULL },
     { "Gamebase64",
       MENU_ENTRY_DIALOG,
@@ -102,6 +96,10 @@ static const ui_menu_entry_t x64_main_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)c64_hardware_menu },
+    { "Joyport settings",
+      MENU_ENTRY_SUBMENU,
+      submenu_callback,
+      (ui_callback_data_t)joyport_menu },
     { "Video settings",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
@@ -110,10 +108,6 @@ static const ui_menu_entry_t x64_main_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)sound_output_menu },
-    { "Sampler settings",
-      MENU_ENTRY_SUBMENU,
-      submenu_callback,
-      (ui_callback_data_t)sampler_menu },
     { "Snapshot",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
@@ -132,10 +126,6 @@ static const ui_menu_entry_t x64_main_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)reset_menu },
-    { "Action on CPU JAM",
-      MENU_ENTRY_SUBMENU,
-      submenu_callback,
-      (ui_callback_data_t)jam_menu },
 /*
 #ifdef HAVE_NETWORK
     { "Network",
@@ -147,7 +137,7 @@ static const ui_menu_entry_t x64_main_menu[] = {
       MENU_ENTRY_OTHER_TOGGLE,
       pause_callback,
       NULL },
-    { "Advance Frame",
+    { "Advance one frame and pause",
       MENU_ENTRY_OTHER,
       advance_frame_callback,
       NULL },
@@ -163,16 +153,16 @@ static const ui_menu_entry_t x64_main_menu[] = {
       MENU_ENTRY_OTHER_TOGGLE,
       statusbar_callback,
       NULL },
+    { "Keys and commands",
+      MENU_ENTRY_SUBMENU,
+      submenu_callback,
+      (ui_callback_data_t)keys_commands_menu },
 #ifdef DEBUG
     { "Debug",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)debug_menu },
 #endif
-    { "Help",
-      MENU_ENTRY_SUBMENU,
-      submenu_callback,
-      (ui_callback_data_t)help_menu },
     { "Settings management",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
@@ -187,13 +177,17 @@ static const ui_menu_entry_t x64_main_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)misc_menu },
-	{ "Quit emulator",
-      MENU_ENTRY_OTHER,
-      quit_callback,
-      NULL },
 	{ "Check for updates",
       MENU_ENTRY_DIALOG,
       update_callback,
+      NULL },
+    { "Help",
+      MENU_ENTRY_SUBMENU,
+      submenu_callback,
+      (ui_callback_data_t)help_menu },
+	{ "Quit emulator",
+      MENU_ENTRY_OTHER,
+      quit_callback,
       NULL },
     SDL_MENU_LIST_END
 };

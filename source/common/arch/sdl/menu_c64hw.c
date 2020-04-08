@@ -36,14 +36,9 @@
 #include "menu_c64_expansions.h"
 #include "menu_c64model.h"
 #include "menu_common.h"
-#include "menu_joyport.h"
 
 #ifdef HAVE_MIDI
 #include "menu_midi.h"
-#endif
-
-#ifdef HAVE_MOUSE
-#include "menu_mouse.h"
 #endif
 
 #include "menu_ram.h"
@@ -132,16 +127,6 @@ const ui_menu_entry_t c64_hardware_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)c64_model_menu },
-    { "Joyport settings",
-      MENU_ENTRY_SUBMENU,
-      submenu_callback,
-      (ui_callback_data_t)joyport_menu },
-#ifdef HAVE_MOUSE
-    { "Mouse emulation",
-      MENU_ENTRY_SUBMENU,
-      submenu_callback,
-      (ui_callback_data_t)mouse_menu },
-#endif
     { "RAM pattern settings",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
@@ -206,16 +191,6 @@ const ui_menu_entry_t c64sc_hardware_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)c64sc_model_menu },
-    { "Joyport settings",
-      MENU_ENTRY_SUBMENU,
-      submenu_callback,
-      (ui_callback_data_t)joyport_menu },
-#ifdef HAVE_MOUSE
-    { "Mouse emulation",
-      MENU_ENTRY_SUBMENU,
-      submenu_callback,
-      (ui_callback_data_t)mouse_menu },
-#endif
     { "RAM pattern settings",
       MENU_ENTRY_SUBMENU,
       submenu_callback,

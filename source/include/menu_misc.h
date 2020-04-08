@@ -30,5 +30,6 @@
 #include "uimenu.h"
 
 extern const ui_menu_entry_t misc_menu[];
+extern const ui_menu_entry_t keys_commands_menu[];
 extern UI_MENU_CALLBACK(type_command_callback);
 #endif

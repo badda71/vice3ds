@@ -33,7 +33,9 @@
 #include "lib.h"
 #include "menu_common.h"
 #include "menu_sound.h"
+#include "menu_sid.h"
 #include "resources.h"
+#include "sampler.h"
 #include "sound.h"
 #include "uifilereq.h"
 #include "uimenu.h"
@@ -366,6 +368,19 @@ const ui_menu_entry_t sound_record_menu[] = {
     SDL_MENU_LIST_END
 };
 
+static UI_MENU_CALLBACK(custom_sidsubmenu_callback)
+{
+    /* Display the SID model by using the submenu radio callback
+       on the first submenu (SID model) of the SID settings. */
+    return submenu_radio_callback(0, sid_c64_menu[0].data);
+}
+
+UI_MENU_DEFINE_RADIO(SamplerDevice)
+UI_MENU_DEFINE_SLIDER(SamplerGain,1,200)
+UI_MENU_DEFINE_FILE_STRING(SampleName)
+
+static ui_menu_entry_t sampler_device_menu[SAMPLER_MAX_DEVICES + 1];
+
 const ui_menu_entry_t sound_output_menu[] = {
     { "Sound",
       MENU_ENTRY_RESOURCE_TOGGLE,
@@ -393,6 +408,11 @@ const ui_menu_entry_t sound_output_menu[] = {
       submenu_radio_callback,
       (ui_callback_data_t)fragment_size_menu },
     SDL_MENU_ITEM_SEPARATOR,
+    { "SID settings",
+      MENU_ENTRY_SUBMENU,
+      custom_sidsubmenu_callback,
+      (ui_callback_data_t)sid_c64_menu },
+	SDL_MENU_ITEM_SEPARATOR,
     SDL_MENU_ITEM_TITLE("Frequency"),
     { "22050 Hz",
       MENU_ENTRY_RESOURCE_RADIO,
@@ -424,6 +444,37 @@ const ui_menu_entry_t sound_output_menu[] = {
       MENU_ENTRY_RESOURCE_RADIO,
       radio_SoundSpeedAdjustment_callback,
       (ui_callback_data_t)SOUND_ADJUST_EXACT },
-
+    SDL_MENU_ITEM_SEPARATOR,
+    SDL_MENU_ITEM_TITLE("Sampler"),
+    { "Sampler device",
+      MENU_ENTRY_SUBMENU,
+      submenu_callback,
+      (ui_callback_data_t)sampler_device_menu },
+    { "Sampler gain",
+      MENU_ENTRY_RESOURCE_INT,
+      slider_SamplerGain_callback,
+      (ui_callback_data_t)"Enter sampler gain (1-200)" },
+    { "Sampler input media file",
+      MENU_ENTRY_DIALOG,
+      file_string_SampleName_callback,
+      (ui_callback_data_t)"Select sampler input media file" },
     SDL_MENU_LIST_END
 };
+
+void uisampler_menu_create(void)
+{
+    sampler_device_t *devices = sampler_get_devices();
+    int i;
+
+    for (i = 0; devices[i].name; ++i) {
+        sampler_device_menu[i].string = (char*)devices[i].name;
+        sampler_device_menu[i].type = MENU_ENTRY_RESOURCE_RADIO;
+        sampler_device_menu[i].callback = radio_SamplerDevice_callback;
+        sampler_device_menu[i].data = (ui_callback_data_t)int_to_void_ptr(i);
+    }
+
+    sampler_device_menu[i].string = NULL;
+    sampler_device_menu[i].type = MENU_ENTRY_TEXT;
+    sampler_device_menu[i].callback = NULL;
+    sampler_device_menu[i].data = NULL;
+}

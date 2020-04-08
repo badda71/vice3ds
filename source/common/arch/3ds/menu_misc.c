@@ -24,22 +24,22 @@
  *
  */
 
-#include "vice.h"
-#include "menu_common.h"
-#include "log.h"
-#include "lib.h"
 #include "charset.h"
-#include "kbdbuf.h"
-#include "uibottom.h"
-#include "vice3ds.h"
-#include "interrupt.h"
-#include "resources.h"
 #include "fullscreenarch.h"
-#include "videoarch.h"
+#include "kbd.h"
+#include "kbdbuf.h"
+#include "lib.h"
+#include "log.h"
+#include "machine.h"
+#include "menu_common.h"
+#include "resources.h"
+#include "ui.h"
+#include "uibottom.h"
 #include "uihotkey.h"
 #include "uipoll.h"
-#include "kbd.h"
-#include "ui.h"
+#include "vice.h"
+#include "vice3ds.h"
+#include "videoarch.h"
 #include <3ds.h>
 
 static void kb_feed(const char *text) {
@@ -56,64 +56,6 @@ static UI_MENU_CALLBACK(toggle_bottomoff_callback)
 		setBottomBacklight(r=!r);
     }
 	return !r ? sdl_menu_text_tick : NULL;
-}
-
-extern volatile bool app_pause; // this pauses the SDL update thread
-static char c_fs[25],c_fsm[25];
-
-static void set_resources_trap(uint16_t addr, void *data)
-{
-	int *rs=(int*)data;
-
-	app_pause=true;
-	for (int i=0;i<rs[0];i++)
-		resources_set_int((char*)rs[i*2+1],rs[i*2+2]);
-	app_pause=false;
-	// update keypresses on bottom screen in case we have anything mapped
-	uibottom_must_redraw |= UIB_RECALC_KEYPRESS;
-}
-
-static UI_MENU_CALLBACK(toggle_MaxScreen_callback)
-{
-	static int s_fs=0, s_fss=SDL_FULLSCREEN, s_fsm=FULLSCREEN_MODE_AUTO;
-	int r=0, fs=0, fss=0, w=0, h=0, fsm=0;
-	
-	snprintf(c_fs,25,"%sFullscreen",sdl_active_canvas->videoconfig->chip_name);
-	resources_get_int(c_fs, &fs); // 1?
-	snprintf(c_fsm,25,"%sSDLFullscreenMode",sdl_active_canvas->videoconfig->chip_name);
-	resources_get_int(c_fsm, &fsm); // FULLSCREEN_MODE_CUSTOM ?
-	resources_get_int("SDLCustomWidth", &w); // 320?
-	resources_get_int("SDLCustomHeight", &h); // 200?
-	resources_get_int("SDLFullscreenStretch", &fss); // SDL_FULLSCREEN?
-
-	if (fs==1 && w==320 && h==200 && fss==SDL_FULLSCREEN && fsm==FULLSCREEN_MODE_CUSTOM) r=1;
-
-	if (activated) {
-		u32 *rs = calloc(11,sizeof(u32));
-		if (r==0) {
-			r=1;
-			s_fs=fs; s_fss=fss; s_fsm=fsm;
-			rs[0]=5;
-			rs[1]=(u32)"SDLCustomWidth"; rs[2]=320;
-			rs[3]=(u32)"SDLCustomHeight"; rs[4]=200;
-			rs[5]=(u32)"SDLFullscreenStretch"; rs[6]=SDL_FULLSCREEN;
-			rs[7]=(u32)c_fsm; rs[8]=FULLSCREEN_MODE_CUSTOM;
-			rs[9]=(u32)c_fs;rs[10]=1;
-		} else {
-			r=0;
-			rs[0]=5;
-			rs[1]=(u32)c_fs; rs[2]=s_fs;
-			rs[3]=(u32)c_fsm; rs[4]=s_fsm;
-			rs[5]=(u32)"SDLFullscreenStretch"; rs[6]=s_fss;
-			rs[7]=(u32)"SDLCustomWidth";rs[8]=400;
-			rs[9]=(u32)"SDLCustomHeight";rs[10]=240;
-		}	
-		interrupt_maincpu_trigger_trap(set_resources_trap, rs);
-		
-		// update keypresses on bottom screen in case we have anything mapped
-		uibottom_must_redraw |= UIB_RECALC_KEYPRESS;
-	}
-	return r ? sdl_menu_text_tick : NULL;
 }
 
 static UI_MENU_CALLBACK(add_keymapping_callback)
@@ -350,29 +292,19 @@ const ui_menu_entry_t type_commands_menu[] = {
 
 UI_MENU_DEFINE_TOGGLE(MenuButtonOn)
 
-const ui_menu_entry_t misc_menu[] = {
-    SDL_MENU_ITEM_TITLE("3DS specific"),
-    { "Power off bottom screen backlight",
-		MENU_ENTRY_OTHER_TOGGLE,
-		toggle_bottomoff_callback,
-		NULL },
-	{ "Hide keyboard",
-		MENU_ENTRY_OTHER_TOGGLE,
-		toggle_hidekeyboard_callback,
-		NULL},
-	{ "Hide Border / Fullscreen",
-		MENU_ENTRY_OTHER_TOGGLE,
-		toggle_MaxScreen_callback,
-		NULL},
-	{ "Edit bottom screen button positions",
-		MENU_ENTRY_OTHER_TOGGLE,
-		toggle_editmode_callback,
-		NULL},
-    { "Show menu button on bottom screen",
-      MENU_ENTRY_RESOURCE_TOGGLE,
-      toggle_MenuButtonOn_callback,
-      NULL },
-	SDL_MENU_ITEM_SEPARATOR,
+UI_MENU_DEFINE_RADIO(JAMAction)
+
+const ui_menu_entry_t jam_menu[] = {
+    { "Ask", MENU_ENTRY_RESOURCE_RADIO, radio_JAMAction_callback, (ui_callback_data_t)MACHINE_JAM_ACTION_DIALOG },
+    { "Continue", MENU_ENTRY_RESOURCE_RADIO, radio_JAMAction_callback, (ui_callback_data_t)MACHINE_JAM_ACTION_CONTINUE },
+//    { "Start monitor", MENU_ENTRY_RESOURCE_RADIO, radio_JAMAction_callback, (ui_callback_data_t)MACHINE_JAM_ACTION_MONITOR },
+    { "Reset", MENU_ENTRY_RESOURCE_RADIO, radio_JAMAction_callback, (ui_callback_data_t)MACHINE_JAM_ACTION_RESET },
+    { "Hard reset", MENU_ENTRY_RESOURCE_RADIO, radio_JAMAction_callback, (ui_callback_data_t)MACHINE_JAM_ACTION_HARD_RESET },
+    { "Quit emulator", MENU_ENTRY_RESOURCE_RADIO, radio_JAMAction_callback, (ui_callback_data_t)MACHINE_JAM_ACTION_QUIT },
+    SDL_MENU_LIST_END
+};
+
+const ui_menu_entry_t keys_commands_menu[] = {
     SDL_MENU_ITEM_TITLE("Key mappings"),
     { "Add key mapping (key -> key)",
 		MENU_ENTRY_OTHER,
@@ -414,6 +346,37 @@ const ui_menu_entry_t misc_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)type_commands_menu },
+	SDL_MENU_LIST_END
+};
+
+const ui_menu_entry_t misc_menu[] = {
+    { "Autostart file in image",
+      MENU_ENTRY_DIALOG,
+      autostart_file_callback,
+      NULL },
+	SDL_MENU_ITEM_SEPARATOR,
+    { "Action on CPU JAM",
+      MENU_ENTRY_SUBMENU,
+      submenu_callback,
+      (ui_callback_data_t)jam_menu },
+	SDL_MENU_ITEM_SEPARATOR,
+    SDL_MENU_ITEM_TITLE("3DS specific"),
+    { "Power off bottom screen backlight",
+		MENU_ENTRY_OTHER_TOGGLE,
+		toggle_bottomoff_callback,
+		NULL },
+	{ "Hide keyboard",
+		MENU_ENTRY_OTHER_TOGGLE,
+		toggle_hidekeyboard_callback,
+		NULL},
+	{ "Edit bottom screen button positions",
+		MENU_ENTRY_OTHER_TOGGLE,
+		toggle_editmode_callback,
+		NULL},
+    { "Show menu button on bottom screen",
+      MENU_ENTRY_RESOURCE_TOGGLE,
+      toggle_MenuButtonOn_callback,
+      NULL },
 	SDL_MENU_LIST_END
 };
  

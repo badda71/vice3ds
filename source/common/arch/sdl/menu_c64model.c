@@ -35,7 +35,6 @@
 #include "cia.h"
 #include "machine.h"
 #include "menu_common.h"
-#include "menu_sid.h"
 #include "resources.h"
 #include "uimenu.h"
 #include "vicii.h"
@@ -179,13 +178,6 @@ static const ui_menu_entry_t scpu64_model_submenu[] = {
     SDL_MENU_LIST_END
 };
 
-static UI_MENU_CALLBACK(custom_sidsubmenu_callback)
-{
-    /* Display the SID model by using the submenu radio callback
-       on the first submenu (SID model) of the SID settings. */
-    return submenu_radio_callback(0, sid_c64_menu[0].data);
-}
-
 #define CIA_MODEL_MENU(xyz)                                     \
     UI_MENU_DEFINE_RADIO(CIA##xyz##Model)                       \
     static const ui_menu_entry_t cia##xyz##_model_submenu[] = { \
@@ -281,11 +273,6 @@ const ui_menu_entry_t c64sc_model_menu[] = {
       submenu_radio_callback,
       (ui_callback_data_t)viciisc_model_submenu },
     SDL_MENU_ITEM_SEPARATOR,
-    { "SID settings",
-      MENU_ENTRY_SUBMENU,
-      custom_sidsubmenu_callback,
-      (ui_callback_data_t)sid_c64_menu },
-    SDL_MENU_ITEM_SEPARATOR,
     SDL_MENU_ITEM_TITLE("CIA models"),
     { "CIA 1 model",
       MENU_ENTRY_SUBMENU,
@@ -331,11 +318,6 @@ const ui_menu_entry_t scpu64_model_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_radio_callback,
       (ui_callback_data_t)viciisc_model_submenu },
-    SDL_MENU_ITEM_SEPARATOR,
-    { "SID settings",
-      MENU_ENTRY_SUBMENU,
-      custom_sidsubmenu_callback,
-      (ui_callback_data_t)sid_c64_menu },
     SDL_MENU_ITEM_SEPARATOR,
     SDL_MENU_ITEM_TITLE("CIA models"),
     { "CIA 1 model",
@@ -476,11 +458,6 @@ const ui_menu_entry_t c64_model_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_radio_callback,
       (ui_callback_data_t)vicii_model_submenu },
-    SDL_MENU_ITEM_SEPARATOR,
-    { "SID settings",
-      MENU_ENTRY_SUBMENU,
-      custom_sidsubmenu_callback,
-      (ui_callback_data_t)sid_c64_menu },
     SDL_MENU_ITEM_SEPARATOR,
     SDL_MENU_ITEM_TITLE("CIA models"),
     { "CIA 1 model",
