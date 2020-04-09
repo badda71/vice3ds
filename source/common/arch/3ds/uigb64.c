@@ -64,7 +64,8 @@
 #define GB64_FIRST_Y 3
 #define GB64_SS_URL "http://www.gb64.com/Screenshots/"
 #define GB64_GAME_URL "ftp://8bitfiles.net/gamebase_64/Games/"
-#define GB64_DBGZ_URL "http://badda.de/vice3ds/gb64/gb64.db.gz"
+#define GB64_DBNAME "gb64_2.db"
+#define GB64_DBGZ_URL "http://badda.de/vice3ds/gb64/" GB64_DBNAME ".gz"
 
 typedef struct {
 	char *blob;
@@ -113,8 +114,8 @@ static picoDB *pdb_initDB(char *filename) {
 
 	// check the entries
 	int count=0;
-	if (string[0]!='#') ++count;
-	for (int i=0; i<fsize; i++) if (string[i]=='\n' && string[i+1]!='#') ++count;
+	if (string[0]!='/') ++count;
+	for (int i=0; i<fsize; i++) if (string[i]=='\n' && string[i+1]!='/') ++count;
 	char **entries=malloc((count+1)*sizeof(char*));
 	if (entries==NULL) {
 		free(string);
@@ -122,11 +123,11 @@ static picoDB *pdb_initDB(char *filename) {
 		return NULL;
 	}
 	count=0;
-	if (string[0]!='#') entries[count++]=string;
+	if (string[0]!='/') entries[count++]=string;
 	for (int i=0; i<fsize; i++) {
 		switch (string[i]) {
 			case '\n':
-				if (string[i+1]!='#') entries[count++]=string+i+1; // skip comments
+				if (string[i+1]!='/') entries[count++]=string+i+1; // skip comments
 				// fallthrough
 			case '\t':
 				string[i]=0;
@@ -205,7 +206,7 @@ static int sdl_ui_mediumprint(const char *text, int pos_x, int pos_y)
     return i;
 }
 
-#define NAMECOL 1
+#define NAMECOL 0
 #define DOWN_COL 5
 
 static void uigb64_redraw(int *searchresult, const char *title, char *search, int searchpos, int offset, int num_items, int more, int cur_offset, int total)
@@ -227,7 +228,7 @@ static void uigb64_redraw(int *searchresult, const char *title, char *search, in
         x=searchresult[offset + i];
         j = MENU_FIRST_X;
         name = pdb_getEntry(db, x, NAMECOL);
-		snprintf(buf, 65, " (%s) %s",pdb_getEntry(db, x, 2), pdb_getEntry(db, x, 10));
+		snprintf(buf, 65, " (%s) %s",pdb_getEntry(db, x, 1), pdb_getEntry(db, x, 7));
 
 		if (i == cur_offset) oldbg = sdl_ui_set_cursor_colors();
 		if (downloaded[x]) menu_draw->color_front = DOWN_COL;
@@ -254,7 +255,7 @@ static void uigb64_redraw_cursor(int *searchresult, int offset, int num_items, i
 	if (old_offset>=0) {
 		x=searchresult[offset + old_offset];
 		name = pdb_getEntry(db, x, NAMECOL);
-		snprintf(buf, 65, " (%s) %s",pdb_getEntry(db, x, 2), pdb_getEntry(db, x, 10));
+		snprintf(buf, 65, " (%s) %s",pdb_getEntry(db, x, 1), pdb_getEntry(db, x, 7));
         j = MENU_FIRST_X;
 		if (downloaded[x]) menu_draw->color_front = DOWN_COL;
         j += sdl_ui_print(name, j, old_offset + GB64_FIRST_Y);
@@ -264,7 +265,7 @@ static void uigb64_redraw_cursor(int *searchresult, int offset, int num_items, i
 	}
 	if (cur_offset>=0) {
 		x=searchresult[offset + cur_offset];
-		snprintf(buf, 65, " (%s) %s",pdb_getEntry(db, x, 2), pdb_getEntry(db, x, 10));
+		snprintf(buf, 65, " (%s) %s",pdb_getEntry(db, x, 1), pdb_getEntry(db, x, 7));
         oldbg = sdl_ui_set_cursor_colors();
 		name = pdb_getEntry(db, x, NAMECOL);
         j = MENU_FIRST_X;
@@ -368,7 +369,7 @@ static void rmtree(char *path)
 /*
 static char *gb64_gamedir_old(int idx) {
 	char buf[256];
-	char *f = pdb_getEntry(db, idx, 3);
+	char *f = pdb_getEntry(db, idx, 2);
 	char *p = strrchr(f,'/');
 	p = p?p+1:f;
 	snprintf(buf,256,"%s/%d_%s",gamedir,idx,p);
@@ -379,7 +380,7 @@ static char *gb64_gamedir_old(int idx) {
 */
 
 static char *gb64_gamedir(int idx) {
-	char *f = util_concat(gamedir, "/", pdb_getEntry(db, idx, 3), NULL);
+	char *f = util_concat(gamedir, "/", pdb_getEntry(db, idx, 2), NULL);
 	char *p = strrchr(f,'.');
 	if (p) *p=0;
 	return f;
@@ -414,7 +415,7 @@ static void gb64_download(int idx) {
 	sdl_ui_init_progress_bar(buf2);
 	sdl_ui_refresh();
 
-	char *url = util_concat(GB64_GAME_URL, pdb_getEntry(db, idx, 3), NULL);
+	char *url = util_concat(GB64_GAME_URL, pdb_getEntry(db, idx, 2), NULL);
 	char *fname = util_concat(archdep_xdg_data_home(), "/tmp_game.zip",NULL);
 	if (downloadFile(url, fname, downloadProgress, MODE_FILE)) {
 		ui_error("Could not download game: %s",http_errbuf);
@@ -473,35 +474,35 @@ static void uigb64_update_topscreen(SDL_Surface *s, int entry, int *screenshotid
 	SDL_FillRect(s, NULL, SDL_MapRGBA(s->format,208,209,203,255));
 	if (entry>=0) {
 		// write info to screen
-		j=snprintf(buf, 51, "%s", pdb_getEntry(db, entry, 1));
+		j=snprintf(buf, 51, "%s", pdb_getEntry(db, entry, 0));
 		uib_printstring(s, buf, 0, 200, 50, ALIGN_LEFT, FONT_BIG, c_black);
 
 		j=snprintf(buf, 81, "Published: ");
 		uib_printstring(s, buf, 0, 208, 80, ALIGN_LEFT, FONT_MEDIUM, c_blue);
-		p=pdb_getEntry(db, entry, 10);
-		snprintf(buf, 81-j, "%s, %s", pdb_getEntry(db, entry, 2), *p?p:"(unknown)");
+		p=pdb_getEntry(db, entry, 7);
+		snprintf(buf, 81-j, "%s, %s", pdb_getEntry(db, entry, 1), *p?p:"(unknown)");
 		uib_printstring(s, buf, j*5, 208, 81-j, ALIGN_LEFT, FONT_MEDIUM, c_black);
 
 		j=snprintf(buf, 81, "Language:  ");
 		uib_printstring(s, buf, 0, 216, 80, ALIGN_LEFT, FONT_MEDIUM, c_blue);
-		snprintf(buf, 81-j, "%s", pdb_getEntry(db, entry, 14));
+		snprintf(buf, 81-j, "%s", pdb_getEntry(db, entry, 8));
 		uib_printstring(s, buf, j*5, 216, 80, ALIGN_LEFT, FONT_MEDIUM, c_black);
 
 		j=snprintf(buf, 42, " Genre: ");
 		uib_printstring(s, buf, 195, 216, 40, ALIGN_LEFT, FONT_MEDIUM, c_blue);
-		p=pdb_getEntry(db, entry, 8);
-		p1=pdb_getEntry(db, entry, 9);
+		p=pdb_getEntry(db, entry, 5);
+		p1=pdb_getEntry(db, entry, 6);
 
-		snprintf(buf, 42-j,	"%s%s%s", pdb_getEntry(db, entry, 9),(*p && *p1)?" - ":"", pdb_getEntry(db, entry, 8));
+		snprintf(buf, 42-j,	"%s%s%s", p1, (*p && *p1)?" - ":"", p);
 		uib_printstring(s, buf, 195+j*5, 216, 40, ALIGN_LEFT, FONT_MEDIUM, c_black);
 
-		p=pdb_getEntry(db, entry, 18);
-		p1=pdb_getEntry(db, entry, 19);
+		p=pdb_getEntry(db, entry, 10);
+		p1=pdb_getEntry(db, entry, 11);
 		uib_printstring(s, p, 0, 224, 80, ALIGN_LEFT, FONT_MEDIUM, c_black);
 		uib_printstring(s, p1, 0, *p?232:224, 80, ALIGN_LEFT, FONT_MEDIUM, c_black);
 
 		// check if all screenshots exist, request loading if not
-		p=pdb_getEntry(db, entry, 6);
+		p=pdb_getEntry(db, entry, 4);
 		char *pimg_fpath=util_concat(archdep_xdg_cache_home(), "/", p, NULL);
 		char *base_fname=lib_stralloc(p);
 		*(strrchr(base_fname,'.'))=0;
@@ -571,12 +572,12 @@ static void uigb64_update_topscreen(SDL_Surface *s, int entry, int *screenshotid
 		uib_printstring(s, "Automode", 344, 92, 0, ALIGN_LEFT, FONT_MEDIUM, c_black);
 		// 0=PAL, 1=PAL+NTSC, 2=NTSC, 3=PAL(+NTSC?)
 		uib_printstring(s, "Mode:", 324, 100, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&1)?c_blue:c_gray);
-		uib_printstring(s, *(pdb_getEntry(db, entry, 20))=='2'?"NTSC":"PAL", 350, 100, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&1)?c_black:c_gray);
+		uib_printstring(s, *(pdb_getEntry(db, entry, 12))=='2'?"NTSC":"PAL", 350, 100, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&1)?c_black:c_gray);
 		// TDE
 		uib_printstring(s, "TDE:", 324, 108, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&2)?c_blue:c_gray);
-		uib_printstring(s, *(pdb_getEntry(db, entry, 21))=='0'?"No":"Yes", 350, 108, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&2)?c_black:c_gray);
+		uib_printstring(s, *(pdb_getEntry(db, entry, 13))=='0'?"No":"Yes", 350, 108, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&2)?c_black:c_gray);
 		// Control
-		char *con = pdb_getEntry(db, entry, 24);
+		char *con = pdb_getEntry(db, entry, 14);
 		if (con != NULL && con[0]!=0) {
 			uib_printstring(s, "Ctrl:", 324, 116, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&4)?c_blue:c_gray);
 			switch(con[0]) {
@@ -642,7 +643,7 @@ static char *uigb64_start()
 	if (db == NULL) {
 		FILE *fd;
 		// check if file exists
-		char *dbname=util_concat(archdep_xdg_data_home(),"/gb64.db",NULL);
+		char *dbname=util_concat(archdep_xdg_data_home(),"/" GB64_DBNAME, NULL);
 		if (access(dbname, R_OK)!=0) {
 			if (message_box("Gamebase64", "Gamebase64 database not found. Download now?", MESSAGE_YESNO) != 0) {
 				free(dbname);
@@ -783,12 +784,12 @@ tagdb:
 		// check all games if they are already downloaded
 		if (nr_downloaded) {
 			for (i=0; i < db->num_entries; ++i) {
-				p=pdb_getEntry(db, i, 3);
+				p=pdb_getEntry(db, i, 2);
 				y=strlen(p)-4;
 				for (x=0; x < nr_downloaded; ++x) {
 					if (dname[x] != NULL && strncmp(dname[x], p, y) == 0) {
 						// check if start image exists in the directory
-						snprintf(buf, 256, "%s/%s/%s", gamedir, dname[x], pdb_getEntry(db, i, 4));
+						snprintf(buf, 256, "%s/%s/%s", gamedir, dname[x], pdb_getEntry(db, i, 3));
 						if (access(buf,R_OK)==0)
 							downloaded[i]=1;
 						free (dname[x]);
@@ -812,7 +813,7 @@ tagdb:
 			cur = offset = 0;
 			cur_old=-1;
 			for (i=0; i < db->num_entries; ++i) {
-				if (!((list_filter & 1) && *(pdb_getEntry(db, i, 16)) == '0') &&
+				if (!((list_filter & 1) && *(pdb_getEntry(db, i, 9)) == '0') &&
 					!((list_filter & 2) && downloaded[i] != 1) &&
 					(searchsize == 0 || (
 					(p=pdb_getEntry(db, i, NAMECOL)) !=NULL &&
@@ -1033,18 +1034,18 @@ tagdb:
 		// get the autostart image location
 		p=gb64_gamedir(top_shows);
 //		persistence_put("cwd",p);
-		c=util_concat(p, "/", pdb_getEntry(db, top_shows, 4), NULL);
+		c=util_concat(p, "/", pdb_getEntry(db, top_shows, 3), NULL);
 		free (p);
 
 		// set video mode
 		if (gb64_set_modes & 1)
-			c64model_set(*(pdb_getEntry(db, top_shows, 20))=='2' ? C64MODEL_C64C_NTSC : C64MODEL_C64C_PAL);
+			c64model_set(*(pdb_getEntry(db, top_shows, 12))=='2' ? C64MODEL_C64C_NTSC : C64MODEL_C64C_PAL);
 		// set TDE
 		if (gb64_set_modes & 2) 
-			resources_set_int("DriveTrueEmulation", *(pdb_getEntry(db, top_shows, 21))=='0' ? 0 : 1);
+			resources_set_int("DriveTrueEmulation", *(pdb_getEntry(db, top_shows, 13))=='0' ? 0 : 1);
 		// set controller
 		if (gb64_set_modes & 4) {
-			p = pdb_getEntry(db, top_shows, 24);
+			p = pdb_getEntry(db, top_shows, 14);
 			if (p != NULL && p[0]!=0) {
 				switch (p[0]) {
 					case '0': // Joy Port2
