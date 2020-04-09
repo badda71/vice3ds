@@ -91,7 +91,7 @@ static int sdl_ui_file_selector_recall_location(ioutil_dir_t *directory)
 
     while ((i < k) && (--count)) {
         j = i + ((k - i) >> 1);
-        direction = strcmp(last_selected_file, directory->files[j].name);
+        direction = strcasecmp(last_selected_file, directory->files[j].name);
 
         if (direction > 0) {
             i = j + 1;
