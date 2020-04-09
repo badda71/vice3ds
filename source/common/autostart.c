@@ -41,6 +41,7 @@
 #include "autostart.h"
 #include "autostart-prg.h"
 #include "attach.h"
+#include "c64cartsystem.h"
 #include "cartridge.h"
 #include "charset.h"
 #include "cmdline.h"
@@ -1366,6 +1367,16 @@ int autostart_autodetect(const char *file_name, const char *program_name,
     }
 
     log_message(autostart_log, "Autodetecting image type of `%s'.", file_name);
+
+	// remove cartridge if not default
+	const char *curcard = cartridge_get_file_name(cart_getid_slotmain());
+	if (curcard && *curcard) {
+		const char *defcard;
+		resources_get_string("CartridgeFile",&defcard);
+		if (!defcard || strcmp(defcard,curcard)) {
+			cartridge_detach_image(-1);
+		}
+	}
 
     if (autostart_disk(file_name, program_name, program_number, runmode) == 0) {
         log_message(autostart_log, "`%s' recognized as disk image.", file_name);
