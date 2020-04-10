@@ -80,6 +80,8 @@ static int set_drive_true_emulation(int val, void *param)
             drive_enable(drive_context[dnr]);
         }
     } else {
+		// turn off led
+		LED3DS_Off();
         for (dnr = 0; dnr < DRIVE_NUM; dnr++) {
             drive = drive_context[dnr]->drive;
             drive_disable(drive_context[dnr]);
