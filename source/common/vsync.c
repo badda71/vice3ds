@@ -546,10 +546,10 @@ int vsync_do_vsync(struct video_canvas_s *c, int been_skipped)
         avg_sdelay += sdelay;
     }
 
-    /* FIXME: The #if 0ed code below improves the FPS rate when
+    /* FIXME: The #if 1ed code below improves the FPS rate when
        "SoundDeviceName" == "pulse" && "RefreshRate" == 0 ("auto") but 
        seems to cause problems with every other sound driver I have tested. */
-#if 0
+#if 1
     /* if the frame was skipped, don't advance the time for the next frame, this
        helps with catching up when rendering falls behind */
     if ((frame_ticks > 0) && (skipped_redraw < 1)) {
