@@ -114,6 +114,7 @@ void ui_handle_misc_sdl_event(SDL_Event e)
         }
     }
 #endif
+	static int old_pause_state=0;
     switch (e.type) {
         case SDL_QUIT:
             DBG(("ui_handle_misc_sdl_event: SDL_QUIT"));
@@ -121,10 +122,11 @@ void ui_handle_misc_sdl_event(SDL_Event e)
 			archdep_vice_exit(0);
             break;
 		case SDL_SUSPEND:
+			old_pause_state = ui_emulation_is_paused();
 			ui_pause_emulation(1);
 			break;
 		case SDL_RESUME:
-			ui_pause_emulation(0);
+			ui_pause_emulation(old_pause_state);
 			break;
 #ifndef USE_SDLUI2
 /*        case SDL_VIDEORESIZE:
