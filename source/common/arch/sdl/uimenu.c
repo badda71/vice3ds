@@ -1151,12 +1151,7 @@ static const char *humanSize(uint64_t bytes)
 
 //#define MAX(x,y) (x)<(y)?(y):(x)
 
-
-int sdl_ui_update_progress_bar(int total, int now)
-{
-//log_citra("enter %s",__func__);
-	static int oldtotal=-1, oldnow=-1;
-
+Result sdl_ui_check_cancel() {
 	// process events - check for menu close or cancel
 	int action;
 	while ((action=ui_dispatch_events()) != MENU_ACTION_NONE) {
@@ -1168,6 +1163,13 @@ int sdl_ui_update_progress_bar(int total, int now)
 				break;
 		}
 	}
+	return 0;
+}
+
+Result sdl_ui_update_progress_bar(u64 total, u64 now)
+{
+//log_citra("enter %s",__func__);
+	static u64 oldtotal=-1, oldnow=-1;
 
 	if (oldtotal == total && oldnow == now) return 0;
 

@@ -65,7 +65,7 @@
 #define GB64_SS_URL "http://www.gb64.com/Screenshots/"
 #define GB64_GAME_URL "ftp://8bitfiles.net/gamebase_64/Games/"
 #define GB64_DBNAME "gb64_2.db"
-#define GB64_DBGZ_URL "http://badda.de/vice3ds/gb64/" GB64_DBNAME ".gz"
+#define GB64_DBGZ_URL "http://badda.de/vice3ds/gb64/" GB64_DBNAME
 
 typedef struct {
 	char *blob;
@@ -334,7 +334,7 @@ static void uigb64_callback_imgLoad(char *url, char *fname, int result, void* pa
 	if (result == 0) {
 		gb64_top_must_redraw=1;
 	} else {
-		if (result == CURLE_HTTP_RETURNED_ERROR && idx!=0) {
+		if (result == R_APP_HTTP_ERROR_BASE + 404 && idx!=0) {
 			char *xname=lib_stralloc(fname);
 			char *p=strchr(xname,'.');
 			sprintf(p,".x");
@@ -417,7 +417,8 @@ static void gb64_download(int idx) {
 
 	char *url = util_concat(GB64_GAME_URL, pdb_getEntry(db, idx, 2), NULL);
 	char *fname = util_concat(archdep_xdg_data_home(), "/tmp_game.zip",NULL);
-	if (downloadFile(url, fname, downloadProgress, MODE_FILE)) {
+	
+	if (http_download_file(url, fname, sdl_ui_check_cancel, sdl_ui_update_progress_bar)) {
 		ui_error("Could not download game: %s",http_errbuf);
 	} else {
 		// unzip to games/<nr>_<zipname>
@@ -652,7 +653,7 @@ static char *uigb64_start()
 dldb:
 			// download (will be automatically unpacked by curl)
 			sdl_ui_init_progress_bar("Downloading Gamebase64 database");
-			if (downloadFile(GB64_DBGZ_URL, dbname, downloadProgress, MODE_FILE)) {
+			if (http_download_file(GB64_DBGZ_URL, dbname, sdl_ui_check_cancel, sdl_ui_update_progress_bar)) {
 				ui_error("Could not download database: %s",http_errbuf);
 				free(dbname);
 				return NULL;
@@ -668,7 +669,7 @@ tagdb:
 			}
 		} else {
 			// check if the file is up to date
-			if ((i=downloadFile(GB64_DBGZ_URL, NULL, NULL, MODE_HEAD)) == 0 ) {
+			if ((i=http_check_url(GB64_DBGZ_URL)) == 0 ) {
 				FILE *fd=fopen(dbname,"r");
 				if (fd) {
 					fread(buf, 1, 20, fd);

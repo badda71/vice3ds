@@ -23,7 +23,6 @@
  *
  */
 
-//#define EMULATION
 #define UPDATE_INFO_URL "https://api.github.com/repos/badda71/vice3ds/releases/latest"
 //#define UPDATE_INFO_URL "http://badda.de/vice3ds/latest"
 
@@ -45,6 +44,11 @@
 
 #define ERRBUFSIZE 256
 
+static int update_progress_bar(int total, int cur) {
+	sdl_ui_update_progress_bar((u64)total, (u64)cur);
+	return ((int)sdl_ui_check_cancel());
+}
+
 static char errbuf[ERRBUFSIZE];
 
 // *******************************************************
@@ -60,16 +64,18 @@ UI_MENU_CALLBACK(update_callback)
 	ACU_GetWifiStatus(&wifi_status);
 	acExit();
 
-#ifndef EMULATION
+#ifndef CITRA
 	if (wifi_status == 0) {
 		ui_error("WiFi not enabled");
 		return NULL;
 	}
 #endif
 	// check if we need an update
-	char *update_info, *p;
+	char update_info[16 * 1024] = {0};
+	u32 dSize = sizeof(update_info);
+	char *p;
 	sdl_ui_init_progress_bar("Getting Update Information");
-	if (downloadFile(UPDATE_INFO_URL, &update_info, downloadProgress, MODE_MEMORY)) {
+	if (http_download_buffer(UPDATE_INFO_URL, &dSize, update_info, sizeof(update_info))) {
 		ui_error("Could not get update info: %s",http_errbuf);
 		return NULL;
 	}
@@ -77,14 +83,12 @@ UI_MENU_CALLBACK(update_callback)
 	p = strstr(update_info, "tag_name");
 	if (!p) {
 		ui_error("Could not get latest version info from github api");
-		free(update_info);
 		return NULL;
 	}
-	p+=12;
+	p+=11;
 	char *q=strchr(p,'"'); *q=0;
 	if (strcasecmp(p, VERSION3DS)==0) {
 		ui_message("No update available (latest version = current version = %s)", VERSION3DS);
-		free(update_info);
 		return NULL;
 	}
 	
@@ -95,7 +99,6 @@ UI_MENU_CALLBACK(update_callback)
 		"                            "
 		">> Install update? <<",VERSION3DS,p);
 	if (message_box("Update available", errbuf, MESSAGE_YESNO) != 0 ) {
-		free(update_info);
 		return NULL;
 	}
 	
@@ -107,14 +110,13 @@ UI_MENU_CALLBACK(update_callback)
 	char *ext = ishomebrew? "3dsx" : "cia";
 	char *update_url=update_info;
 	while ((update_url=strstr(update_url, "browser_download_url"))!=NULL) {
-		update_url+=24;
+		update_url+=23;
 		char *q=strchr(update_url,'"'); *q=0;
 		if (strcasecmp(q-strlen(ext),ext) == 0) break;
 		*q='"';
 	}
 	if (!update_url) {
 		ui_error("Could not get download url from github api");
-		free(update_info);
 		return NULL;
 	}
 
@@ -129,13 +131,11 @@ UI_MENU_CALLBACK(update_callback)
 	mkpath(update_fname, 0);
 
 	sdl_ui_init_progress_bar("Downloading Update");
-	if (downloadFile(update_url, update_fname, downloadProgress, MODE_FILE)) {
+	if (http_download_file(update_url, update_fname, sdl_ui_check_cancel, sdl_ui_update_progress_bar)) {
 		ui_error("Could not download update: %s",http_errbuf);
-		free(update_info);
 		free(update_fname);
 		return NULL;
 	}
-	free(update_info);
 //log_citra("downloaded update to %s",update_fname);
 
 	// install update if necessary
@@ -145,7 +145,7 @@ UI_MENU_CALLBACK(update_callback)
 	} else {
 		sdl_ui_init_progress_bar("Installing Update");
 		CIA_SetErrorBuffer(errbuf);
-		if (CIA_InstallTitle(update_fname, sdl_ui_update_progress_bar) != 0) {
+		if (CIA_InstallTitle(update_fname, update_progress_bar) != 0) {
 			unlink(update_fname);
 			free(update_fname);
 			ui_error("Could not install update: %s",errbuf);

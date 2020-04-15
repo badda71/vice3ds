@@ -58,9 +58,14 @@ static tsq_object async_queue;
 static tsh_object async_hash;
 
 // async http functions
-static int async_dlp(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
+static Result async_check_cancel()
 {
 	return isinit?0:-1;
+}
+
+static Result async_progress(u64 total, u64 curr)
+{
+	return 0;
 }
 
 static void async_http_worker(void *arg) {
@@ -73,7 +78,7 @@ static void async_http_worker(void *arg) {
 		if ((req=tsq_get(&async_queue))!=NULL) {
 			// got a request, work on it
 			partname = util_concat(req->fname, ".part", NULL);
-			if ((r = downloadFile(req->url, partname, async_dlp, MODE_FILE)) == 0 &&
+			if ((r = http_download_file(req->url, partname, async_check_cancel, async_progress)) == 0 &&
 				access(partname,W_OK) == 0)
 			{
 				rename(partname,req->fname);

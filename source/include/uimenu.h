@@ -34,6 +34,7 @@
 
 #include "vice.h"
 #include "types.h"
+#include <3ds.h>
 
 typedef enum {
 	MENU_INACTIVE = 0,
@@ -164,7 +165,8 @@ typedef enum {
 } ui_menu_action_t;
 
 extern menufont_t activefont;
-extern int sdl_ui_update_progress_bar(int total, int now);
+extern Result sdl_ui_check_cancel();
+extern Result sdl_ui_update_progress_bar(u64 total, u64 now);
 extern void sdl_ui_init_progress_bar(char *title);
 
 extern void sdl_ui_set_main_menu(const ui_menu_entry_t *menu);
