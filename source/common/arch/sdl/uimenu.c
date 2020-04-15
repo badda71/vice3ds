@@ -1178,21 +1178,30 @@ Result sdl_ui_update_progress_bar(u64 total, u64 now)
 	int xmax = menu_draw.max_text_x;
 	int cutoff = total == 0 ? 0 : (now * xmax) / total;
 	int percent = total == 0 ? 0 : (now * 100) / total;
-	int y=2;
+	static u64 btime = 0;
+	int speed=0;
+
+	if (now == 0) {
+		btime=osGetTime();
+	} else {
+		speed = (now * 1000) / (osGetTime() - btime);
+	}
 
 	oldtotal = total;
 	oldnow = now;
-	int i=snprintf(buf, 100, "Progress: %s", humanSize(now));
-	snprintf(buf+i,100-i," / %s (%d%%)                 ", humanSize(total), percent);
-	sdl_ui_print(buf, 0, y++);
-	++y;
+	snprintf(buf, 100, "Progress: %d%%          ", percent);
+	sdl_ui_print(buf, 0, 2);
 
 	for (int loop = 0; loop < xmax; loop++) {
 		sdl_ui_putchar (
 			loop < cutoff ? UIFONT_SLIDERACTIVE_CHAR : UIFONT_SLIDERINACTIVE_CHAR,
 			loop,
-			y);
+			4);
 	}
+	int i=snprintf(buf, 100, "%s", humanSize(now));
+	i += snprintf(buf+i, 100-i, " / %s", humanSize(total));
+	snprintf(buf+i, 100-i, " (%s/sec)           ", humanSize(speed));
+	sdl_ui_print(buf, 0, 6);
 	sdl_ui_refresh();
 	return 0;
 }
