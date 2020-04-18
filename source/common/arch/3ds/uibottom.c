@@ -328,6 +328,7 @@ static DS3_Image black_spr;
 static DS3_Image menubut_spr;
 
 // dynamic sprites
+static DS3_Image message_spr;
 static DS3_Image touchpad_spr;
 static DS3_Image menu_spr;
 static DS3_Image help_top_spr;
@@ -354,6 +355,7 @@ static SDL_Surface *joyimg=NULL;
 static SDL_Surface *touchpad_img=NULL;
 static SDL_Surface *help_top_img=NULL;
 static SDL_Surface *help_bottom_img=NULL;
+static SDL_Surface *message_img=NULL;
 
 // variables for draging sbuttons
 static int dragging;
@@ -376,6 +378,7 @@ static volatile int help_anim;
 static volatile int menu_anim=0;
 static u8 *gpusrc=NULL;
 static u8 *menusrc=NULL;
+static u32 messagetime=0;
 
 #define HASHSIZE 256
 static tsh_object iconHash;
@@ -600,6 +603,14 @@ static void uibottom_repaint(void *param, int topupdated) {
 	if (sdl_menu_state && uigb64_top != NULL) {
 //		drawImage(&black_spr, 0,0,320,240);
 		drawImage(&gb64_spr, 0,0, 320, 240);
+	}
+	
+	// paint message
+	if (messagetime) {
+		if (SDL_GetTicks() < messagetime)
+			drawImage(&message_spr,0,0,320,12);
+		else
+			messagetime = 0;
 	}
 
 	if (!update) return;
@@ -911,6 +922,19 @@ void uib_printstring(SDL_Surface *s, const char *str, int x, int y, int maxchars
 			&(SDL_Rect){.x = xof+i*f.w, .y = y});
 	}
 	SDL_SetPalette(f.img, SDL_LOGPAL, &(SDL_Color){0xff,0xff,0xff,0}, 1, 1);
+}
+
+void uib_show_message(u32 ms_time, char *format, ... ) {
+	char buffer[80];
+	SDL_FillRect(message_img, NULL, SDL_MapRGBA(message_img->format,0,0,0,128));
+	va_list args;
+	va_start (args, format);
+	vsnprintf (buffer,80,format, args);
+	va_end (args);
+	uib_printstring(message_img, buffer, 2, 2, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0xff,0xff,0xff,0});
+//log_citra("%s: %s",__func__, buffer);
+	makeImage(&message_spr, message_img->pixels, message_img->w, message_img->h, 0);
+	messagetime = SDL_GetTicks() + ms_time;
 }
 
 static void blitKey(SDL_Surface *s, char *name, int y, enum str_alignment align) {
@@ -1309,6 +1333,10 @@ static void uibottom_init() {
 	SDL_FillRect(s, NULL, SDL_MapRGBA(s->format,0,0,0,128));
 	uib_printstring(s, "Press START to finish", 2, 2, 0, ALIGN_LEFT, FONT_BIG, (SDL_Color){0xff,0xff,0xff,0});
 	makeImage(&note_spr, s->pixels, s->w, s->h, 0);
+
+	message_img=SDL_CreateRGBSurface(SDL_SWSURFACE,400,12,32,0x000000ff,0x0000ff00,0x00ff0000,0xff000000);
+	SDL_FillRect(message_img, NULL, SDL_MapRGBA(message_img->format,0,0,0,128));
+	makeImage(&message_spr, message_img->pixels, message_img->w, message_img->h, 0);
 
 	svcCreateEvent(&repaintRequired,0);
 

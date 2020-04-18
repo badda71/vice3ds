@@ -30,16 +30,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
 
 #include "archdep.h"
 #include "attach.h"
 #include "cmdline.h"
+#include "diskimage.h"
+#include "drive.h"
 #include "fliplist.h"
+#include "fsimage.h"
 #include "ioutil.h"
 #include "lib.h"
 #include "log.h"
+#include "persistence.h"
+#include "rawimage.h"
 #include "resources.h"
 #include "util.h"
+#include "uibottom.h"
 
 #define NUM_DRIVES 4
 
@@ -258,21 +265,155 @@ void fliplist_remove(unsigned int unit, const char *image)
     }
 }
 
+static char *fliplist_get_filenameext_for_drivetype(int unit) {
+	int type = drive_context[unit-8]->drive->type;
+	char *ret="\0\0";
+	switch (type) {
+		case DRIVE_TYPE_1540:
+		case DRIVE_TYPE_1541:
+		case DRIVE_TYPE_1541II:
+		case DRIVE_TYPE_1551:
+		case DRIVE_TYPE_1570:
+		case DRIVE_TYPE_2031:
+		case DRIVE_TYPE_2040:
+		case DRIVE_TYPE_3040:
+		case DRIVE_TYPE_4040:
+			ret="D64\0G64\0P64\0X64\0D67\0\0";
+			break;
+		case DRIVE_TYPE_1571:
+		case DRIVE_TYPE_1571CR:
+			ret="D64\0G64\0P64\0X64\0D67\0G71\0D71\0\0";
+			break;
+		case DRIVE_TYPE_1581:
+			ret="D81\0\0";
+			break;
+		case DRIVE_TYPE_2000:
+		case DRIVE_TYPE_4000:
+			ret="D81\0D1M\0D2M\0D4M\0\0";
+			break;
+		case DRIVE_TYPE_1001:
+		case DRIVE_TYPE_8050:
+		case DRIVE_TYPE_8250:
+			ret="D80\0D82\0\0";
+			break;
+	}
+	return ret;
+}
+
+static int mycmp(const void *a, const void *b) {
+	return strcasecmp(*((char**)a),*((char**)b));
+}
+
 void fliplist_attach_head (unsigned int unit, int direction)
 {
-    if (fliplist[unit - 8] == NULL) {
-        return;
-    }
+	int i, numfiles=0, nameidx=-1, newnameidx=-1,x;
+	char **fnames=NULL;
+	DIR *d=NULL;
+	struct dirent *entry;
+	char *ex, *ext, *dir=NULL,*name=NULL, *newname=NULL;
+	
+	if (fliplist[unit - 8] == NULL) {
+//log_citra("%s, no fliplist attached",__func__);
+		// no fliplist attached, use directory of image or current directory as fliplist
+		ext=fliplist_get_filenameext_for_drivetype(unit);
+		if (*ext==0) {
+			uib_show_message(3000, "Drive %d is not active", unit);
+			goto thisexit;
+		}
+		// get directory of currently attached image or current directory
+		if (drive_context[unit-8]->drive->image != NULL) {
+			name = drive_context[unit-8]->drive->image->device == DISK_IMAGE_DEVICE_FS ?
+				drive_context[unit-8]->drive->image->media.fsimage->name :
+				drive_context[unit-8]->drive->image->media.rawimage->name;
+			dir = lib_stralloc(name);
+			if ((name=strrchr(dir,'/'))!=NULL)
+				*name++ = 0;
+		} else {
+			dir = lib_stralloc(persistence_get("cwd","/"));
+			if (*dir && dir[strlen(dir)-1]=='/') dir[strlen(dir)-1]=0;
+		}
+		// get all files with within this directory with the given extension
+//log_citra("scanning dir %s",dir);
+		if ((d = opendir(dir)) == NULL) {
+			uib_show_message(3000, "Could not open directory %s", dir);
+			goto thisexit;
+		}
+		while ((entry = readdir(d)) != NULL) {
+			if (entry->d_type == DT_DIR || (ex=strrchr(entry->d_name,'.'))==NULL) continue;
+			for (i=0; ext[i] != 0; i+=4) {
+				if (!strcasecmp(ext+i,ex+1)) break;
+			}
+			if (ext[i]==0) continue;
+			if ((numfiles & 0xff) == 0)
+				fnames = realloc(fnames, (numfiles + 256) * sizeof(char*));
+			fnames[numfiles++] = lib_stralloc(entry->d_name);
+		}
+		if (numfiles<1) {
+			uib_show_message(3000, "No valid images in %s", dir);
+			goto thisexit;
+		}
+		qsort(fnames, numfiles, sizeof(char*), mycmp);
+		// find the image to attach
+		if (!name) newnameidx=0;
+		else {
+			// find currently attached image
+			for (i=0; i<numfiles; i++) {
+//log_citra("cmp: %s %s", name, fnames[i]);
+				if (!strcmp(name, fnames[i])) {
+//log_citra("match!");
+					nameidx=i;
+					break;
+				}
+			}
+			if (nameidx==-1) newnameidx=0;
+			else if (direction)
+				newnameidx = (nameidx+1) % numfiles;
+			else
+				newnameidx = (nameidx-1+numfiles)%numfiles;
+		}
 
-    if (direction) {
-        fliplist[unit - 8] = fliplist[unit - 8]->next;
+		newname = util_concat(dir, "/", fnames[newnameidx], NULL);
+		if (newnameidx == nameidx) {
+			uib_show_message(3000, "Drive %d: %s", unit, newname);
+			goto thisexit;
+		}
+
+		i=newnameidx;
+		while ((x=file_system_attach_disk(unit, newname))) {
+			i = (i+(direction?1:-1)+numfiles) % numfiles;
+			if (i == newnameidx) break;
+			free(newname);
+			newname = util_concat(dir, "/", fnames[i], NULL);
+		}
+		if (x) {
+			uib_show_message(3000, "Could not attach %s", newname);
+		} else {
+			uib_show_message(3000, "Drive %d: %s", unit, newname);
+		}
     } else {
-        fliplist[unit - 8] = fliplist[unit - 8]->prev;
-    }
+		if (direction) {
+			fliplist[unit - 8] = fliplist[unit - 8]->next;
+		} else {
+			fliplist[unit - 8] = fliplist[unit - 8]->prev;
+		}
+		if (file_system_attach_disk(fliplist[unit - 8]->unit, fliplist[unit - 8]->image) < 0) {
+			uib_show_message(3000, "Could not attach %s", fliplist[unit - 8]->image);
+		} else {
+			uib_show_message(3000, "Drive %d: %s", fliplist[unit - 8]->unit, fliplist[unit - 8]->image);
+		}
 
-    if (file_system_attach_disk(fliplist[unit - 8]->unit, fliplist[unit - 8]->image) < 0) {
-        /* shouldn't happen, so ignore it */
-    }
+	}
+
+thisexit:
+		if (newname) lib_free(newname);
+		if (fnames) {
+			for (i=0; i<numfiles; i++)
+				lib_free(fnames[i]);
+			free(fnames);
+		}
+		if (d) closedir(d);
+		if (dir) lib_free(dir);
+		return;
 }
 
 fliplist_t fliplist_init_iterate(unsigned int unit)

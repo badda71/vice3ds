@@ -77,6 +77,7 @@ extern void toggle_help(int inmenu);
 extern void toggle_menu(int active, ui_menu_entry_t *item);
 extern void uib_printtext(SDL_Surface *s, const char *str, int xo, int yo, int w, int h, enum font_size size, SDL_Color col);
 extern void uib_printstring(SDL_Surface *s, const char *str, int x, int y, int maxchars, enum str_alignment align, enum font_size size, SDL_Color col);
+extern void uib_show_message(u32 ms_time, char *format, ... );
 
 // exposed variables
 extern uikbd_key *uikbd_keypos;
