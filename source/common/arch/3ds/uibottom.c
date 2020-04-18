@@ -1320,6 +1320,24 @@ static void uibottom_init() {
 int menu_alpha_value=210;
 int menu_alpha_max_y=240;
 
+static palette_entry_t defentries[16] = {
+	{"",0x00, 0x00, 0x00, 0},
+	{"",0xff, 0xff, 0xff, 0},
+	{"",0x88, 0x00, 0x00, 0},
+	{"",0xaa, 0xff, 0xee, 0},
+	{"",0xcc, 0x44, 0xcc, 0},
+	{"",0x00, 0xcc, 0x55, 0},
+	{"",0x00, 0x00, 0xaa, 0},
+	{"",0x00, 0xee, 0x77, 0},
+	{"",0xdd, 0x88, 0x55, 0},
+	{"",0x66, 0x44, 0x00, 0},
+	{"",0xff, 0x77, 0x77, 0},
+	{"",0x33, 0x33, 0x33, 0},
+	{"",0x77, 0x77, 0x77, 0},
+	{"",0xaa, 0xff, 0x66, 0},
+	{"",0x00, 0x88, 0xff, 0},
+	{"",0xbb, 0xbb, 0xbb, 0}};
+
 void menu_recalc() {
 	menu_spr.w=320;
 	menu_spr.h=240;
@@ -1332,7 +1350,11 @@ void menu_recalc() {
 	// convert the paletted menu draw buffer to ABGR
 	u8* src=menu_draw_buffer;
 	u8 *dst;
-	palette_entry_t *pal= sdl_active_canvas->palette->entries;
+	palette_entry_t *pal;
+	if (sdl_active_canvas->palette)
+		pal= sdl_active_canvas->palette->entries;
+	else
+		pal=defentries;
 	u8 alpha=menu_alpha_value;
 	u8 alpha2=255;
 	if (events_to_emu) alpha=alpha2=128;
