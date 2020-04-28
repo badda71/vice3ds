@@ -81,8 +81,10 @@ static void async_http_worker(void *arg) {
 			if ((r = http_download_file(req->url, partname, async_check_cancel, async_progress)) == 0 &&
 				access(partname,W_OK) == 0)
 			{
+log_citra("success\n");
 				rename(partname,req->fname);
 			} else {
+log_citra("failed %p, %s\n",r,http_errbuf);
 				unlink(partname);
 			}
 			free(partname);
@@ -126,7 +128,7 @@ void async_http_init(int numw)
 	atexit(async_http_shutdown);
 
 	tsq_init(&async_queue, QUEUESIZE);
-	tsh_init(&async_hash, MAX_WORKERS+QUEUESIZE, NULL);
+	tsh_init(&async_hash, (MAX_WORKERS+QUEUESIZE)*2, NULL);
 }
 
 int async_http_get(char *url, char *fname, void (*callback)(char *url, char *fname, int result,  void *param), void *param)

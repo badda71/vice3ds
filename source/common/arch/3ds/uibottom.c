@@ -374,6 +374,7 @@ static int editmode_on=0;
 static int help_button_on;
 static int menu_button_on;
 static Handle repaintRequired;
+static Handle menu_updated_event;
 static volatile int help_anim;
 static volatile int menu_anim=0;
 static u8 *gpusrc=NULL;
@@ -682,6 +683,11 @@ static void uibottom_repaint(void *param, int topupdated) {
 	}
 	// menu
 	if (sdl_menu_state && !menu_invisible) {
+		// is menu updated?
+		if (!svcWaitSynchronization(menu_updated_event, 0)) {
+			svcClearEvent(menu_updated_event);
+			makeTexture(&(menu_spr.tex), menusrc, 512, 256);
+		}
 		drawImage(&menu_spr, (menu_anim*-305)/100, (menu_anim*-225)/100, 0, 0);
 		drawImage(&menubut_spr, ((menu_anim*-305)/100)+305,((menu_anim*-225)/100)+225,0,0);
 	} else {
@@ -1338,8 +1344,8 @@ static void uibottom_init() {
 	SDL_FillRect(message_img, NULL, SDL_MapRGBA(message_img->format,0,0,0,128));
 	makeImage(&message_spr, message_img->pixels, message_img->w, message_img->h, 0);
 
-	svcCreateEvent(&repaintRequired,0);
-
+	svcCreateEvent(&repaintRequired, RESET_ONESHOT);
+	svcCreateEvent(&menu_updated_event, RESET_ONESHOT);
 	uibottom_must_redraw |= UIB_ALL;
 	sdl_uibottom_draw();
 	SDL_RequestCall(uibottom_repaint, NULL);
@@ -1387,10 +1393,10 @@ void menu_recalc() {
 	u8 alpha2=255;
 	if (events_to_emu) alpha=alpha2=128;
 
-	for(y = 0; y < 240; ++y) {
+	for(y = 0; y < 239; ++y) { // one pixel less for the white border line
 		dst=menusrc+y*hw*4;
 		if (y==menu_alpha_max_y) alpha=0;
-		for (x=0; x<320; ++x) {
+		for (x=0; x<319; ++x) { // one pixel less for the white border line
 			if (*src==0) *dst++ = alpha;// alpha
 			else *dst++ = alpha2;
 			*dst++ = pal[*src].blue;	// blue
@@ -1398,6 +1404,7 @@ void menu_recalc() {
 			*dst++ = pal[*src].red;		// red
 			++src;
 		}
+		++src; // +border pixel
 	}
 
 	// draw white lines
@@ -1407,7 +1414,8 @@ void menu_recalc() {
 	}
 	memset(menusrc+239*hw*4,255,310*4);
 
-	makeTexture(&(menu_spr.tex), menusrc, hw, hh);
+	// signal that menu texture needs to be updated
+	svcSignalEvent(menu_updated_event);
 }
 
 void gb64_recalc() {

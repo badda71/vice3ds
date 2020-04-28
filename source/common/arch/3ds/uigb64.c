@@ -65,7 +65,7 @@
 #define GB64_SS_URL "http://www.gb64.com/Screenshots/"
 #define GB64_GAME_URL "ftp://8bitfiles.net/gamebase_64/Games/"
 #define GB64_DBNAME "gb64_2.db"
-#define GB64_DBGZ_URL "http://badda.de/vice3ds/gb64/" GB64_DBNAME
+#define GB64_DBGZ_BASEURL "http://badda.de/vice3ds/gb64/"
 
 typedef struct {
 	char *blob;
@@ -89,6 +89,7 @@ static picoDB *db=NULL;
 static u32 wifi_status = 0;
 static int *searchresult=NULL;
 static int gb64_set_modes = 7;
+static SDL_Surface *priv_uigb64_top=NULL;
 
 static picoDB *pdb_initDB(char *filename) {
 	// read in the file
@@ -107,6 +108,11 @@ static picoDB *pdb_initDB(char *filename) {
 	if (string==NULL) {
 		fclose(f);
 		log_error(LOG_DEFAULT,"Could not allocate memory for database");
+		while ((string=malloc(fsize + 1)) == NULL) {
+			log_error(LOG_DEFAULT,"Could not allocate %d bytes for database\n", fsize +1 );
+			fsize -= 4096;
+		}
+		if (string) free(string);
 		return NULL;
 	}
 	fread(string, 1, fsize, f);
@@ -627,6 +633,7 @@ static char *uigb64_start()
 	int screenshotidx=0;
 	char *p;
 	char buf[256];
+	char tmp[256];
 
 	static int top_shows = -1;
 	static int offset = 0, cur = 0, search_changed=1, total=0;
@@ -644,7 +651,8 @@ static char *uigb64_start()
 	if (db == NULL) {
 		FILE *fd;
 		// check if file exists
-		char *dbname=util_concat(archdep_xdg_data_home(),"/" GB64_DBNAME, NULL);
+		char *dbname=util_concat(archdep_xdg_data_home(),"/" ,isN3DS()?"":"O3DS_"  ,GB64_DBNAME, NULL);
+		snprintf(tmp, 256,"%s%s%s",GB64_DBGZ_BASEURL, isN3DS()?"":"O3DS_", GB64_DBNAME);
 		if (access(dbname, R_OK)!=0) {
 			if (message_box("Gamebase64", "Gamebase64 database not found. Download now?", MESSAGE_YESNO) != 0) {
 				free(dbname);
@@ -653,7 +661,8 @@ static char *uigb64_start()
 dldb:
 			// download (will be automatically unpacked by curl)
 			sdl_ui_init_progress_bar("Downloading Gamebase64 database");
-			if (http_download_file(GB64_DBGZ_URL, dbname, sdl_ui_check_cancel, sdl_ui_update_progress_bar)) {
+			
+			if (http_download_file(tmp, dbname, sdl_ui_check_cancel, sdl_ui_update_progress_bar)) {
 				ui_error("Could not download database: %s",http_errbuf);
 				free(dbname);
 				return NULL;
@@ -669,7 +678,7 @@ tagdb:
 			}
 		} else {
 			// check if the file is up to date
-			if ((i=http_check_url(GB64_DBGZ_URL)) == 0 ) {
+			if ((i=http_check_url(tmp)) == 0 ) {
 				FILE *fd=fopen(dbname,"r");
 				if (fd) {
 					fread(buf, 1, 20, fd);
@@ -708,8 +717,8 @@ tagdb:
 	}
 
 	// init my top screen
-	if (uigb64_top) SDL_FreeSurface(uigb64_top);
-	uigb64_top = SDL_CreateRGBSurface(SDL_SWSURFACE,400,240,32,0x000000ff,0x0000ff00,0x00ff0000,0xff000000);
+	if (priv_uigb64_top) uigb64_top = priv_uigb64_top;
+	else priv_uigb64_top = uigb64_top = SDL_CreateRGBSurface(SDL_SWSURFACE,400,240,32,0x000000ff,0x0000ff00,0x00ff0000,0xff000000);
 	gb64_top_must_redraw=1;
 
 	// init file getter
@@ -1096,8 +1105,7 @@ tagdb:
 	}
 
 	// clean up
-	SDL_FreeSurface(uigb64_top);
-	uigb64_top=NULL;
+	uigb64_top = NULL;
 	uibottom_must_redraw |= UIB_RECALC_GB64;
 	SDL_FreeSurface(loading_img);
 	async_http_shutdown();
@@ -1127,7 +1135,10 @@ UI_MENU_CALLBACK(gb64_callback)
 }
 
 void gb64_shutdown() {
+	if (priv_uigb64_top) SDL_FreeSurface(priv_uigb64_top);
 	if (db != NULL) pdb_freeDB(db);
 	if (searchresult != NULL) free(searchresult);
-	db=NULL;
+	priv_uigb64_top = uigb64_top = NULL;
+	searchresult = NULL;
+	db = NULL;
 }

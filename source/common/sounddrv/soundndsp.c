@@ -31,6 +31,7 @@
 #define WAVBUFNR 10
 
 bool		ndsp_isinit = false;
+bool		ndsp_svc_isinit = false;
 int			ndsp_channels = 0;
 int			ndsp_bufsize = 0;
 int			ndsp_activeBuf = 0;
@@ -44,8 +45,11 @@ static int ndsp_init(const char *param, int *speed, int *fragsize, int *fragnr, 
 //log_3ds("enter %s: speed = %d, fragsize = %d, fragnr = %d, channels = %d", __func__, *speed, *fragsize, *fragnr, *channels);
 
 	// Init ndsp and init variables
-	if(ndspInit() < 0) return -1;
-	ndsp_isinit = true;
+	if (!ndsp_svc_isinit) {
+		if(ndspInit() < 0) return -1;
+		atexit(ndspExit);
+		ndsp_svc_isinit = true;
+	}
 	if (*channels > 2 || *channels < 1) return -1;
 	ndsp_channels = *channels;
 	ndsp_bufsize = (*fragsize) * (*fragnr);
@@ -68,6 +72,7 @@ static int ndsp_init(const char *param, int *speed, int *fragsize, int *fragnr, 
 	ndspChnSetFormat(CHANNEL,
 			*channels == 2 ? NDSP_FORMAT_STEREO_PCM16 :
 			NDSP_FORMAT_MONO_PCM16);
+	ndsp_isinit = true;
     return 0;
 }
 
@@ -114,7 +119,6 @@ static void ndsp_close(void)
 	if(ndsp_isinit == true)
 	{
 		ndspChnWaveBufClear(CHANNEL);
-		ndspExit();
 		for (int i = 0 ; i < WAVBUFNR ; i++ )
 		{
 			linearFree((void *)ndsp_waveBuf[i].data_vaddr);

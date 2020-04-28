@@ -448,6 +448,8 @@ static Result http_download_callback(	// )
                 res = R_APP_CURL_INIT_FAILED;
             }
 #ifndef CITRA
+		} else {
+			snprintf(http_errbuf,HTTP_ERRBUFSIZE,"httpc_open failed %p",res);
 		}
 #endif
 

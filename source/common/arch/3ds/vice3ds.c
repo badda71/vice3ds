@@ -154,6 +154,10 @@ void *tsq_put(tsq_object* o, void *p) {
 		o->queue[o->head]=p;
 		++o->head;
 		o->head %= o->size;
+		if (o->tail == o->head) { // if overwriting an old entry, tail is moved as well
+			++o->tail;
+			o->tail %= o->size;
+		}
 	}
 	svcReleaseMutex(o->mutex);
 	return r;
