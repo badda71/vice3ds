@@ -24,6 +24,7 @@
  *
  */
 #include <3ds.h>
+#include <SDL/SDL.h>
 
 #define KEYMAPPINGS_DEFAULT " c9 01d20000 cc 02010000 ce 02030000 d6 011e0000 d7 01110000 d8 011f0000 d9 011d0000 f6 01030000 f7 01200000 f8 010d0000 f9 01031900"
 #define HELPTEXT_MAX 256
@@ -83,3 +84,4 @@ extern void triggerSync(int);
 extern void copy_autocopy_dir();
 extern int save_help_texts_to_resource();
 extern int isN3DS();
+extern char *result_translate(Result r);

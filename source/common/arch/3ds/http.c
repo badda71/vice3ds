@@ -11,6 +11,7 @@
 #include "http.h"
 #include "archdep_cp.h"
 #include "log.h"
+#include "vice3ds.h"
 
 #define HTTP_USER_AGENT "Mozilla/5.0 (Nintendo 3DS; Mobile; rv:10.0) Gecko/20100101 vice3DS"
 
@@ -449,7 +450,7 @@ static Result http_download_callback(	// )
             }
 #ifndef CITRA
 		} else {
-			snprintf(http_errbuf,HTTP_ERRBUFSIZE,"httpc_open failed %p",res);
+			snprintf(http_errbuf,HTTP_ERRBUFSIZE,"%s (%p)", result_translate(res), (void*)res);
 		}
 #endif
 

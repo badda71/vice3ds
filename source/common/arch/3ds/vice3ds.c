@@ -588,3 +588,207 @@ int isN3DS() {
 	}
 	return is_n3ds;
 }
+
+typedef struct {
+	u32 num;
+	char *string;
+} err_t;
+
+static err_t err_module[]={
+	{0, "Common"},
+	{1, "Kernel"},
+	{2, "Util"},
+	{3, "File server"},
+	{4, "Loader server"},
+	{5, "TCB"},
+	{6, "OS"},
+	{7, "DBG"},
+	{8, "DMNT"},
+	{9, "PDN"},
+	{10, "GX"},
+	{11, "I2C"},
+	{12, "GPIO"},
+	{13, "DD"},
+	{14, "CODEC"},
+	{15, "SPI"},
+	{16, "PXI"},
+	{17, "FS"},
+	{18, "DI"},
+	{19, "HID"},
+	{20, "CAM"},
+	{21, "PI"},
+	{22, "PM"},
+	{23, "PM_LOW"},
+	{24, "FSI"},
+	{25, "SRV"},
+	{26, "NDM"},
+	{27, "NWM"},
+	{28, "SOC"},
+	{29, "LDR"},
+	{30, "ACC"},
+	{31, "RomFS"},
+	{32, "AM"},
+	{33, "HIO"},
+	{34, "Updater"},
+	{35, "MIC"},
+	{36, "FND"},
+	{37, "MP"},
+	{38, "MPWL"},
+	{39, "AC"},
+	{40, "HTTP"},
+	{41, "DSP"},
+	{42, "SND"},
+	{43, "DLP"},
+	{44, "HIO_LOW"},
+	{45, "CSND"},
+	{46, "SSL"},
+	{47, "AM_LOW"},
+	{48, "NEX"},
+	{49, "Friends"},
+	{50, "RDT"},
+	{51, "Applet"},
+	{52, "NIM"},
+	{53, "PTM"},
+	{54, "MIDI"},
+	{55, "MC"},
+	{56, "SWC"},
+	{57, "FatFS"},
+	{58, "NGC"},
+	{59, "CARD"},
+	{60, "CARDNOR"},
+	{61, "SDMC"},
+	{62, "BOSS"},
+	{63, "DBM"},
+	{64, "Config"},
+	{65, "PS"},
+	{66, "CEC"},
+	{67, "IR"},
+	{68, "UDS"},
+	{69, "PL"},
+	{70, "CUP"},
+	{71, "Gyroscope"},
+	{72, "MCU"},
+	{73, "NS"},
+	{74, "News"},
+	{75, "RO"},
+	{76, "GD"},
+	{77, "Card SPI"},
+	{78, "EC"},
+	{79, "RO"},
+	{80, "Web Browser"},
+	{81, "Test"},
+	{82, "ENC"},
+	{83, "PIA"},
+	{92, "MVD"},
+	{96, "QTM"},
+	{254, "Application"},
+	{255, "Invalid Result Value"},
+	{0, NULL}
+};
+
+static err_t err_description[] = {
+	{0, "Success"},
+	{2, "Invalid memory permissions (kernel)"},
+	{4, "Invalid ticket version (AM)"},
+	{5, "String too big? This error is returned when service name length is greater than 8. (srv)"},
+	{6, "Access denied? This error is returned when you request a service that you don't have access to. (srv)"},
+	{7, "String too small? This error is returned when service name contains an unexpected null byte. (srv)"},
+	{10, "Not enough memory (os)"},
+	{26, "Session closed by remote (os)"},
+	{30, "Port name too long (os)"},
+	{37, "Invalid NCCH? (AM)"},
+	{39, "Invalid title version (AM)"},
+	{43, "Database doesn't exist / failed to open (AM)"},
+	{44, "Trying to uninstall system-app (AM)"},
+	{120, "Title/object not found? (fs)"},
+	{141, "Gamecard not inserted? (fs)"},
+	{230, "Invalid open-flags / permissions? (fs)"},
+	{391, "NCCH hash-check failed? (fs)"},
+	{392, "RSA/AES-MAC verification failed? (fs)"},
+	{395, "RomFS hash-check failed? (fs)"},
+	{630, "Command not allowed / missing permissions? (fs)"},
+	{702, "Invalid path? (fs)"},
+	{761, "Incorrect read-size for ExeFS? (fs)"},
+	{1000, "Invalid section"},
+	{1001, "Too large"},
+	{1002, "Not authorized"},
+	{1003, "Already done"},
+	{1004, "Invalid size"},
+	{1005, "Invalid enum value"},
+	{1006, "Invalid combination"},
+	{1007, "No data"},
+	{1008, "Busy"},
+	{1009, "Misaligned address"},
+	{1010, "Misaligned size"},
+	{1011, "Out of memory"},
+	{1012, "Not implemented"},
+	{1013, "Invalid address"},
+	{1014, "Invalid pointer"},
+	{1015, "Invalid handle"},
+	{1016, "Not initialized"},
+	{1017, "Already initialized"},
+	{1018, "Not found"},
+	{1019, "Cancel requested"},
+	{1020, "Already exists"},
+	{1021, "Out of range"},
+	{1022, "Timeout"},
+	{1023, "Invalid result value"},
+	{0, NULL}
+};
+
+/*
+static err_t err_level[] = {
+	{0, "Success"},
+	{1, "Info"},
+	{25, "Status"},
+	{26, "Temporary"},
+	{27, "Permanent"},
+	{28, "Usage"},
+	{29, "Reinitialize"},
+	{30, "Reset"},
+	{31, "Fatal"},
+	{0, NULL}
+};
+
+static err_t err_summary[] = {
+	{0, "Success"},
+	{1, "Nothing happened"},
+	{2, "Would block"},
+	{3, "Out of resource"},
+	{4, "Not found"},
+	{5, "Invalid state"},
+	{6, "Not supported"},
+	{7, "Invalid argument"},
+	{8, "Wrong argument"},
+	{9, "Canceled"},
+	{10, "Status changed"},
+	{11, "Internal"},
+	{63, "Invalid Result Value"},
+	{0, NULL}
+};
+*/
+
+static char *get_entry(err_t *list, u32 key) {
+	int i=0;
+	while (list[i].string != NULL) {
+		if (key == list[i].num) return list[i].string;
+		++i;
+	}
+	return NULL;
+}
+
+char *result_translate(Result r) {
+	static char buf[256];
+	u32 desc = r & 0x3FF;
+	u32 mod  = (r >> 10) & 0xFF;
+//	u32 sum = (r >> 21) & 0x3F;
+//	u32 lvl = (r >> 27) & 0x1F;
+
+	char *s_desc = get_entry(err_description, desc);
+	char *s_mod = get_entry(err_module, mod);
+//	char *s_sum = get_entry(err_summary, sum);
+//<	char *s_lvl = get_entra(err_level, lvl);
+
+	snprintf(buf, 256, "%s in %s Module", s_desc?s_desc:"Error", s_mod?s_mod:"Unknown");
+	return buf;
+}

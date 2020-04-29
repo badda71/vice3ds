@@ -81,10 +81,8 @@ static void async_http_worker(void *arg) {
 			if ((r = http_download_file(req->url, partname, async_check_cancel, async_progress)) == 0 &&
 				access(partname,W_OK) == 0)
 			{
-log_citra("success\n");
 				rename(partname,req->fname);
 			} else {
-log_citra("failed %p, %s\n",r,http_errbuf);
 				unlink(partname);
 			}
 			free(partname);
