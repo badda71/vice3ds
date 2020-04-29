@@ -75,7 +75,7 @@ static void async_http_worker(void *arg) {
 	while(isinit) {
 		svcWaitSynchronization(workerRequest, U64_MAX);
 		if (!isinit) break;
-		if ((req=tsq_get(&async_queue))!=NULL) {
+		if ((req=tsq_pop(&async_queue))!=NULL) {
 			// got a request, work on it
 			partname = util_concat(req->fname, ".part", NULL);
 			if ((r = http_download_file(req->url, partname, async_check_cancel, async_progress)) == 0 &&

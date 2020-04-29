@@ -139,8 +139,19 @@ void *tsq_get(tsq_object* o) {
 	if (o->tail != o->head) {
 		r = o->queue[o->tail];
 		o->queue[o->tail]=NULL;
-		++o->tail;
-		o->tail %= o->size;
+		o->tail = ( o->tail + 1 ) % o->size;
+	}
+	svcReleaseMutex(o->mutex);
+	return r;
+}
+
+void *tsq_pop(tsq_object* o) {
+	void *r = NULL;
+	svcWaitSynchronization(o->mutex, U64_MAX);
+	if (o->tail != o->head) {
+		o->head = ( o->head + o->size - 1 ) % o->size;
+		r=o->queue[o->head];
+		o->queue[o->head] = NULL;
 	}
 	svcReleaseMutex(o->mutex);
 	return r;
@@ -152,12 +163,9 @@ void *tsq_put(tsq_object* o, void *p) {
 	if (!o->locked) {
 		r=o->queue[o->head];
 		o->queue[o->head]=p;
-		++o->head;
-		o->head %= o->size;
-		if (o->tail == o->head) { // if overwriting an old entry, tail is moved as well
-			++o->tail;
-			o->tail %= o->size;
-		}
+		o->head = ( o->head + 1 ) % o->size;
+		if (o->tail == o->head) // if overwriting an old entry, tail is moved as well
+			o->tail = ( o->tail + 1 ) % o->size;
 	}
 	svcReleaseMutex(o->mutex);
 	return r;

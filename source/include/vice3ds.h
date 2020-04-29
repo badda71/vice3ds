@@ -62,6 +62,7 @@ extern void tsq_lock(tsq_object *o, int lock);
 extern void tsq_free(tsq_object *o);
 extern void *tsq_get(tsq_object *o);
 extern void *tsq_put(tsq_object *o, void *p);
+extern void *tsq_pop(tsq_object* o);
 
 extern char *chg_root_directory;
 extern int keymap3ds[256];
