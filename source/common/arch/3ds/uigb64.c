@@ -484,22 +484,30 @@ static void uigb64_update_topscreen(SDL_Surface *s, int entry, int *screenshotid
 		j=snprintf(buf, 51, "%s", pdb_getEntry(db, entry, 0));
 		uib_printstring(s, buf, 0, 200, 50, ALIGN_LEFT, FONT_BIG, c_black);
 
+		p1=pdb_getEntry(db, entry, 15);
+
 		j=snprintf(buf, 81, "Published: ");
 		uib_printstring(s, buf, 0, 208, 80, ALIGN_LEFT, FONT_MEDIUM, c_blue);
 		p=pdb_getEntry(db, entry, 7);
-		snprintf(buf, 81-j, "%s, %s", pdb_getEntry(db, entry, 1), *p?p:"(unknown)");
+		snprintf(buf, ((p1 && *p1)?40:81)-j, "%s, %s", pdb_getEntry(db, entry, 1), *p?p:"(unknown)");
 		uib_printstring(s, buf, j*5, 208, 81-j, ALIGN_LEFT, FONT_MEDIUM, c_black);
+
+		if (p1 && *p1) {
+			j=snprintf(buf, 42, " Cracker: ");
+			uib_printstring(s, buf, 195, 208, 40, ALIGN_LEFT, FONT_MEDIUM, c_blue);
+			snprintf(buf, 42-j,	"%s", p1);
+			uib_printstring(s, buf, 195+j*5, 208, 40, ALIGN_LEFT, FONT_MEDIUM, c_black);
+		}
 
 		j=snprintf(buf, 81, "Language:  ");
 		uib_printstring(s, buf, 0, 216, 80, ALIGN_LEFT, FONT_MEDIUM, c_blue);
 		snprintf(buf, 81-j, "%s", pdb_getEntry(db, entry, 8));
 		uib_printstring(s, buf, j*5, 216, 80, ALIGN_LEFT, FONT_MEDIUM, c_black);
 
-		j=snprintf(buf, 42, " Genre: ");
+		j=snprintf(buf, 42, " Genre:   ");
 		uib_printstring(s, buf, 195, 216, 40, ALIGN_LEFT, FONT_MEDIUM, c_blue);
 		p=pdb_getEntry(db, entry, 5);
 		p1=pdb_getEntry(db, entry, 6);
-
 		snprintf(buf, 42-j,	"%s%s%s", p1, (*p && *p1)?" - ":"", p);
 		uib_printstring(s, buf, 195+j*5, 216, 40, ALIGN_LEFT, FONT_MEDIUM, c_black);
 
