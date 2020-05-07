@@ -37,7 +37,7 @@
 #include "c64mem.h"
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "crt.h"
 #include "export.h"
 #include "lib.h"
@@ -398,7 +398,7 @@ void isepic_resources_shutdown(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-isepic", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -429,7 +429,7 @@ int isepic_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 static uint8_t isepic_io1_read(uint16_t addr)

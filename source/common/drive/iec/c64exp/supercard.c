@@ -29,7 +29,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "drive.h"
 #include "drivemem.h"
 #include "drivetypes.h"

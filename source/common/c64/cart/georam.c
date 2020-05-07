@@ -33,7 +33,7 @@
 #include "archdep.h"
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "export.h"
 #include "lib.h"
 #include "log.h"
@@ -455,7 +455,7 @@ void georam_resources_shutdown(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-georam", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -500,7 +500,7 @@ int georam_cmdline_options_init(void)
 
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 const char *georam_get_file_name(void)

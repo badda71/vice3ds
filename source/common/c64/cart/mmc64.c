@@ -41,7 +41,7 @@
 #include "cartio.h"
 #include "cartridge.h"
 #include "clockport.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "crt.h"
 #include "export.h"
 #include "lib.h"
@@ -1162,7 +1162,7 @@ void mmc64_resources_shutdown(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-mmc64", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -1239,7 +1239,7 @@ int mmc64_cmdline_options_init(void)
 
     return cmdline_register_options(clockport_cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 const char *mmc64_get_file_name(void)

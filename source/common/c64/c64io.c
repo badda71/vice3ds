@@ -32,7 +32,7 @@
 
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "lib.h"
 #include "log.h"
 #include "monitor.h"
@@ -808,7 +808,7 @@ int cartio_resources_init(void)
 {
     return resources_register_int(resources_int);
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-iocollision", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -821,3 +821,4 @@ int cartio_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
+*/

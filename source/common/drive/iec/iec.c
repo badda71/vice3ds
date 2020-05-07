@@ -32,7 +32,7 @@
 #include "ciad.h"
 #include "drive.h"
 #include "drivetypes.h"
-#include "iec-cmdline-options.h"
+//#include "iec-cmdline-options.h"
 #include "iec-resources.h"
 #include "iec.h"
 #include "iecbus.h"
@@ -62,12 +62,12 @@ void iec_drive_resources_shutdown(void)
 {
     iec_resources_shutdown();
 }
-
+/*
 int iec_drive_cmdline_options_init(void)
 {
     return iec_cmdline_options_init();
 }
-
+*/
 void iec_drive_init(struct drive_context_s *drv)
 {
     iecrom_init();

@@ -29,7 +29,7 @@
 #include "drivetypes.h"
 #include "mem1551.h"
 #include "glue1551.h"
-#include "tcbm-cmdline-options.h"
+//#include "tcbm-cmdline-options.h"
 #include "tcbm-resources.h"
 #include "tcbm.h"
 #include "tcbmrom.h"
@@ -47,12 +47,12 @@ void tcbm_drive_resources_shutdown(void)
 {
     tcbm_resources_shutdown();
 }
-
+/*
 int tcbm_drive_cmdline_options_init(void)
 {
     return tcbm_cmdline_options_init();
 }
-
+*/
 void tcbm_drive_init(struct drive_context_s *drv)
 {
     tcbmrom_init();

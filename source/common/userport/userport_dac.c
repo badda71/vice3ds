@@ -46,7 +46,7 @@ C64/C128 | CBM2 | PET | PLUS4 | VIC20 | NAME
 #include <stdlib.h>
 #include <string.h>
 
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "lib.h"
 #include "maincpu.h"
 #include "resources.h"
@@ -170,7 +170,7 @@ int userport_dac_resources_init(void)
 
     return resources_register_int(resources_int);
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-userportdac", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -186,7 +186,7 @@ int userport_dac_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ---------------------------------------------------------------------*/
 
 static uint8_t userport_dac_sound_data;

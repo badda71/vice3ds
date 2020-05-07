@@ -30,7 +30,7 @@
 #include "types.h"
 
 extern int ram_resources_init(void);
-extern int ram_cmdline_options_init(void);
+//3DS extern int ram_cmdline_options_init(void);
 
 extern void ram_init(uint8_t *memram, unsigned int ramsize);
 extern void ram_init_print_pattern(char *s, int len, char *eol);

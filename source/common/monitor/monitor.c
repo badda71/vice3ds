@@ -46,7 +46,7 @@
 
 #include "archdep.h"
 #include "charset.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "console.h"
 #include "datasette.h"
 #include "drive.h"
@@ -205,7 +205,7 @@ static char *recording_name;
 int playback = 0;
 char *playback_name = NULL;
 static void playback_commands(int current_playback);
-static int set_playback_name(const char *param, void *extra_param);
+//static int set_playback_name(const char *param, void *extra_param);
 
 /* Disassemble the current opcode on entry.  Used for single step.  */
 static int disassemble_on_entry = 0;
@@ -1187,7 +1187,7 @@ void monitor_shutdown(void)
 
     mon_memmap_shutdown();
 }
-
+/*
 static int monitor_set_initial_breakpoint(const char *param, void *extra_param)
 {
     int val;
@@ -1199,7 +1199,7 @@ static int monitor_set_initial_breakpoint(const char *param, void *extra_param)
 
     return 0;
 }
-
+*/
 static int keep_monitor_open = 0;
 
 #ifdef ARCHDEP_SEPERATE_MONITOR_WINDOW
@@ -1224,7 +1224,9 @@ int monitor_resources_init(void)
     return resources_register_int(resources_int);
 }
 
-/* FIXME: we should use a resource like MonitorLogFileName */
+
+/*
+// FIXME: we should use a resource like MonitorLogFileName
 static int set_monlog_name(const char *param, void *extra_param)
 {
     return mon_log_file_open(param);
@@ -1261,7 +1263,7 @@ int monitor_cmdline_options_init(void)
 
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 monitor_interface_t *monitor_interface_new(void)
 {
     return (monitor_interface_t *)lib_calloc(sizeof(monitor_interface_t), 1);
@@ -1491,6 +1493,7 @@ void mon_end_recording(void)
     recording = FALSE;
 }
 
+/*
 static int set_playback_name(const char *param, void *extra_param)
 {
     if (!playback_name) {
@@ -1499,7 +1502,7 @@ static int set_playback_name(const char *param, void *extra_param)
     }
     return 0;
 }
-
+*/
 static void playback_commands(int current_playback)
 {
     FILE *fp;

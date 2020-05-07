@@ -57,7 +57,7 @@
 #include "cx85.h"
 #include "debug.h"
 #include "diskimage.h"
-#include "drive-cmdline-options.h"
+//#include "drive-cmdline-options.h"
 #include "drive-resources.h"
 #include "drive-sound.h"
 #include "drive.h"
@@ -91,7 +91,7 @@
 #include "sampler.h"
 #include "sampler2bit.h"
 #include "sampler4bit.h"
-#include "scpu64-cmdline-options.h"
+//#include "scpu64-cmdline-options.h"
 #include "scpu64-resources.h"
 #include "scpu64-snapshot.h"
 #include "scpu64.h"
@@ -100,7 +100,7 @@
 #include "screenshot.h"
 #include "script64_dongle.h"
 #include "serial.h"
-#include "sid-cmdline-options.h"
+//#include "sid-cmdline-options.h"
 #include "sid-resources.h"
 #include "sid.h"
 #include "snespad.h"
@@ -616,6 +616,7 @@ void machine_resources_shutdown(void)
 }
 
 /* C64-specific command-line option initialization.  */
+/*
 int machine_cmdline_options_init(void)
 {
     if (traps_cmdline_options_init() < 0) {
@@ -646,14 +647,14 @@ int machine_cmdline_options_init(void)
         init_cmdline_options_fail("serial");
         return -1;
     }
-/*    if (printer_cmdline_options_init() < 0) {
+    if (printer_cmdline_options_init() < 0) {
         init_cmdline_options_fail("printer");
         return -1;
     }
     if (printer_userport_cmdline_options_init() < 0) {
         init_cmdline_options_fail("userport printer");
         return -1;
-    }*/
+    }
     if (joyport_cmdline_options_init() < 0) {
         init_cmdline_options_fail("joyport");
         return -1;
@@ -770,7 +771,7 @@ int machine_cmdline_options_init(void)
     }
     return 0;
 }
-
+*/
 static void scpu64_monitor_init(void)
 {
     unsigned int dnr;
@@ -991,7 +992,7 @@ void machine_specific_shutdown(void)
     mouse_shutdown();
 #endif
 
-    sid_cmdline_options_shutdown();
+    //sid_cmdline_options_shutdown();
 
     if (!console_mode) {
         scpu64ui_shutdown();

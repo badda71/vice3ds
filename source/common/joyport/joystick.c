@@ -39,7 +39,7 @@
 #include "archdep.h"
 #include "autofire.h"
 #include "alarm.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "keyboard.h"
 #include "joy.h"
 #include "joyport.h"
@@ -707,7 +707,7 @@ int joystick_resources_init(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-joyopposite", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -735,7 +735,7 @@ int joystick_cmdline_options_init(void)
 
     return joy_arch_cmdline_options_init();
 }
-
+*/
 /*--------------------------------------------------------------------------*/
 
 int joystick_init(void)

@@ -28,7 +28,7 @@
 
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "export.h"
 #include "lib.h"
 #include "resources.h"
@@ -127,7 +127,7 @@ void debugcart_resources_shutdown(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static const cmdline_option_t cart_cmdline_options[] =
 {
     { "-debugcart", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -146,3 +146,4 @@ int debugcart_cmdline_options_init(void)
     }
     return 0;
 }
+*/

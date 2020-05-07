@@ -214,8 +214,8 @@ extern void video_render_initraw(struct video_render_config_s *videoconfig);
 
 /**************************************************************/
 
-extern int video_arch_cmdline_options_init(void);
-extern int video_cmdline_options_init(void);
+//extern int video_arch_cmdline_options_init(void);
+//extern int video_cmdline_options_init(void);
 extern int video_init(void);
 extern void video_shutdown(void);
 
@@ -270,8 +270,8 @@ extern int video_resources_chip_init(const char *chipname,
                                      struct video_canvas_s **canvas,
                                      video_chip_cap_t *video_chip_cap);
 extern void video_resources_chip_shutdown(struct video_canvas_s *canvas);
-extern int video_cmdline_options_chip_init(const char *chipname,
-                                           video_chip_cap_t *video_chip_cap);
+//extern int video_cmdline_options_chip_init(const char *chipname,
+//                                           video_chip_cap_t *video_chip_cap);
 extern int video_arch_resources_init(void);
 extern void video_arch_resources_shutdown(void);
 

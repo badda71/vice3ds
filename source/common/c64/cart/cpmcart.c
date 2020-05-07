@@ -37,7 +37,7 @@
 #include "c64mem.h"
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "cpmcart.h"
 #include "daa.h"
 #include "export.h"
@@ -256,7 +256,7 @@ int cpmcart_resources_init(void)
 
     return resources_register_int(resources_int);
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-cpmcart", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -272,7 +272,7 @@ int cpmcart_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 struct cpmcart_ba_s {
     cpmcart_ba_check_callback_t *check;
     cpmcart_ba_steal_callback_t *steal;

@@ -36,7 +36,7 @@
 #include "alarm.h"
 #include "autostart.h"
 #include "clkguard.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "datasette.h"
 #include "lib.h"
 #include "log.h"
@@ -261,7 +261,7 @@ int datasette_resources_init(void)
 /*******************************************************************************
     Commandline options
  ******************************************************************************/
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-datasette", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -292,7 +292,7 @@ int datasette_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /*---------------------------------------------------------------------*/
 
 /* constants to make the counter-calculation a little faster */

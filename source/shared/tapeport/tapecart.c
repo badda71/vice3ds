@@ -49,7 +49,7 @@
 
 #include "alarm.h"
 #include "archdep.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "crc32.h"
 #include "lib.h"
 #include "log.h"
@@ -448,7 +448,7 @@ int tapecart_resources_init(void)
 
     return resources_register_string(resources_string);
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-tapecart", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -482,7 +482,7 @@ int tapecart_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 
 /* ---------------------------------------------------------------------*/
 /*  endian-independent buffer access functions                          */

@@ -39,7 +39,7 @@
 #include "c64mem.h"
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "drive.h"
 #include "export.h"
 #include "lib.h"
@@ -538,7 +538,7 @@ void tpi_resources_shutdown(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-ieee488", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -557,7 +557,7 @@ int tpi_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ---------------------------------------------------------------------*/
 
 const char *tpi_get_file_name(void)

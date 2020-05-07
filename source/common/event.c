@@ -37,7 +37,7 @@
 #include "attach.h"
 #include "autostart.h"
 #include "clkguard.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "crc32.h"
 #include "datasette.h"
 #include "debug.h"
@@ -1253,7 +1253,7 @@ void event_shutdown(void)
 }
 
 /*-----------------------------------------------------------------------*/
-
+/*
 static int cmdline_help(const char *param, void *extra_param)
 {
     return event_playback_start();
@@ -1289,7 +1289,7 @@ int event_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /*-----------------------------------------------------------------------*/
 
 static void clk_overflow_callback(CLOCK sub, void *data)

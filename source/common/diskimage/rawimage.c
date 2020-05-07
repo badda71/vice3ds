@@ -33,7 +33,7 @@
 
 #include "archdep.h"
 #include "blockdev.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "diskimage.h"
 #include "lib.h"
 #include "log.h"
@@ -167,7 +167,7 @@ void rawimage_resources_shutdown(void)
 }
 
 /*-----------------------------------------------------------------------*/
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-rawdrive", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -184,4 +184,5 @@ int rawimage_cmdline_options_init()
 
     return blockdev_cmdline_options_init();
 }
+*/
 #endif

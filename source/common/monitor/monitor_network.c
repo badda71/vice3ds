@@ -35,7 +35,7 @@
 
 #include "ui.h"
 
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "lib.h"
 #include "log.h"
 #include "monitor.h"
@@ -526,7 +526,7 @@ void monitor_network_resources_shutdown(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-remotemonitor", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -541,18 +541,11 @@ static const cmdline_option_t cmdline_options[] =
     CMDLINE_LIST_END
 };
 
-/*! \brief initialize the command-line options'
- \return
-   0 on success, else -1.
-
- \remark
-   Registers the command-line options
-*/
 int monitor_network_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 int monitor_is_remote(void)
 {
     return connected_socket != NULL;

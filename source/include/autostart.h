@@ -35,6 +35,9 @@
 #define AUTOSTART_MODE_RUN  0
 #define AUTOSTART_MODE_LOAD 1
 
+extern unsigned int autostart_mode;
+extern char *autostart_string;
+
 extern int autostart_resources_init(void);
 extern void autostart_resources_shutdown(void);
 extern int autostart_cmdline_options_init(void);

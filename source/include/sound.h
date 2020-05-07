@@ -173,7 +173,7 @@ extern void sound_snapshot_finish(void);
 
 extern int sound_resources_init(void);
 extern void sound_resources_shutdown(void);
-extern int sound_cmdline_options_init(void);
+//extern int sound_cmdline_options_init(void); // 3DS
 
 
 /* device initialization prototypes */

@@ -32,7 +32,7 @@
 
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "export.h"
 #include "lib.h"
 #include "log.h"
@@ -250,7 +250,7 @@ int sfx_soundsampler_resources_init(void)
 void sfx_soundsampler_resources_shutdown(void)
 {
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-sfxss", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -282,7 +282,7 @@ int sfx_soundsampler_cmdline_options_init(void)
     }
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ---------------------------------------------------------------------*/
 
 static void sfx_soundsampler_latch_sample(uint16_t addr, uint8_t value)

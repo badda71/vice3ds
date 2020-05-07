@@ -32,7 +32,7 @@
 
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "ds12c887.h"
 #include "ds12c887rtc.h"
 #include "export.h"
@@ -340,7 +340,7 @@ void ds12c887rtc_resources_shutdown(void)
 }
 
 /* ---------------------------------------------------------------------*/
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-ds12c887rtc", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -388,7 +388,7 @@ int ds12c887rtc_cmdline_options_init(void)
 
     return cmdline_register_options(base_cmdline_options);
 }
-
+*/
 /* ---------------------------------------------------------------------*/
 
 /* CARTDS12C887RTC snapshot module format:

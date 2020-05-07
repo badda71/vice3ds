@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "lib.h"
 #include "machine.h"
 #include "maincpu.h"
@@ -180,7 +180,7 @@ int userport_digimax_resources_init(void)
 }
 
 /* ---------------------------------------------------------------------*/
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-userportdigimax", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -196,7 +196,7 @@ int userport_digimax_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ---------------------------------------------------------------------*/
 
 /* USERPORT_DIGIMAX snapshot module format:

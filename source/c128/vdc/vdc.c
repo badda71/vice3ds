@@ -44,7 +44,7 @@
 #include "screenshot.h"
 #include "snapshot.h"
 #include "types.h"
-#include "vdc-cmdline-options.h"
+//#include "vdc-cmdline-options.h"
 #include "vdc-color.h"
 #include "vdc-draw.h"
 #include "vdc-resources.h"

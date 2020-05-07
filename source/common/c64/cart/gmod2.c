@@ -37,7 +37,7 @@
 #include "c64mem.h"
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "crt.h"
 #include "export.h"
 #include "flash040.h"
@@ -337,7 +337,7 @@ void gmod2_resources_shutdown(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-gmod2eepromimage", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -362,7 +362,7 @@ int gmod2_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 static int gmod2_common_attach(void)
 {
     if (export_add(&export_res) < 0) {

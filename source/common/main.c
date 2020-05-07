@@ -37,9 +37,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
+#include <unistd.h>
 
+#include "autostart.h"
 #include "archdep.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "console.h"
 #include "debug.h"
 #include "drive.h"
@@ -47,7 +50,7 @@
 #include "gfxoutput.h"
 #include "info.h"
 #include "init.h"
-#include "initcmdline.h"
+//#include "initcmdline.h"
 #include "lib.h"
 #include "log.h"
 #include "machine.h"
@@ -61,6 +64,7 @@
 #include "video.h"
 #include "3ds.h"
 #include "vice3ds.h"
+#include "archdep_xdg.h"
 
 #ifdef USE_SVN_REVISION
 #include "svnversion.h"
@@ -88,8 +92,28 @@ static int init_done = 0;
  */
 #define TERM_TMP_SIZE  80
 
-/* ------------------------------------------------------------------------- */
+static char *check_autostart_file(char *dir) {
+	struct dirent *pDirent;
+	DIR *pDir;
 
+	pDir = opendir (dir);
+	if (pDir == NULL) {
+		archdep_startup_log_error("check autostart: cannot open directory %s\n", dir);
+		return NULL;
+	} else {
+		while ((pDirent = readdir(pDir)) != NULL) {
+			if (strncmp("autostart.",pDirent->d_name,10)==0) {
+				char *p=archdep_join_paths(dir,pDirent->d_name,NULL);
+				closedir(pDir);
+				return p;
+			}
+		}
+	}
+	closedir (pDir);
+	return NULL;
+}
+
+/* ------------------------------------------------------------------------- */
 /* This is the main program entry point.  Call this from `main()'.  */
 int main_program(int argc, char **argv)
 {
@@ -124,7 +148,8 @@ int main_program(int argc, char **argv)
     sysfile_init(machine_name);
 
     gfxoutput_early_init(ishelp);
-    if ((init_resources() < 0) || (init_cmdline_options() < 0)) {
+//    if ((init_resources() < 0) || (init_cmdline_options() < 0)) {
+    if (init_resources() < 0) {
         return -1;
     }
 
@@ -155,10 +180,20 @@ int main_program(int argc, char **argv)
         }
     }
 
+/*
     DBG(("main:initcmdline_check_args(argc:%d)\n", argc));
     if (initcmdline_check_args(argc, argv) < 0) {
         return -1;
     }
+*/
+	// 3DS - check for autostart file: first resource name AutostartImage, then in romfs and vice dir
+	char *p;
+	if ((resources_get_string("AutostartImage", (const char **)(&p)) == 0 && p != NULL && *p != 0 && access( p, F_OK ) != -1) ||
+		(p=check_autostart_file("romfs:/"))!=NULL ||
+		(p=check_autostart_file(archdep_xdg_data_home()))!=NULL) {
+		autostart_string = p;
+        autostart_mode = AUTOSTART_MODE_RUN;
+	}
 
     /* VICE boot sequence.  */
     log_message(LOG_DEFAULT, " ");
@@ -182,15 +217,19 @@ int main_program(int argc, char **argv)
         return -1;
     }
 
-    if (initcmdline_check_psid() < 0) {
+/*    if (initcmdline_check_psid() < 0) {
         return -1;
     }
-
+*/
     if (init_main() < 0) {
         return -1;
     }
 
-    initcmdline_check_attach();
+	if (autostart_string != NULL) {
+		autostart_autodetect_opt_prgname(autostart_string, 0, autostart_mode);
+	}
+
+    // initcmdline_check_attach();
 
     init_done = 1;
 

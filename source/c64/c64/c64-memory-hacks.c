@@ -32,7 +32,7 @@
 
 #include "c64-memory-hacks.h"
 #include "c64_256k.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "mem.h"
 #include "plus256k.h"
 #include "plus60k.h"
@@ -139,7 +139,7 @@ int memory_hacks_resources_init(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-memoryexphack", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -152,7 +152,7 @@ int memory_hacks_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 /* C64MEMHACKS snapshot module format:

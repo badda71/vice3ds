@@ -40,7 +40,7 @@
 #include "archdep.h"
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "cs8900.h"
 #include "crc32.h"
 #include "export.h"
@@ -337,7 +337,7 @@ void cs8900io_resources_shutdown(void)
 
 /* ------------------------------------------------------------------------- */
 /*    commandline support functions                                          */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-cs8900ioif", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -356,5 +356,5 @@ int cs8900io_cmdline_options_init(void)
     }
     return 0;
 }
-
+*/
 #endif /* #ifdef HAVE_RAWNET */

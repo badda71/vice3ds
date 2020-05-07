@@ -30,7 +30,7 @@
 #include "drive.h"
 #include "drivetypes.h"
 #include "fdc.h"
-#include "ieee-cmdline-options.h"
+//#include "ieee-cmdline-options.h"
 #include "ieee-resources.h"
 #include "ieee.h"
 #include "ieeerom.h"
@@ -52,12 +52,12 @@ void ieee_drive_resources_shutdown(void)
 {
     ieee_resources_shutdown();
 }
-
+/*
 int ieee_drive_cmdline_options_init(void)
 {
     return ieee_cmdline_options_init();
 }
-
+*/
 void ieee_drive_init(struct drive_context_s *drv)
 {
     ieeerom_init();

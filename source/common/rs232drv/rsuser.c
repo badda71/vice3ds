@@ -38,7 +38,7 @@
 
 #include "alarm.h"
 #include "clkguard.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "log.h"
 #include "maincpu.h"
 #include "resources.h"
@@ -191,7 +191,7 @@ int rsuser_resources_init(void)
 {
     return resources_register_int(resources_int);
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-rsuser", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -213,7 +213,7 @@ int rsuser_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /*********************************************************************/
 
 static unsigned char code[256];

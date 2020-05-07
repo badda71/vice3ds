@@ -29,11 +29,11 @@
 
 #include "archdep.h"
 #include "attach.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "console.h"
 #include "debug.h"
 #include "drive.h"
-#include "initcmdline.h"
+//#include "initcmdline.h"
 #include "keyboard.h"
 #include "log.h"
 #include "machine-bus.h"
@@ -135,20 +135,22 @@ int init_resources(void)
 #endif
     return 0;
 }
-
+/*
 void init_cmdline_options_fail(const char *module)
 {
     archdep_startup_log_error("Cannot initialize %s command-line options.\n",
                               module);
 }
-
+*/
+/*
 int init_cmdline_options(void)
 {
     if (cmdline_init()) {
         archdep_startup_log_error("Cannot initialize command-line handling.\n");
         return -1;
     }
-    if (log_cmdline_options_init() < 0) {
+
+	if (log_cmdline_options_init() < 0) {
         init_cmdline_options_fail("log");
         return -1;
     }
@@ -160,7 +162,7 @@ int init_cmdline_options(void)
         init_cmdline_options_fail("system file locator");
         return -1;
     }
-    if (!video_disabled_mode && ui_cmdline_options_init() < 0) {
+	if (!video_disabled_mode && ui_cmdline_options_init() < 0) {
         init_cmdline_options_fail("UI");
         return -1;
     }
@@ -170,7 +172,7 @@ int init_cmdline_options(void)
             return -1;
         }
     }
-    if (monitor_cmdline_options_init() < 0) {
+	if (monitor_cmdline_options_init() < 0) {
         init_cmdline_options_fail("monitor");
         return -1;
     }
@@ -178,42 +180,35 @@ int init_cmdline_options(void)
         init_cmdline_options_fail("machine common");
         return -1;
     }
-    if (vsync_cmdline_options_init() < 0) {
+	if (vsync_cmdline_options_init() < 0) {
         init_cmdline_options_fail("vsync");
         return -1;
     }
-    if (sound_cmdline_options_init() < 0) {
+	if (sound_cmdline_options_init() < 0) {
         init_cmdline_options_fail("sound");
         return -1;
     }
-    if (keyboard_cmdline_options_init() < 0) {
+	if (keyboard_cmdline_options_init() < 0) {
         init_cmdline_options_fail("keyboard");
         return -1;
     }
-    if (video_cmdline_options_init() < 0) {
+	if (video_cmdline_options_init() < 0) {
         init_cmdline_options_fail("video");
         return -1;
     }
-    if (machine_cmdline_options_init() < 0) {
+	if (machine_cmdline_options_init() < 0) {
         init_cmdline_options_fail("machine");
         return -1;
     }
-
     if (machine_class != VICE_MACHINE_VSID) {
         if (ram_cmdline_options_init() < 0) {
             init_cmdline_options_fail("RAM");
             return -1;
         }
     }
-#ifdef HAVE_NETWORK
-    if (monitor_network_cmdline_options_init() < 0) {
-        init_cmdline_options_fail("MONITOR_NETWORK");
-        return -1;
-    }
-#endif
     return 0;
 }
-
+*/
 int init_main(void)
 {
 #ifdef __IBMC__

@@ -39,7 +39,7 @@ TAPE PORT | PCF8583 | I/O
 #include <stdlib.h>
 #include <string.h>
 
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "pcf8583.h"
 #include "resources.h"
 #include "snapshot.h"
@@ -140,7 +140,7 @@ int tapertc_resources_init(void)
 
     return resources_register_int(resources_int);
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-cpclockf83", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -162,7 +162,7 @@ int tapertc_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 void tapertc_resources_shutdown(void)
 {
     if (tapertc_context) {

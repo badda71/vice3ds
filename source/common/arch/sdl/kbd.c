@@ -37,7 +37,7 @@
 #include <string.h>
 
 #include "archdep.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "kbd.h"
 #include "fullscreenarch.h"
 #include "keyboard.h"
@@ -170,7 +170,7 @@ void sdlkbd_resources_shutdown(void)
 }
 
 /* ------------------------------------------------------------------------ */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-hotkeyfile", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -183,7 +183,7 @@ int sdlkbd_init_cmdline(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------ */
 
 /* Convert 'known' keycodes to SDL1x keycodes.

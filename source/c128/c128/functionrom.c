@@ -33,7 +33,7 @@
 #include "archdep.h"
 #include "bq4830y.h"
 #include "c128mem.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "functionrom.h"
 #include "lib.h"
 #include "resources.h"
@@ -228,7 +228,7 @@ void functionrom_resources_shutdown(void)
     lib_free(internal_function_rom_name);
     lib_free(external_function_rom_name);
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-intfrom", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -262,7 +262,7 @@ int functionrom_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 static int functionrom_load_internal(void)
 {
     if (internal_function_rom_enabled == INT_FUNCTION_ROM) {

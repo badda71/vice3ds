@@ -37,7 +37,7 @@
 #include <3ds.h>
 
 #include "autostart.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "archdep.h"
 #include "color.h"
 #include "fullscreenarch.h"
@@ -1056,7 +1056,7 @@ void ui_resources_shutdown(void)
     joy_arch_resources_shutdown();
     sdlkbd_resources_shutdown();
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-menukey", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -1150,7 +1150,7 @@ int ui_cmdline_options_init(void)
 
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 int ui_init(int *argc, char **argv)
 {
     DBG(("%s", __func__));

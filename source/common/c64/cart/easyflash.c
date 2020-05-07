@@ -37,7 +37,7 @@
 #include "c64mem.h"
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "crt.h"
 #include "easyflash.h"
 #include "export.h"
@@ -249,7 +249,7 @@ void easyflash_resources_shutdown(void)
 }
 
 /* ---------------------------------------------------------------------*/
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-easyflashjumper", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -277,7 +277,7 @@ int easyflash_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ---------------------------------------------------------------------*/
 
 uint8_t easyflash_roml_read(uint16_t addr)

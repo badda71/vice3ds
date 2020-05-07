@@ -31,7 +31,7 @@
 #include <string.h>
 
 #include "attach.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "diskimage.h"
 #include "driveimage.h"
 #include "fsdevice.h"
@@ -120,7 +120,7 @@ int file_system_resources_init(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-device8", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -166,7 +166,7 @@ int file_system_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 static int file_system_set_serial_hooks(unsigned int unit, int fs)

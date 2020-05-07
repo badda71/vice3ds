@@ -43,7 +43,7 @@
 
 #include "alarm.h"
 #include "archdep.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "joystick.h"
 #include "joy.h"
 #include "kbd.h"
@@ -1700,17 +1700,17 @@ static void keyboard_resources_shutdown(void)
 }
 
 /*--------------------------------------------------------------------------*/
-
+/* 3DS
 static cmdline_option_t const cmdline_options[] =
 {
     { "-keymap", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
       NULL, NULL, "KeymapIndex", NULL,
       "<number>", "Specify index of keymap file (0=symbolic, 1=positional, 2=symbolic (user), 3=positional (user))" },
-/* FIXME: build description dynamically */
+// FIXME: build description dynamically
     { "-keyboardmapping", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
       NULL, NULL, "KeyboardMapping", NULL,
       "<number>", "Specify host keyboard layout" },
-/* FIXME: build description dynamically */
+// FIXME: build description dynamically 
     { "-keyboardtype", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
       NULL, NULL, "KeyboardType", NULL,
       "<number>", "Specify emulated keyboard type" },
@@ -1730,7 +1730,7 @@ int keyboard_cmdline_options_init(void)
     }
     return 0;
 }
-
+*/
 /*--------------------------------------------------------------------------*/
 
 void keyboard_init(void)

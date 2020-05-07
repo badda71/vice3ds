@@ -30,7 +30,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "iecbus.h"
 #include "resources.h"
 #include "serial-iec-device.h"
@@ -95,7 +95,7 @@ int serial_iec_device_resources_init(void)
 {
     return resources_register_int(resources_int);
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-iecdevice4", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -153,7 +153,7 @@ int serial_iec_device_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /*------------------------------------------------------------------------*/
 
 /* Implement IEC devices here.  */

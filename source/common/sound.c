@@ -42,7 +42,7 @@
 
 #include "archdep.h"
 #include "clkguard.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "debug.h"
 #include "fixpoint.h"
 #include "lib.h"
@@ -346,8 +346,8 @@ static int fragment_divisor[] = {
      1  /* 100ms / 1 = 20 ms, actually unused (since it is not practical) */
 };
 
-static char *playback_devices_cmdline = NULL;
-static char *record_devices_cmdline = NULL;
+//static char *playback_devices_cmdline = NULL;
+//static char *record_devices_cmdline = NULL;
 
 /* I need this to serialize close_sound and enablesound/sound_open in
    the OS/2 Multithreaded environment                              */
@@ -568,12 +568,13 @@ void sound_resources_shutdown(void)
     lib_free(device_arg);
     lib_free(recorddevice_name);
     lib_free(recorddevice_arg);
-    lib_free(playback_devices_cmdline);
-    lib_free(record_devices_cmdline);
+//    lib_free(playback_devices_cmdline);
+//    lib_free(record_devices_cmdline);
 }
 
 /* ------------------------------------------------------------------------- */
 
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-sound", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -671,7 +672,7 @@ int sound_cmdline_options_init(void)
 
     return cmdline_register_options(devs_cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 /* timing constants */

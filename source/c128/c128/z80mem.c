@@ -33,7 +33,7 @@
 #include "c128mmu.h"
 #include "c64cia.h"
 #include "cartio.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "log.h"
 #include "mem.h"
 #include "resources.h"

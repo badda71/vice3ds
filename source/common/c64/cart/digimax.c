@@ -32,7 +32,7 @@
 
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "digimax.h"
 #include "export.h"
 #include "lib.h"
@@ -272,7 +272,7 @@ void digimax_resources_shutdown(void)
 }
 
 /* ---------------------------------------------------------------------*/
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-digimax", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -315,7 +315,7 @@ int digimax_cmdline_options_init(void)
 
     return cmdline_register_options(base_cmdline_options);
 }
-
+*/
 /* ---------------------------------------------------------------------*/
 
 /* CARTDIGIMAX snapshot module format:

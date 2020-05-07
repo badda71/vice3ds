@@ -56,7 +56,7 @@
 #include "cartio.h"
 #include "cartridge.h"
 #include "clockport.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "crt.h"
 #include "ds1202_1302.h"
 #include "export.h"
@@ -828,7 +828,7 @@ int ide64_resources_shutdown(void)
 
     return 0;
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-IDE64image1", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -965,7 +965,7 @@ int ide64_cmdline_options_init(void)
 
     return cmdline_register_options(clockport_cmdline_options);
 }
-
+*/
 void ide64_reset(void)
 {
     shortbus_reset();

@@ -36,7 +36,7 @@
 #include "archdep.h"
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "cs8900.h"
 #include "crc32.h"
 #include "export.h"
@@ -414,7 +414,7 @@ static int set_rrnet_enable(const char *value, void *extra_param)
 
     return resources_set_int("ETHERNETCART_ACTIVE", 1);
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-ethernetcart", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -470,7 +470,7 @@ int ethernetcart_cmdline_options_init(void)
 
     return cmdline_register_options(base_cmdline_options);
 }
-
+*/
 /* ---------------------------------------------------------------------*/
 /*    snapshot support functions                                             */
 

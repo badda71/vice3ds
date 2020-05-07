@@ -61,7 +61,7 @@
 #endif
 
 #include "archdep.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "lib.h"
 #include "log.h"
 #include "mididrv.h"
@@ -574,7 +574,7 @@ void mididrv_out_close(void)
 
 /* ------------------------------------------------------------------------- */
 /* Resources and cmdline */
-
+/*
 static int set_midi_in_dev(const char *val, void *param)
 {
     util_string_set(&midi_in_dev, val);
@@ -594,7 +594,7 @@ static const resource_string_t resources_string[] = {
       &midi_out_dev, set_midi_out_dev, NULL },
     RESOURCE_STRING_LIST_END
 };
-
+*/
 #ifdef USE_ALSA
 static int set_midi_driver(int val, void *param)
 {

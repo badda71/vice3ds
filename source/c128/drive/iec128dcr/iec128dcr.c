@@ -27,7 +27,7 @@
 #include "vice.h"
 
 #include "drivetypes.h"
-#include "iec128dcr-cmdline-options.h"
+//#include "iec128dcr-cmdline-options.h"
 #include "iec128dcr-resources.h"
 #include "iec128dcr.h"
 #include "iec128dcrrom.h"
@@ -42,12 +42,12 @@ void iec128dcr_drive_resources_shutdown(void)
 {
     iec128dcr_resources_shutdown();
 }
-
+/*
 int iec128dcr_drive_cmdline_options_init(void)
 {
     return iec128dcr_cmdline_options_init();
 }
-
+*/
 void iec128dcr_drive_init(struct drive_context_s *drv)
 {
     iec128dcrrom_init();

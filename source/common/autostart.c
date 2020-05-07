@@ -44,7 +44,7 @@
 #include "c64cartsystem.h"
 #include "cartridge.h"
 #include "charset.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "datasette.h"
 #include "diskimage.h"
 #include "drive.h"
@@ -53,7 +53,7 @@
 #include "imagecontents.h"
 #include "tapecontents.h"
 #include "diskcontents.h"
-#include "initcmdline.h"
+//#include "initcmdline.h"
 #include "interrupt.h"
 #include "ioutil.h"
 #include "kbdbuf.h"
@@ -90,6 +90,9 @@ static uint16_t blnsw;           /* Cursor Blink enable: 0 = Flash Cursor */
 static int pnt;                 /* Pointer: Current Screen Line Address */
 static int pntr;                /* Cursor Column on Current Line */
 static int lnmx;                /* Physical Screen Line Length */
+
+unsigned int autostart_mode = AUTOSTART_MODE_NONE;
+char *autostart_string = NULL;
 
 /* Current state of the autostart routine.  */
 static enum {
@@ -348,7 +351,7 @@ void autostart_resources_shutdown(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-basicload", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -393,19 +396,11 @@ static const cmdline_option_t cmdline_options[] =
     CMDLINE_LIST_END
 };
 
-/*! \brief initialize the command-line options
-
- \return
-   0 on success, else -1.
-
- \remark
-   Registers the command-line options
-*/
 int autostart_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 /* Deallocate program name if we have one */
@@ -627,7 +622,7 @@ static void autostart_finish(void)
     }
     /* printf("autostart_finish cmdline_get_autostart_mode(): %d\n", cmdline_get_autostart_mode()); */
     /* inject string given to -keybuf option on commandline into keyboard buffer */
-    if (cmdline_get_autostart_mode() != AUTOSTART_MODE_NONE) {
+    if (autostart_mode != AUTOSTART_MODE_NONE) {
         kbdbuf_feed_cmdline();
     }
 }

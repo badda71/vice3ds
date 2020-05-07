@@ -39,7 +39,7 @@
 #include "vice_sdl.h"
 
 #include "archdep.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "fullscreen.h"
 #include "fullscreenarch.h"
 #include "joy.h"
@@ -437,7 +437,7 @@ void video_arch_resources_shutdown(void)
 
 /* ------------------------------------------------------------------------- */
 /* Video-related command-line options.  */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-sdlbitdepth", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -496,7 +496,7 @@ int video_arch_cmdline_options_init(void)
 
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 int video_init(void)

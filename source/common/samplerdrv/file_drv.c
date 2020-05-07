@@ -100,7 +100,7 @@
 
 #include "types.h"
 
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "file_drv.h"
 #include "lib.h"
 #include "log.h"
@@ -2159,7 +2159,7 @@ static void sampler_file_resources_shutdown(void)
 
 
 /* ---------------------------------------------------------------------- */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-samplename", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -2172,7 +2172,7 @@ static int sampler_file_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ---------------------------------------------------------------------- */
 
 /* For now channel is ignored */
@@ -2232,7 +2232,7 @@ static sampler_device_t file_device =
     file_get_sample,
     file_shutdown,
     sampler_file_resources_init,
-    sampler_file_cmdline_options_init,
+    NULL,
     file_reset
 };
 

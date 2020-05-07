@@ -35,7 +35,7 @@
 #include "alarm.h"
 #include "archdep.h"
 #include "clkguard.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "interrupt.h"
 #include "lib.h"
 #include "log.h"
@@ -209,7 +209,7 @@ void midi_resources_shutdown(void)
 {
     mididrv_resources_shutdown();
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-midi", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -229,7 +229,7 @@ int midi_cmdline_options_init(void)
 
     return mididrv_cmdline_options_init();
 }
-
+*/
 /******************************************************************/
 
 static void clk_overflow_callback(CLOCK sub, void *var)

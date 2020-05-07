@@ -37,7 +37,7 @@
 #include "c128memrom.h"
 #include "c128mmu.h"
 #include "c64cart.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "functionrom.h"
 #include "interrupt.h"
 #include "keyboard.h"
@@ -101,7 +101,7 @@ int mmu_resources_init(void)
 {
     return resources_register_int(resources_int);
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-40col", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -123,7 +123,7 @@ int mmu_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 static void mmu_toggle_column4080_key(void)

@@ -27,7 +27,7 @@
 #include "vice.h"
 
 #include "iec-c64exp.h"
-#include "c64exp-cmdline-options.h"
+//#include "c64exp-cmdline-options.h"
 #include "c64exp-resources.h"
 #include "drivetypes.h"
 #include "dolphindos3.h"
@@ -45,12 +45,12 @@ void iec_c64exp_resources_shutdown(void)
 {
     c64exp_resources_shutdown();
 }
-
+/*
 int iec_c64exp_cmdline_options_init(void)
 {
     return c64exp_cmdline_options_init();
 }
-
+*/
 void iec_c64exp_init(struct drive_context_s *drv)
 {
     dd3_init(drv);

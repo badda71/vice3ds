@@ -34,7 +34,7 @@
 #include "c64mem.h"
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "lib.h"
 #include "log.h"
 #include "machine.h"
@@ -210,7 +210,7 @@ void plus256k_resources_shutdown(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-plus256kimage", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -223,7 +223,7 @@ int plus256k_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 void plus256k_init(void)

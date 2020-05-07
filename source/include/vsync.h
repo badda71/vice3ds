@@ -41,7 +41,7 @@ extern int slider3d_func;
 extern void vsync_suspend_speed_eval(void);
 extern void vsync_sync_reset(void);
 extern int vsync_resources_init(void);
-extern int vsync_cmdline_options_init(void);
+//extern int vsync_cmdline_options_init(void); // 3DS
 extern void vsync_init(void (*hook)(void));
 extern void vsync_set_machine_parameter(double refresh_rate, long cycles);
 extern double vsync_get_refresh_frequency(void);

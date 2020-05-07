@@ -34,7 +34,7 @@
 #include <string.h>
 
 #include "archdep.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "lib.h"
 #include "log.h"
 #include "resources.h"
@@ -100,14 +100,14 @@ static int log_verbose_opt(const char *param, void *extra_param)
     verbose = vice_ptr_to_int(extra_param);
     return 0;
 }
-
+/*
 static int log_silent_opt(const char *param, void *extra_param)
 {
     int silent = vice_ptr_to_int(extra_param);
     log_enabled = ! silent;
     return 0;
 }
-
+*/
 
 int log_set_verbose(int n)
 {
@@ -151,7 +151,7 @@ static const resource_string_t resources_string[] = {
       &log_file_name, set_log_file_name, NULL },
     RESOURCE_STRING_LIST_END
 };
-
+/*
 static int log_logfile_opt(const char *param, void *extra_param)
 {
     locked = 0;
@@ -159,7 +159,7 @@ static int log_logfile_opt(const char *param, void *extra_param)
     locked = 1;
     return 0;
 }
-
+*/
 int log_resources_init(void)
 {
     return resources_register_string(resources_string);
@@ -169,7 +169,7 @@ void log_resources_shutdown(void)
 {
     lib_free(log_file_name);
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-logfile", CALL_FUNCTION, CMDLINE_ATTRIB_NEED_ARGS,
@@ -188,6 +188,7 @@ int log_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
+*/
 #endif
 
 /* ------------------------------------------------------------------------- */

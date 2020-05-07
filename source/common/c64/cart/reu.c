@@ -46,7 +46,7 @@
 #include "archdep.h"
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "export.h"
 #include "interrupt.h"
 #include "lib.h"
@@ -519,7 +519,7 @@ void reu_resources_shutdown(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-reu", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -543,18 +543,11 @@ static const cmdline_option_t cmdline_options[] =
     CMDLINE_LIST_END
 };
 
-/*! \brief initialize the command-line options'
- \return
-   0 on success, else -1.
-
- \remark
-   Registers the command-line options
-*/
 int reu_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 const char *reu_get_file_name(void)

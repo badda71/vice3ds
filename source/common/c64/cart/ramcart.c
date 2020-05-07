@@ -36,7 +36,7 @@
 #include "c64mem.h"
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "export.h"
 #include "lib.h"
 #include "log.h"
@@ -482,7 +482,7 @@ void ramcart_resources_shutdown(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-ramcart", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -516,7 +516,7 @@ int ramcart_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 const char *ramcart_get_file_name(void)

@@ -32,7 +32,7 @@
 #include "c64_256k.h"
 #include "c64gluelogic.h"
 #include "c64mem.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "log.h"
 #include "machine.h"
 #include "maincpu.h"
@@ -145,7 +145,7 @@ int c64_glue_resources_init(void)
     }
     return resources_register_int(resources_int);
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-gluelogictype", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -158,7 +158,7 @@ int c64_glue_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 void c64_glue_init(void)
 {
     glue_alarm = alarm_new(maincpu_alarm_context, "Glue", glue_alarm_handler, NULL);

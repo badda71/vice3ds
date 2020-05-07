@@ -84,7 +84,7 @@
 #define ssize_t int
 #endif
 
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "coproc.h"
 #include "log.h"
 #include "resources.h"
@@ -169,6 +169,7 @@ void rs232dev_resources_shutdown(void)
 {
 }
 
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-rsdev1baud", SET_RESOURCE,
@@ -194,7 +195,7 @@ int rs232dev_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 #ifndef _3DS

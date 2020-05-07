@@ -31,7 +31,7 @@
 #include <stdlib.h>
 
 #include "archdep.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "lib.h"
 #include "log.h"
 #include "machine.h"
@@ -211,7 +211,7 @@ static int doodledrv_resources_init(void)
 
     return resources_register_int(resources_int);
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-doodleoversize", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -258,7 +258,7 @@ static int doodledrv_cmdline_options_init(void)
 
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------ */
 
 static void doodle_check_and_correct_cell(native_data_t *source)
@@ -707,7 +707,7 @@ static gfxoutputdrv_t doodle_drv =
     NULL,
     NULL,
     doodledrv_resources_init,
-    doodledrv_cmdline_options_init
+    NULL
 #ifdef FEATURE_CPUMEMHISTORY
     , NULL
 #endif

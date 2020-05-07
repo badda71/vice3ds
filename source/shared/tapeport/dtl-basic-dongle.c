@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "resources.h"
 #include "snapshot.h"
 #include "tapeport.h"
@@ -154,7 +154,7 @@ int dtlbasic_dongle_resources_init(void)
 
     return resources_register_int(resources_int);
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-dtlbasicdongle", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -170,7 +170,7 @@ int dtlbasic_dongle_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ---------------------------------------------------------------------*/
 
 static void dtlbasic_dongle_reset(void)

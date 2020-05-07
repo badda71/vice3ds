@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "ds1602.h"
 #include "joyport.h"
 #include "resources.h"
@@ -167,7 +167,7 @@ void joyport_bbrtc_resources_shutdown(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-bbrtcsave", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -183,7 +183,7 @@ int joyport_bbrtc_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 /* BBRTC snapshot module format:

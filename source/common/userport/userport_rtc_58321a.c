@@ -43,7 +43,7 @@ C64/C128 | CBM2 | PET | VIC20 | NAME
 #include <stdlib.h>
 #include <string.h>
 
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "lib.h"
 #include "maincpu.h"
 #include "resources.h"
@@ -151,7 +151,7 @@ int userport_rtc_58321a_resources_init(void)
 
     return resources_register_int(resources_int);
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-userportrtc58321a", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -173,7 +173,7 @@ int userport_rtc_58321a_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 void userport_rtc_58321a_resources_shutdown(void)
 {
     if (rtc58321a_context) {

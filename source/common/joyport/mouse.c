@@ -48,7 +48,7 @@
 #include "vice.h"
 
 #include "alarm.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "joyport.h"
 #include "joystick.h"
 #include "log.h"
@@ -1045,6 +1045,7 @@ int mouse_resources_init(void)
     return mousedrv_resources_init(&mouse_funcs);
 }
 
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-mouse", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -1079,7 +1080,7 @@ int mouse_cmdline_options_init(void)
 
     return mousedrv_cmdline_options_init();
 }
-
+*/
 void mouse_init(void)
 {
     emu_units_per_os_units = (float)(machine_get_cycles_per_second() / vsyncarch_frequency());

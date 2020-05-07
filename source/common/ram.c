@@ -29,7 +29,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "lib.h"
 #include "machine.h"
 #include "ram.h"
@@ -83,7 +83,7 @@ int ram_resources_init(void)
     }
     return 0;
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-raminitstartvalue", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -106,7 +106,7 @@ int ram_cmdline_options_init(void)
     return 0;
 }
 
-
+*/
 void ram_init(uint8_t *memram, unsigned int ramsize)
 {
     unsigned int i, j, k, l;

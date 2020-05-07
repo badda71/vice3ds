@@ -53,7 +53,7 @@ PIN | PIN | NOTES
 #include <string.h>
 
 #include "c64_diag_586220_harness.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "resources.h"
 #include "userport.h"
 #include "userport_diag_586220_harness.h"
@@ -131,7 +131,7 @@ int userport_diag_586220_harness_resources_init(void)
 {
     return resources_register_int(resources_int);
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-userportdiag586220harness", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -147,7 +147,7 @@ int userport_diag_586220_harness_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ---------------------------------------------------------------------*/
 
 static uint8_t pax = 0;

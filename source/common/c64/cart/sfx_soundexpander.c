@@ -32,7 +32,7 @@
 
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "export.h"
 #include "fmopl.h"
 #include "lib.h"
@@ -313,7 +313,7 @@ void sfx_soundexpander_resources_shutdown(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-sfxse", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -348,7 +348,7 @@ int sfx_soundexpander_cmdline_options_init(void)
     }
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ---------------------------------------------------------------------*/
 
 struct sfx_soundexpander_sound_s {

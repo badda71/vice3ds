@@ -34,7 +34,7 @@
 
 #include "archdep.h"
 #include "attach.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "diskimage.h"
 #include "drive.h"
 #include "fliplist.h"
@@ -113,7 +113,7 @@ void fliplist_resources_shutdown(void)
     lib_free(fliplist_file_name);
     lib_free((char *)(resources_string[0].factory_value));
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-flipname", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -126,7 +126,7 @@ int fliplist_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 /* interface functions */
 

@@ -41,7 +41,7 @@
 #include <CoreAudio/HostTime.h>
 #endif
 
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "lib.h"
 #include "log.h"
 #include "mididrv.h"
@@ -115,7 +115,7 @@ void mididrv_resources_shutdown(void)
     lib_free(midi_in_name);
     lib_free(midi_out_name);
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-midiname", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS | CMDLINE_ATTRIB_NEED_BRACKETS,
@@ -134,7 +134,7 @@ int mididrv_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ----- FIFO ----- */
 
 static void reset_fifo(void)

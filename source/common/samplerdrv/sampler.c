@@ -28,7 +28,7 @@
 
 #include <string.h>
 
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "file_drv.h"
 #include "lib.h"
 #include "resources.h"
@@ -234,7 +234,7 @@ void sampler_resources_shutdown(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static cmdline_option_t cmdline_options[] =
 {
     { "-samplerdev", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -284,3 +284,4 @@ int sampler_cmdline_options_init(void)
 
     return cmdline_register_options(cmdline_options);
 }
+*/

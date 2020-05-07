@@ -40,7 +40,7 @@
 #include <windows.h>
 #include <mmsystem.h>
 
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "log.h"
 #include "mididrv.h"
 
@@ -107,7 +107,7 @@ int mididrv_resources_init(void)
 void mididrv_resources_shutdown(void)
 {
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-midiin", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -123,7 +123,7 @@ int mididrv_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 static void reset_fifo(void)
 {
     in_wi = 0;

@@ -82,7 +82,7 @@
 #include "c64mem.h"
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "lib.h"
 #include "log.h"
 #include "machine.h"
@@ -306,7 +306,7 @@ void plus60k_resources_shutdown(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-plus60kimage", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -322,7 +322,7 @@ int plus60k_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 void plus60k_init(void)

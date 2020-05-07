@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "joyport.h"
 #include "joystick.h"
 #include "machine.h"
@@ -535,7 +535,7 @@ int userport_joystick_resources_init(void)
 
     return resources_register_int(resources_int);
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-userportjoy", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -564,7 +564,7 @@ int userport_joystick_cmdline_options_init(void)
     }
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 static void userport_joystick_cga_read_pbx(void)

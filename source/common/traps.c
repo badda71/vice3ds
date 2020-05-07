@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "lib.h"
 #include "log.h"
 #include "machine.h"
@@ -106,7 +106,7 @@ int traps_resources_init(void)
 /* ------------------------------------------------------------------------- */
 
 /* Trap-related command-line options.  */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-virtualdev", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -122,7 +122,7 @@ int traps_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 void traps_init(void)

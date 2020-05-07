@@ -28,7 +28,7 @@
 
 #include <string.h>
 
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "joyport.h"
 #include "lib.h"
 #include "resources.h"
@@ -554,7 +554,7 @@ int joyport_resources_init(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
+/*
 struct joyport_opt_s {
     const char *name;
     int id;
@@ -649,9 +649,9 @@ static int set_joyport_cmdline_device(const char *param, void *extra_param)
 
     return set_joyport_device(temp, int_to_void_ptr(port));
 }
-
+*/
 /* ------------------------------------------------------------------------- */
-
+/*
 static char *build_joyport_string(int port)
 {
     int i = 0;
@@ -764,7 +764,7 @@ int joyport_cmdline_options_init(void)
     }
     return 0;
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 #define DUMP_VER_MAJOR   0

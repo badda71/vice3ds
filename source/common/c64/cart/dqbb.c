@@ -36,7 +36,7 @@
 #include "c64mem.h"
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "export.h"
 #include "lib.h"
 #include "mem.h"
@@ -311,7 +311,7 @@ void dqbb_resources_shutdown(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-dqbb", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -336,7 +336,7 @@ int dqbb_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 const char *dqbb_get_file_name(void)

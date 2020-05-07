@@ -35,7 +35,7 @@
 #include "acia.h"
 #include "alarm.h"
 #include "clkguard.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "interrupt.h"
 #include "log.h"
 #include "machine.h"
@@ -498,6 +498,7 @@ int myacia_init_resources(void)
 }
 
 /*! \brief the command-line options available for the ACIA */
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-myaciadev", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -506,19 +507,11 @@ static const cmdline_option_t cmdline_options[] =
     CMDLINE_LIST_END
 };
 
-/*! \brief initialize the command-line options
-
- \return
-   0 on success, else -1.
-
- \remark
-   Registers the command-line options
-*/
 int myacia_init_cmdline_options(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /******************************************************************/
 /* auxiliary functions */
 

@@ -35,7 +35,7 @@
 #include "attach.h"
 #include "autostart.h"
 #include "clkguard.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "console.h"
 #include "diskimage.h"
 #include "drive.h"
@@ -316,7 +316,7 @@ void machine_shutdown(void)
 
     console_close_all();
 
-    cmdline_shutdown();
+    //cmdline_shutdown();
 
     resources_shutdown();
 
@@ -437,6 +437,7 @@ void machine_common_resources_shutdown(void)
     lib_free(ExitScreenshotName1);
 }
 
+/* 3DS
 static const cmdline_option_t cmdline_options_c128[] =
 {
     { "-jamaction", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -480,3 +481,4 @@ int machine_common_cmdline_options_init(void)
         return cmdline_register_options(cmdline_options);
     }
 }
+*/

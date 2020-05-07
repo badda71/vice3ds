@@ -37,7 +37,7 @@
 #endif
 
 #include "archdep.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "ioutil.h"
 #include "lib.h"
 #include "log.h"
@@ -60,6 +60,7 @@ void romset_resources_shutdown(void)
 {
 }
 
+/* 3DS
 static int option_romsetfile(const char *value, void *extra_param)
 {
     return romset_file_load(value);
@@ -93,6 +94,7 @@ int romset_cmdline_options_init()
 {
     return cmdline_register_options(cmdline_options);
 }
+*/
 
 static const char *prepend_dir_to_path(const char *dir)
 {

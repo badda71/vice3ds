@@ -38,7 +38,7 @@
 #include "cartio.h"
 #include "cartridge.h"
 #include "clockport.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "crt.h"
 #include "export.h"
 #include "flash040.h"
@@ -2940,7 +2940,7 @@ void mmcreplay_resources_shutdown(void)
     lib_free(clockport_device_names);
     clockport_device_names = NULL;
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-mmcrrescue", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -3014,7 +3014,7 @@ int mmcreplay_cmdline_options_init(void)
 
     return cmdline_register_options(clockport_cmdline_options);
 }
-
+*/
 /* ---------------------------------------------------------------------*/
 /*    snapshot support functions                                             */
 

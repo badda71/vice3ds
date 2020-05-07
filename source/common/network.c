@@ -39,7 +39,7 @@
 #endif
 
 #include "archdep.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "interrupt.h"
 #include "lib.h"
 #include "log.h"
@@ -141,7 +141,7 @@ int network_resources_init(void)
 }
 
 /*---------------------------------------------------------------------*/
-
+/*
 static void network_set_mask(int offset, int val)
 {
     switch (val) {
@@ -220,7 +220,7 @@ int network_cmdline_options_init(void)
     return cmdline_register_options(cmdline_options);
 }
 
-
+*/
 /*---------------------------------------------------------------------*/
 
 static void network_free_frame_event_list(void)

@@ -36,7 +36,7 @@
 #undef CARTRIDGE_INCLUDE_SLOTMAIN_API
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "export.h"
 #include "monitor.h"
 #include "resources.h"
@@ -326,7 +326,7 @@ void supersnapshot_v5_resources_shutdown(void)
 }
 
 /* ---------------------------------------------------------------------*/
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-ssramexpansion", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -342,6 +342,7 @@ int supersnapshot_v5_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
+*/
 /* ---------------------------------------------------------------------*/
 
 /* CARTSS5 snapshot module format:

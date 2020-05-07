@@ -43,7 +43,7 @@
 #include "c64cartsystem.h"
 #undef CARTRIDGE_INCLUDE_SLOTMAIN_API
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "crt.h"
 #include "export.h"
 #include "interrupt.h"
@@ -434,11 +434,12 @@ void cartridge_resources_shutdown(void)
 }
 
 /* ---------------------------------------------------------------------*/
+/*
 int cart_attach_cmdline(const char *param, void *extra_param)
 {
     int type = vice_ptr_to_int(extra_param);
 
-    /* NULL param is used for +cart */
+    // NULL param is used for +cart
     if (!param) {
         cartridge_detach_image(-1);
         return 0;
@@ -448,14 +449,14 @@ int cart_attach_cmdline(const char *param, void *extra_param)
 
 static const cmdline_option_t cmdline_options[] =
 {
-    /* hardreset on cartridge change */
+    // hardreset on cartridge change
     { "-cartreset", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
       NULL, NULL, "CartridgeReset", (void *)1,
       NULL, "Reset machine if a cartridge is attached or detached" },
     { "+cartreset", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
       NULL, NULL, "CartridgeReset", (void *)0,
       NULL, "Do not reset machine if a cartridge is attached or detached" },
-    /* no cartridge */
+    // no cartridge
     { "+cart", CALL_FUNCTION, CMDLINE_ATTRIB_NONE,
       cart_attach_cmdline, NULL, NULL, NULL,
       NULL, "Disable default cartridge" },
@@ -476,7 +477,7 @@ int cartridge_cmdline_options_init(void)
 
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 /*

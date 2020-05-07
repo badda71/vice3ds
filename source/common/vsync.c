@@ -52,7 +52,7 @@ int vsync_frame_counter;
 #endif
 
 #include "clkguard.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "debug.h"
 #include "log.h"
 #include "maincpu.h"
@@ -157,8 +157,8 @@ int vsync_resources_init(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
-/* Vsync-related command-line options. */
+/* 3DS
+// Vsync-related command-line options.
 static const cmdline_option_t cmdline_options[] =
 {
     { "-speed", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -199,7 +199,7 @@ int vsync_cmdline_options_init(void)
     }
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 /* Maximum number of frames we can skip consecutively when adjusting the

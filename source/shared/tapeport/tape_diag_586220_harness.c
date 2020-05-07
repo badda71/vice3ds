@@ -45,7 +45,7 @@ F-6 |   4   | loops to 6 (SENSE <-> READ)
 #include <string.h>
 
 #include "c64_diag_586220_harness.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "log.h"
 #include "maincpu.h"
 #include "resources.h"
@@ -144,7 +144,7 @@ int tape_diag_586220_harness_resources_init(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-tapediag586220harness", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -160,3 +160,4 @@ int tape_diag_586220_harness_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
+*/

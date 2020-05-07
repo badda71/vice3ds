@@ -119,6 +119,6 @@ extern int rev_keyarr[KBD_COLS];
 extern int keyboard_shiftlock;
 
 extern int keyboard_resources_init(void);
-extern int keyboard_cmdline_options_init(void);
+//extern int keyboard_cmdline_options_init(void); // 3DS
 
 #endif

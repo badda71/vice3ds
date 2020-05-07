@@ -38,7 +38,7 @@ C64/C128 | CBM2 | PET | VIC20 | NAME
 #include <stdlib.h>
 #include <string.h>
 
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "ds1307.h"
 #include "lib.h"
 #include "maincpu.h"
@@ -150,7 +150,7 @@ int userport_rtc_ds1307_resources_init(void)
 
     return resources_register_int(resources_int);
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-userportrtcds1307", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -172,7 +172,7 @@ int userport_rtc_ds1307_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 void userport_rtc_ds1307_resources_shutdown(void)
 {
     if (ds1307_context) {

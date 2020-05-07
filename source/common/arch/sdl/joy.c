@@ -38,7 +38,7 @@
 #include <string.h>
 
 #include "archdep.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "joy.h"
 #include "joyport.h"
 #include "joystick.h"
@@ -207,6 +207,7 @@ static const resource_int_t resources_int[] = {
 
 /* Command-line options.  */
 
+/*
 #ifdef HAVE_SDL_NUMJOYSTICKS
 static const cmdline_option_t cmdline_options[] =
 {
@@ -262,7 +263,7 @@ static const cmdline_option_t joydev5cmdline_options[] =
       JOYDEV_RANGE_TEXT, JOYDEV_DESCRIPTION_5 },
     CMDLINE_LIST_END
 };
-
+*/
 int joy_arch_resources_init(void)
 {
     /* Init the keyboard resources here before resources_set_defaults is called */
@@ -293,7 +294,7 @@ void joy_arch_resources_shutdown(void)
     joymap_file = NULL;
 #endif
 }
-
+/*
 int joy_arch_cmdline_options_init(void)
 {
 #ifdef HAVE_SDL_NUMJOYSTICKS
@@ -334,7 +335,7 @@ int joy_arch_cmdline_options_init(void)
 
     return 0;
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 #ifdef HAVE_SDL_NUMJOYSTICKS

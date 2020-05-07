@@ -31,7 +31,7 @@
 #include <stdlib.h>
 
 #include "archdep.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "lib.h"
 #include "log.h"
 #include "machine.h"
@@ -192,7 +192,7 @@ static int koaladrv_resources_init(void)
 
     return resources_register_int(resources_int);
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-koalaoversize", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -236,7 +236,7 @@ static int koaladrv_cmdline_options_init(void)
 
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------ */
 
 static void koala_multicolorize_colormap(native_data_t *source)
@@ -793,7 +793,7 @@ static gfxoutputdrv_t koala_drv =
     NULL,
     NULL,
     koaladrv_resources_init,
-    koaladrv_cmdline_options_init
+    NULL
 #ifdef FEATURE_CPUMEMHISTORY
     , NULL
 #endif

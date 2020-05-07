@@ -44,7 +44,7 @@ TAPEPORT | TAPELOG
 #include <stdlib.h>
 #include <string.h>
 
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "lib.h"
 #include "log.h"
 #include "maincpu.h"
@@ -288,7 +288,7 @@ void tapelog_resources_shutdown(void)
 
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-tapelog", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -313,7 +313,7 @@ int tapelog_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ---------------------------------------------------------------------*/
 
 static void tapelog_set_motor(int flag)

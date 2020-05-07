@@ -40,7 +40,7 @@
 #include "c64mem.h"
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "crt.h"
 #include "cs8900io.h"
 #include "export.h"
@@ -333,7 +333,7 @@ void rrnetmk3_resources_shutdown(void)
 }
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-rrnetmk3bioswrite", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -355,7 +355,7 @@ int rrnetmk3_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 void rrnetmk3_init(void)

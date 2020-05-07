@@ -31,7 +31,7 @@
 #include <string.h>
 
 #include "archdep.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "embedded.h"
 #include "findpath.h"
 #include "ioutil.h"
@@ -70,7 +70,7 @@ static const resource_string_t resources_string[] = {
 };
 
 /* Command-line options.  */
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-directory", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -78,7 +78,7 @@ static const cmdline_option_t cmdline_options[] =
       "<Path>", "Define search path to locate system files" },
     CMDLINE_LIST_END
 };
-
+*/
 /* ------------------------------------------------------------------------- */
 
 int sysfile_init(const char *emu_id)
@@ -106,12 +106,12 @@ void sysfile_resources_shutdown(void)
 {
     lib_free(system_path);
 }
-
+/*
 int sysfile_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* Locate a system file called `name' by using the search path in
    `Directory', checking that the file can be accesses in mode `mode', and
    return an open stdio stream for that file.  If `complete_path_return' is

@@ -90,8 +90,8 @@ extern void machine_common_resources_shutdown(void);
 extern void machine_resources_shutdown(void);
 
 /* Initialize the machine's command-line options.  */
-extern int machine_common_cmdline_options_init(void);
-extern int machine_cmdline_options_init(void);
+//3DS extern int machine_common_cmdline_options_init(void);
+//3DS extern int machine_cmdline_options_init(void);
 
 /* Initialize the machine.  */
 extern void machine_setup_context(void);

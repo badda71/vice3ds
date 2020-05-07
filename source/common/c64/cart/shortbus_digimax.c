@@ -32,7 +32,7 @@
 
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "lib.h"
 #include "resources.h"
 #include "snapshot.h"
@@ -210,7 +210,7 @@ void shortbus_digimax_resources_shutdown(void)
 }
 
 /* ---------------------------------------------------------------------*/
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-sbdigimax", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -246,7 +246,7 @@ int shortbus_digimax_cmdline_options_init(void)
 
     return cmdline_register_options(base_cmdline_options);
 }
-
+*/
 int shortbus_digimax_enabled(void)
 {
     return shortbus_digimax_expansion_active;

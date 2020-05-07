@@ -36,8 +36,8 @@
 #include "alarm.h"
 #include "autostart.h"
 #include "charset.h"
-#include "cmdline.h"
-#include "initcmdline.h"
+//#include "cmdline.h"
+//#include "initcmdline.h"
 #include "kbdbuf.h"
 #include "lib.h"
 #include "machine.h"
@@ -173,7 +173,7 @@ int kbdbuf_feed_string(const char *string)
 
     return kbdbuf_feed(kbd_buf_string);
 }
-
+/*
 static int kdb_buf_feed_cmdline(const char *param, void *extra_param)
 {
     kbd_buf_parse_string(param);
@@ -196,7 +196,7 @@ int kbdbuf_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 /* put character into the keyboard queue inside the emulation */
@@ -283,7 +283,7 @@ void kbdbuf_reset(int location, int plocation, int size, CLOCK mincycles)
 /* Initialization.  */
 void kbdbuf_init(int location, int plocation, int size, CLOCK mincycles)
 {
-    int isautoload = (cmdline_get_autostart_mode() != AUTOSTART_MODE_NONE);
+    int isautoload = (autostart_mode != AUTOSTART_MODE_NONE);
 
     if (!isautoload) {
         mincycles += KbdbufDelay;

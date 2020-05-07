@@ -31,7 +31,7 @@
 #include <stdlib.h>
 #include "vice_sdl.h"
 
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "info.h"
 #include "lib.h"
 #include "menu_common.h"

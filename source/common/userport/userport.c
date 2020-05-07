@@ -29,7 +29,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "lib.h"
 #include "log.h"
 #include "machine.h"
@@ -600,7 +600,7 @@ void userport_resources_shutdown(void)
         c = userport_snapshot_head.next;
     }
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-userportcollision", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -613,7 +613,7 @@ int userport_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 void userport_enable(int val)
 {
     userport_active = val ? 1 : 0;

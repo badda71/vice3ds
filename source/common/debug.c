@@ -30,7 +30,7 @@
 #include <string.h>
 
 #include "archdep.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "debug.h"
 #include "drive.h"
 #include "interrupt.h"
@@ -129,7 +129,7 @@ int debug_resources_init(void)
 {
     return resources_register_int(resources_int);
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
 #ifdef DEBUG
@@ -177,7 +177,7 @@ int debug_cmdline_options_init(void)
 {
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 static unsigned int cycles_per_line;
 static unsigned int screen_lines;
 

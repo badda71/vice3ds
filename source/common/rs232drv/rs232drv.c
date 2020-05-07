@@ -27,7 +27,7 @@
 #include "vice.h"
 
 #include "archdep.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "lib.h"
 #include "resources.h"
 #include "rs232.h"
@@ -81,7 +81,7 @@ void rs232drv_resources_shutdown(void)
 
     rs232_resources_shutdown();
 }
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-rsdev1", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -107,7 +107,7 @@ int rs232drv_cmdline_options_init(void)
 
     return rs232_cmdline_options_init();
 }
-
+*/
 void rs232drv_init(void)
 {
     rs232_init();

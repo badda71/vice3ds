@@ -35,7 +35,7 @@
 
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "cs8900io.h"
 #include "lib.h"
 #include "monitor.h"
@@ -220,7 +220,7 @@ void shortbus_etfe_resources_shutdown(void)
 }
 
 /* ---------------------------------------------------------------------*/
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-sbetfe", SET_RESOURCE, CMDLINE_ATTRIB_NONE,
@@ -252,7 +252,7 @@ int shortbus_etfe_cmdline_options_init(void)
 
     return cmdline_register_options(base_cmdline_options);
 }
-
+*/
 int shortbus_etfe_enabled(void)
 {
     return shortbus_etfe_expansion_active;

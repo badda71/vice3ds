@@ -41,7 +41,7 @@
 #include "c64mem.h"
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "cpmcart.h"
 #include "crt.h"
 #include "export.h"
@@ -183,9 +183,10 @@ extern export_t export_passthrough; /* slot1 and main combined, goes into slot0 
 
     -cartXYZ <name>     attach a ram/rom image for cartridgeXYZ
 */
+/*
 static const cmdline_option_t cmdline_options[] =
 {
-    /* generic cartridges */
+    // generic cartridges 
     { "-cart8", CALL_FUNCTION, CMDLINE_ATTRIB_NEED_ARGS,
       cart_attach_cmdline, (void *)CARTRIDGE_GENERIC_8KB, NULL, NULL,
       "<Name>", "Attach raw 8KB cartridge image" },
@@ -195,11 +196,11 @@ static const cmdline_option_t cmdline_options[] =
     { "-cartultimax", CALL_FUNCTION, CMDLINE_ATTRIB_NEED_ARGS,
       cart_attach_cmdline, (void *)CARTRIDGE_ULTIMAX, NULL, NULL,
       "<Name>", "Attach generic 16kB Ultimax cartridge image" },
-    /* smart-insert CRT */
+    // smart-insert CRT 
     { "-cartcrt", CALL_FUNCTION, CMDLINE_ATTRIB_NEED_ARGS,
       cart_attach_cmdline, (void *)CARTRIDGE_CRT, NULL, NULL,
       "<Name>", "Attach CRT cartridge image" },
-    /* binary images: */
+    // binary images: 
     { "-cartap", CALL_FUNCTION, CMDLINE_ATTRIB_NEED_ARGS,
       cart_attach_cmdline, (void *)CARTRIDGE_ATOMIC_POWER, NULL, NULL,
       "<Name>", "Attach raw 32KB Atomic Power cartridge image" },
@@ -245,7 +246,7 @@ static const cmdline_option_t cmdline_options[] =
     { "-carteasycalc", CALL_FUNCTION, CMDLINE_ATTRIB_NEED_ARGS,
       cart_attach_cmdline, (void *)CARTRIDGE_EASYCALC, NULL, NULL,
       "<Name>", "Attach raw 24kB Easy Calc Result cartridge image" },
-    /* omitted: CARTRIDGE_EASYFLASH_XBANK (NO CART EXISTS!) */
+    // omitted: CARTRIDGE_EASYFLASH_XBANK (NO CART EXISTS!) 
     { "-cartepyx", CALL_FUNCTION, CMDLINE_ATTRIB_NEED_ARGS,
       cart_attach_cmdline, (void *)CARTRIDGE_EPYX_FASTLOAD, NULL, NULL,
       "<Name>", "Attach raw 8KB Epyx FastLoad cartridge image" },
@@ -400,16 +401,16 @@ static const cmdline_option_t cmdline_options[] =
 
 int cart_cmdline_options_init(void)
 {
-    /* "Slot 0" */
+    // "Slot 0" 
     if (mmc64_cmdline_options_init() < 0
         || magicvoice_cmdline_options_init() < 0
         || tpi_cmdline_options_init() < 0
-        /* "Slot 1" */
+        // "Slot 1" 
         || dqbb_cmdline_options_init() < 0
         || expert_cmdline_options_init() < 0
         || isepic_cmdline_options_init() < 0
         || ramcart_cmdline_options_init() < 0
-        /* "I/O Slot" */
+        // "I/O Slot" 
 #ifdef HAVE_MIDI
         || c64_midi_cmdline_options_init() < 0
 #endif
@@ -425,7 +426,7 @@ int cart_cmdline_options_init(void)
 #ifdef HAVE_RAWNET
         || ethernetcart_cmdline_options_init() < 0
 #endif
-        /* "Main Slot" */
+        // "Main Slot" 
         || easyflash_cmdline_options_init() < 0
         || gmod2_cmdline_options_init() < 0
         || ide64_cmdline_options_init() < 0
@@ -451,7 +452,7 @@ int cart_cmdline_options_init(void)
 
     return cmdline_register_options(cmdline_options);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 /*
     resource init and de-init

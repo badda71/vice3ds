@@ -48,7 +48,7 @@
 #include "screenshot.h"
 #include "types.h"
 #include "vicii-chip-model.h"
-#include "viciisc-cmdline-options.h"
+//#include "viciisc-cmdline-options.h"
 #include "viciisc-color.h"
 #include "viciisc-draw.h"
 #include "vicii-draw-cycle.h"

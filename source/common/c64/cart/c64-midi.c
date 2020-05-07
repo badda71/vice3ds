@@ -36,7 +36,7 @@
 #include "c64-midi.h"
 #include "cartio.h"
 #include "cartridge.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "export.h"
 #include "machine.h"
 #include "resources.h"
@@ -223,7 +223,7 @@ int c64_midi_resources_init(void)
 }
 
 /* ---------------------------------------------------------------------*/
-
+/*
 static const cmdline_option_t cmdline_options[] =
 {
     { "-miditype", SET_RESOURCE, CMDLINE_ATTRIB_NEED_ARGS,
@@ -240,7 +240,7 @@ int c64_midi_cmdline_options_init(void)
 
     return midi_cmdline_options_init();
 }
-
+*/
 /* ---------------------------------------------------------------------*/
 
 int c64_midi_base_de00(void)

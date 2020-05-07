@@ -42,7 +42,7 @@
 #include <stdio.h>
 
 #include "archdep.h"
-#include "cmdline.h"
+//#include "cmdline.h"
 #include "drive.h"
 #include "drivetypes.h"
 #include "ieee.h"

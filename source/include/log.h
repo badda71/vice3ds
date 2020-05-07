@@ -38,7 +38,7 @@ typedef signed int log_t;
 
 extern int log_resources_init(void);
 extern void log_resources_shutdown(void);
-extern int log_cmdline_options_init(void);
+//extern int log_cmdline_options_init(void);
 extern int log_init(void);
 extern int log_init_with_fd(FILE *f);
 extern log_t log_open(const char *id);
