@@ -36,7 +36,7 @@
 #include "cartio.h"
 #include "cartridge.h"
 #include "export.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "simonsbasic.h"
 #include "snapshot.h"
 #include "types.h"
@@ -74,9 +74,10 @@ static void simon_io1_store(uint16_t addr, uint8_t value)
 
 static int simon_dump(void)
 {
-    mon_out("$8000-$9FFF ROM: enabled\n");
+/*
+	mon_out("$8000-$9FFF ROM: enabled\n");
     mon_out("$A000-$BFFF ROM: %s\n", (simon_a000) ? "enabled" : "disabled");
-
+*/
     return 0;
 }
 

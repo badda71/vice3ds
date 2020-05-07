@@ -44,7 +44,7 @@
 #include "log.h"
 #include "maincpu.h"
 #include "mem.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "resources.h"
 #include "reu.h"
 #include "types.h"
@@ -368,6 +368,7 @@ void mmu_ffxx_store(uint16_t addr, uint8_t value)
 
 int mmu_dump(void *context, uint16_t addr)
 {
+	/*
     mon_out("CR: bank: %d, $4000-$7FFF: %s, $8000-$BFFF: %s, $C000-$CFFF: %s, $D000-$DFFF: %s, $E000-$FFFF: %s\n",
             (mmu[0] & 0xc0) >> 6,
             (mmu[0] & 2) ? "BASIC ROM low" : "RAM",
@@ -426,6 +427,7 @@ int mmu_dump(void *context, uint16_t addr)
 
     mon_out("MMU version: %d\n", mmu[11] & 0xf);
     mon_out("Amount of 64Kb blocks present: %d\n", (c128_full_banks) ? 4 : 2);
+	*/
     return 0;
 }
 

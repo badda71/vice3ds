@@ -41,7 +41,7 @@
 #include "export.h"
 #include "machine.h"
 #include "maincpu.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "resources.h"
 #include "snapshot.h"
 #include "stardos.h"
@@ -204,7 +204,7 @@ static void stardos_io2_store(uint16_t addr, uint8_t value)
 
 static int stardos_dump(void)
 {
-    mon_out("$8000-$9FFF ROM: %s\n", (roml_enable) ? "enabled" : "disabled");
+    //mon_out("$8000-$9FFF ROM: %s\n", (roml_enable) ? "enabled" : "disabled");
 
     return 0;
 }

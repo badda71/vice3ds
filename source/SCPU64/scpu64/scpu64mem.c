@@ -48,7 +48,7 @@
 #include "machine.h"
 #include "main65816cpu.h"
 #include "mem.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "ram.h"
 #include "reu.h"
 #include "sid.h"
@@ -169,26 +169,26 @@ inline static void check_ba_write(void)
 static uint8_t zero_read_watch(uint16_t addr)
 {
     addr &= 0xff;
-    monitor_watch_push_load_addr(addr, e_comp_space);
+    //monitor_watch_push_load_addr(addr, e_comp_space);
     return mem_read_tab[mem_config][0](addr);
 }
 
 static void zero_store_watch(uint16_t addr, uint8_t value)
 {
     addr &= 0xff;
-    monitor_watch_push_store_addr(addr, e_comp_space);
+    //monitor_watch_push_store_addr(addr, e_comp_space);
     mem_write_tab[mirror][mem_config][0](addr, value);
 }
 
 static uint8_t read_watch(uint16_t addr)
 {
-    monitor_watch_push_load_addr(addr, e_comp_space);
+    //monitor_watch_push_load_addr(addr, e_comp_space);
     return mem_read_tab[mem_config][addr >> 8](addr);
 }
 
 static void store_watch(uint16_t addr, uint8_t value)
 {
-    monitor_watch_push_store_addr(addr, e_comp_space);
+    //monitor_watch_push_store_addr(addr, e_comp_space);
     mem_write_tab[mirror][mem_config][addr >> 8](addr, value);
 }
 
@@ -1625,7 +1625,7 @@ uint8_t mem_bank_read(int bank, uint16_t addr, void *context)
 
     switch (bank) {
         case 0:                   /* current */
-            bank = WDC65816_REGS_GET_PBR(maincpu_monitor_interface->cpu_65816_regs);
+ //           bank = WDC65816_REGS_GET_PBR(maincpu_monitor_interface->cpu_65816_regs);
             if (bank > 0) {
                 return mem_peek2(addr + (bank << 16));
             }
@@ -1663,7 +1663,7 @@ uint8_t mem_bank_peek(int bank, uint16_t addr, void *context)
     }
     switch (bank) {
         case 0:                   /* current */
-            bank = WDC65816_REGS_GET_PBR(maincpu_monitor_interface->cpu_65816_regs);
+//            bank = WDC65816_REGS_GET_PBR(maincpu_monitor_interface->cpu_65816_regs);
             if (bank > 0) {
                 return mem_peek2(addr + (bank << 16));
             }
@@ -1709,7 +1709,7 @@ void mem_bank_write(int bank, uint16_t addr, uint8_t byte, void *context)
     }
     switch (bank) {
         case 0:                   /* current */
-            bank = WDC65816_REGS_GET_PBR(maincpu_monitor_interface->cpu_65816_regs);
+//            bank = WDC65816_REGS_GET_PBR(maincpu_monitor_interface->cpu_65816_regs);
             if (bank > 0) {
                 mem_store2(addr + (bank << 16), byte);
                 return;
@@ -1738,7 +1738,7 @@ void mem_bank_write(int bank, uint16_t addr, uint8_t byte, void *context)
     }
     mem_sram[addr] = byte;
 }
-
+/*
 static int mem_dump_io(void *context, uint16_t addr)
 {
     if ((addr >= 0xdc00) && (addr <= 0xdc3f)) {
@@ -1748,13 +1748,13 @@ static int mem_dump_io(void *context, uint16_t addr)
     }
     return -1;
 }
-
+*/
 mem_ioreg_list_t *mem_ioreg_list_get(void *context)
 {
     mem_ioreg_list_t *mem_ioreg_list = NULL;
 
-    mon_ioreg_add_list(&mem_ioreg_list, "CIA1", 0xdc00, 0xdc0f, mem_dump_io, NULL);
-    mon_ioreg_add_list(&mem_ioreg_list, "CIA2", 0xdd00, 0xdd0f, mem_dump_io, NULL);
+    //mon_ioreg_add_list(&mem_ioreg_list, "CIA1", 0xdc00, 0xdc0f, mem_dump_io, NULL);
+    //mon_ioreg_add_list(&mem_ioreg_list, "CIA2", 0xdd00, 0xdd0f, mem_dump_io, NULL);
 
     io_source_ioreg_add_list(&mem_ioreg_list);
 

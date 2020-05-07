@@ -36,7 +36,7 @@
 #include "cartio.h"
 #include "cartridge.h"
 #include "export.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "ocean.h"
 #include "snapshot.h"
 #include "types.h"
@@ -115,7 +115,7 @@ static uint8_t ocean_io1_peek(uint16_t addr)
 
 static int ocean_dump(void)
 {
-    mon_out("Bank: %d\n", currbank);
+    //mon_out("Bank: %d\n", currbank);
     return 0;
 }
 

@@ -44,7 +44,7 @@
 #include "log.h"
 #include "machine.h"
 #include "mem.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "resources.h"
 #include "snapshot.h"
 #include "types.h"
@@ -494,7 +494,7 @@ static void isepic_io2_store(uint16_t addr, uint8_t byte)
 
 static int isepic_dump(void)
 {
-    mon_out("Page: %d, Switch: %d\n", isepic_page, isepic_switch);
+    //mon_out("Page: %d, Switch: %d\n", isepic_page, isepic_switch);
     return 0;
 }
 

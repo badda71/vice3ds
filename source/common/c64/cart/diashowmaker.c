@@ -38,7 +38,7 @@
 #include "cartridge.h"
 #include "diashowmaker.h"
 #include "export.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -109,7 +109,7 @@ static void dsm_io1_store(uint16_t addr, uint8_t value)
 
 static int dsm_dump(void)
 {
-    mon_out("ROM at $8000-$9FFF: %s\n", (dsm_active) ? "enabled" : "disabled");
+    //mon_out("ROM at $8000-$9FFF: %s\n", (dsm_active) ? "enabled" : "disabled");
 
     return 0;
 }

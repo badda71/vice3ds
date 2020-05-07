@@ -36,7 +36,7 @@
 #include "cartio.h"
 #include "cartridge.h"
 #include "export.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "stb.h"
 #include "types.h"
@@ -128,11 +128,13 @@ static void stb_io1_store(uint16_t addr, uint8_t value)
 
 static int stb_dump(void)
 {
-    mon_out("$8000-$9FFF ROM: %s\n", (stb_active) ? "enabled" : "disabled");
+/*
+	mon_out("$8000-$9FFF ROM: %s\n", (stb_active) ? "enabled" : "disabled");
     if (stb_active) {
         mon_out("bank: %d\n", stb_bank);
     }
-    return 0;
+*/
+	return 0;
 }
 
 /* ---------------------------------------------------------------------*/

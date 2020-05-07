@@ -37,7 +37,7 @@
 #include "cartridge.h"
 #include "export.h"
 #include "mach5.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -91,7 +91,7 @@ static void mach5_io2_store(uint16_t addr, uint8_t value)
 
 static int mach5_dump(void)
 {
-    mon_out("ROM at $8000-$9FFF: %s\n", (mach5_active) ? "enabled" : "disabled");
+    //mon_out("ROM at $8000-$9FFF: %s\n", (mach5_active) ? "enabled" : "disabled");
 
     return 0;
 }

@@ -36,7 +36,7 @@
 #include "cartridge.h"
 #include "dinamic.h"
 #include "export.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -82,7 +82,7 @@ static uint8_t dinamic_io1_peek(uint16_t addr)
 
 static int dinamic_dump(void)
 {
-    mon_out("Bank: %d\n", currbank);
+    //mon_out("Bank: %d\n", currbank);
     return 0;
 }
 

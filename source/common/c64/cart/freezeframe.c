@@ -38,7 +38,7 @@
 #include "cartridge.h"
 #include "export.h"
 #include "freezeframe.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -126,8 +126,8 @@ static void freezeframe_io2_store(uint16_t addr, uint8_t value)
 
 static int freezeframe_dump(void)
 {
-    mon_out("$8000-$9FFF ROM: %s", (freezeframe_rom_8000) ? "enabled" : "disabled");
-    mon_out("$E000-$FFFF ROM: %s", (freezeframe_rom_e000) ? "enabled" : "disabled");
+//    mon_out("$8000-$9FFF ROM: %s", (freezeframe_rom_8000) ? "enabled" : "disabled");
+//    mon_out("$E000-$FFFF ROM: %s", (freezeframe_rom_e000) ? "enabled" : "disabled");
 
     return 0;
 }

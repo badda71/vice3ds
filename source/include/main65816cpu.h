@@ -48,7 +48,7 @@ struct monitor_interface_s;
 
 extern struct alarm_context_s *maincpu_alarm_context;
 extern struct clk_guard_s *maincpu_clk_guard;
-extern struct monitor_interface_s *maincpu_monitor_interface;
+//extern struct monitor_interface_s *maincpu_monitor_interface;
 
 extern void maincpu_resync_limits(void);
 extern void maincpu_init(void);
@@ -56,7 +56,7 @@ extern void maincpu_early_init(void);
 extern void maincpu_shutdown(void);
 extern void maincpu_reset(void);
 extern void maincpu_mainloop(void);
-extern struct monitor_interface_s *maincpu_monitor_interface_get(void);
+//extern struct monitor_interface_s *maincpu_monitor_interface_get(void);
 extern int maincpu_snapshot_read_module(struct snapshot_s *s);
 extern int maincpu_snapshot_write_module(struct snapshot_s *s);
 

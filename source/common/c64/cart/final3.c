@@ -39,7 +39,7 @@
 #include "cartridge.h"
 #include "export.h"
 #include "final3.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -163,10 +163,12 @@ void final_v3_io2_store(uint16_t addr, uint8_t value)
 /* FIXME: Add EXROM, GAME and NMI lines to the dump */
 static int final_v3_dump(void)
 {
-    mon_out("Bank: %d of %d, register status: %s\n",
+/*
+	mon_out("Bank: %d of %d, register status: %s\n",
             regval & (fc3_rom_banks - 1), fc3_rom_banks,
             (regval & 0x80) ? "Hidden" : "Visible");
-    return 0;
+*/
+	return 0;
 }
 
 /* ---------------------------------------------------------------------*/

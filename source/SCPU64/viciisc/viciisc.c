@@ -41,7 +41,7 @@
 #include "machine.h"
 #include "maincpu.h"
 #include "mem.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "raster-line.h"
 #include "raster-modes.h"
 #include "resources.h"
@@ -560,7 +560,7 @@ void vicii_async_refresh(struct canvas_refresh_s *refresh)
 }
 
 /* ---------------------------------------------------------------------*/
-
+/*
 static const char *fetch_phi1_type(int addr)
 {
     addr = (addr & vicii.vaddr_mask_phi1) | vicii.vaddr_offset_phi1;
@@ -579,11 +579,12 @@ static const char *fetch_phi1_type(int addr)
         }
     }
 }
-
+*/
 
 int vicii_dump(void)
 {
-    static const char *mode_name[] = {
+/*
+	static const char *mode_name[] = {
         "Standard Text",
         "Multicolor Text",
         "Hires Bitmap",
@@ -599,9 +600,9 @@ int vicii_dump(void)
 
     video_mode = ((vicii.regs[0x11] & 0x60) | (vicii.regs[0x16] & 0x10)) >> 4;
 
-    m_ecm = (video_mode & 4) >> 2;  /* 0 standard, 1 extended */
-    m_bmm = (video_mode & 2) >> 1;  /* 0 text, 1 bitmap */
-    m_mcm = video_mode & 1;         /* 0 hires, 1 multi */
+    m_ecm = (video_mode & 4) >> 2;  // 0 standard, 1 extended 
+    m_bmm = (video_mode & 2) >> 1;  // 0 text, 1 bitmap
+    m_mcm = video_mode & 1;         // 0 hires, 1 multi
 
     v_bank = vicii.vbank_phi1;
 
@@ -694,6 +695,6 @@ int vicii_dump(void)
         mon_out("\nMulti Color 1: %x  Multi Color 2: %x", vicii.regs[0x25], vicii.regs[0x26]);
     }
     mon_out("\n");
-
+*/
     return 0;
 }

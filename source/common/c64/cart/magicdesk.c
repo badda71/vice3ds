@@ -39,7 +39,7 @@
 #include "cartridge.h"
 #include "export.h"
 #include "magicdesk.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -93,7 +93,7 @@ static uint8_t magicdesk_io1_peek(uint16_t addr)
 
 static int magicdesk_dump(void)
 {
-    mon_out("Reg: %02x (Bank: %d of %d, %s)\n", regval, (regval & bankmask), bankmask + 1, (regval & 0x80) ? "disabled" : "enabled");
+    //mon_out("Reg: %02x (Bank: %d of %d, %s)\n", regval, (regval & bankmask), bankmask + 1, (regval & 0x80) ? "disabled" : "enabled");
     return 0;
 }
 

@@ -68,7 +68,7 @@
 #include "lib.h"
 #include "log.h"
 #include "machine.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "ui.h"
 #include "util.h"
 

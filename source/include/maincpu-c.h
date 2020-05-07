@@ -40,7 +40,7 @@
 #include "machine.h"
 #include "maincpu.h"
 #include "mem.h"
-#include "monitor.h"
+//#include "monitor.h"
 #ifdef C64DTV
 #include "mos6510dtv.h"
 #else
@@ -185,7 +185,7 @@ struct interrupt_cpu_status_s *maincpu_int_status = NULL;
 alarm_context_t *maincpu_alarm_context = NULL;
 #endif
 clk_guard_t *maincpu_clk_guard = NULL;
-monitor_interface_t *maincpu_monitor_interface = NULL;
+//monitor_interface_t *maincpu_monitor_interface = NULL;
 
 /* Global clock counter.  */
 CLOCK maincpu_clk = 0L;
@@ -239,7 +239,7 @@ mos6510_regs_t maincpu_regs;
 #endif
 
 /* ------------------------------------------------------------------------- */
-
+/*
 monitor_interface_t *maincpu_monitor_interface_get(void)
 {
 #ifdef C64DTV
@@ -282,7 +282,7 @@ monitor_interface_t *maincpu_monitor_interface_get(void)
 
     return maincpu_monitor_interface;
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 void maincpu_early_init(void)
@@ -305,16 +305,16 @@ void maincpu_shutdown(void)
 
 static void cpu_reset(void)
 {
-    int preserve_monitor;
+//    int preserve_monitor;
 
-    preserve_monitor = maincpu_int_status->global_pending_int & IK_MONITOR;
+//    preserve_monitor = maincpu_int_status->global_pending_int & IK_MONITOR;
 
     interrupt_cpu_status_reset(maincpu_int_status);
-
+/*
     if (preserve_monitor) {
         interrupt_monitor_trap_on(maincpu_int_status);
     }
-
+*/
     maincpu_clk = 6; /* # of clock cycles needed for RESET.  */
 
     /* CPU specific extra reset routine, currently only used
@@ -494,7 +494,6 @@ void maincpu_mainloop(void)
                 DO_INTERRUPT(IK_RESET);                               \
                 break;                                                \
             case JAM_MONITOR:                                         \
-                monitor_startup(e_comp_space);                        \
                 IMPORT_REGISTERS();                                   \
                 break;                                                \
             default:                                                  \

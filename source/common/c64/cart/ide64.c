@@ -65,7 +65,7 @@
 #include "lib.h"
 #include "machine.h"
 #include "maincpu.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "resources.h"
 #include "shortbus.h"
 #include "snapshot.h"
@@ -1598,12 +1598,14 @@ static int ide64_idebus_dump(void)
 
 static int ide64_io_dump(void)
 {
-    const char *configs[4] = {
+/*
+	const char *configs[4] = {
         "8k", "16k", "stnd", "open"
     };
     mon_out("Version: %d, Mode: %s, ", settings_version >= IDE64_VERSION_4_1 ? 4 : 3, (kill_port & 1) ? "Disabled" : "Enabled");
     mon_out("ROM bank: %d, Config: %s, Interface: %d\n", current_bank, configs[current_cfg], idrive >> 1);
-    return 0;
+*/
+	return 0;
 }
 
 static int ide64_rtc_dump(void)

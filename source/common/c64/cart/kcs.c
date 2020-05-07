@@ -40,7 +40,7 @@
 #include "kcs.h"
 #include "log.h"
 #include "maincpu.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -146,7 +146,7 @@ static void kcs_io2_store(uint16_t addr, uint8_t value)
 
 static int kcs_io1_dump(void)
 {
-    mon_out("EXROM: %d GAME: %d (%s)\n", ((config >> 1) & 1), (config & 1) ^ 1, cart_config_string((uint8_t)(config & 3)));
+    //mon_out("EXROM: %d GAME: %d (%s)\n", ((config >> 1) & 1), (config & 1) ^ 1, cart_config_string((uint8_t)(config & 3)));
     return 0;
 }
 

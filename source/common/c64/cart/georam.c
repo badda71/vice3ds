@@ -39,7 +39,7 @@
 #include "log.h"
 #include "machine.h"
 #include "mem.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "resources.h"
 #include "georam.h"
 #include "snapshot.h"
@@ -225,7 +225,7 @@ static void georam_io2_store(uint16_t addr, uint8_t byte)
 
 static int georam_dump(void)
 {
-    mon_out("Size: %d Kb, Bank: %d, Window: %d\n", georam_size_kb, georam[1], georam[0]);
+    //mon_out("Size: %d Kb, Bank: %d, Window: %d\n", georam_size_kb, georam[1], georam[0]);
     return 0;
 }
 

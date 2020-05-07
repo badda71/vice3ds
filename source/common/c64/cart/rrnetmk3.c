@@ -48,7 +48,7 @@
 #include "log.h"
 #include "machine.h"
 #include "mem.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "resources.h"
 #include "snapshot.h"
 #include "types.h"
@@ -271,8 +271,8 @@ static void rrnetmk3_cs8900_store(uint16_t address, uint8_t byte)
 
 static int rrnetmk3_dump(void)
 {
-    mon_out("Flashmode jumper is %s.\n", rrnetmk3_hw_flashjumper ? "set" : "not set");
-    mon_out("ROM is %s.\n", rrnetmk3_biossel ? "not enabled" : "enabled");
+    //mon_out("Flashmode jumper is %s.\n", rrnetmk3_hw_flashjumper ? "set" : "not set");
+    //mon_out("ROM is %s.\n", rrnetmk3_biossel ? "not enabled" : "enabled");
 
     return 0;
 }

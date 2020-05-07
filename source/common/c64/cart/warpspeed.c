@@ -37,7 +37,7 @@
 #include "cartio.h"
 #include "cartridge.h"
 #include "export.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -127,7 +127,7 @@ static void warpspeed_io2_store(uint16_t addr, uint8_t value)
 
 static int warpspeed_dump(void)
 {
-    mon_out("$8000-$9FFF ROM: %s\n", (warpspeed_8000) ? "enabled" : "disabled");
+    //mon_out("$8000-$9FFF ROM: %s\n", (warpspeed_8000) ? "enabled" : "disabled");
 
     return 0;
 }

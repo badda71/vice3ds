@@ -43,7 +43,7 @@
 #include "flash040.h"
 #include "lib.h"
 #include "maincpu.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "resources.h"
 #include "m93c86.h"
 #include "snapshot.h"
@@ -230,12 +230,13 @@ void gmod2_mmu_translate(unsigned int addr, uint8_t **base, int *start, int *lim
 static int gmod2_dump(void)
 {
     /* FIXME: incomplete */
-    mon_out("GAME/EXROM status: %s%s\n", 
+/*
+	mon_out("GAME/EXROM status: %s%s\n", 
             cart_config_string(gmod2_cmode),
             (gmod2_cmode == CMODE_ULTIMAX) ? " (Flash mode)" : "");
     mon_out("ROM bank: %d\n", gmod2_bank);
     mon_out("EEPROM CS: %d data: %d clock: %d\n", eeprom_cs, eeprom_data, eeprom_clock);
-
+*/
     return 0;
 }
 

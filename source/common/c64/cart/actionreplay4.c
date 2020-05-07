@@ -36,7 +36,7 @@
 #include "cartio.h"
 #include "cartridge.h"
 #include "export.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -161,13 +161,14 @@ static uint8_t actionreplay4_io2_read(uint16_t addr)
 
 static int actionreplay4_dump(void)
 {
+/*
     int bank = ((control_reg & 0x10) >> 3) | (control_reg & 1);
     char *game = (control_reg & 2) ? "high" : "low";
     int freeze_end = (control_reg & 4) ? 1 : 0;
     char *exrom = (control_reg & 8) ? "low" : "high";
 
     mon_out("Bank: %d, GAME: %s, Freeze End: %d, EXROM: %s\n", bank, game, freeze_end, exrom);
-
+*/
     return 0;
 }
 

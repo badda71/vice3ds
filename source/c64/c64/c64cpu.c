@@ -31,7 +31,7 @@
 #include "cpmcart.h"
 
 #ifdef FEATURE_CPUMEMHISTORY
-#include "monitor.h"
+//#include "monitor.h"
 #include "c64pla.h"
 #endif
 
@@ -95,7 +95,7 @@ inline static void memmap_mem_update(unsigned int addr, int write)
             type = 0;
         }
     }
-    monitor_memmap_store(addr, type);
+//    monitor_memmap_store(addr, type);
 }
 
 static void memmap_mem_store(unsigned int addr, unsigned int value)

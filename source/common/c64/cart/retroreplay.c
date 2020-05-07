@@ -45,7 +45,7 @@
 #include "flash040.h"
 #include "lib.h"
 #include "maincpu.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "resources.h"
 #include "snapshot.h"
 #include "types.h"
@@ -696,7 +696,8 @@ void retroreplay_mmu_translate(unsigned int addr, uint8_t **base, int *start, in
 static int retroreplay_dump(void)
 {
     /* FIXME: incomplete */
-    mon_out("Retro Replay registers are %s.\n", rr_active ? "enabled" : "disabled");
+/*
+	mon_out("Retro Replay registers are %s.\n", rr_active ? "enabled" : "disabled");
     mon_out("Clockport is %s.\n", rr_clockport_enabled ? "enabled" : "disabled");
     if (rr_clockport_enabled) {
         mon_out("Clockport device: %s.\n", clockport_device_id_to_name(clockport_device_id));
@@ -708,12 +709,12 @@ static int retroreplay_dump(void)
             (rr_cmode & 1) ? "low" : "high",
             cart_config_string((uint8_t)(rr_cmode & 3)));
     mon_out("ROM bank: %d\n", (rr_bank));
-    /* FIXME: take system RAM and cart mode(s) into account here */
-    /* FIXME: this is very inaccurate */
+    // FIXME: take system RAM and cart mode(s) into account here
+    // FIXME: this is very inaccurate 
     mon_out("$8000-$9FFF: %s\n", (export_ram) ? "RAM" : "ROM");
     mon_out("$A000-$BFFF: %s\n", (export_ram_at_a000) ? "RAM" : "ROM");
     mon_out("$DF00-$DFFF: %s\n", (export_ram || export_ram_at_a000) ? "RAM" : "ROM");
-
+*/
     return 0;
 }
 

@@ -52,7 +52,7 @@
 #include "machine.h"
 #include "maincpu.h"
 #include "mem.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "plus256k.h"
 #include "plus60k.h"
 #include "ram.h"
@@ -128,26 +128,26 @@ static int watchpoints_active;
 static uint8_t zero_read_watch(uint16_t addr)
 {
     addr &= 0xff;
-    monitor_watch_push_load_addr(addr, e_comp_space);
+    //monitor_watch_push_load_addr(addr, e_comp_space);
     return mem_read_tab[mem_config][0](addr);
 }
 
 static void zero_store_watch(uint16_t addr, uint8_t value)
 {
     addr &= 0xff;
-    monitor_watch_push_store_addr(addr, e_comp_space);
+    //monitor_watch_push_store_addr(addr, e_comp_space);
     mem_write_tab[vbank][mem_config][0](addr, value);
 }
 
 static uint8_t read_watch(uint16_t addr)
 {
-    monitor_watch_push_load_addr(addr, e_comp_space);
+    //monitor_watch_push_load_addr(addr, e_comp_space);
     return mem_read_tab[mem_config][addr >> 8](addr);
 }
 
 static void store_watch(uint16_t addr, uint8_t value)
 {
-    monitor_watch_push_store_addr(addr, e_comp_space);
+    //monitor_watch_push_store_addr(addr, e_comp_space);
     mem_write_tab[vbank][mem_config][addr >> 8](addr, value);
 }
 
@@ -232,7 +232,7 @@ uint8_t zero_read(uint16_t addr)
     addr &= 0xff;
 #ifdef FEATURE_CPUMEMHISTORY
     if (!(memmap_state & MEMMAP_STATE_IGNORE)) {
-        monitor_memmap_store(addr, (memmap_state & MEMMAP_STATE_OPCODE) ? MEMMAP_RAM_X : (memmap_state & MEMMAP_STATE_INSTR) ? 0 : MEMMAP_RAM_R);
+        //monitor_memmap_store(addr, (memmap_state & MEMMAP_STATE_OPCODE) ? MEMMAP_RAM_X : (memmap_state & MEMMAP_STATE_INSTR) ? 0 : MEMMAP_RAM_R);
         memmap_state &= ~(MEMMAP_STATE_OPCODE);
     }
 #endif
@@ -288,7 +288,7 @@ void zero_store(uint16_t addr, uint8_t value)
 {
     addr &= 0xff;
 #ifdef FEATURE_CPUMEMHISTORY
-    monitor_memmap_store(addr, MEMMAP_RAM_W);
+    //monitor_memmap_store(addr, MEMMAP_RAM_W);
 #endif
     switch ((uint8_t)addr) {
         case 0:
@@ -1145,6 +1145,7 @@ void mem_bank_write(int bank, uint16_t addr, uint8_t byte, void *context)
     mem_ram[addr] = byte;
 }
 
+/*
 static int mem_dump_io(void *context, uint16_t addr)
 {
     if ((addr >= 0xdc00) && (addr <= 0xdc3f)) {
@@ -1154,13 +1155,13 @@ static int mem_dump_io(void *context, uint16_t addr)
     }
     return -1;
 }
-
+*/
 mem_ioreg_list_t *mem_ioreg_list_get(void *context)
 {
     mem_ioreg_list_t *mem_ioreg_list = NULL;
 
-    mon_ioreg_add_list(&mem_ioreg_list, "CIA1", 0xdc00, 0xdc0f, mem_dump_io, NULL);
-    mon_ioreg_add_list(&mem_ioreg_list, "CIA2", 0xdd00, 0xdd0f, mem_dump_io, NULL);
+    //mon_ioreg_add_list(&mem_ioreg_list, "CIA1", 0xdc00, 0xdc0f, mem_dump_io, NULL);
+    //mon_ioreg_add_list(&mem_ioreg_list, "CIA2", 0xdd00, 0xdd0f, mem_dump_io, NULL);
 
     io_source_ioreg_add_list(&mem_ioreg_list);
 

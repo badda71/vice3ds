@@ -35,7 +35,7 @@
 #include "interrupt.h"
 #include "lib.h"
 #include "log.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "via.h"
@@ -1407,6 +1407,7 @@ int viacore_snapshot_read_module(via_context_t *via_context, snapshot_t *s)
 
 int viacore_dump(via_context_t *via_context)
 {
+/*
     mon_out("Port A: %02x DDR: %02x no HS: %02x\n",
             viacore_peek(via_context, 0x01), viacore_peek(via_context, 0x03), viacore_peek(via_context, 0x0f));
     mon_out("Port B: %02x DDR: %02x\n", viacore_peek(via_context, 0x00), viacore_peek(via_context, 0x02));
@@ -1421,5 +1422,6 @@ int viacore_dump(via_context_t *via_context)
             viacore_peek(via_context, 0x0a), 
             ((via_context->via[VIA_ACR] & 0x1c) == 0) ? "disabled" : "enabled",
             (via_context->via[VIA_ACR] & 0x10) ? "out" : "in");
-    return 0;
+*/
+	return 0;
 }

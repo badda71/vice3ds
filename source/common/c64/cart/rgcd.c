@@ -39,7 +39,7 @@
 #include "cartridge.h"
 #include "export.h"
 #include "rgcd.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -91,7 +91,7 @@ static uint8_t rgcd_io1_peek(uint16_t addr)
 
 static int rgcd_dump(void)
 {
-    mon_out("Reg: %02x (Bank: %d, %s)\n", regval, (regval & 0x07), disabled ? "disabled" : "enabled");
+    //mon_out("Reg: %02x (Bank: %d, %s)\n", regval, (regval & 0x07), disabled ? "disabled" : "enabled");
     return 0;
 }
 

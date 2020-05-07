@@ -39,7 +39,7 @@
 #include "log.h"
 #include "machine-drive.h"
 #include "mem.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "riotd.h"
 #include "tpid.h"
 #include "types.h"
@@ -74,26 +74,26 @@ static uint8_t drive_peek_free(drive_context_t *drv, uint16_t address)
 static uint8_t drive_zero_read_watch(drive_context_t *drv, uint16_t addr)
 {
     addr &= 0xff;
-    monitor_watch_push_load_addr(addr, drv->cpu->monspace);
+    //monitor_watch_push_load_addr(addr, drv->cpu->monspace);
     return drv->cpud->read_tab[0][0](drv, addr);
 }
 
 static void drive_zero_store_watch(drive_context_t *drv, uint16_t addr, uint8_t value)
 {
     addr &= 0xff;
-    monitor_watch_push_store_addr(addr, drv->cpu->monspace);
+    //monitor_watch_push_store_addr(addr, drv->cpu->monspace);
     drv->cpud->store_tab[0][0](drv, addr, value);
 }
 
 static uint8_t drive_read_watch(drive_context_t *drv, uint16_t address)
 {
-    monitor_watch_push_load_addr(address, drv->cpu->monspace);
+    //monitor_watch_push_load_addr(address, drv->cpu->monspace);
     return drv->cpud->read_tab[0][address >> 8](drv, address);
 }
 
 static void drive_store_watch(drive_context_t *drv, uint16_t address, uint8_t value)
 {
-    monitor_watch_push_store_addr(address, drv->cpu->monspace);
+    //monitor_watch_push_store_addr(address, drv->cpu->monspace);
     drv->cpud->store_tab[0][address >> 8](drv, address, value);
 }
 
@@ -204,9 +204,10 @@ void drivemem_init(drive_context_t *drv, unsigned int type)
 
 mem_ioreg_list_t *drivemem_ioreg_list_get(void *context)
 {
-    unsigned int type;
+ //   unsigned int type;
     mem_ioreg_list_t *drivemem_ioreg_list = NULL;
 
+/*
     type = ((drive_context_t *)context)->drive->type;
 
     switch (type) {
@@ -225,20 +226,20 @@ mem_ioreg_list_t *drivemem_ioreg_list_get(void *context)
         case DRIVE_TYPE_1571CR:
             mon_ioreg_add_list(&drivemem_ioreg_list, "VIA1", 0x1800, 0x180f, via1d1541_dump, context);
             mon_ioreg_add_list(&drivemem_ioreg_list, "VIA2", 0x1c00, 0x1c0f, via2d_dump, context);
-            mon_ioreg_add_list(&drivemem_ioreg_list, "WD1770", 0x2000, 0x2003, NULL, context); /* FIXME: register dump function */
+            mon_ioreg_add_list(&drivemem_ioreg_list, "WD1770", 0x2000, 0x2003, NULL, context); // FIXME: register dump function
             mon_ioreg_add_list(&drivemem_ioreg_list, "CIA", 0x4000, 0x400f, cia1571_dump, context);
             break;
         case DRIVE_TYPE_1581:
             mon_ioreg_add_list(&drivemem_ioreg_list, "CIA", 0x4000, 0x400f, cia1581_dump, context);
-            mon_ioreg_add_list(&drivemem_ioreg_list, "WD1770", 0x6000, 0x6003, NULL, context); /* FIXME: register dump function */
+            mon_ioreg_add_list(&drivemem_ioreg_list, "WD1770", 0x6000, 0x6003, NULL, context); // FIXME: register dump function
             break;
         case DRIVE_TYPE_2000:
             mon_ioreg_add_list(&drivemem_ioreg_list, "VIA", 0x4000, 0x400f, via4000_dump, context);
-            mon_ioreg_add_list(&drivemem_ioreg_list, "DP8473", 0x4e00, 0x4e07, NULL, context); /* FIXME: register dump function */
+            mon_ioreg_add_list(&drivemem_ioreg_list, "DP8473", 0x4e00, 0x4e07, NULL, context); // FIXME: register dump function
             break;
         case DRIVE_TYPE_4000:
             mon_ioreg_add_list(&drivemem_ioreg_list, "VIA", 0x4000, 0x400f, via4000_dump, context);
-            mon_ioreg_add_list(&drivemem_ioreg_list, "PC8477", 0x4e00, 0x4e07, NULL, context); /* FIXME: register dump function */
+            mon_ioreg_add_list(&drivemem_ioreg_list, "PC8477", 0x4e00, 0x4e07, NULL, context); // FIXME: register dump function
             break;
         case DRIVE_TYPE_2040:
         case DRIVE_TYPE_3040:
@@ -253,5 +254,6 @@ mem_ioreg_list_t *drivemem_ioreg_list_get(void *context)
             log_error(LOG_ERR, "DRIVEMEM: Unknown drive type `%i'.", type);
             break;
     }
+*/
     return drivemem_ioreg_list;
 }

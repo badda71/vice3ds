@@ -42,7 +42,7 @@
 #include "epyxfastload.h"
 #include "export.h"
 #include "maincpu.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -114,7 +114,7 @@ static uint8_t epyxfastload_io2_read(uint16_t addr)
 
 static int epyxfastload_dump(void)
 {
-    mon_out("ROM at $8000-$9FFF: %s\n", (epyxrom_active) ? "enabled" : "disabled");
+    //mon_out("ROM at $8000-$9FFF: %s\n", (epyxrom_active) ? "enabled" : "disabled");
 
     return 0;
 }

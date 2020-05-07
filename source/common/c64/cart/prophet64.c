@@ -37,7 +37,7 @@
 #include "cartio.h"
 #include "cartridge.h"
 #include "export.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "prophet64.h"
 #include "snapshot.h"
 #include "types.h"
@@ -85,7 +85,7 @@ static uint8_t p64_io2_peek(uint16_t addr)
 
 static int p64_dump(void)
 {
-    mon_out("Bank: %d\n", currbank);
+    //mon_out("Bank: %d\n", currbank);
     return 0;
 }
 

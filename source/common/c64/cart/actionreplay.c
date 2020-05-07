@@ -36,7 +36,7 @@
 #include "cartio.h"
 #include "cartridge.h"
 #include "export.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -211,7 +211,8 @@ static void actionreplay_io2_store(uint16_t addr, uint8_t value)
 
 static int actionreplay_dump(void)
 {
-    mon_out("EXROM line: %s, GAME line: %s, Mode: %s\n",
+/*
+	mon_out("EXROM line: %s, GAME line: %s, Mode: %s\n",
             (regvalue & 2) ? "high" : "low",
             (regvalue & 1) ? "low" : "high",
             cart_config_string((uint8_t)(regvalue & 3)));
@@ -219,10 +220,10 @@ static int actionreplay_dump(void)
             (regvalue & 0x18) >> 3,
             (regvalue & 4) ? "disabled" : "enabled",
             (regvalue & 0x40) ? "yes" : "no");
-    /* FIXME: take system RAM and cart mode(s) into account here */
     mon_out("$8000-$9FFF: %s\n", (export_ram) ? "RAM" : "ROM");
     mon_out("$A000-$BFFF: %s\n", "ROM");
     mon_out("$DF00-$DFFF: %s\n", (export_ram) ? "RAM" : "ROM");
+*/
    return 0;
 }
 

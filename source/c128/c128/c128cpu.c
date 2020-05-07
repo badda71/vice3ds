@@ -36,7 +36,7 @@
 #include "z80.h"
 
 #ifdef FEATURE_CPUMEMHISTORY
-#include "monitor.h"
+//#include "monitor.h"
 #endif
 
 /* ------------------------------------------------------------------------- */
@@ -123,13 +123,13 @@ static void clk_overflow_callback(CLOCK sub, void *unused_data)
 #warning "CPUMEMHISTORY implementation for x128 is incomplete"
 static void memmap_mem_store(unsigned int addr, unsigned int value)
 {
-    monitor_memmap_store(addr, MEMMAP_RAM_W);
+    //monitor_memmap_store(addr, MEMMAP_RAM_W);
     (*_mem_write_tab_ptr[(addr) >> 8])((uint16_t)(addr), (uint8_t)(value));
 }
 
 static void memmap_mark_read(unsigned int addr)
 {
-    monitor_memmap_store(addr, (memmap_state & MEMMAP_STATE_OPCODE) ? MEMMAP_RAM_X : (memmap_state & MEMMAP_STATE_INSTR) ? 0 : MEMMAP_RAM_R);
+    //monitor_memmap_store(addr, (memmap_state & MEMMAP_STATE_OPCODE) ? MEMMAP_RAM_X : (memmap_state & MEMMAP_STATE_INSTR) ? 0 : MEMMAP_RAM_R);
     memmap_state &= ~(MEMMAP_STATE_OPCODE);
 }
 

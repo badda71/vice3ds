@@ -44,7 +44,7 @@
 #include "machine-drive.h"
 #include "machine.h"
 #include "mem.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "r65c02.h"
 #include "rotation.h"
 #include "snapshot.h"
@@ -53,13 +53,13 @@
 
 #define DRIVE_CPU
 
-static void drivecpu65c02_set_bank_base(void *context);
+//static void drivecpu65c02_set_bank_base(void *context);
 
 static interrupt_cpu_status_t *drivecpu_int_status_ptr[DRIVE_NUM];
 
 void drivecpu65c02_setup_context(struct drive_context_s *drv, int i)
 {
-    monitor_interface_t *mi;
+    //monitor_interface_t *mi;
     drivecpu_context_t *cpu;
 
     if (i) {
@@ -83,8 +83,9 @@ void drivecpu65c02_setup_context(struct drive_context_s *drv, int i)
     if (i) {
         cpu->snap_module_name = lib_msprintf("DRIVECPU%d", drv->mynumber);
         cpu->identification_string = lib_msprintf("DRIVE#%d", drv->mynumber + 8);
-        cpu->monitor_interface = monitor_interface_new();
+        //cpu->monitor_interface = monitor_interface_new();
     }
+	/*
     mi = cpu->monitor_interface;
     mi->context = (void *)drv;
     mi->cpu_regs = NULL;
@@ -106,6 +107,7 @@ void drivecpu65c02_setup_context(struct drive_context_s *drv, int i)
     mi->toggle_watchpoints_func = drivemem_toggle_watchpoints;
     mi->set_bank_base = drivecpu65c02_set_bank_base;
     cpu->monspace = monitor_diskspace_mem(drv->mynumber);
+*/
 
     if (i) {
         drv->cpu->clk_guard = clk_guard_new(drv->clk_ptr, CLOCK_MAX - CLKGUARD_SUB_MIN);
@@ -145,9 +147,9 @@ void drivecpu65c02_setup_context(struct drive_context_s *drv, int i)
 
 static void cpu_reset(drive_context_t *drv)
 {
-    int preserve_monitor;
+//    int preserve_monitor;
 
-    preserve_monitor = drv->cpu->int_status->global_pending_int & IK_MONITOR;
+//    preserve_monitor = drv->cpu->int_status->global_pending_int & IK_MONITOR;
 
     log_message(drv->drive->log, "RESET.");
 
@@ -156,10 +158,11 @@ static void cpu_reset(drive_context_t *drv)
     *(drv->clk_ptr) = 6;
     rotation_reset(drv->drive);
     machine_drive_reset(drv);
-
+/*
     if (preserve_monitor) {
         interrupt_monitor_trap_on(drv->cpu->int_status);
     }
+*/
 }
 
 void drivecpu65c02_reset_clk(drive_context_t *drv)
@@ -171,19 +174,19 @@ void drivecpu65c02_reset_clk(drive_context_t *drv)
 
 void drivecpu65c02_reset(drive_context_t *drv)
 {
-    int preserve_monitor;
+//    int preserve_monitor;
 
     *(drv->clk_ptr) = 0;
     drivecpu65c02_reset_clk(drv);
 
-    preserve_monitor = drv->cpu->int_status->global_pending_int & IK_MONITOR;
+//    preserve_monitor = drv->cpu->int_status->global_pending_int & IK_MONITOR;
 
     interrupt_cpu_status_reset(drv->cpu->int_status);
-
+/*
     if (preserve_monitor) {
         interrupt_monitor_trap_on(drv->cpu->int_status);
     }
-
+*/
     /* FIXME -- ugly, should be changed in interrupt.h */
     interrupt_trigger_reset(drv->cpu->int_status, *(drv->clk_ptr));
 }
@@ -206,7 +209,7 @@ void drivecpu65c02_shutdown(drive_context_t *drv)
         clk_guard_destroy(cpu->clk_guard);
     }
 
-    monitor_interface_destroy(cpu->monitor_interface);
+    //monitor_interface_destroy(cpu->monitor_interface);
     interrupt_cpu_status_destroy(cpu->int_status);
 
     lib_free(cpu->snap_module_name);
@@ -441,7 +444,7 @@ void drivecpu65c02_execute(drive_context_t *drv, CLOCK clk_value)
 #endif
 
 /* ------------------------------------------------------------------------- */
-
+/*
 static void drivecpu65c02_set_bank_base(void *context)
 {
     drive_context_t *drv;
@@ -452,7 +455,7 @@ static void drivecpu65c02_set_bank_base(void *context)
 
     JUMP(reg_pc);
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 #define SNAP_MAJOR 1

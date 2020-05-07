@@ -38,7 +38,7 @@
 #include "export.h"
 #include "funplay.h"
 #include "log.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -123,7 +123,7 @@ static uint8_t funplay_io1_peek(uint16_t addr)
 
 static int funplay_dump(void)
 {
-    mon_out("Bank: %d\n", currbank);
+    //mon_out("Bank: %d\n", currbank);
     return 0;
 }
 

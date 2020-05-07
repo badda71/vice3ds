@@ -48,7 +48,7 @@
 #include "lib.h"
 #include "alarm.h"
 #include "maincpu.h"
-#include "monitor.h"
+//#include "monitor.h"
 
 #ifndef HAVE_FSEEKO
 #define fseeko(a, b, c) fseek(a, b, c)
@@ -1341,7 +1341,8 @@ int ata_image_change(ata_drive_t *drv, char *filename, ata_drive_type_t type, at
 
 int ata_register_dump(ata_drive_t *drv)
 {
-    if (drv->dev != drv->slave || drv->type == ATA_DRIVE_NONE) {
+/*
+	if (drv->dev != drv->slave || drv->type == ATA_DRIVE_NONE) {
         return -1;
     }
     mon_out("%s device %s\n", drv->atapi ? "ATAPI" : "ATA", drv->myname);
@@ -1352,7 +1353,7 @@ int ata_register_dump(ata_drive_t *drv)
     mon_out("LBA high:     %02x\n", ata_register_peek(drv, 5));
     mon_out("Device:       %02x\n", ata_register_peek(drv, 6));
     mon_out("Status:       %02x\n", ata_register_peek(drv, 7));
-
+*/
     return 0;
 }
 

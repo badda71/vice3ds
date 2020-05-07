@@ -35,7 +35,7 @@
 //#include "cmdline.h"
 #include "lib.h"
 #include "log.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "resources.h"
 #include "types.h"
 #include "uiapi.h"
@@ -761,7 +761,7 @@ static void io_source_ioreg_add_onelist(struct mem_ioreg_list_s **mem_ioreg_list
             end = current->device->start_address + current->device->address_mask;
         }
 
-        mon_ioreg_add_list(mem_ioreg_list, current->device->name, current->device->start_address, end, current->device->dump, NULL);
+        //mon_ioreg_add_list(mem_ioreg_list, current->device->name, current->device->start_address, end, current->device->dump, NULL);
         current = current->next;
     }
 }

@@ -35,7 +35,7 @@
 #include "log.h"
 #include "machine.h"
 #include "maincpu.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "types.h"
 #include "vdc-mem.h"
 #include "vdc.h"
@@ -579,9 +579,10 @@ void vdc_ram_store(uint16_t addr, uint8_t value)
 
 int vdc_dump(void *context, uint16_t addr)
 {
-    unsigned int r, c, regnum=0, location, size;
+/*
+	unsigned int r, c, regnum=0, location, size;
 
-    /* Dump the internal VDC registers */
+    ///Dump the internal VDC registers
     mon_out("VDC Internal Registers:\n");
     for (r = 0; r < 3; r++) {
         mon_out("%02x: ", regnum);
@@ -612,7 +613,7 @@ int vdc_dump(void *context, uint16_t addr)
     mon_out(vdc.regs[25] & 0x20 ? ", Semigraphic" : "");
     mon_out(vdc.regs[24] & 0x40 ? ", Reverse" : "");
     mon_out(vdc.regs[8] & 0x03 ? ", Interlaced" : ", Non-Interlaced");
-    if (vdc.regs[25] & 0x10) { /* double pixel mode aka 40column mode */
+    if (vdc.regs[25] & 0x10) { // double pixel mode aka 40column mode 
         mon_out(", Double Pixel Mode");
         mon_out("\nScreen Size    : %d x %d", vdc.regs[1], vdc.regs[6]);
         mon_out("\nCharacter Size : %d x %d pixels (%d x %d visible)", vdc.regs[22] >> 4, vdc.regs[9] + 1, vdc.regs[22] & 0x0f, (vdc.regs[23] & 0x1f) + 1);
@@ -625,9 +626,9 @@ int vdc_dump(void *context, uint16_t addr)
     
     location = ((vdc.regs[12] << 8) + vdc.regs[13]) & vdc.vdc_address_mask;
     if (vdc.regs[25] & 0x80 ) {
-        size = vdc.regs[1] * vdc.regs[6] * (vdc.regs[9] + 1);   /* bitmap size */
+        size = vdc.regs[1] * vdc.regs[6] * (vdc.regs[9] + 1);   // bitmap size 
     } else {
-        size = vdc.regs[1] * vdc.regs[6];   /* text mode size */
+        size = vdc.regs[1] * vdc.regs[6];   // text mode size
     }
     mon_out("\nScreen Memory  : $%04x-$%04x (Size $%04x)", location, (location + size - 1) & vdc.vdc_address_mask, size);
     
@@ -636,10 +637,11 @@ int vdc_dump(void *context, uint16_t addr)
     mon_out("\nAttrib Memory  : $%04x-$%04x (Size $%04x)", location, (location + size - 1) & vdc.vdc_address_mask, size);
     
     location = ((vdc.regs[28] & 0xE0) << 8) & vdc.vdc_address_mask;
-    size = 0x200 * vdc.bytes_per_char; /* 0x2000 or 0x4000, depending on character height */
+    size = 0x200 * vdc.bytes_per_char; // 0x2000 or 0x4000, depending on character height
     mon_out("\nCharset Memory : $%04x-$%04x (Size $%04x)", location, (location + size - 1) & vdc.vdc_address_mask, size);
     
     mon_out("\nCursor Address : $%04x", ((vdc.regs[14] << 8) + vdc.regs[15]) & vdc.vdc_address_mask);
     mon_out("\n");
+*/
     return 0;
 }

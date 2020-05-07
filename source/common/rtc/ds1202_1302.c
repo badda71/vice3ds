@@ -28,7 +28,7 @@
 
 #include "ds1202_1302.h"
 #include "lib.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "rtc.h"
 #include "snapshot.h"
 
@@ -648,6 +648,7 @@ uint8_t ds1202_1302_read_data_line(rtc_ds1202_1302_t *context)
 
 int ds1202_1302_dump(rtc_ds1202_1302_t *context)
 {
+/*
     int latched = context->clock_halt;
     time_t offset = (latched) ? context->clock_halt_latch : context->offset;
     int i, j;
@@ -667,7 +668,7 @@ int ds1202_1302_dump(rtc_ds1202_1302_t *context)
         }
         mon_out("\n");
     }
-
+*/
     return 0;
 }
 

@@ -87,7 +87,7 @@
 #include "log.h"
 #include "machine.h"
 #include "mem.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "resources.h"
 #include "plus60k.h"
 #include "snapshot.h"
@@ -116,7 +116,7 @@ static uint8_t *plus60k_ram;
 
 static int plus60k_dump(void)
 {
-    mon_out("$1000-$FFFF bank: %d\n", plus60k_reg);
+    //mon_out("$1000-$FFFF bank: %d\n", plus60k_reg);
     return 0;
 }
 

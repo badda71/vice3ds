@@ -47,7 +47,7 @@
 #include "lib.h"
 #include "log.h"
 #include "machine.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "rawnet.h"
 #include "resources.h"
 #include "snapshot.h"

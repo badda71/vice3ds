@@ -37,7 +37,7 @@
 #include "cartio.h"
 #include "cartridge.h"
 #include "export.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -97,7 +97,7 @@ static uint8_t westermann_io2_peek(uint16_t addr)
 
 static int westermann_dump(void)
 {
-    mon_out("$A000-$BFFF ROM: %s\n", (westermann_a000) ? "enabled" : "disabled");
+    //mon_out("$A000-$BFFF ROM: %s\n", (westermann_a000) ? "enabled" : "disabled");
 
     return 0;
 }

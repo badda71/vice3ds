@@ -39,7 +39,7 @@
 #include "cartridge.h"
 #include "export.h"
 #include "final.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -156,7 +156,7 @@ static void final_v1_io2_store(uint16_t addr, uint8_t value)
 
 static int final_v1_dump(void)
 {
-    mon_out("ROM at $8000-$BFFF: %s\n", (final_v1_active) ? "enabled" : "disabled");
+    //mon_out("ROM at $8000-$BFFF: %s\n", (final_v1_active) ? "enabled" : "disabled");
 
     return 0;
 }

@@ -38,7 +38,7 @@
 #include "cartridge.h"
 //#include "cmdline.h"
 #include "export.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "resources.h"
 #include "snapshot.h"
 #include "supersnapshot.h"
@@ -173,11 +173,13 @@ static void supersnapshot_v5_io1_store(uint16_t addr, uint8_t value)
 
 static int supersnapshot_v5_dump(void)
 {
-    mon_out("Register: $%02x (%s)\n", currreg, (ss_rom_disabled) ? "disabled" : "enabled");
+/*
+	mon_out("Register: $%02x (%s)\n", currreg, (ss_rom_disabled) ? "disabled" : "enabled");
     mon_out(" EXROM: %d GAME: %d (%s)\n", ((romconfig >> 1) & 1), (romconfig & 1) ^ 1, cart_config_string((uint8_t)(romconfig & 3)));
     mon_out(" ROM %s, Bank: %d\n", (ss_rom_disabled) ? "disabled" : "enabled", currbank);
     mon_out(" RAM %s, Bank: %d\n", (export_ram) ? "enabled" : "disabled", ram_bank);
-    return 0;
+*/
+	return 0;
 }
 
 /* ---------------------------------------------------------------------*/

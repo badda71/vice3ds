@@ -38,7 +38,7 @@
 #include "cartridge.h"
 #include "export.h"
 #include "finalplus.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -129,7 +129,8 @@ void final_plus_io2_store(uint16_t addr, uint8_t value)
 
 static int final_plus_dump(void)
 {
-    int rom_8000 = 0;
+/*
+	int rom_8000 = 0;
     int rom_a000 = 0;
     int rom_e000 = 0;
 
@@ -146,7 +147,7 @@ static int final_plus_dump(void)
     mon_out("$8000-$9FFF ROM: %s\n", (rom_8000) ? "enabled" : "disabled");
     mon_out("$A000-$BFFF ROM: %s\n", (rom_a000) ? "enabled" : "disabled");
     mon_out("$E000-$FFFF ROM: %s\n", (rom_e000) ? "enabled" : "disabled");
-
+*/
     return 0;
 }
 

@@ -36,7 +36,7 @@
 #include "cartio.h"
 #include "cartridge.h"
 #include "export.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "rexutility.h"
 #include "snapshot.h"
 #include "types.h"
@@ -75,7 +75,7 @@ static uint8_t rex_io2_peek(uint16_t addr)
 
 static int rex_dump(void)
 {
-    mon_out("$8000-$9FFF ROM: %s\n", (rex_active) ? "enabled" : "disabled");
+    //mon_out("$8000-$9FFF ROM: %s\n", (rex_active) ? "enabled" : "disabled");
 
     return 0;
 }

@@ -49,7 +49,7 @@
 #include "log.h"
 #include "machine.h"
 #include "maincpu.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "resources.h"
 #include "snapshot.h"
 #include "sound.h"
@@ -812,11 +812,13 @@ static uint8_t magicvoice_io2_peek(uint16_t addr)
 
 static int magicvoice_io2_dump(void)
 {
-    mon_out("TPI\n");
+    /*
+	mon_out("TPI\n");
     tpicore_dump(tpi_context);
     mon_out("T6721:\n");
     t6721_dump(t6721);
-    return 0;
+*/
+	return 0;
 }
 
 /* ---------------------------------------------------------------------*/

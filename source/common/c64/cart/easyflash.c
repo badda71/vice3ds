@@ -46,7 +46,7 @@
 #include "log.h"
 #include "maincpu.h"
 #include "mem.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "resources.h"
 #include "snapshot.h"
 #include "util.h"
@@ -146,11 +146,13 @@ static uint8_t easyflash_io1_peek(uint16_t addr)
 
 static int easyflash_io1_dump(void)
 {
-    mon_out("Mode %i, LED %s, jumper %s\n",
+/*
+	mon_out("Mode %i, LED %s, jumper %s\n",
             easyflash_memconfig[(easyflash_jumper << 3) | (easyflash_register_02 & 0x07)],
             (easyflash_register_02 & 0x80) ? "on" : "off",
             easyflash_jumper ? "on" : "off");
-    return 0;
+*/
+	return 0;
 }
 
 /* ---------------------------------------------------------------------*/

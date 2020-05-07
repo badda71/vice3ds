@@ -37,7 +37,7 @@
 #include "cartio.h"
 #include "cartridge.h"
 #include "export.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "superexplode5.h"
 #include "types.h"
@@ -117,7 +117,7 @@ static uint8_t se5_io2_read(uint16_t addr)
 
 static int se5_dump(void)
 {
-    mon_out("Bank: %d\n", se5_bank);
+    //mon_out("Bank: %d\n", se5_bank);
 
     return 0;
 }

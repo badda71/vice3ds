@@ -64,7 +64,7 @@
 #include "machine.h"
 #include "maincpu.h"
 #include "mem.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "raster-changes.h"
 #include "raster-line.h"
 #include "raster-modes.h"
@@ -1425,12 +1425,13 @@ void vicii_async_refresh(struct canvas_refresh_s *refresh)
 
 int vicii_dump(void)
 {
-    int m_muco, m_disp, m_ext, v_bank, v_vram;
+/*
+	int m_muco, m_disp, m_ext, v_bank, v_vram;
     int i, bits;
 
-    m_ext = ((vicii.regs[0x11] & 0x40) >> 6); /* 0 standard, 1 extended */
-    m_muco = ((vicii.regs[0x16] & 0x10) >> 4); /* 0 hires, 1 multi */
-    m_disp = ((vicii.regs[0x11] & 0x20) >> 5); /* 0 text, 1 bitmap */
+    m_ext = ((vicii.regs[0x11] & 0x40) >> 6); // 0 standard, 1 extended
+    m_muco = ((vicii.regs[0x16] & 0x10) >> 4); // 0 hires, 1 multi
+    m_disp = ((vicii.regs[0x11] & 0x20) >> 5); // 0 text, 1 bitmap
 
     v_bank = vicii.vbank_phi2;
 
@@ -1455,13 +1456,13 @@ int vicii_dump(void)
         mon_out("Bitmap Memory:     $%04x\n", (((vicii.regs[0x18] >> 3) & 1) * 0x2000) + v_bank);
     } else {
         i = (((vicii.regs[0x18] >> 1) & 0x7) * 0x800) + v_bank;
-        /* FIXME: how does cbm510 work ? */
+        // FIXME: how does cbm510 work ?
         if (machine_class == VICE_MACHINE_C64 ||
             machine_class == VICE_MACHINE_C128 ||
             machine_class == VICE_MACHINE_C64DTV ||
             machine_class == VICE_MACHINE_C64SC ||
             machine_class == VICE_MACHINE_SCPU64) {
-            /* $1x00 and $9x00 mapped to $dx00 */
+            // $1x00 and $9x00 mapped to $dx00 
             if ((( i >> 12) == 1 ) || (( i >> 12) == 9 )) {
                 i = 0xd000 | (i & 0x0f00);
             }
@@ -1486,7 +1487,7 @@ int vicii_dump(void)
         mon_out("  $%04x", v_bank + (vicii.screen_ptr[i] * 0x40));
     }
     mon_out("\nX-Pos:   ");
-    bits = vicii.regs[0x10]; /* sprite x msb */
+    bits = vicii.regs[0x10]; // sprite x msb 
     for (i = 0; i < 8; i++) {
         mon_out("  %5d", vicii.regs[i << 1] + (256 * (bits & 1)));
         bits >>= 1;
@@ -1527,7 +1528,7 @@ int vicii_dump(void)
         mon_out("\nMulti Color 1: %d  Multi Color 2: %d", vicii.regs[0x25], vicii.regs[0x26]);
     }
     mon_out("\n");
-
+*/
 /*
   TODO:
 

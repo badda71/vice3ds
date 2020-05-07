@@ -195,7 +195,7 @@
 #include "cartridge.h"
 #include "export.h"
 #include "silverrock128.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -242,10 +242,12 @@ static uint8_t silverrock128_io1_peek(uint16_t addr)
 
 static int silverrock128_dump(void)
 {
-    mon_out("Currently selected EPROM bank: %d, cart status: %s\n",
+/*
+	mon_out("Currently selected EPROM bank: %d, cart status: %s\n",
             currbank,
             (regval & 0x80) ? "Disabled" : "Enabled");
-    return 0;
+*/
+	return 0;
 }
 
 /* ---------------------------------------------------------------------*/

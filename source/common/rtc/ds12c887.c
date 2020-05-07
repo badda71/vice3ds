@@ -28,7 +28,7 @@
 
 #include "ds12c887.h"
 #include "lib.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "rtc.h"
 #include "snapshot.h"
 
@@ -765,7 +765,7 @@ uint8_t ds12c887_read(rtc_ds12c887_t *context)
     }
     return retval;
 }
-
+/*
 static uint8_t ds12c887_read_regs(rtc_ds12c887_t *context, int address)
 {
     uint8_t retval;
@@ -817,9 +817,10 @@ static uint8_t ds12c887_read_regs(rtc_ds12c887_t *context, int address)
     }
     return retval;
 }
-
+*/
 int ds12c887_dump(rtc_ds12c887_t *context)
 {
+/*
     int i, j;
 
     mon_out("Registers contents:\n");
@@ -830,7 +831,7 @@ int ds12c887_dump(rtc_ds12c887_t *context)
         }
         mon_out("\n");
     }
-
+*/
     return 0;
 }
 

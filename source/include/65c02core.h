@@ -302,9 +302,6 @@
             if ((ik & IK_NMI)                                                                                 \
                  && interrupt_check_nmi_delay(CPU_INT_STATUS, CLK)) {                                         \
                 TRACE_NMI(CLK);                                                                               \
-                if (monitor_mask[CALLER] & (MI_STEP)) {                                                       \
-                    monitor_check_icount_interrupt();                                                         \
-                }                                                                                             \
                 interrupt_ack_nmi(CPU_INT_STATUS);                                                            \
                 if (NMI_CYCLES == 7) {                                                                        \
                     LOAD(reg_pc);   /* dummy reads */                                                         \
@@ -327,9 +324,6 @@
             if ((ik & (IK_IRQ | IK_IRQPEND)) && (!LOCAL_INTERRUPT() || OPINFO_DISABLES_IRQ(LAST_OPCODE_INFO)) \
                     && interrupt_check_irq_delay(CPU_INT_STATUS, CLK)) {                                      \
                 TRACE_IRQ(CLK);                                                                               \
-                if (monitor_mask[CALLER] & (MI_STEP)) {                                                       \
-                    monitor_check_icount_interrupt();                                                         \
-                }                                                                                             \
                 interrupt_ack_irq(CPU_INT_STATUS);                                                            \
                 if (NMI_CYCLES == 7) {                                                                        \
                     LOAD(reg_pc);   /* dummy reads */                                                         \
@@ -368,28 +362,6 @@
             }                                                                                                 \
         }                                                                                                     \
         if (ik & (IK_MONITOR | IK_DMA)) {                                                                     \
-            if (ik & IK_MONITOR) {                                                                            \
-                if (monitor_force_import(CALLER)) {                                                           \
-                    IMPORT_REGISTERS();                                                                       \
-                }                                                                                             \
-                if (monitor_mask[CALLER]) {                                                                   \
-                    EXPORT_REGISTERS();                                                                       \
-                }                                                                                             \
-                if (monitor_mask[CALLER] & (MI_STEP)) {                                                       \
-                    monitor_check_icount((uint16_t)reg_pc);                                                       \
-                    IMPORT_REGISTERS();                                                                       \
-                }                                                                                             \
-                if (monitor_mask[CALLER] & (MI_BREAK)) {                                                      \
-                    if (monitor_check_breakpoints(CALLER, (uint16_t)reg_pc)) {                                    \
-                        monitor_startup(CALLER);                                                              \
-                        IMPORT_REGISTERS();                                                                   \
-                    }                                                                                         \
-                }                                                                                             \
-                if (monitor_mask[CALLER] & (MI_WATCH)) {                                                      \
-                    monitor_check_watchpoints(LAST_OPCODE_ADDR, (uint16_t)reg_pc);                                \
-                    IMPORT_REGISTERS();                                                                       \
-                }                                                                                             \
-            }                                                                                                 \
             if (ik & IK_DMA) {                                                                                \
                 EXPORT_REGISTERS();                                                                           \
                 DMA_FUNC;                                                                                     \
@@ -1646,12 +1618,14 @@
             memmap_mem_read(reg_pc);
         }
 #endif
-        if (p0 == 0x20) {
+/*
+		if (p0 == 0x20) {
             monitor_cpuhistory_store(reg_pc, p0, p1, LOAD(reg_pc + 2), reg_a, reg_x, reg_y, reg_sp, LOCAL_STATUS());
         } else {
             monitor_cpuhistory_store(reg_pc, p0, p1, p2 >> 8, reg_a, reg_x, reg_y, reg_sp, LOCAL_STATUS());
         }
-        memmap_state &= ~(MEMMAP_STATE_INSTR | MEMMAP_STATE_OPCODE);
+*/
+		memmap_state &= ~(MEMMAP_STATE_INSTR | MEMMAP_STATE_OPCODE);
 #endif
 
 #ifdef DEBUG
@@ -1661,11 +1635,6 @@
             uint8_t lo = (uint8_t)(p1);
             uint8_t hi = (uint8_t)(p2 >> 8);
 
-            debug_drive((uint32_t)(reg_pc), debug_clk,
-                        mon_disassemble_to_string(e_disk8_space,
-                                                  reg_pc, op,
-                                                  lo, hi, 0, 1, "R65(SC)02"),
-                        reg_a, reg_x, reg_y, reg_sp, drv->mynumber + 8);
         }
 #else
         if (TRACEFLG) {
@@ -1677,16 +1646,13 @@
                 hi = LOAD(reg_pc + 2);
             }
 
-            debug_maincpu((uint32_t)(reg_pc), debug_clk,
-                          mon_disassemble_to_string(e_comp_space,
-                                                    reg_pc, op,
-                                                    lo, hi, 0, 1, "65(SC)02"),
-                          reg_a, reg_x, reg_y, reg_sp);
         }
+/*
         if (debug.perform_break_into_monitor) {
             monitor_startup_trap();
             debug.perform_break_into_monitor = 0;
         }
+*/
 #endif
 #endif
 

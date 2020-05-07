@@ -37,7 +37,7 @@
 #include "cartio.h"
 #include "cartridge.h"
 #include "export.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -181,11 +181,13 @@ static uint8_t actionreplay3_io2_peek(uint16_t addr)
 
 static int actionreplay3_dump(void)
 {
+/*
     mon_out("EXROM line: %d, bank: %d, cart state: %s\n",
             ar_reg & 8,
             ar_reg & 1,
             (ar_reg & 4) ? "Disabled" : "Enabled");
-    return 0;
+*/
+	return 0;
 }
 
 /* ---------------------------------------------------------------------*/

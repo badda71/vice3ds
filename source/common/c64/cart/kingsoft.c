@@ -39,7 +39,7 @@
 #include "comal80.h"
 #include "export.h"
 #include "lib.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -106,7 +106,7 @@ static uint8_t kingsoft_io1_peek(uint16_t addr)
 
 static int kingsoft_dump(void)
 {
-    mon_out("mode: %s\n", mode ? "ultimax" : "16k");
+    //mon_out("mode: %s\n", mode ? "ultimax" : "16k");
     return 0;
 }
 

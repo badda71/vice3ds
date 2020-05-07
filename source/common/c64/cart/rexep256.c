@@ -37,7 +37,7 @@
 #include "cartio.h"
 #include "cartridge.h"
 #include "export.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "rexep256.h"
 #include "snapshot.h"
 #include "types.h"
@@ -137,10 +137,12 @@ static uint8_t rexep256_io2_peek(uint16_t addr)
 
 static int rexep256_dump(void)
 {
-    mon_out("Socket: %d, bank: %d\n",
+/*
+	mon_out("Socket: %d, bank: %d\n",
             regval & 7,
             (regval & 0x30) >> 4);
-    return 0;
+*/
+	return 0;
 }
 
 /* ---------------------------------------------------------------------*/

@@ -48,7 +48,7 @@
 #include "interrupt.h"
 #include "lib.h"
 #include "log.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 
@@ -1715,7 +1715,8 @@ int ciacore_snapshot_read_module(cia_context_t *cia_context, snapshot_t *s)
 
 int ciacore_dump(cia_context_t *cia_context)
 {
-    mon_out("ICR: %02x CTRLA: %02x CTRLB: %02x\n\n", ciacore_peek(cia_context, 0x0d), ciacore_peek(cia_context, 0x0e), ciacore_peek(cia_context, 0x0f));
+/*
+	mon_out("ICR: %02x CTRLA: %02x CTRLB: %02x\n\n", ciacore_peek(cia_context, 0x0d), ciacore_peek(cia_context, 0x0e), ciacore_peek(cia_context, 0x0f));
     mon_out("ICR write: %02x Timer A IRQ: %s Timer B IRQ: %s TOD IRQ: %s Serial IRQ: %s Cassette IRQ: %s\n\n",
         cia_context->c_cia[CIA_ICR],
         (cia_context->c_cia[CIA_ICR] & 1) ? "on" : "off",
@@ -1730,5 +1731,6 @@ int ciacore_dump(cia_context_t *cia_context)
     mon_out("TOD Time:  %02x:%02x:%02x.%x (%s)\n", ciacore_peek(cia_context, 0x0b) & 0x7f, ciacore_peek(cia_context, 0x0a), ciacore_peek(cia_context, 0x09), ciacore_peek(cia_context, 0x08), ciacore_peek(cia_context, 0x0b) & 0x80 ? "pm" : "am");
     mon_out("TOD Alarm: %02x:%02x:%02x.%x (%s)\n", cia_context->todalarm[0x0b - CIA_TOD_TEN] & 0x7f, cia_context->todalarm[0x0a - CIA_TOD_TEN], cia_context->todalarm[0x09 - CIA_TOD_TEN], cia_context->todalarm[0x08 - CIA_TOD_TEN], cia_context->todalarm[0x0b - CIA_TOD_TEN] & 0x80 ? "pm" : "am");
     mon_out("\nSynchronous Serial I/O Data Buffer: %02x\n", ciacore_peek(cia_context, 0x0c));
-    return 0;
+*/
+	return 0;
 }

@@ -35,7 +35,7 @@
 #include "interrupt.h"
 #include "log.h"
 #include "maincpu.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "types.h"
 #include "z80.h"
 #include "z80mem.h"
@@ -504,9 +504,6 @@ static void export_registers(void)
             if ((ik & IK_NMI) && 0) {                                                     \
             } else if ((ik & IK_IRQ) && iff1 && !OPINFO_DISABLES_IRQ(LAST_OPCODE_INFO)) { \
                 uint16_t jumpdst;                                                             \
-                if (monitor_mask[e_comp_space] & (MI_STEP)) {                             \
-                    monitor_check_icount_interrupt();                                     \
-                }                                                                         \
                 CLK_ADD(CLK, 4);                                                          \
                 --reg_sp;                                                                 \
                 STORE((reg_sp), ((uint8_t)(z80_reg_pc >> 8)));                               \
@@ -541,25 +538,6 @@ static void export_registers(void)
             if (ik & IK_RESET) {                                                          \
                 interrupt_ack_reset(cpu_int_status);                                      \
                 maincpu_reset();                                                          \
-            }                                                                             \
-        }                                                                                 \
-        if (ik & (IK_MONITOR)) {                                                          \
-            if (monitor_force_import(e_comp_space)) {                                     \
-                import_registers();                                                       \
-            }                                                                             \
-            if (monitor_mask[e_comp_space]) {                                             \
-                export_registers();                                                       \
-            }                                                                             \
-            if (monitor_mask[e_comp_space] & (MI_STEP)) {                                 \
-                monitor_check_icount((uint16_t)z80_reg_pc);                                   \
-            }                                                                             \
-            if (monitor_mask[e_comp_space] & (MI_BREAK)) {                                \
-                if (monitor_check_breakpoints(e_comp_space, (uint16_t)z80_reg_pc)) {          \
-                    monitor_startup(e_comp_space);                                        \
-                }                                                                         \
-            }                                                                             \
-            if (monitor_mask[e_comp_space] & (MI_WATCH)) {                                \
-                monitor_check_watchpoints(LAST_OPCODE_ADDR, (uint16_t)z80_reg_pc);            \
             }                                                                             \
         }                                                                                 \
     } while (0)
@@ -5536,15 +5514,6 @@ void z80_mainloop(interrupt_cpu_status_t *cpu_int_status, alarm_context_t *cpu_a
 
         SET_LAST_ADDR(reg_pc);
         FETCH_OPCODE(opcode);
-
-#ifdef DEBUG
-        if (debug.maincpu_traceflg) {
-            log_message(LOG_DEFAULT,
-                        ".%04x %i %-25s A%02x F%02x B%02x C%02x D%02x E%02x H%02x L%02x S%04x",
-                        (unsigned int)z80_reg_pc, 0, mon_disassemble_to_string(e_comp_space, z80_reg_pc, p0, p1, p2, p3, 1, "z80"),
-                        reg_a, reg_f, reg_b, reg_c, reg_d, reg_e, reg_h, reg_l, reg_sp);
-        }
-#endif
 
         SET_LAST_OPCODE(p0);
 

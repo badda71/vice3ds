@@ -42,7 +42,7 @@
 #include "log.h"
 #include "machine.h"
 #include "mem.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "resources.h"
 #include "snapshot.h"
 #include "types.h"
@@ -253,6 +253,7 @@ static void ramcart_io2_store(uint16_t addr, uint8_t byte)
 
 static int ramcart_dump(void)
 {
+/*
     int bank = 0;
     int mirrored = 0;
 
@@ -268,7 +269,8 @@ static int ramcart_dump(void)
             (ramcart_size_kb == 128) ? "128Kb" : "64Kb",
             bank,
             (ramcart_readonly) ? ((mirrored) ? "read-only and mirrored at $8000-$80FF" : "read-only") : "read/write");
-    return 0;
+*/
+	return 0;
 }
 
 /* ------------------------------------------------------------------------- */

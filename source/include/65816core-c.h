@@ -355,29 +355,6 @@
                 IMPORT_REGISTERS();                                            \
                 interrupt65816 &= ~IK_TRAP;                                    \
             }                                                                  \
-            if (ik & IK_MONITOR) {                                             \
-                if (monitor_force_import(CALLER)) {                            \
-                    IMPORT_REGISTERS();                                        \
-                }                                                              \
-                if (monitor_mask[CALLER]) {                                    \
-                    EXPORT_REGISTERS();                                        \
-                }                                                              \
-                if (monitor_mask[CALLER] & (MI_STEP)) {                        \
-                    monitor_check_icount((uint16_t)reg_pc);                        \
-                    IMPORT_REGISTERS();                                        \
-                }                                                              \
-                if (monitor_mask[CALLER] & (MI_BREAK)) {                       \
-                    if (monitor_check_breakpoints(CALLER, (uint16_t)reg_pc)) {     \
-                        monitor_startup(CALLER);                               \
-                        IMPORT_REGISTERS();                                    \
-                    }                                                          \
-                }                                                              \
-                if (monitor_mask[CALLER] & (MI_WATCH)) {                       \
-                    monitor_check_watchpoints(LAST_OPCODE_ADDR, (uint16_t)reg_pc); \
-                    IMPORT_REGISTERS();                                        \
-                }                                                              \
-                interrupt65816 &= ~IK_MONITOR;                                 \
-            }                                                                  \
             if (ik & IK_DMA) {                                                 \
                 EXPORT_REGISTERS();                                            \
                 DMA_FUNC;                                                      \
@@ -1727,9 +1704,6 @@
 #define IRQ()                                 \
   do {                                        \
       TRACE_IRQ();                            \
-      if (monitor_mask[CALLER] & (MI_STEP)) { \
-          monitor_check_icount_interrupt();   \
-      }                                       \
       interrupt_ack_irq(CPU_INT_STATUS);      \
       FETCH_PARAM(reg_pc);                    \
       FETCH_PARAM_DUMMY(reg_pc);              \
@@ -1961,9 +1935,6 @@
 #define NMI()                                 \
   do {                                        \
       TRACE_NMI();                            \
-      if (monitor_mask[CALLER] & (MI_STEP)) { \
-          monitor_check_icount_interrupt();   \
-      }                                       \
       interrupt_ack_nmi(CPU_INT_STATUS);      \
       FETCH_PARAM(reg_pc);                    \
       FETCH_PARAM_DUMMY(reg_pc);              \
@@ -2592,14 +2563,6 @@
             p0 = FETCH_PARAM(reg_pc);
         }
         SET_LAST_ADDR(reg_pc);
-
-#ifdef DEBUG
-        if (debug.perform_break_into_monitor)
-        {
-            monitor_startup_trap();
-            debug.perform_break_into_monitor = 0;
-        }
-#endif
 
 trap_skipped:
         SET_LAST_OPCODE(p0);
@@ -3650,16 +3613,6 @@ trap_skipped:
             uint8_t hi = (uint8_t)(p2 >> 8);
             uint8_t bk = (uint8_t)(p3 >> 16);
 
-            debug_main65816cpu((uint32_t)(debug_pc), debug_clk,
-                          mon_disassemble_to_string(e_comp_space,
-                                                    debug_pc, op,
-                                                    lo, hi, bk, 1, "65816"),
-                          debug_c, debug_x, debug_y, debug_sp, debug_pbr);
-        }
-        if (debug.perform_break_into_monitor)
-        {
-            monitor_startup_trap();
-            debug.perform_break_into_monitor = 0;
         }
 #endif
     }

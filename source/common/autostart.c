@@ -63,7 +63,7 @@
 #include "machine.h"
 #include "maincpu.h"
 #include "mem.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "network.h"
 #include "resources.h"
 #include "snapshot.h"
@@ -640,7 +640,7 @@ static void autostart_done(void)
     /* Enter monitor after done */
     if (trigger_monitor) {
         trigger_monitor = 0;
-        monitor_startup_trap();
+        //monitor_startup_trap();
         log_message(autostart_log, "Done. Returning to Monitor.");
     } else {
         log_message(autostart_log, "Done.");

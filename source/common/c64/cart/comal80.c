@@ -40,7 +40,7 @@
 #include "cartridge.h"
 #include "comal80.h"
 #include "export.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -108,10 +108,12 @@ static uint8_t comal80_io1_peek(uint16_t addr)
 
 static int comal80_dump(void)
 {
+/*
     mon_out("extra eprom is installed: %s\n", extrarom ? "yes" : "no");
     mon_out("register value: $%02x\n", currregval);
     mon_out(" bank: %d/%d\n", currregval & 7, extrarom ? 8 : 4);
-    return 0;
+*/
+	return 0;
 }
 
 /* ---------------------------------------------------------------------*/

@@ -87,7 +87,7 @@
 #include "machine.h"
 #include "maincpu.h"
 #include "mem.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "network.h"
 #include "paperclip64.h"
 #include "parallel.h"
@@ -933,7 +933,7 @@ int machine_cmdline_options_init(void)
     }
     return 0;
 }
-*/
+
 static void c64_monitor_init(void)
 {
     unsigned int dnr;
@@ -955,10 +955,10 @@ static void c64_monitor_init(void)
         drive_interface_init[dnr] = drive_cpu_monitor_interface_get(dnr);
     }
 
-    /* Initialize the monitor.  */
-    monitor_init(maincpu_monitor_interface_get(), drive_interface_init, asmarray);
+    // Initialize the monitor.
+//    monitor_init(maincpu_monitor_interface_get(), drive_interface_init, asmarray);
 }
-
+*/
 void machine_setup_context(void)
 {
     cia1_setup_context(&machine_context);
@@ -1035,7 +1035,7 @@ int machine_specific_init(void)
     /* Initialize the keyboard.  */
     c64keyboard_init();
 
-    c64_monitor_init();
+    //c64_monitor_init();
 
     /* Initialize vsync and register our hook function.  */
     vsync_init(machine_vsync_hook);

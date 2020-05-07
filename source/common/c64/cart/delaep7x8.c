@@ -37,7 +37,7 @@
 #include "cartridge.h"
 #include "delaep7x8.h"
 #include "export.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -117,10 +117,12 @@ static uint8_t delaep7x8_io1_peek(uint16_t addr)
 
 static int delaep7x8_dump(void)
 {
-    mon_out("Currently active EPROM bank: %d, cart status: %s\n",
+/*
+	mon_out("Currently active EPROM bank: %d, cart status: %s\n",
             currbank,
             (regval == 0xff) ? "Disabled" : "Enabled");
-    return 0;
+*/
+	return 0;
 }
 
 /* ---------------------------------------------------------------------*/

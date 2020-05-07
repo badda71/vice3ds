@@ -38,7 +38,7 @@
 #include "cartio.h"
 #include "cartridge.h"
 #include "export.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -212,6 +212,7 @@ static void atomicpower_io2_store(uint16_t addr, uint8_t value)
 
 static int atomicpower_dump(void)
 {
+/*
     mon_out("EXROM line: %s, GAME line: %s, Mode: %s\n",
             (atomicpower_control_reg & 2) ? "high" : "low",
             (atomicpower_control_reg & 1) ? "low" : "high",
@@ -220,11 +221,12 @@ static int atomicpower_dump(void)
             (atomicpower_control_reg & 0x18) >> 3,
             (atomicpower_control_reg & 4) ? "disabled" : "enabled",
             (atomicpower_control_reg & 0x40) ? "yes" : "no");
-    /* FIXME: take system RAM and cart mode(s) into account here */
+    // FIXME: take system RAM and cart mode(s) into account here
     mon_out("$8000-$9FFF: %s\n", (export_ram) ? "RAM" : "ROM");
     mon_out("$A000-$BFFF: %s\n", (export_ram_at_a000) ? "RAM" : "ROM");
     mon_out("$DF00-$DFFF: %s\n", (export_ram || export_ram_at_a000) ? "RAM" : "ROM");
-    return 0;
+*/
+	return 0;
 }
 
 /* ---------------------------------------------------------------------*/

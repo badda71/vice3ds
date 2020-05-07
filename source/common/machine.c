@@ -52,8 +52,8 @@
 #include "machine.h"
 #include "maincpu.h"
 #include "mem.h"
-#include "monitor.h"
-#include "monitor_network.h"
+//#include "monitor.h"
+//#include "monitor_network.h"
 #include "network.h"
 //#include "printer.h"
 #include "resources.h"
@@ -117,11 +117,11 @@ unsigned int machine_jam(const char *format, ...)
     log_message(LOG_DEFAULT, "*** %s", str);
 
     if (jam_action == MACHINE_JAM_ACTION_DIALOG) {
-        if (monitor_is_remote()) {
-            ret = monitor_network_ui_jam_dialog(str);
-        } else {
+//        if (monitor_is_remote()) {
+//            ret = monitor_network_ui_jam_dialog(str);
+//       } else {
             ret = ui_jam_dialog(str);
-        }
+//        }
     } else if (jam_action == MACHINE_JAM_ACTION_QUIT) {
         archdep_vice_exit(EXIT_SUCCESS);
     } else {
@@ -218,7 +218,7 @@ static void machine_maincpu_clk_overflow_callback(CLOCK sub, void *data)
 void machine_maincpu_init(void)
 {
     maincpu_init();
-    maincpu_monitor_interface = lib_calloc(1, sizeof(monitor_interface_t));
+//    maincpu_monitor_interface = lib_calloc(1, sizeof(monitor_interface_t));
 }
 
 void machine_early_init(void)
@@ -254,7 +254,7 @@ static void machine_maincpu_shutdown(void)
         clk_guard_destroy(maincpu_clk_guard);
     }
 
-    lib_free(maincpu_monitor_interface);
+//    lib_free(maincpu_monitor_interface);
     maincpu_shutdown();
 }
 
@@ -312,7 +312,7 @@ void machine_shutdown(void)
     kbdbuf_shutdown();
     keyboard_shutdown();
 
-    monitor_shutdown();
+//    monitor_shutdown();
 
     console_close_all();
 
@@ -350,9 +350,9 @@ void machine_shutdown(void)
     log_resources_shutdown();
     fliplist_resources_shutdown();
     romset_resources_shutdown();
-#ifdef HAVE_NETWORK
-    monitor_network_resources_shutdown();
-#endif
+//#ifdef HAVE_NETWORK
+//    monitor_network_resources_shutdown();
+//#endif
     archdep_shutdown();
 
     lib_debug_check();

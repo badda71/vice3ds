@@ -42,7 +42,7 @@
 #include "crc32.h"
 #include "lib.h"
 #include "log.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "rawnetarch.h"
 #include "resources.h"
 #include "snapshot.h"
@@ -1608,10 +1608,12 @@ void cs8900_store(uint16_t io_address, uint8_t byte)
 
 int cs8900_dump(void)
 {
-    /* FIXME: this is incomplete */
+/*
+	// FIXME: this is incomplete
     mon_out("Link status: %s\n", (GET_PP_16(CS8900_PP_ADDR_SE_LINEST) & 0x80) ? "up" : "no link");
     mon_out("Package Page Ptr: $%04X (autoincrement %s)\n", cs8900_packetpage_ptr & PP_PTR_ADDR_MASK, (cs8900_packetpage_ptr & PP_PTR_AUTO_INCR_FLAG) != 0 ? "enabled" : "disabled");
-    return 0;
+*/
+	return 0;
 }
 
 /* ---------------------------------------------------------------------*/

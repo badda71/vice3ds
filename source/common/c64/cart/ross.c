@@ -37,7 +37,7 @@
 #include "cartio.h"
 #include "cartridge.h"
 #include "export.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "ross.h"
 #include "snapshot.h"
 #include "types.h"
@@ -85,10 +85,12 @@ static uint8_t ross_io2_read(uint16_t addr)
 
 static int ross_dump(void)
 {
-    mon_out("Size: %s, bank: %d\n",
+/*
+	mon_out("Size: %s, bank: %d\n",
             (ross_is_32k) ? "32Kb" : "16Kb",
             currbank);
-    return 0;
+*/
+	return 0;
 }
 
 /* ---------------------------------------------------------------------*/

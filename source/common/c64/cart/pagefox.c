@@ -39,7 +39,7 @@
 #include "comal80.h"
 #include "export.h"
 #include "lib.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -121,11 +121,13 @@ static uint8_t pagefox_io1_peek(uint16_t addr)
 
 static int pagefox_dump(void)
 {
+/*
     mon_out("enabled:        %s\n", pagefox_enabled ? "yes" : "no");
     mon_out("bank select:    %d\n", bankselect);
     mon_out("chip select:    %d\n", chipselect);
     mon_out("effective bank: %d\n", currbank);
-    return 0;
+*/
+	return 0;
 }
 
 /* ---------------------------------------------------------------------*/

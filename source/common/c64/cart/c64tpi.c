@@ -46,7 +46,7 @@
 #include "log.h"
 #include "parallel.h"
 #include "maincpu.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "resources.h"
 #include "tpi.h"
 #include "types.h"
@@ -146,9 +146,11 @@ static uint8_t tpi_io2_peek(uint16_t addr)
 
 static int tpi_io2_dump(void)
 {
-    mon_out("TPI\n");
+/*
+	mon_out("TPI\n");
     tpicore_dump(tpi_context);
-    return 0;
+*/
+	return 0;
 }
 /* ---------------------------------------------------------------------*/
 

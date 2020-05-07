@@ -31,7 +31,7 @@
 
 #include "lib.h"
 #include "log.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "tpi.h"
 #include "types.h"
@@ -512,6 +512,7 @@ int tpicore_snapshot_read_module(tpi_context_t *tpi_context, snapshot_t *p)
 
 int tpicore_dump(tpi_context_t *tpi_context)
 {
+/*
     const char *ctrlmodes[4] = {
         "irq", "pulse", "low", "high"
     };
@@ -540,5 +541,6 @@ int tpicore_dump(tpi_context_t *tpi_context)
         mon_out("Port Direction C:   %02x\n", tpi_context->c_tpi[TPI_DDPC]);
         mon_out("Active Interrupt:   %02x\n", tpi_context->c_tpi[TPI_AIR]);
     }
+*/
     return 0;
 }

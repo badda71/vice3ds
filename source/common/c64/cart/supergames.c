@@ -37,7 +37,7 @@
 #include "cartio.h"
 #include "cartridge.h"
 #include "export.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "supergames.h"
 #include "types.h"
@@ -94,9 +94,11 @@ static uint8_t supergames_io2_peek(uint16_t addr)
 
 static int supergames_dump(void)
 {
+/*
     mon_out("Bank: %d (%s, %s)\n", currbank, currmode ? "enabled" : "disabled",
             reglatched ? "latched" : "not latched");
-    return 0;
+*/
+	return 0;
 }
 
 /* ---------------------------------------------------------------------*/

@@ -40,7 +40,7 @@
 #include "log.h"
 #include "machine.h"
 #include "mem.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "resources.h"
 #include "reu.h"
 #include "snapshot.h"
@@ -152,11 +152,13 @@ void c64_256k_store(uint16_t addr, uint8_t byte)
 
 static int c64_256k_dump(void)
 {
-    mon_out("$0000-$3FFF segment: %d\n", c64_256k_segment0);
+/*
+	mon_out("$0000-$3FFF segment: %d\n", c64_256k_segment0);
     mon_out("$4000-$7FFF segment: %d\n", c64_256k_segment1);
     mon_out("$8000-$BFFF segment: %d\n", c64_256k_segment2);
     mon_out("$C000-$FFFF segment: %d\n", c64_256k_segment3);
-    return 0;
+*/
+	return 0;
 }
 
 /* ---------------------------------------------------------------------*/

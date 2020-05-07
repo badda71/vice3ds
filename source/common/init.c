@@ -40,9 +40,9 @@
 #include "machine-video.h"
 #include "machine.h"
 #include "maincpu.h"
-#include "monitor.h"
+//#include "monitor.h"
 #ifdef HAVE_NETWORK
-#include "monitor_network.h"
+//#include "monitor_network.h"
 #endif
 #include "palette.h"
 #include "ram.h"
@@ -123,7 +123,7 @@ int init_resources(void)
         init_resource_fail("RAM");
         return -1;
     }
-    if (monitor_resources_init() < 0) {
+/*    if (monitor_resources_init() < 0) {
         init_resource_fail("monitor");
         return -1;
     }
@@ -133,7 +133,8 @@ int init_resources(void)
         return -1;
     }
 #endif
-    return 0;
+*/
+	return 0;
 }
 /*
 void init_cmdline_options_fail(const char *module)

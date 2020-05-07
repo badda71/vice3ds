@@ -44,7 +44,7 @@
 #include "lib.h"
 #include "log.h"
 #include "machine.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "resources.h"
 #include "sysfile.h"
 #include "ui.h"

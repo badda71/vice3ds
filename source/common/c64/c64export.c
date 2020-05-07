@@ -35,7 +35,7 @@
 #include "c64cartsystem.h"
 #include "export.h"
 #include "lib.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "uiapi.h"
 
 /* #define DEBUGEXPORT */
@@ -59,15 +59,15 @@ export_list_t *export_query_list(export_list_t *item)
 
 void export_dump(void)
 {
-    export_list_t *current = NULL;
+/*
+	export_list_t *current = NULL;
     io_source_t *io;
 
     current = export_query_list(current);
 
     if (current == NULL) {
-        mon_out("No expansion port devices.\n");
+        //mon_out("No expansion port devices.\n");
     } else {
-               /*- -----    -     - --------- --------- ------------------------ */
         mon_out("  CRTID GAME EXROM IO1-usage IO2-usage Name\n");
         while (current != NULL) {
             if (cart_is_slotmain(current->device->cartid)) {
@@ -90,9 +90,6 @@ void export_dump(void)
             } else {
                 mon_out("     none ");
             }
-            /* show (inactive) in front of the name when no PLA lines nor
-               I/O resources are used, this should not happen in normal
-               operation and usually indicates a bug */
             if ((!current->device->game) &&
                 (!current->device->exrom) &&
                 (!current->device->io1) &&
@@ -105,6 +102,7 @@ void export_dump(void)
         mon_out("Current GAME status: (%d) (%s)\n", !export.game, (export.game) ? "active" : "inactive");
         mon_out("Current EXROM status: (%d) (%s)\n", !export.exrom, (export.exrom) ? "active" : "inactive");
     }
+*/
 }
 
 int export_add(const export_resource_t *export_res)

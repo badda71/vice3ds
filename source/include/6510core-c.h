@@ -380,9 +380,6 @@
                 || ((ik & (IK_IRQ | IK_IRQPEND)) && (!LOCAL_INTERRUPT()                        \
                                                      || OPINFO_DISABLES_IRQ(LAST_OPCODE_INFO)) \
                     && interrupt_check_irq_delay(CPU_INT_STATUS, CLK))) {                      \
-                if (monitor_mask[CALLER] & (MI_STEP)) {                                        \
-                    monitor_check_icount_interrupt();                                          \
-                }                                                                              \
                 if (NMI_CYCLES == 7) {                                                         \
                     FETCH_PARAM(reg_pc);   /* dummy reads */                                   \
                     CLK_ADD(CLK, 1);                                                           \
@@ -430,28 +427,6 @@
             }                                                                                  \
         }                                                                                      \
         if (ik & (IK_MONITOR | IK_DMA)) {                                                      \
-            if (ik & IK_MONITOR) {                                                             \
-                if (monitor_force_import(CALLER)) {                                            \
-                    IMPORT_REGISTERS();                                                        \
-                }                                                                              \
-                if (monitor_mask[CALLER]) {                                                    \
-                    EXPORT_REGISTERS();                                                        \
-                }                                                                              \
-                if (monitor_mask[CALLER] & (MI_STEP)) {                                        \
-                    monitor_check_icount((uint16_t)reg_pc);                                        \
-                    IMPORT_REGISTERS();                                                        \
-                }                                                                              \
-                if (monitor_mask[CALLER] & (MI_BREAK)) {                                       \
-                    if (monitor_check_breakpoints(CALLER, (uint16_t)reg_pc)) {                     \
-                        monitor_startup(CALLER);                                               \
-                        IMPORT_REGISTERS();                                                    \
-                    }                                                                          \
-                }                                                                              \
-                if (monitor_mask[CALLER] & (MI_WATCH)) {                                       \
-                    monitor_check_watchpoints(LAST_OPCODE_ADDR, (uint16_t)reg_pc);                 \
-                    IMPORT_REGISTERS();                                                        \
-                }                                                                              \
-            }                                                                                  \
             if (ik & IK_DMA) {                                                                 \
                 EXPORT_REGISTERS();                                                            \
                 DMA_FUNC;                                                                      \
@@ -794,18 +769,12 @@ be found that works for both.
             && (CLK >= (CPU_INT_STATUS->nmi_clk + INTERRUPT_DELAY))) {                            \
             LOCAL_SET_INTERRUPT(1);                                                               \
             TRACE_NMI(CLK - CLK_BRK);                                                             \
-            if (monitor_mask[CALLER] & (MI_STEP)) {                                               \
-                monitor_check_icount_interrupt();                                                 \
-            }                                                                                     \
             interrupt_ack_nmi(CPU_INT_STATUS);                                                    \
             JUMP(LOAD_ADDR(0xfffa));                                                              \
         } else if ((CPU_INT_STATUS->global_pending_int & (IK_IRQ | IK_IRQPEND))                   \
                  && !LOCAL_INTERRUPT() && (CLK >= (CPU_INT_STATUS->irq_clk + INTERRUPT_DELAY))) { \
             LOCAL_SET_INTERRUPT(1);                                                               \
             TRACE_IRQ(CLK - CLK_BRK);                                                             \
-            if (monitor_mask[CALLER] & (MI_STEP)) {                                               \
-                monitor_check_icount_interrupt();                                                 \
-            }                                                                                     \
             interrupt_ack_irq(CPU_INT_STATUS);                                                    \
             JUMP(LOAD_ADDR(0xfffe));                                                              \
         } else {                                                                                  \
@@ -2030,11 +1999,13 @@ static const uint8_t rewind_fetch_tab[] = {
             memmap_mark_read(reg_pc);
         }
 #endif
-        if (p0 == 0x20) {
+/*
+		if (p0 == 0x20) {
             monitor_cpuhistory_store(reg_pc, p0, p1, LOAD(reg_pc + 2), reg_a_read, reg_x_read, reg_y_read, reg_sp, LOCAL_STATUS());
         } else {
             monitor_cpuhistory_store(reg_pc, p0, p1, p2 >> 8, reg_a_read, reg_x_read, reg_y_read, reg_sp, LOCAL_STATUS());
         }
+*/
         memmap_state &= ~(MEMMAP_STATE_INSTR | MEMMAP_STATE_OPCODE);
 #endif
 #endif
@@ -2045,13 +2016,14 @@ static const uint8_t rewind_fetch_tab[] = {
             uint8_t op = (uint8_t)(p0);
             uint8_t lo = (uint8_t)(p1);
             uint8_t hi = (uint8_t)(p2 >> 8);
-
+/*
             debug_drive((uint32_t)(reg_pc), debug_clk,
                         mon_disassemble_to_string(e_disk8_space,
                                                   reg_pc, op,
                                                   lo, hi, 0, 1, "6502"),
                         reg_a_read, reg_x_read, reg_y_read, reg_sp, drv->mynumber + 8);
         }
+*/
 #else
         if (TRACEFLG) {
             uint8_t op = (uint8_t)(p0);
@@ -2061,15 +2033,15 @@ static const uint8_t rewind_fetch_tab[] = {
             if (op == 0x20) {
                 hi = LOAD(reg_pc + 2);
             }
-
+/*
             debug_maincpu((uint32_t)(reg_pc), debug_clk,
                           mon_disassemble_to_string(e_comp_space,
                                                     reg_pc, op,
                                                     lo, hi, 0, 1, "6502"),
                           reg_a_read, reg_x_read, reg_y_read, reg_sp);
+*/
         }
         if (debug.perform_break_into_monitor) {
-            monitor_startup_trap();
             debug.perform_break_into_monitor = 0;
         }
 #endif

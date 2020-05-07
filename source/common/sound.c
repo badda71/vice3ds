@@ -49,7 +49,7 @@
 #include "log.h"
 #include "machine.h"
 #include "maincpu.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "resources.h"
 #include "sound.h"
 #include "types.h"
@@ -1595,7 +1595,7 @@ int sound_dump(int chipno)
     if (chipno >= snddata.sound_chip_channels) {
         return -1;
     }
-    mon_out("%s\n", sound_machine_dump_state(snddata.psid[chipno]));
+    //mon_out("%s\n", sound_machine_dump_state(snddata.psid[chipno]));
     return 0;
 }
 

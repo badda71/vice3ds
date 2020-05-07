@@ -39,7 +39,7 @@
 #include "log.h"
 #include "machine.h"
 #include "mem.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "plus256k.h"
 #include "resources.h"
 #include "reu.h"
@@ -84,11 +84,13 @@ static uint8_t plus256k_ff_read(uint16_t addr)
 
 static int plus256k_dump(void)
 {
-    mon_out("$0000-$0FFF bank: %d\n", plus256k_low_bank);
+/*
+	mon_out("$0000-$0FFF bank: %d\n", plus256k_low_bank);
     mon_out("$1000-$FFFF bank: %d\n", plus256k_high_bank);
     mon_out("VICII-bank : %d\n", plus256k_video_bank);
     mon_out("Register protection: %s\n", (plus256k_protected) ? "on" : "off");
-    return 0;
+*/
+	return 0;
 }
 
 static void plus256k_vicii_store(uint16_t addr, uint8_t value)

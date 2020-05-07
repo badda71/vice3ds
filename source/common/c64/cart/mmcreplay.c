@@ -46,7 +46,7 @@
 #include "log.h"
 #include "machine.h"
 #include "maincpu.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "resources.h"
 #include "ser-eeprom.h"
 #include "snapshot.h"
@@ -1896,8 +1896,8 @@ static int mmcreplay_dump(void)
 {
     /* FIXME: incomplete */
     /* mon_out("MMC Replay registers are %s.\n", mmcr_active ? "enabled" : "disabled"); */
-    mon_out("Clockport is %s.\n", mmcr_clockport_enabled ? "enabled" : "disabled");
-    mon_out("Clockport device: %s.\n", clockport_device_id_to_name(clockport_device_id));
+    //mon_out("Clockport is %s.\n", mmcr_clockport_enabled ? "enabled" : "disabled");
+    //mon_out("Clockport device: %s.\n", clockport_device_id_to_name(clockport_device_id));
 
     return 0;
 }

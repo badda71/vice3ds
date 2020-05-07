@@ -37,7 +37,7 @@
 #include "crt.h"
 #include "easycalc.h"
 #include "export.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -168,7 +168,7 @@ static void easycalc_io1_store(uint16_t addr, uint8_t val)
 
 static int easycalc_dump(void)
 {
-    mon_out("Bank: %d", curbank);
+    //mon_out("Bank: %d", curbank);
     return 0;
 }
 

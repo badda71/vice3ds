@@ -71,7 +71,7 @@
 #include "ds1216e.h"
 #include "drive-sound.h"
 #include "p64.h"
-#include "monitor.h"
+//#include "monitor.h"
 
 static int drive_init_was_called = 0;
 
@@ -484,12 +484,12 @@ void drive_disable(drive_context_t *drv)
     /* Make sure the UI is updated.  */
     drive_enable_update_ui(drv);
 }
-
+/*
 monitor_interface_t *drive_cpu_monitor_interface_get(unsigned int dnr)
 {
     return drive_context[dnr]->cpu->monitor_interface;
 }
-
+*/
 void drive_cpu_early_init_all(void)
 {
     unsigned int dnr;

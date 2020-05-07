@@ -40,7 +40,7 @@
 #include "machine.h"
 #include "main65816cpu.h"
 #include "mem.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "traps.h"
 #include "types.h"
@@ -116,7 +116,7 @@ struct interrupt_cpu_status_s *maincpu_int_status = NULL;
 alarm_context_t *maincpu_alarm_context = NULL;
 #endif
 clk_guard_t *maincpu_clk_guard = NULL;
-monitor_interface_t *maincpu_monitor_interface = NULL;
+//monitor_interface_t *maincpu_monitor_interface = NULL;
 
 /* This flag is an obsolete optimization. It's always 0 for the 65816 CPU,
    but has to be kept for the common code. */
@@ -142,7 +142,7 @@ unsigned int last_opcode_addr;
 WDC65816_regs_t maincpu_regs;
 
 /* ------------------------------------------------------------------------- */
-
+/*
 monitor_interface_t *maincpu_monitor_interface_get(void)
 {
     maincpu_monitor_interface->cpu_regs = NULL;
@@ -172,7 +172,7 @@ monitor_interface_t *maincpu_monitor_interface_get(void)
 
     return maincpu_monitor_interface;
 }
-
+*/
 /* ------------------------------------------------------------------------- */
 
 void maincpu_early_init(void)
@@ -195,16 +195,16 @@ void maincpu_shutdown(void)
 
 static void cpu_reset(void)
 {
-    int preserve_monitor;
+//    int preserve_monitor;
 
-    preserve_monitor = maincpu_int_status->global_pending_int & IK_MONITOR;
+//    preserve_monitor = maincpu_int_status->global_pending_int & IK_MONITOR;
 
     interrupt_cpu_status_reset(maincpu_int_status);
-
+/*
     if (preserve_monitor) {
         interrupt_monitor_trap_on(maincpu_int_status);
     }
-
+*/
     maincpu_clk = 6; /* # of clock cycles needed for RESET.  */
 
     /* CPU specific extra reset routine, currently only used
@@ -321,7 +321,6 @@ void maincpu_mainloop(void)
                 DO_INTERRUPT(IK_RESET);                               \
                 break;                                                \
             case JAM_MONITOR:                                         \
-                monitor_startup(e_comp_space);                        \
                 IMPORT_REGISTERS();                                   \
                 break;                                                \
             default:                                                  \

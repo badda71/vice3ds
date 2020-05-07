@@ -40,7 +40,7 @@
 #include "export.h"
 #include "lib.h"
 #include "mem.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "resources.h"
 #include "snapshot.h"
 #include "types.h"
@@ -171,10 +171,12 @@ static uint8_t dqbb_io1_peek(uint16_t addr)
 
 static int dqbb_dump(void)
 {
-    mon_out("$A000-$BFFF RAM: %s, cart status: %s\n",
+/*
+	mon_out("$A000-$BFFF RAM: %s, cart status: %s\n",
             (reg_value & 4) ? "mapped in" : "not mapped in",
             (reg_value & 0x80) ? ((reg_value & 0x10) ? "read/write" : "read-only") : "disabled");
-    return 0;
+*/
+	return 0;
 }
 
 /* ------------------------------------------------------------------------- */

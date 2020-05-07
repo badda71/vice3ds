@@ -57,9 +57,9 @@ int vsync_frame_counter;
 #include "log.h"
 #include "maincpu.h"
 #include "machine.h"
-#ifdef HAVE_NETWORK
-#include "monitor_network.h"
-#endif
+//#ifdef HAVE_NETWORK
+//#include "monitor_network.h"
+//#endif
 #include "network.h"
 #include "resources.h"
 #include "sound.h"
@@ -360,11 +360,12 @@ int vsync_do_vsync(struct video_canvas_s *c, int been_skipped)
     long frame_ticks_remainder, frame_ticks_integer;
     long compval;
 
+/*
 #ifdef HAVE_NETWORK
-    /* check if someone wants to connect remotely to the monitor */
+    // check if someone wants to connect remotely to the monitor
     monitor_check_remote();
 #endif
-
+*/
     vsync_frame_counter++;
 
     /*

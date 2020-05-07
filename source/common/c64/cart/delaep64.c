@@ -37,7 +37,7 @@
 #include "cartridge.h"
 #include "delaep64.h"
 #include "export.h"
-#include "monitor.h"
+//#include "monitor.h"
 #include "snapshot.h"
 #include "types.h"
 #include "util.h"
@@ -143,10 +143,12 @@ static void delaep64_io1_store(uint16_t addr, uint8_t value)
 
 static int delaep64_dump(void)
 {
-    mon_out("Currently selected EPROM bank: %d, cart status: %s\n",
+/*
+	mon_out("Currently selected EPROM bank: %d, cart status: %s\n",
             currbank,
             (regval & 0x80) ? "Disabled" : "Enabled");
-    return 0;
+*/
+	return 0;
 }
 
 /* ---------------------------------------------------------------------*/
