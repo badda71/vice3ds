@@ -90,6 +90,7 @@ static u32 wifi_status = 0;
 static int *searchresult=NULL;
 static int gb64_set_modes = 7;
 static SDL_Surface *priv_uigb64_top=NULL;
+static int gtotal=0;
 
 static int pdb_initDB(picoDB *d, char *filename) {
 	if (d==NULL) return -1;
@@ -178,6 +179,8 @@ static char *pdb_getEntry(picoDB *d, int row, int col) {
 	return NULL;
 }
 
+#define GRAY_COL 12
+
 static int sdl_ui_mediumprint(const char *text, int pos_x, int pos_y)
 {
 	const int fw = 5, fh = 8;
@@ -203,7 +206,7 @@ static int sdl_ui_mediumprint(const char *text, int pos_x, int pos_y)
 			int sy= (c>>4) * fh + y;
 			for (x = 0; x < fw; ++x) {
 				int sx= (c & 0x0F) * fw + x;
-				u8 col= p[sx + sy * mediumchars->pitch] ? 12 : menu_draw->color_back;
+				u8 col= p[sx + sy * mediumchars->pitch] ? GRAY_COL : menu_draw->color_back;
 				draw_pos[x] = col;
 			}
 			draw_pos += menu_draw->pitch;
@@ -228,6 +231,12 @@ static void uigb64_redraw(int *searchresult, const char *title, char *search, in
     sdl_ui_display_title(title);
     j = MENU_FIRST_X;
 	j += sdl_ui_print("Search: ", j, 1);
+
+	snprintf(buf, 41, "%d / %d", total, gtotal);
+	menu_draw->color_front = GRAY_COL;
+	sdl_ui_print(buf, 40-strlen(buf), 1);
+	menu_draw->color_front = 1;
+
 	j += sdl_ui_print(search,j,1);
 	sdl_ui_invert_char(j-strlen(search)+searchpos, 1);
 
@@ -868,17 +877,19 @@ tagdb:
 	while (active) {
 		searchsize=strlen(search);
 		if (search_changed) {
-			total=0;
+			gtotal=total=0;
 			int curset=0;
 			cur = offset = 0;
 			cur_old=-1;
 			for (i=0; i < db.num_entries; ++i) {
 				if (!((list_filter & 1) && *(pdb_getEntry(&db, i, 9)) == '0') &&
-					!((list_filter & 2) && downloaded[i] != 1) &&
-					(searchsize == 0 || (
-					(p=pdb_getEntry(&db, i, NAMECOL)) !=NULL &&
-					strcasestr(p, search)))) {
-					searchresult[total++]=i;
+					!((list_filter & 2) && downloaded[i] != 1)) {
+					++gtotal;
+					if (searchsize == 0 || (
+						(p=pdb_getEntry(&db, i, NAMECOL)) !=NULL &&
+						strcasestr(p, search))) {
+						searchresult[total++]=i;
+					}
 				}
 				if (!curset && i >= top_shows) {
 					curset=1;
