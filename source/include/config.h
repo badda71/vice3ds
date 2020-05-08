@@ -56,7 +56,7 @@
 /* #undef HAVE_AROS__TIMEVAL_H */
 
 /* Define to 1 if you have the <arpa/inet.h> header file. */
-#define HAVE_ARPA_INET_H 1
+//#define HAVE_ARPA_INET_H 1
 
 /* Define to 1 if you have the <artsc.h> header file. */
 /* #undef HAVE_ARTSC_H */
@@ -412,16 +412,16 @@
 /* #undef HAVE_NDIR_H */
 
 /* Define to 1 if you have the <netdb.h> header file. */
-#define HAVE_NETDB_H 1
+//#define HAVE_NETDB_H 1
 
 /* Define to 1 if you have the <netinet/in.h> header file. */
-#define HAVE_NETINET_IN_H 1
+//#define HAVE_NETINET_IN_H 1
 
 /* Define to 1 if you have the <netinet/tcp.h> header file. */
-#define HAVE_NETINET_TCP_H 1
+//#define HAVE_NETINET_TCP_H 1
 
 /* Enable netplay support */
-#define HAVE_NETWORK /**/
+//#define HAVE_NETWORK /**/
 
 /* Support for OpenCBM (former CBM4Linux). */
 /* #undef HAVE_OPENCBM */
@@ -553,10 +553,10 @@
 #define HAVE_SNPRINTF 1
 
 /* Define to 1 if you have the `socket' function. */
-#define HAVE_SOCKET 1
+//#define HAVE_SOCKET 1
 
 /* Define to 1 if the system has the type `socklen_t'. */
-#define HAVE_SOCKLEN_T 1
+//#define HAVE_SOCKLEN_T 1
 
 /* Define to 1 if you have the <soundcard.h> header file. */
 /* #undef HAVE_SOUNDCARD_H */
@@ -648,7 +648,7 @@
 #define HAVE_SYS_SELECT_H 1
 
 /* Define to 1 if you have the <sys/socket.h> header file. */
-#define HAVE_SYS_SOCKET_H 1
+//#define HAVE_SYS_SOCKET_H 1
 
 /* Define to 1 if you have the <sys/soundcard.h> header file. */
 /* #undef HAVE_SYS_SOUNDCARD_H */
