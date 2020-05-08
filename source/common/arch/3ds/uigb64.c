@@ -85,19 +85,20 @@ static SDL_Surface *loading_img=NULL;
 static u8 *downloaded;
 static char *gamedir=NULL;
 static int list_filter;
-static picoDB *db=NULL;
+static picoDB db = {0};
 static u32 wifi_status = 0;
 static int *searchresult=NULL;
 static int gb64_set_modes = 7;
 static SDL_Surface *priv_uigb64_top=NULL;
 
-static picoDB *pdb_initDB(char *filename) {
+static int pdb_initDB(picoDB *d, char *filename) {
+	if (d==NULL) return -1;
 	// read in the file
 	FILE *f;
 
 	if ((f = fopen(filename, "rb")) == NULL) {
 		log_error(LOG_DEFAULT,"Could not open %s",filename);
-		return NULL;
+		return -1;
 	}
 
 	fseek(f, 0, SEEK_END);
@@ -108,12 +109,12 @@ static picoDB *pdb_initDB(char *filename) {
 	if (string==NULL) {
 		fclose(f);
 		log_error(LOG_DEFAULT,"Could not allocate memory for database");
-		while ((string=malloc(fsize + 1)) == NULL) {
-			log_error(LOG_DEFAULT,"Could not allocate %d bytes for database\n", fsize +1 );
-			fsize -= 4096;
+/*		while ((string=malloc(fsize + 1)) == NULL) {
+			log_citra("Could not allocate %d bytes for database\n", fsize +1 );
+			fsize -= 8192;
 		}
-		if (string) free(string);
-		return NULL;
+		if (string) free(string);*/
+		return -1;
 	}
 	fread(string, 1, fsize, f);
 	fclose(f);
@@ -126,7 +127,7 @@ static picoDB *pdb_initDB(char *filename) {
 	if (entries==NULL) {
 		free(string);
 		log_error(LOG_DEFAULT,"Could not allocate memory for entry table");
-		return NULL;
+		return -1;
 	}
 	count=0;
 	if (string[0]!='/') entries[count++]=string;
@@ -141,25 +142,26 @@ static picoDB *pdb_initDB(char *filename) {
 	}
 	entries[count]=string+fsize;
 
-	// make struct
-	picoDB *d = malloc(sizeof(picoDB));
-	if (d==NULL) {
-		free(string);
-		free(entries);
-		log_error(LOG_DEFAULT,"Could not allocate memory for database descriptor");
-		return NULL;
-	}
 	d->blob=string;
 	d->blobsize=fsize;
 	d->num_entries=count;
 	d->entries=entries;
-	return d;
+	return 0;
 }
 
 static void pdb_freeDB(picoDB *d) {
-	free(d->entries);
-	free(d->blob);
-	free(d);
+	if (d) {
+		if (d->blob) {
+			free(d->blob);
+			d->blob=NULL;
+		}
+		if (d->entries) {
+			free(d->entries);
+			d->entries=NULL;
+		}
+		d->blobsize=0;
+		d->num_entries=0;
+	}
 }
 
 static char *pdb_getEntry(picoDB *d, int row, int col) {
@@ -233,8 +235,8 @@ static void uigb64_redraw(int *searchresult, const char *title, char *search, in
 
         x=searchresult[offset + i];
         j = MENU_FIRST_X;
-        name = pdb_getEntry(db, x, NAMECOL);
-		snprintf(buf, 65, " (%s) %s",pdb_getEntry(db, x, 1), pdb_getEntry(db, x, 7));
+        name = pdb_getEntry(&db, x, NAMECOL);
+		snprintf(buf, 65, " (%s) %s",pdb_getEntry(&db, x, 1), pdb_getEntry(&db, x, 7));
 
 		if (i == cur_offset) oldbg = sdl_ui_set_cursor_colors();
 		if (downloaded[x]) menu_draw->color_front = DOWN_COL;
@@ -260,8 +262,8 @@ static void uigb64_redraw_cursor(int *searchresult, int offset, int num_items, i
 	if (havescrollbar) --menu_draw->max_text_x;
 	if (old_offset>=0) {
 		x=searchresult[offset + old_offset];
-		name = pdb_getEntry(db, x, NAMECOL);
-		snprintf(buf, 65, " (%s) %s",pdb_getEntry(db, x, 1), pdb_getEntry(db, x, 7));
+		name = pdb_getEntry(&db, x, NAMECOL);
+		snprintf(buf, 65, " (%s) %s",pdb_getEntry(&db, x, 1), pdb_getEntry(&db, x, 7));
         j = MENU_FIRST_X;
 		if (downloaded[x]) menu_draw->color_front = DOWN_COL;
         j += sdl_ui_print(name, j, old_offset + GB64_FIRST_Y);
@@ -271,9 +273,9 @@ static void uigb64_redraw_cursor(int *searchresult, int offset, int num_items, i
 	}
 	if (cur_offset>=0) {
 		x=searchresult[offset + cur_offset];
-		snprintf(buf, 65, " (%s) %s",pdb_getEntry(db, x, 1), pdb_getEntry(db, x, 7));
+		snprintf(buf, 65, " (%s) %s",pdb_getEntry(&db, x, 1), pdb_getEntry(&db, x, 7));
         oldbg = sdl_ui_set_cursor_colors();
-		name = pdb_getEntry(db, x, NAMECOL);
+		name = pdb_getEntry(&db, x, NAMECOL);
         j = MENU_FIRST_X;
 		if (downloaded[x]) menu_draw->color_front = DOWN_COL;
         j += sdl_ui_print(name, j, cur_offset + GB64_FIRST_Y);
@@ -375,7 +377,7 @@ static void rmtree(char *path)
 /*
 static char *gb64_gamedir_old(int idx) {
 	char buf[256];
-	char *f = pdb_getEntry(db, idx, 2);
+	char *f = pdb_getEntry(&db, idx, 2);
 	char *p = strrchr(f,'/');
 	p = p?p+1:f;
 	snprintf(buf,256,"%s/%d_%s",gamedir,idx,p);
@@ -386,7 +388,7 @@ static char *gb64_gamedir_old(int idx) {
 */
 
 static char *gb64_gamedir(int idx) {
-	char *f = util_concat(gamedir, "/", pdb_getEntry(db, idx, 2), NULL);
+	char *f = util_concat(gamedir, "/", pdb_getEntry(&db, idx, 2), NULL);
 	char *p = strrchr(f,'.');
 	if (p) *p=0;
 	return f;
@@ -410,18 +412,18 @@ static void gb64_delete(int idx) {
 	rmtree(p);
 	free(p);
 	downloaded[idx]=0;
-	ui_message("Successfully deleted \"%s\"", pdb_getEntry(db, idx, NAMECOL));
+	ui_message("Successfully deleted \"%s\"", pdb_getEntry(&db, idx, NAMECOL));
 }
 
 static void gb64_download(int idx) {
 	char *buf,buf2[1024],*p;
 	// download zip file
-	char *title = pdb_getEntry(db, idx, NAMECOL);
+	char *title = pdb_getEntry(&db, idx, NAMECOL);
 	snprintf(buf2, 1024, "Downloading %s", title);
 	sdl_ui_init_progress_bar(buf2);
 	sdl_ui_refresh();
 
-	char *url = util_concat(GB64_GAME_URL, pdb_getEntry(db, idx, 2), NULL);
+	char *url = util_concat(GB64_GAME_URL, pdb_getEntry(&db, idx, 2), NULL);
 	char *fname = util_concat(archdep_xdg_data_home(), "/tmp_game.zip",NULL);
 	
 	if (http_download_file(url, fname, sdl_ui_check_cancel, sdl_ui_update_progress_bar)) {
@@ -481,15 +483,15 @@ static void uigb64_update_topscreen(SDL_Surface *s, int entry, int *screenshotid
 	SDL_FillRect(s, NULL, SDL_MapRGBA(s->format,208,209,203,255));
 	if (entry>=0) {
 		// write info to screen
-		j=snprintf(buf, 51, "%s", pdb_getEntry(db, entry, 0));
+		j=snprintf(buf, 51, "%s", pdb_getEntry(&db, entry, 0));
 		uib_printstring(s, buf, 0, 200, 50, ALIGN_LEFT, FONT_BIG, c_black);
 
-		p1=pdb_getEntry(db, entry, 15);
+		p1=pdb_getEntry(&db, entry, 15);
 
 		j=snprintf(buf, 81, "Published: ");
 		uib_printstring(s, buf, 0, 208, 80, ALIGN_LEFT, FONT_MEDIUM, c_blue);
-		p=pdb_getEntry(db, entry, 7);
-		snprintf(buf, ((p1 && *p1)?40:81)-j, "%s, %s", pdb_getEntry(db, entry, 1), *p?p:"(unknown)");
+		p=pdb_getEntry(&db, entry, 7);
+		snprintf(buf, ((p1 && *p1)?40:81)-j, "%s, %s", pdb_getEntry(&db, entry, 1), *p?p:"(unknown)");
 		uib_printstring(s, buf, j*5, 208, 81-j, ALIGN_LEFT, FONT_MEDIUM, c_black);
 
 		if (p1 && *p1) {
@@ -501,23 +503,23 @@ static void uigb64_update_topscreen(SDL_Surface *s, int entry, int *screenshotid
 
 		j=snprintf(buf, 81, "Language:  ");
 		uib_printstring(s, buf, 0, 216, 80, ALIGN_LEFT, FONT_MEDIUM, c_blue);
-		snprintf(buf, 81-j, "%s", pdb_getEntry(db, entry, 8));
+		snprintf(buf, 81-j, "%s", pdb_getEntry(&db, entry, 8));
 		uib_printstring(s, buf, j*5, 216, 80, ALIGN_LEFT, FONT_MEDIUM, c_black);
 
 		j=snprintf(buf, 42, " Genre:   ");
 		uib_printstring(s, buf, 195, 216, 40, ALIGN_LEFT, FONT_MEDIUM, c_blue);
-		p=pdb_getEntry(db, entry, 5);
-		p1=pdb_getEntry(db, entry, 6);
+		p=pdb_getEntry(&db, entry, 5);
+		p1=pdb_getEntry(&db, entry, 6);
 		snprintf(buf, 42-j,	"%s%s%s", p1, (*p && *p1)?" - ":"", p);
 		uib_printstring(s, buf, 195+j*5, 216, 40, ALIGN_LEFT, FONT_MEDIUM, c_black);
 
-		p=pdb_getEntry(db, entry, 10);
-		p1=pdb_getEntry(db, entry, 11);
+		p=pdb_getEntry(&db, entry, 10);
+		p1=pdb_getEntry(&db, entry, 11);
 		uib_printstring(s, p, 0, 224, 80, ALIGN_LEFT, FONT_MEDIUM, c_black);
 		uib_printstring(s, p1, 0, *p?232:224, 80, ALIGN_LEFT, FONT_MEDIUM, c_black);
 
 		// check if all screenshots exist, request loading if not
-		p=pdb_getEntry(db, entry, 4);
+		p=pdb_getEntry(&db, entry, 4);
 		char *pimg_fpath=util_concat(archdep_xdg_cache_home(), "/", p, NULL);
 		char *base_fname=lib_stralloc(p);
 		*(strrchr(base_fname,'.'))=0;
@@ -556,7 +558,25 @@ static void uigb64_update_topscreen(SDL_Surface *s, int entry, int *screenshotid
 			SDL_BlitSurface ( i, NULL, s, &(SDL_Rect){.x=0, .y=0, .w=320, .h=200});
 			SDL_FreeSurface(i);
 		} else {
-			SDL_BlitSurface ( loading_img, NULL, s, &(SDL_Rect){.x=0, .y=0, .w=320, .h=200});
+			if (loading_img)
+				SDL_BlitSurface ( loading_img, NULL, s, &(SDL_Rect){.x=0, .y=0, .w=320, .h=200});
+			else {
+				const u32 c = 0xFF000000;
+				for(j=0; j<320; ++j) {
+					*((u32*)(s->pixels + j*4)) = c;
+					*((u32*)(s->pixels + j*4 + s->pitch)) = c;
+					*((u32*)(s->pixels + j*4 + 198*s->pitch)) = c;
+					*((u32*)(s->pixels + j*4 + 199*s->pitch)) = c;
+				}
+				for (j=2; j<198; ++j) {
+					*((u32*)(s->pixels + 0*4 + j*s->pitch)) = c;
+					*((u32*)(s->pixels + 1*4 + j*s->pitch)) = c;
+					*((u32*)(s->pixels + 318*4 + j*s->pitch)) = c;
+					*((u32*)(s->pixels + 319*4 + j*s->pitch)) = c;
+				}
+				uib_printstring(s, "Image",		120, 92, 0, ALIGN_LEFT, FONT_BIG, c_black);
+				uib_printstring(s, "loading...",120, 100,0, ALIGN_LEFT, FONT_BIG, c_black);
+			}
 		}
 
 		// free allocated buffers
@@ -587,12 +607,12 @@ static void uigb64_update_topscreen(SDL_Surface *s, int entry, int *screenshotid
 		uib_printstring(s, "Automode", 344, 92, 0, ALIGN_LEFT, FONT_MEDIUM, c_black);
 		// 0=PAL, 1=PAL+NTSC, 2=NTSC, 3=PAL(+NTSC?)
 		uib_printstring(s, "Mode:", 324, 100, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&1)?c_blue:c_gray);
-		uib_printstring(s, *(pdb_getEntry(db, entry, 12))=='2'?"NTSC":"PAL", 350, 100, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&1)?c_black:c_gray);
+		uib_printstring(s, *(pdb_getEntry(&db, entry, 12))=='2'?"NTSC":"PAL", 350, 100, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&1)?c_black:c_gray);
 		// TDE
 		uib_printstring(s, "TDE:", 324, 108, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&2)?c_blue:c_gray);
-		uib_printstring(s, *(pdb_getEntry(db, entry, 13))=='0'?"No":"Yes", 350, 108, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&2)?c_black:c_gray);
+		uib_printstring(s, *(pdb_getEntry(&db, entry, 13))=='0'?"No":"Yes", 350, 108, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&2)?c_black:c_gray);
 		// Control
-		char *con = pdb_getEntry(db, entry, 14);
+		char *con = pdb_getEntry(&db, entry, 14);
 		if (con != NULL && con[0]!=0) {
 			uib_printstring(s, "Ctrl:", 324, 116, 0, ALIGN_LEFT, FONT_MEDIUM, (gb64_set_modes&4)?c_blue:c_gray);
 			switch(con[0]) {
@@ -622,6 +642,14 @@ static void uigb64_update_topscreen(SDL_Surface *s, int entry, int *screenshotid
 	uibottom_must_redraw |= UIB_RECALC_GB64;
 }
 
+void gb64_shutdown() {
+	if (priv_uigb64_top) SDL_FreeSurface(priv_uigb64_top);
+	pdb_freeDB(&db);
+	if (searchresult != NULL) free(searchresult);
+	priv_uigb64_top = uigb64_top = NULL;
+	searchresult = NULL;
+}
+
 #define SEARCH_MAX 31
 extern char *strcasestr(const char *haystack, const char *needle);
 
@@ -632,19 +660,19 @@ static char *uigb64_start()
 	int redraw = 1, cur_old = -1;
 	int i, y, x, action, old_y=-1, dragging=0;
 	char *title="Gamebase 64";
-	char search[41];
+	static char search[41]={0};
 	char oldsearch[41];
     int retval = -1;
 	int key;
 	SDLMod mod;
-	int searchpos=0,searchsize,redraw_search=0;
-	int screenshotidx=0;
+	int searchsize, redraw_search=0;
+	int screenshotidx=0, search_changed=1;
 	char *p;
 	char buf[256];
 	char tmp[256];
 
-	static int top_shows = -1;
-	static int offset = 0, cur = 0, search_changed=1, total=0;
+	static int top_shows = -1, searchpos=0;
+	static int offset = 0, cur = 0, total=0;
 
 	acInit();
 	ACU_GetWifiStatus(&wifi_status);
@@ -655,8 +683,12 @@ static char *uigb64_start()
 
 	menu_draw = sdl_ui_get_menu_param();
 
+	// free some memory
+	if (!isN3DS()) {
+		uibottom_unload_stuff();
+	}
 	// init the database
-	if (db == NULL) {
+	if (!db.num_entries) {
 		FILE *fd;
 		// check if file exists
 		char *dbname=util_concat(archdep_xdg_data_home(),"/" ,isN3DS()?"":"O3DS_"  ,GB64_DBNAME, NULL);
@@ -704,8 +736,7 @@ tagdb:
 				}
 			}
 		}
-		db = pdb_initDB(dbname);
-		if (db == NULL) {
+		if (pdb_initDB(&db, dbname)) {
 			if (message_box("Gamebase64", "Cannot read gamebase64 database - download again?", MESSAGE_YESNO) == 0) {
 				unlink(dbname);
 				goto dldb;
@@ -718,7 +749,7 @@ tagdb:
 
 	// init search result array
 	if (searchresult == NULL)
-		searchresult=malloc(db->num_entries * sizeof(int));
+		searchresult=malloc(db.num_entries * sizeof(int));
 	if (searchresult == NULL) {
 		ui_error("Cannot allocate searchresult");
 		return NULL;
@@ -727,17 +758,24 @@ tagdb:
 	// init my top screen
 	if (priv_uigb64_top) uigb64_top = priv_uigb64_top;
 	else priv_uigb64_top = uigb64_top = SDL_CreateRGBSurface(SDL_SWSURFACE,400,240,32,0x000000ff,0x0000ff00,0x00ff0000,0xff000000);
+	if (uigb64_top == NULL) {
+		ui_error("Cannot allocate gb64 screen");
+		return NULL;
+	}
 	gb64_top_must_redraw=1;
 
 	// init file getter
 	async_http_init(1);
 
 	// some other init stuff
-	loading_img=IMG_Load("romfs:/loading.png");
+	if (isN3DS()) {
+		loading_img=IMG_Load("romfs:/loading.png");
+	} else {
+		http_bufsize=5*1024;
+	}
 	gamedir = util_concat(archdep_xdg_data_home(), "/", "games", NULL);
 	list_filter = persistence_getInt("gb64_list_filter",1);
     menu_max = menu_draw->max_text_y - GB64_FIRST_Y;
-	memset(search,0,41);
 
 	// migrate old download directory structure to new download structure
 	DIR *dir;
@@ -775,8 +813,12 @@ tagdb:
 	// check what is downloaded
 	DIR *dir2;
     struct dirent *dent2;
-	downloaded = malloc(db->num_entries);
-	memset(downloaded, 0, db->num_entries);
+	downloaded = malloc(db.num_entries);
+	if (downloaded == NULL) {
+		ui_error("Cannot allocate download list");
+		return NULL;
+	}
+	memset(downloaded, 0, db.num_entries);
 	dir=opendir(gamedir);
 	if (dir) {
 		// get a list of all game directories
@@ -801,13 +843,13 @@ tagdb:
 
 		// check all games if they are already downloaded
 		if (nr_downloaded) {
-			for (i=0; i < db->num_entries; ++i) {
-				p=pdb_getEntry(db, i, 2);
+			for (i=0; i < db.num_entries; ++i) {
+				p=pdb_getEntry(&db, i, 2);
 				y=strlen(p)-4;
 				for (x=0; x < nr_downloaded; ++x) {
 					if (dname[x] != NULL && strncmp(dname[x], p, y) == 0) {
 						// check if start image exists in the directory
-						snprintf(buf, 256, "%s/%s/%s", gamedir, dname[x], pdb_getEntry(db, i, 3));
+						snprintf(buf, 256, "%s/%s/%s", gamedir, dname[x], pdb_getEntry(&db, i, 3));
 						if (access(buf,R_OK)==0)
 							downloaded[i]=1;
 						free (dname[x]);
@@ -830,11 +872,11 @@ tagdb:
 			int curset=0;
 			cur = offset = 0;
 			cur_old=-1;
-			for (i=0; i < db->num_entries; ++i) {
-				if (!((list_filter & 1) && *(pdb_getEntry(db, i, 9)) == '0') &&
+			for (i=0; i < db.num_entries; ++i) {
+				if (!((list_filter & 1) && *(pdb_getEntry(&db, i, 9)) == '0') &&
 					!((list_filter & 2) && downloaded[i] != 1) &&
 					(searchsize == 0 || (
-					(p=pdb_getEntry(db, i, NAMECOL)) !=NULL &&
+					(p=pdb_getEntry(&db, i, NAMECOL)) !=NULL &&
 					strcasestr(p, search)))) {
 					searchresult[total++]=i;
 				}
@@ -909,7 +951,7 @@ tagdb:
 			case MENU_ACTION_SELECT:
 				if (top_shows<0) break;
 				if (!downloaded[top_shows]) {
-					snprintf(buf,256,"Download \"%s\"?",pdb_getEntry(db, top_shows, NAMECOL));
+					snprintf(buf,256,"Download \"%s\"?",pdb_getEntry(&db, top_shows, NAMECOL));
 					if (message_box("Download Game", buf, MESSAGE_YESNO) == 0) {
 						gb64_download(top_shows);
 						gb64_top_must_redraw = 1;
@@ -990,7 +1032,7 @@ tagdb:
 						break;
 					case 202:	// X-button
 						if (top_shows >= 0 && downloaded[top_shows]) {
-							snprintf(buf,256,"Really delete game \"%s\"?",pdb_getEntry(db, top_shows, NAMECOL));
+							snprintf(buf,256,"Really delete game \"%s\"?",pdb_getEntry(&db, top_shows, NAMECOL));
 							if (message_box("Delete Game", buf, MESSAGE_YESNO) == 0) {
 								gb64_delete(top_shows);
 								search_changed = 1;
@@ -1052,18 +1094,18 @@ tagdb:
 		// get the autostart image location
 		p=gb64_gamedir(top_shows);
 //		persistence_put("cwd",p);
-		c=util_concat(p, "/", pdb_getEntry(db, top_shows, 3), NULL);
+		c=util_concat(p, "/", pdb_getEntry(&db, top_shows, 3), NULL);
 		free (p);
 
 		// set video mode
 		if (gb64_set_modes & 1)
-			c64model_set(*(pdb_getEntry(db, top_shows, 12))=='2' ? C64MODEL_C64C_NTSC : C64MODEL_C64C_PAL);
+			c64model_set(*(pdb_getEntry(&db, top_shows, 12))=='2' ? C64MODEL_C64C_NTSC : C64MODEL_C64C_PAL);
 		// set TDE
 		if (gb64_set_modes & 2) 
-			resources_set_int("DriveTrueEmulation", *(pdb_getEntry(db, top_shows, 13))=='0' ? 0 : 1);
+			resources_set_int("DriveTrueEmulation", *(pdb_getEntry(&db, top_shows, 13))=='0' ? 0 : 1);
 		// set controller
 		if (gb64_set_modes & 4) {
-			p = pdb_getEntry(db, top_shows, 14);
+			p = pdb_getEntry(&db, top_shows, 14);
 			if (p != NULL && p[0]!=0) {
 				switch (p[0]) {
 					case '0': // Joy Port2
@@ -1115,14 +1157,16 @@ tagdb:
 	// clean up
 	uigb64_top = NULL;
 	uibottom_must_redraw |= UIB_RECALC_GB64;
-	SDL_FreeSurface(loading_img);
 	async_http_shutdown();
+	if (loading_img) SDL_FreeSurface(loading_img);
+	http_bufsize=0;
 	free (gamedir);
 	free (downloaded);
-
+	if (!isN3DS()) {
+		gb64_shutdown();
+	}
 	// return NULL or autostart image name
-	if (retval >= 0) return c;
-	return NULL;
+	return c;
 }
 
 UI_MENU_CALLBACK(gb64_callback)
@@ -1140,13 +1184,4 @@ UI_MENU_CALLBACK(gb64_callback)
 		}
 	}
     return NULL;
-}
-
-void gb64_shutdown() {
-	if (priv_uigb64_top) SDL_FreeSurface(priv_uigb64_top);
-	if (db != NULL) pdb_freeDB(db);
-	if (searchresult != NULL) free(searchresult);
-	priv_uigb64_top = uigb64_top = NULL;
-	searchresult = NULL;
-	db = NULL;
 }

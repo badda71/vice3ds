@@ -39,3 +39,5 @@ Result http_download_file(
 	Result (*checkRunning)(),
 	Result (*progress)(u64 total, u64 curr));
 Result http_check_url(const char* url);
+
+extern unsigned int http_bufsize;

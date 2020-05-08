@@ -22,6 +22,7 @@
 static u32 *SOC_buffer = NULL;
 char http_errbuf[HTTP_ERRBUFSIZE];
 http_info http_last_req_info = {0};
+unsigned int http_bufsize = 0;
 
 struct httpc_context_s {
     httpcContext httpc;
@@ -459,7 +460,8 @@ static Result http_download_callback(	// )
 		snprintf(http_errbuf,HTTP_ERRBUFSIZE,"could not allocate download buffer");
         res = R_APP_OUT_OF_MEMORY;
     }
-    return res;
+	if (res) log_message(LOG_DEFAULT,"download error: %s",http_errbuf);
+	return res;
 }
 
 typedef struct {
@@ -522,7 +524,8 @@ static Result http_download_file_progress (void* userData, u64 total, u64 curr) 
 	return 0;
 }
 
-#define BUFFER_SIZE 256 * 1024
+#define BUFFER_SIZE_N3DS 256 * 1024
+#define BUFFER_SIZE_O3DS 32 * 1024
 
 Result http_download_file( // )
 	const char* url,
@@ -537,7 +540,7 @@ Result http_download_file( // )
 		return R_APP_FILEOPEN_FAILED;
 	}
     http_file_data data = {fd, checkRunning, progress};
-	Result res = http_download_callback(url, BUFFER_SIZE, &data, http_download_file_callback, http_download_file_checkRunning, http_download_file_progress, 0);
+	Result res = http_download_callback(url, http_bufsize > 0 ? http_bufsize : (isN3DS()?BUFFER_SIZE_N3DS:BUFFER_SIZE_O3DS), &data, http_download_file_callback, http_download_file_checkRunning, http_download_file_progress, 0);
 	fclose(fd);
 	if(R_FAILED(res)) {
 		unlink(fname);

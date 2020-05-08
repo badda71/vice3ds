@@ -351,7 +351,6 @@ SDL_Surface *mediumchars=NULL;
 static SDL_Surface *smallchars=NULL;
 static SDL_Surface *symchars=NULL;
 static SDL_Surface *keyimg=NULL;
-static SDL_Surface *joyimg=NULL;
 static SDL_Surface *touchpad_img=NULL;
 static SDL_Surface *help_top_img=NULL;
 static SDL_Surface *help_bottom_img=NULL;
@@ -820,7 +819,6 @@ static SDL_Surface *loadIcon(char *name) {
 	}
 	strcpy(s+i+5,".png");
 
-//log_citra("loadIcon: %s",s);
 	SDL_Surface *r=NULL;
 	FILE *fp=sysfile_open(s,NULL,"r");
 	if (fp) r=IMG_Load_RW(SDL_RWFromFP(fp,1),1);
@@ -1013,12 +1011,7 @@ static SDL_Surface *createIcon(char *name) {
 	SDL_Surface *icon=SDL_CreateRGBSurface(SDL_SWSURFACE,ICON_W,ICON_H,32,0x000000ff,0x0000ff00,0x00ff0000,0xff000000);
 //	SDL_FillRect(icon, NULL, SDL_MapRGBA(icon->format, 0, 0, 0, 0));
 
-	if (strncmp("Joy",name,3)==0 && name[4]==' ') {
-		// make a joy icon
-		SDL_BlitSurface(joyimg,NULL,icon,NULL);
-		uib_printstring(icon, name+3, 0, 0, 1, ALIGN_LEFT, FONT_BIG, (SDL_Color){0xff,0xff,0xff,0});
-		uib_printstring(icon, name+5, 20, 32, 5, ALIGN_CENTER, FONT_BIG, (SDL_Color){0xff,0xff,0xff,0});
-	} else if (strncmp("Key ",name,4)==0) {
+	if (strncmp("Key ",name,4)==0) {
 		char *saveptr1, *p, *s;
 		// make a (multi) key icon
 		// how many keys do we have?
@@ -1273,6 +1266,10 @@ static void sbuttons_recalc() {
 		if (!rbuf) lbuf="not mapped";
 
 		// print info to touchpad image
+		if (!touchpad_img) {
+			touchpad_img=IMG_Load("romfs:/touchpad.png");
+			SDL_SetAlpha(touchpad_img, 0, 255);
+		}
 		x=154,y=148;
 		i=strlen(lbuf);
 		SDL_FillRect(touchpad_img, &(SDL_Rect){
@@ -1310,14 +1307,6 @@ static void uibottom_init() {
 	SDL_SetColorKey(symchars, SDL_SRCCOLORKEY, 0x00000000);
 	keyimg=IMG_Load("romfs:/keyimg.png");
 	SDL_SetAlpha(keyimg, 0, 255);
-	joyimg=IMG_Load("romfs:/joyimg.png");
-	SDL_SetAlpha(joyimg, 0, 255);
-	touchpad_img=IMG_Load("romfs:/touchpad.png");
-	SDL_SetAlpha(touchpad_img, 0, 255);
-	help_top_img=IMG_Load("romfs:/helpimg.png");
-	SDL_SetAlpha(help_top_img, 0, 255);
-	help_bottom_img=IMG_Load("romfs:/helpoverlay.png");
-	SDL_SetAlpha(help_bottom_img, 0, 255);
 
 	// pre-load sprites
 	loadImage(&twistyup_spr, "romfs:/twistyup.png");
@@ -1335,10 +1324,11 @@ static void uibottom_init() {
 	makeImage(&black_spr, (u8[]){0, 0, 0, 0xFF},1,1,0);
 
 	// create sprites
-	SDL_Surface *s=SDL_CreateRGBSurface(SDL_SWSURFACE,256,64,32,0x000000ff,0x0000ff00,0x00ff0000,0xff000000);
+	SDL_Surface *s=SDL_CreateRGBSurface(SDL_SWSURFACE,256,12,32,0x000000ff,0x0000ff00,0x00ff0000,0xff000000);
 	SDL_FillRect(s, NULL, SDL_MapRGBA(s->format,0,0,0,128));
 	uib_printstring(s, "Press START to finish", 2, 2, 0, ALIGN_LEFT, FONT_BIG, (SDL_Color){0xff,0xff,0xff,0});
 	makeImage(&note_spr, s->pixels, s->w, s->h, 0);
+	SDL_FreeSurface(s);
 
 	message_img=SDL_CreateRGBSurface(SDL_SWSURFACE,400,12,32,0x000000ff,0x0000ff00,0x00ff0000,0xff000000);
 	SDL_FillRect(message_img, NULL, SDL_MapRGBA(message_img->format,0,0,0,128));
@@ -1602,6 +1592,10 @@ void toggle_help(int inmenu)
 		char buf[40];
 
 		// **** paint the top screen help image ********************
+		if (!help_top_img) {
+			help_top_img=IMG_Load("romfs:/helpimg.png");
+			SDL_SetAlpha(help_top_img, 0, 255);
+		}
 		help_img = SDL_ConvertSurface(help_top_img, help_top_img->format, SDL_SWSURFACE);
 		char *p;
 		SDL_Color w=(SDL_Color){255,255,255,0};
@@ -1642,6 +1636,11 @@ void toggle_help(int inmenu)
 		// **** paint the bottom screen help image ********************
 		// 11 x 6 at 5,6
 		SDL_Delay(10); // wait until previous makeImage has finished
+		if (!help_bottom_img) {
+			help_bottom_img=IMG_Load("romfs:/helpoverlay.png");
+			SDL_SetAlpha(help_bottom_img, 0, 255);
+		}
+		
 		help_img = SDL_ConvertSurface(help_bottom_img, help_bottom_img->format, SDL_SWSURFACE);
 		if (!inmenu) {
 			// write the help texts into the overlay
@@ -1970,4 +1969,18 @@ void uibottom_toggle_editmode() {
 		editmode_on=1;
 	}
 	uibottom_must_redraw |= UIB_RECALC_KEYPRESS;
+}
+
+void uibottom_unload_stuff() {
+	// free and init the icon hash
+	tsh_free(&iconHash);
+	tsh_init(&iconHash, HASHSIZE, (void (*)(void *))SDL_FreeSurface);
+
+	// images that are not always needed
+	if (touchpad_img) SDL_FreeSurface(touchpad_img);
+	touchpad_img=NULL;
+	if (help_top_img) SDL_FreeSurface(help_top_img);
+	help_top_img=NULL;
+	if (help_bottom_img) SDL_FreeSurface(help_bottom_img);
+	help_bottom_img=NULL;
 }
