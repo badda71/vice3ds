@@ -64,7 +64,7 @@
 #include "export.h"
 #include "fliplist.h"
 #include "fsdevice.h"
-#include "gfxoutput.h"
+//#include "gfxoutput.h"
 #include "imagecontents.h"
 #include "init.h"
 #include "joyport.h"
@@ -488,10 +488,12 @@ int machine_resources_init(void)
         init_resource_fail("userport devices");
         return -1;
     }
-    if (gfxoutput_resources_init() < 0) {
+/*
+	if (gfxoutput_resources_init() < 0) {
         init_resource_fail("gfxoutput");
         return -1;
     }
+*/
     if (sampler_resources_init() < 0) {
         init_resource_fail("samplerdrv");
         return -1;
@@ -820,7 +822,7 @@ int machine_specific_init(void)
     /* Setup trap handling.  */
     traps_init();
 
-    gfxoutput_init();
+    //gfxoutput_init();
 
     /* Initialize serial traps.  */
     if (serial_init(scpu64_serial_traps) < 0) {

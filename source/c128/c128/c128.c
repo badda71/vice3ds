@@ -72,7 +72,7 @@
 #include "fmopl.h"
 #include "fsdevice.h"
 #include "functionrom.h"
-#include "gfxoutput.h"
+//#include "gfxoutput.h"
 #include "imagecontents.h"
 #include "init.h"
 #include "joyport.h"
@@ -648,10 +648,12 @@ int machine_resources_init(void)
         init_resource_fail("userport devices");
         return -1;
     }
-    if (gfxoutput_resources_init() < 0) {
+/*
+	if (gfxoutput_resources_init() < 0) {
         init_resource_fail("gfxoutput");
         return -1;
     }
+*/
     if (sampler_resources_init() < 0) {
         init_resource_fail("samplerdrv");
         return -1;
@@ -1048,7 +1050,7 @@ int machine_specific_init(void)
         joystick_init();
     }
 
-    gfxoutput_init();
+    //gfxoutput_init();
 
     /* initialize RS232 handler */
     rs232drv_init();

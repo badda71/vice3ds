@@ -42,7 +42,7 @@
 #include "vice-event.h"
 #include "fliplist.h"
 #include "fsdevice.h"
-#include "gfxoutput.h"
+//#include "gfxoutput.h"
 #include "interrupt.h"
 #include "kbdbuf.h"
 #include "keyboard.h"
@@ -299,7 +299,7 @@ void machine_shutdown(void)
     sound_close();
 
     //printer_shutdown();
-    gfxoutput_shutdown();
+    //gfxoutput_shutdown();
 
     fliplist_shutdown();
     file_system_shutdown();

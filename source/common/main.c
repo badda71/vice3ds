@@ -47,7 +47,7 @@
 #include "debug.h"
 #include "drive.h"
 #include "fullscreen.h"
-#include "gfxoutput.h"
+//#include "gfxoutput.h"
 #include "info.h"
 #include "init.h"
 //#include "initcmdline.h"
@@ -147,7 +147,7 @@ int main_program(int argc, char **argv)
     /* Initialize system file locator.  */
     sysfile_init(machine_name);
 
-    gfxoutput_early_init(ishelp);
+    //gfxoutput_early_init(ishelp);
 //    if ((init_resources() < 0) || (init_cmdline_options() < 0)) {
     if (init_resources() < 0) {
         return -1;

@@ -34,7 +34,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "gfxoutput.h"
+//#include "gfxoutput.h"
 #include "lib.h"
 #include "log.h"
 #include "machine.h"
@@ -44,7 +44,7 @@
 #include "uiapi.h"
 #include "video.h"
 
-
+/*
 static log_t screenshot_log = LOG_ERR;
 static gfxoutputdrv_t *recording_driver;
 static struct video_canvas_s *recording_canvas;
@@ -53,7 +53,7 @@ static int reopen = 0;
 static char *reopen_recording_drivername;
 static struct video_canvas_s *reopen_recording_canvas;
 static char *reopen_filename;
-
+*/
 
 /** \brief  Initialize module
  *
@@ -61,14 +61,16 @@ static char *reopen_filename;
  */
 int screenshot_init(void)
 {
-    /* Setup logging system.  */
+/*
+	// Setup logging system.
     screenshot_log = log_open("Screenshot");
     recording_driver = NULL;
     recording_canvas = NULL;
 
     reopen_recording_drivername = NULL;
     reopen_filename = NULL;
-    return 0;
+*/
+	return 0;
 }
 
 
@@ -76,21 +78,24 @@ int screenshot_init(void)
  */
 void screenshot_shutdown(void)
 {
-    if (reopen_recording_drivername != NULL) {
+/*
+	if (reopen_recording_drivername != NULL) {
         lib_free(reopen_recording_drivername);
     }
     if (reopen_filename != NULL) {
         lib_free(reopen_filename);
     }
+*/
 }
 
 
 
 /*-----------------------------------------------------------------------*/
-
+/*
 static void screenshot_line_data(screenshot_t *screenshot, uint8_t *data,
                                  unsigned int line, unsigned int mode)
 {
+
     unsigned int i;
     uint8_t *line_base;
     uint8_t color;
@@ -134,11 +139,10 @@ static void screenshot_line_data(screenshot_t *screenshot, uint8_t *data,
     }
 }
 
-/*-----------------------------------------------------------------------*/
 static int screenshot_save_core(screenshot_t *screenshot, gfxoutputdrv_t *drv,
                                 const char *filename)
 {
-    unsigned int i;
+	unsigned int i;
 
     screenshot->width = screenshot->max_width & ~3;
     screenshot->height = screenshot->last_displayed_line - screenshot->first_displayed_line + 1;
@@ -154,14 +158,14 @@ static int screenshot_save_core(screenshot_t *screenshot, gfxoutputdrv_t *drv,
 
     if (drv != NULL) {
         if (drv->save_native != NULL) {
-            /* It's a native screenshot. */
+            // It's a native screenshot.
             if ((drv->save_native)(screenshot, filename) < 0) {
                 log_error(screenshot_log, "Saving failed...");
                 lib_free(screenshot->color_map);
                 return -1;
             }
         } else {
-            /* It's a usual screenshot. */
+            // It's a usual screenshot.
             if ((drv->save)(screenshot, filename) < 0) {
                 log_error(screenshot_log, "Saving failed...");
                 lib_free(screenshot->color_map);
@@ -169,7 +173,7 @@ static int screenshot_save_core(screenshot_t *screenshot, gfxoutputdrv_t *drv,
             }
         }
     } else {
-        /* We're recording a movie */
+        // We're recording a movie
         if ((recording_driver->record)(screenshot) < 0) {
             log_error(screenshot_log, "Recording failed...");
             lib_free(screenshot->color_map);
@@ -178,18 +182,20 @@ static int screenshot_save_core(screenshot_t *screenshot, gfxoutputdrv_t *drv,
     }
 
     lib_free(screenshot->color_map);
-    return 0;
+	return -1;
 }
+*/
 
 /*-----------------------------------------------------------------------*/
 
 int screenshot_save(const char *drvname, const char *filename,
                     struct video_canvas_s *canvas)
 {
+/*
     screenshot_t screenshot;
     gfxoutputdrv_t *drv;
     int result;
-    /* printf("screenshot_save(%s, %s, ...)\n", drvname, filename); */
+    // printf("screenshot_save(%s, %s, ...)\n", drvname, filename);
     if ((drv = gfxoutput_get_driver(drvname)) == NULL) {
         return -1;
     }
@@ -219,14 +225,15 @@ int screenshot_save(const char *drvname, const char *filename,
         recording_driver = NULL;
         recording_canvas = NULL;
     }
-
-    return result;
+*/
+    return 0;
 }
 
 #ifdef FEATURE_CPUMEMHISTORY
 int memmap_screenshot_save(const char *drvname, const char *filename, int x_size, int y_size, uint8_t *gfx, uint8_t *palette)
 {
-    gfxoutputdrv_t *drv;
+/*
+	gfxoutputdrv_t *drv;
 
     if ((drv = gfxoutput_get_driver(drvname)) == NULL) {
         return -1;
@@ -236,59 +243,68 @@ int memmap_screenshot_save(const char *drvname, const char *filename, int x_size
         log_error(screenshot_log, "Saving failed...");
         return -1;
     }
+*/
     return 0;
 }
 #endif
 
 int screenshot_record(void)
 {
+/*
     screenshot_t screenshot;
 
     if (recording_driver == NULL) {
         return 0;
     }
 
-    /* Retrive framebuffer and screen geometry.  */
+    // Retrive framebuffer and screen geometry.
     if (recording_canvas != NULL) {
         if (machine_screenshot(&screenshot, recording_canvas) < 0) {
             log_error(screenshot_log, "Retrieving screen geometry failed.");
             return -1;
         }
     } else {
-        /* should not happen */
+        // should not happen
         log_error(screenshot_log, "Canvas is unknown.");
         return -1;
     }
 
     return screenshot_save_core(&screenshot, NULL, NULL);
+*/
+	return 0;
 }
 
 void screenshot_stop_recording(void)
 {
+/*
     if (recording_driver != NULL && recording_driver->close != NULL) {
         recording_driver->close(NULL);
     }
 
     recording_driver = NULL;
     recording_canvas = NULL;
+*/
 }
 
 int screenshot_is_recording(void)
 {
-    return (recording_driver == NULL ? 0 : 1);
+	return 0;
+//	return (recording_driver == NULL ? 0 : 1);
 }
 
 void screenshot_prepare_reopen(void)
 {
-    reopen = (screenshot_is_recording() ? 1 : 0);
+//    reopen = (screenshot_is_recording() ? 1 : 0);
 }
 
 void screenshot_try_reopen(void)
 {
+/*
     if (reopen == 1) {
         screenshot_save(reopen_recording_drivername,
                         reopen_filename,
                         reopen_recording_canvas);
     }
     reopen = 0;
+*/
 }
