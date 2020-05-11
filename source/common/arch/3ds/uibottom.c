@@ -53,9 +53,9 @@
 #include "vice_sdl.h"
 #include "videoarch.h"
 #include "vsync.h"
-#include <SDL/SDL_image.h>
 #include <3ds.h>
 #include <citro3d.h>
+#include <png.h>
 
 int uikbd_pos[4][4] = {
 	{0,0,320,120},		// normal keys
@@ -492,13 +492,64 @@ static void makeImage(DS3_Image *img, u8 *pixels, unsigned w, unsigned h, int no
 	return;
 }
 
-static int loadImage(DS3_Image *img, char *fname) {
-	SDL_Surface *s=IMG_Load(fname);
-	if (!s) return -1;
+static int loadImage(DS3_Image *img, char *fname)
+{
+	png_image image = {0};
+	image.version = PNG_IMAGE_VERSION;
+	if (png_image_begin_read_from_file(&image, fname) &&
+		(image.format = PNG_FORMAT_ABGR) == PNG_FORMAT_ABGR &&
+		png_image_finish_read(&image, NULL, gpusrc, mynext_pow2(image.width)*4, NULL))
+	{
+		makeImage(img, gpusrc, image.width, image.height, 1);
+		return 0;
+	}
+	return -1;
+}
 
-	makeImage(img, s->pixels, s->w,s->h,0);
-	SDL_FreeSurface(s);
-	return 0;
+static SDL_Surface *myIMG_Load(char *fname, int paletted)
+{
+	SDL_Surface *s;
+	png_image image = {0};
+	image.version = PNG_IMAGE_VERSION;
+	if (!png_image_begin_read_from_file(&image, fname))
+		return NULL;
+	image.format = paletted ? PNG_FORMAT_RGBA_COLORMAP : PNG_FORMAT_RGBA;
+	if (paletted)
+		s = SDL_CreateRGBSurface(SDL_SWSURFACE,image.width, image.height, 8, 0, 0, 0, 0xff000000);
+	else
+		s = SDL_CreateRGBSurface(SDL_SWSURFACE,image.width, image.height, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
+	if (!s) {
+		png_image_free(&image);
+		return NULL;
+	}
+	if (!png_image_finish_read(&image, NULL, s->pixels, 0, paletted ? s->format->palette->colors: NULL)) {
+		SDL_FreeSurface(s);
+		return NULL;
+	}
+	return s;
+}
+
+static SDL_Surface *myIMG_Load_RW(FILE *fp, int paletted)
+{
+	SDL_Surface *s;
+	png_image image = {0};
+	image.version = PNG_IMAGE_VERSION;
+	if (!png_image_begin_read_from_stdio(&image, fp))
+		return NULL;
+	image.format = paletted ? PNG_FORMAT_RGBA_COLORMAP : PNG_FORMAT_RGBA;
+	if (paletted)
+		s = SDL_CreateRGBSurface(SDL_SWSURFACE,image.width, image.height, 8, 0, 0, 0, 0xff000000);
+	else
+		s = SDL_CreateRGBSurface(SDL_SWSURFACE,image.width, image.height, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
+	if (!s) {
+		png_image_free(&image);
+		return NULL;
+	}
+	if (!png_image_finish_read(&image, NULL, s->pixels, 0, paletted ? s->format->palette->colors: NULL)) {
+		SDL_FreeSurface(s);
+		return NULL;
+	}
+	return s;
 }
 
 // bottom handling functions
@@ -821,7 +872,10 @@ static SDL_Surface *loadIcon(char *name) {
 
 	SDL_Surface *r=NULL;
 	FILE *fp=sysfile_open(s,NULL,"r");
-	if (fp) r=IMG_Load_RW(SDL_RWFromFP(fp,1),1);
+	if (fp) {
+		r=myIMG_Load_RW(fp, 0);
+		fclose(fp);
+	}
 	return r;
 }
 
@@ -1267,7 +1321,7 @@ static void sbuttons_recalc() {
 
 		// print info to touchpad image
 		if (!touchpad_img) {
-			touchpad_img=IMG_Load("romfs:/touchpad.png");
+			touchpad_img=myIMG_Load("romfs:/touchpad.png", 0);
 			SDL_SetAlpha(touchpad_img, 0, 255);
 		}
 		x=154,y=148;
@@ -1295,17 +1349,17 @@ static void uibottom_init() {
 	uibottom_isinit=1;
 
 	// pre-load images
-	sb_img=IMG_Load("romfs:/sb.png");
+	sb_img=myIMG_Load("romfs:/sb.png", 0);
 	SDL_SetAlpha(sb_img, 0, 255);
-	chars=IMG_Load("romfs:/chars.png");
+	chars=myIMG_Load("romfs:/chars.png", 1);
 	SDL_SetColorKey(chars, SDL_SRCCOLORKEY, 0x00000000);
-	smallchars=IMG_Load("romfs:/smallchars.png");
+	smallchars=myIMG_Load("romfs:/smallchars.png", 1);
 	SDL_SetColorKey(smallchars, SDL_SRCCOLORKEY, 0x00000000);
-	mediumchars=IMG_Load("romfs:/mediumchars.png");
+	mediumchars=myIMG_Load("romfs:/mediumchars.png", 1);
 	SDL_SetColorKey(mediumchars, SDL_SRCCOLORKEY, 0x00000000);
-	symchars=IMG_Load("romfs:/symchars.png");
+	symchars=myIMG_Load("romfs:/symchars.png", 1);
 	SDL_SetColorKey(symchars, SDL_SRCCOLORKEY, 0x00000000);
-	keyimg=IMG_Load("romfs:/keyimg.png");
+	keyimg=myIMG_Load("romfs:/keyimg.png", 0);
 	SDL_SetAlpha(keyimg, 0, 255);
 
 	// pre-load sprites
@@ -1593,7 +1647,7 @@ void toggle_help(int inmenu)
 
 		// **** paint the top screen help image ********************
 		if (!help_top_img) {
-			help_top_img=IMG_Load("romfs:/helpimg.png");
+			help_top_img=myIMG_Load("romfs:/helpimg.png", 0);
 			SDL_SetAlpha(help_top_img, 0, 255);
 		}
 		help_img = SDL_ConvertSurface(help_top_img, help_top_img->format, SDL_SWSURFACE);
@@ -1637,7 +1691,7 @@ void toggle_help(int inmenu)
 		// 11 x 6 at 5,6
 		SDL_Delay(10); // wait until previous makeImage has finished
 		if (!help_bottom_img) {
-			help_bottom_img=IMG_Load("romfs:/helpoverlay.png");
+			help_bottom_img=myIMG_Load("romfs:/helpoverlay.png", 0);
 			SDL_SetAlpha(help_bottom_img, 0, 255);
 		}
 		

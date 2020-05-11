@@ -32,6 +32,7 @@
 #include <curl/curl.h>
 #include <SDL/SDL_image.h>
 #include <zip.h>
+#include <png.h>
 
 #include "archdep_cp.h"
 #include "archdep_xdg.h"
@@ -81,7 +82,6 @@ SDL_Surface *uigb64_top=NULL;
 static int havescrollbar=0;
 static menu_draw_t *menu_draw;
 static volatile int gb64_top_must_redraw=0;
-static SDL_Surface *loading_img=NULL;
 static u8 *downloaded;
 static char *gamedir=NULL;
 static int list_filter;
@@ -479,6 +479,24 @@ static void gb64_download(int idx) {
 	free(fname);
 }
 
+static void uigb64_paint_frame(SDL_Surface *s, int x, int y, int w, int h, int weight, u32 col) {
+	// vertical lines
+	int i,j;
+	void *start = s->pixels + x * 4 + y * s->pitch;
+	for (i=0; i < weight; i++) {
+		// horizontal lines
+		for(j=0; j < w; ++j) {
+			*((u32*)(start + j * 4 + i * s->pitch)) = col;
+			*((u32*)(start + j * 4 + (h - i - 1) * s->pitch)) = col;
+		}
+		// vertical lines
+		for (j = weight; j < h - weight; ++j) {
+			*((u32*)(start + i * 4 + j * s->pitch )) = col;
+			*((u32*)(start + (w - i - 1) * 4 + j * s->pitch)) = col;
+		}
+	}
+}
+
 static void uigb64_update_topscreen(SDL_Surface *s, int entry, int *screenshotidx) {
 	char buf[256],buf2[256],url[256];
 	int j=0,numimg=0;
@@ -562,30 +580,22 @@ static void uigb64_update_topscreen(SDL_Surface *s, int entry, int *screenshotid
 			snprintf(buf2, 256, "%s", pimg_fpath);
 		else
 			snprintf(buf2, 256, "%s_%d.png", base_fpath, *screenshotidx);
-		SDL_Surface *i=IMG_Load(buf2);
-		if (i) {
-			SDL_BlitSurface ( i, NULL, s, &(SDL_Rect){.x=0, .y=0, .w=320, .h=200});
-			SDL_FreeSurface(i);
-		} else {
-			if (loading_img)
-				SDL_BlitSurface ( loading_img, NULL, s, &(SDL_Rect){.x=0, .y=0, .w=320, .h=200});
-			else {
-				const u32 c = 0xFF000000;
-				for(j=0; j<320; ++j) {
-					*((u32*)(s->pixels + j*4)) = c;
-					*((u32*)(s->pixels + j*4 + s->pitch)) = c;
-					*((u32*)(s->pixels + j*4 + 198*s->pitch)) = c;
-					*((u32*)(s->pixels + j*4 + 199*s->pitch)) = c;
-				}
-				for (j=2; j<198; ++j) {
-					*((u32*)(s->pixels + 0*4 + j*s->pitch)) = c;
-					*((u32*)(s->pixels + 1*4 + j*s->pitch)) = c;
-					*((u32*)(s->pixels + 318*4 + j*s->pitch)) = c;
-					*((u32*)(s->pixels + 319*4 + j*s->pitch)) = c;
-				}
-				uib_printstring(s, "Image",		120, 92, 0, ALIGN_LEFT, FONT_BIG, c_black);
-				uib_printstring(s, "loading...",120, 100,0, ALIGN_LEFT, FONT_BIG, c_black);
-			}
+
+		// paint screenshot
+		if (access(buf2, R_OK)) {
+			// file does not yet exist - paint "loading" screen
+			strcpy(buf2, "romfs:/loading.png");
+		}
+		// load the image directly into the surface
+		png_image image = {0};
+		image.version = PNG_IMAGE_VERSION;
+		if (!(png_image_begin_read_from_file(&image, buf2) &&
+			(image.format = PNG_FORMAT_RGBA) == PNG_FORMAT_RGBA &&
+			png_image_finish_read(&image, NULL, s->pixels, s->pitch, NULL))) {
+			// print png error on screen if file could not be read
+			uigb64_paint_frame(s, 0, 0, 320, 200, 2, 0xFF000000);
+			uib_printstring(s, buf2, 160, 92, 60, ALIGN_CENTER, FONT_MEDIUM, c_black);
+			uib_printstring(s, image.message, 160, 100, 60, ALIGN_CENTER, FONT_MEDIUM, c_black);
 		}
 
 		// free allocated buffers
@@ -777,9 +787,7 @@ tagdb:
 	async_http_init(1);
 
 	// some other init stuff
-	if (isN3DS()) {
-		loading_img=IMG_Load("romfs:/loading.png");
-	} else {
+	if (!isN3DS()) {
 		http_bufsize=5*1024;
 	}
 	gamedir = util_concat(archdep_xdg_data_home(), "/", "games", NULL);
@@ -1169,7 +1177,6 @@ tagdb:
 	uigb64_top = NULL;
 	uibottom_must_redraw |= UIB_RECALC_GB64;
 	async_http_shutdown();
-	if (loading_img) SDL_FreeSurface(loading_img);
 	http_bufsize=0;
 	free (gamedir);
 	free (downloaded);
