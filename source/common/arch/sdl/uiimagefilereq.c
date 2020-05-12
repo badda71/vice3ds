@@ -277,7 +277,7 @@ int sdl_ui_image_file_selection_dialog(const char* filename, ui_menu_filereq_mod
 					}
 					break;
 				default:
-					SDL_Delay(10);
+					SDL_Delay(20);
 					break;
 			}
         }

@@ -329,7 +329,7 @@ static int handle_message_box(const char *title, const char *message, int messag
 					}
 					break;
 				default:
-					SDL_Delay(10);
+					SDL_Delay(20);
 					break;
 			}
         }

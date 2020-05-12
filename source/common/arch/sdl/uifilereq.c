@@ -714,7 +714,7 @@ char* sdl_ui_file_selection_dialog_dir(const char* title, ui_menu_filereq_mode_t
 					}
 					break;
 				default:
-					SDL_Delay(10);
+					SDL_Delay(20);
 					break;
 			}
         }

@@ -50,8 +50,8 @@ static void pause_trap(uint16_t addr, void *data)
 {
     vsync_suspend_speed_eval();
     while (is_paused) {
+        SDL_Delay(20);
         ui_dispatch_events();
-        SDL_Delay(10);
 		SDL_Flip(sdl_active_canvas->screen);
     }
 }

@@ -114,13 +114,14 @@ void ui_handle_misc_sdl_event(SDL_Event e)
         }
     }
 #endif
-	static int old_pause_state=0;
+//	static int old_pause_state=0;
     switch (e.type) {
         case SDL_QUIT:
             DBG(("ui_handle_misc_sdl_event: SDL_QUIT"));
 			if (save_resources_on_exit) resources_save(NULL);
 			archdep_vice_exit(0);
             break;
+/*
 		case SDL_SUSPEND:
 			old_pause_state = ui_emulation_is_paused();
 			ui_pause_emulation(1);
@@ -128,6 +129,7 @@ void ui_handle_misc_sdl_event(SDL_Event e)
 		case SDL_RESUME:
 			ui_pause_emulation(old_pause_state);
 			break;
+*/
 #ifndef USE_SDLUI2
 /*        case SDL_VIDEORESIZE:
             DBG(("ui_handle_misc_sdl_event: SDL_VIDEORESIZE (%d,%d)", (unsigned int)e.resize.w, (unsigned int)e.resize.h));
@@ -418,7 +420,7 @@ void ui_show_text(const char *title, const char *texti)
 						}
 						break;
 					default:
-						SDL_Delay(10);
+						SDL_Delay(20);
 						break;
 				}
             }
@@ -465,7 +467,7 @@ void ui_dispatch_next_event(void)
     } else {
         /* Add a small delay to not hog the host CPU when remote
            monitor is being used. */
-        SDL_Delay(10);
+        SDL_Delay(20);
     }
 }
 #endif

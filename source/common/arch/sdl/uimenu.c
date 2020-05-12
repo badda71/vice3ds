@@ -746,7 +746,7 @@ static ui_menu_retval_t sdl_ui_menu_display(ui_menu_entry_t *menu, const char *t
 					}
 					break;
 				default:
-					SDL_Delay(10);
+					SDL_Delay(20);
 					break;
 			}
 		}
