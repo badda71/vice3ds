@@ -1025,7 +1025,7 @@ static const resource_int_t resources_int[] = {
       &sdl_ui_menukeys[13], set_ui_menukey, (void *)MENU_ACTION_END },
     { "SaveResourcesOnExit", 0, RES_EVENT_NO, NULL,
       &save_resources_on_exit, set_save_resources_on_exit, NULL },
-    { "ConfirmOnExit", 1, RES_EVENT_NO, NULL,
+    { "ConfirmOnExit", 0, RES_EVENT_NO, NULL,
       &confirm_on_exit, set_confirm_on_exit, NULL },
     { "DriveLED", 1, RES_EVENT_NO, NULL,
       &drive_led, set_drive_led, NULL },
