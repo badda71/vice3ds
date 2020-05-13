@@ -39,6 +39,7 @@
 #include "log.h"
 #include "machine-drive.h"
 #include "types.h"
+#include "uimsgbox.h"
 #include "util.h"
 #include "vdrive-bam.h"
 #include "vdrive-command.h"
@@ -433,6 +434,7 @@ static int vdrive_command_block(vdrive_t *vdrive, unsigned char command,
         case 'E':
             l = vdrive_get_block_parameters(buffer, &channel, &drive, &track, &sector);
             log_warning(vdrive_command_log, "B-E: %d %d %d %d (needs TDE)", channel, drive, track, sector);
+            message_box("VICE WARNING", "This program needs True Drive Enabled", MESSAGE_OK);
             break;
         default:
             return CBMDOS_IPE_INVAL;
@@ -1100,6 +1102,7 @@ int vdrive_command_memory_write(vdrive_t *vdrive, const uint8_t *buf, uint16_t a
     unsigned int len = buf[0];
 
     log_warning(vdrive_command_log, "M-W %04x %u (+%d) (might need TDE)", addr, len, length - 6);
+            message_box("VICE WARNING", "This program might need True Drive Enabled", MESSAGE_OK);
     if (length < 6) {
         return CBMDOS_IPE_SYNTAX;
     }
@@ -1115,6 +1118,7 @@ int vdrive_command_memory_write(vdrive_t *vdrive, const uint8_t *buf, uint16_t a
 int vdrive_command_memory_exec(vdrive_t *vdrive, const uint8_t *buf, uint16_t addr, unsigned int length)
 {
     log_warning(vdrive_command_log, "M-E %04x (+%d) (needs TDE)", addr, length - 5);
+    message_box("VICE WARNING", "This program needs True Drive Enabled", MESSAGE_OK);
     return CBMDOS_IPE_OK;
 }
 
@@ -1126,6 +1130,7 @@ int vdrive_command_memory_read(vdrive_t *vdrive, const uint8_t *buf, uint16_t ad
     unsigned int len = buf[0];
 
     log_warning(vdrive_command_log, "M-R %04x %u (+%d) (might need TDE)", addr, len, length - 6);
+    message_box("VICE WARNING", "This program might need True Drive Enabled", MESSAGE_OK);
     if (length < 6) {
         return CBMDOS_IPE_SYNTAX;
     }

@@ -52,6 +52,7 @@
 #include "lib.h"
 #include "log.h"
 #include "types.h"
+#include "uimsgbox.h"
 #include "util.h"
 #include "vdrive-command.h"
 #include "vdrive.h"
@@ -462,6 +463,7 @@ static int fsdevice_flush_be(vdrive_t *vdrive, char *realarg)
     unsigned int chn, drv, trk, sec;
     get4args(realarg, &chn, &drv, &trk, &sec);
     log_message(LOG_DEFAULT, "Fsdevice: Warning - B-E: %d %d %d %d (needs TDE)", chn, drv, trk, sec);
+    message_box("VICE WARNING", "This program needs True Drive Enabled", MESSAGE_OK);
     fsdevice_dev[dnr].track = trk;
     fsdevice_dev[dnr].sector = sec;
     return CBMDOS_IPE_OK;
