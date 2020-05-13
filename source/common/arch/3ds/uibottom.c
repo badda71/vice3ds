@@ -1477,6 +1477,9 @@ void sdl_uibottom_draw(void)
 		uibottom_init();
 	}
 
+	// yield to let system processes run (needed for working home button)
+	svcSleepThread(1);
+
 	if (uibottom_must_redraw || editmode_on) {
 		// needed for mutithreading
 		uibottom_must_redraw_local = uibottom_must_redraw;
