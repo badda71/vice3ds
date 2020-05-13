@@ -110,8 +110,8 @@ void drawTexture( int x, int y, int width, int height, float left, float right, 
 // video thread variables and functions
 volatile bool runThread = false;
 Handle privateSem1;
-Handle repaintRequired;
-Handle buffer_mutex;
+static Handle repaintRequired;
+static Handle buffer_mutex;
 
 Thread privateVideoThreadHandle = NULL;
 static void videoThread(void* data);
@@ -239,6 +239,10 @@ int N3DS_VideoInit(_THIS, SDL_PixelFormat *vformat)
 	vformat->Bmask = 0x0000ff00; 
 	vformat->Amask = 0x000000ff; 
 	
+	svcCreateMutex(&privateSem1, false);
+	svcCreateEvent(&repaintRequired,0);
+	svcCreateMutex(&buffer_mutex,false);
+
 	/* We're done! */
 	return(0);
 }
@@ -484,9 +488,6 @@ int hh= next_pow2(height);
 //	C3D_TexBind(0, &spritesheet_tex);
 	
 	runThread = true;
-	svcCreateMutex(&privateSem1, false);
-	svcCreateEvent(&repaintRequired,0);
-	svcCreateMutex(&buffer_mutex,false);
 	current_buffer=NULL;
 
 // ctrulib sys threads uses 0x18, so we use a lower priority, but higher than any other SDL thread
@@ -689,6 +690,10 @@ void N3DS_VideoQuit(_THIS)
 		threadJoin(privateVideoThreadHandle, U64_MAX);
 		privateVideoThreadHandle = NULL;
 	}
+	svcCloseHandle(privateSem1);
+	svcCloseHandle(repaintRequired);
+	svcCloseHandle(buffer_mutex);
+
 	if (this->hidden->buffer)
 	{
 		linearFree(this->hidden->buffer);
