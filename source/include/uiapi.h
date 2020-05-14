@@ -59,7 +59,7 @@ extern void ui_message(const char *format, ...);
 extern void ui_error(const char *format, ...);
 
 /* Display a mesage without interrupting emulation */
-extern void ui_display_statustext(const char *text, int fade_out);
+extern void ui_display_statustext(char *text, int fade_out);
 
 /* Let the user browse for a filename; display format as a titel */
 extern char* ui_get_file(const char *format, ...);

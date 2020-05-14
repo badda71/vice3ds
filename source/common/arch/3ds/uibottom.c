@@ -984,15 +984,18 @@ void uib_printstring(SDL_Surface *s, const char *str, int x, int y, int maxchars
 
 void uib_show_message(u32 ms_time, char *format, ... ) {
 	char buffer[80];
-	SDL_FillRect(message_img, NULL, SDL_MapRGBA(message_img->format,0,0,0,128));
-	va_list args;
-	va_start (args, format);
-	vsnprintf (buffer,80,format, args);
-	va_end (args);
-	uib_printstring(message_img, buffer, 2, 2, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0xff,0xff,0xff,0});
-//log_citra("%s: %s",__func__, buffer);
-	makeImage(&message_spr, message_img->pixels, message_img->w, message_img->h, 0);
-	messagetime = SDL_GetTicks() + ms_time;
+	if (format != NULL && *format!=0) {
+        SDL_FillRect(message_img, NULL, SDL_MapRGBA(message_img->format,0,0,0,128));
+        va_list args;
+        va_start (args, format);
+        vsnprintf (buffer,80,format, args);
+        va_end (args);
+        uib_printstring(message_img, buffer, 2, 2, 0, ALIGN_LEFT, FONT_MEDIUM, (SDL_Color){0xff,0xff,0xff,0});
+        makeImage(&message_spr, message_img->pixels, message_img->w, message_img->h, 0);
+        messagetime = SDL_GetTicks() + ms_time;
+    } else {
+        messagetime = 0;
+    }
 }
 
 static void blitKey(SDL_Surface *s, char *name, int y, enum str_alignment align) {

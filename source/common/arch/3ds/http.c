@@ -12,6 +12,7 @@
 #include "archdep_cp.h"
 #include "log.h"
 #include "vice3ds.h"
+#include "archdep.h"
 
 #define HTTP_USER_AGENT "Mozilla/5.0 (Nintendo 3DS; Mobile; rv:10.0) Gecko/20100101 vice3DS"
 
@@ -19,7 +20,6 @@
 #define HTTP_TIMEOUT_SEC 15
 #define HTTP_TIMEOUT_NS ((u64) HTTP_TIMEOUT_SEC * 1000000000)
 
-static u32 *SOC_buffer = NULL;
 char http_errbuf[HTTP_ERRBUFSIZE];
 http_info http_last_req_info = {0};
 unsigned int http_bufsize = 0;
@@ -301,14 +301,6 @@ static int http_curl_xfer_info_callback(void* clientp, curl_off_t dltotal, curl_
     return 0;
 }
 
-static void socShutdown() {
-	socExit();
-	if (SOC_buffer) {
-		free(SOC_buffer);
-		SOC_buffer=NULL;
-	}
-}
-
 static Result http_download_callback(	// )
 	const char* url,
 	u32 bufferSize,
@@ -322,21 +314,12 @@ static Result http_download_callback(	// )
 
 	static int isInit=0;
 	*http_errbuf=0;
-	if (!isInit) {
-		int ret;
-		SOC_buffer = (u32*)memalign(0x1000, 0x100000);
-		if(SOC_buffer == NULL) {
-			snprintf(http_errbuf,HTTP_ERRBUFSIZE,"memalign failed to allocate");
-			return -1;
-		}
-		if ((ret = socInit(SOC_buffer, 0x100000)) != 0) {
-			free(SOC_buffer);
-			SOC_buffer=NULL;
-			snprintf(http_errbuf,HTTP_ERRBUFSIZE,"socInit failed 0x%08X", (unsigned int)ret);
-			return -1;
-		}
-		atexit(socShutdown);
 
+	if (!isInit) {
+        if (archdep_network_init()) {
+    		snprintf(http_errbuf,HTTP_ERRBUFSIZE,"network init failed");
+			return -1;
+		}
 		httpcInit(0); // Buffer size when POST/PUT
 		atexit(httpcExit);
 		

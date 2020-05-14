@@ -36,6 +36,7 @@
 #include "types.h"
 #include "ui.h"
 #include "uiapi.h"
+#include "uibottom.h"
 #include "uimenu.h"
 #include "uistatusbar.h"
 #include "videoarch.h"
@@ -158,11 +159,13 @@ void ui_display_paused(int flag)
 /* uiapi.h */
 
 /* Display a mesage without interrupting emulation */
-void ui_display_statustext(const char *text, int fade_out)
+void ui_display_statustext(char *text, int fade_out)
 {
-#ifdef SDL_DEBUG
-    fprintf(stderr, "%s: \"%s\", %i\n", __func__, text, fade_out);
-#endif
+    if (text == NULL || *text==0) {
+        uib_show_message(0,NULL);
+    } else {
+        uib_show_message(fade_out ? 5000 : 1000000, text);
+    }
 }
 
 /* Drive related UI.  */

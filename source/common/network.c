@@ -24,7 +24,6 @@
  *
  */
 
-
 #include "vice.h"
 
 #ifdef HAVE_NETWORK
@@ -39,6 +38,7 @@
 #endif
 
 #include "archdep.h"
+#include "archdep_xdg.h"
 //#include "cmdline.h"
 #include "interrupt.h"
 #include "lib.h"
@@ -56,7 +56,7 @@
 #include "vsync.h"
 #include "vsyncapi.h"
 
-/* #define NETWORK_DEBUG */
+//#define NETWORK_DEBUG
 
 static network_mode_t network_mode = NETWORK_IDLE;
 
@@ -463,7 +463,7 @@ static void network_server_connect_trap(uint16_t addr, void *data)
     vsync_suspend_speed_eval();
 
     /* Create snapshot and send it */
-    snapshotfilename = archdep_tmpnam();
+    snapshotfilename = util_concat(archdep_xdg_data_home(), "/nw_server.vsf",NULL);
     if (machine_write_snapshot(snapshotfilename, 1, 1, 0, 0) == 0) {
         f = fopen(snapshotfilename, MODE_READ);
         if (f == NULL) {
@@ -695,9 +695,9 @@ int network_connect_client(void)
 
     vsync_suspend_speed_eval();
 
-    snapshotfilename = NULL;
+    snapshotfilename = util_concat(archdep_xdg_data_home(), "/nw_client.vsf",NULL);
+    f = fopen(snapshotfilename, MODE_WRITE);
 
-    f = archdep_mkstemp_fd(&snapshotfilename, MODE_WRITE);
     if (f == NULL) {
         ui_error("Cannot create snapshot file. Select different history directory!");
         return -1;
