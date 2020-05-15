@@ -51,6 +51,12 @@ typedef struct {
 	void (*free_callback)(void *val);
 } tsh_object;
 
+typedef struct {
+	char name[40];
+	char addr[16];
+	int port;
+} disc_server;
+
 extern u32 hashKey(u8 *key);
 extern void tsh_init(tsh_object *o, int size, void (*free_callback)(void *val));
 extern void *tsh_get(tsh_object *o, char *key);
@@ -86,3 +92,8 @@ extern void copy_autocopy_dir();
 extern int save_help_texts_to_resource();
 extern int isN3DS();
 extern char *result_translate(Result r);
+extern int disc_start_server();
+extern void disc_stop_server();
+extern void disc_run_server();
+extern int disc_run_client(int send_broadcast, disc_server *d_server);
+extern void disc_stop_client();

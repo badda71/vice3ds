@@ -37,6 +37,7 @@
 #include "network.h"
 #include "resources.h"
 #include "ui.h"
+#include "uiautodiscover.h"
 #include "uimenu.h"
 #include "interrupt.h"
 #include "vice3ds.h"
@@ -165,8 +166,29 @@ static UI_MENU_CALLBACK(custom_disconnect_callback)
 }
 
 const ui_menu_entry_t network_menu[] = {
-    SDL_MENU_ITEM_TITLE("Netplay"),
-    { "Server name",
+    { "Start server",
+      MENU_ENTRY_OTHER,
+      custom_start_server_callback,
+      NULL },
+    { "Server discovery",
+      MENU_ENTRY_DIALOG,
+      autodiscover_callback,
+      NULL },
+    { "Connect client",
+      MENU_ENTRY_OTHER,
+      custom_connect_client_callback,
+      NULL },
+    { "Disconnect",
+      MENU_ENTRY_OTHER,
+      custom_disconnect_callback,
+      NULL },
+	SDL_MENU_ITEM_SEPARATOR,
+    SDL_MENU_ITEM_TITLE("Advanced"),
+    { "Control",
+      MENU_ENTRY_SUBMENU,
+      submenu_callback,
+      (ui_callback_data_t)network_control_menu },	
+	{ "Server name",
       MENU_ENTRY_RESOURCE_STRING,
       string_NetworkServerName_callback,
       (ui_callback_data_t)"Set network server name" },
@@ -178,23 +200,6 @@ const ui_menu_entry_t network_menu[] = {
       MENU_ENTRY_RESOURCE_STRING,
       string_NetworkServerBindAddress_callback,
       (ui_callback_data_t)"Set network server bind address" },
-    { "Control",
-      MENU_ENTRY_SUBMENU,
-      submenu_callback,
-      (ui_callback_data_t)network_control_menu },
-    { "Start server",
-      MENU_ENTRY_OTHER,
-      custom_start_server_callback,
-      NULL },
-    { "Connect",
-      MENU_ENTRY_OTHER,
-      custom_connect_client_callback,
-      NULL },
-    { "Disconnect",
-      MENU_ENTRY_OTHER,
-      custom_disconnect_callback,
-      NULL },
     SDL_MENU_LIST_END
 };
-
 #endif

@@ -52,6 +52,7 @@
 #include "uiapi.h"
 #include "util.h"
 #include "vice-event.h"
+#include "vice3ds.h"
 #include "vicesocket.h"
 #include "vsync.h"
 #include "vsyncapi.h"
@@ -660,6 +661,9 @@ int network_start_server(void)
             break;
         }
 
+		// set the listening socket for server discovery
+		disc_start_server();
+
         /* Set proper settings */
         if (resources_set_event_safe() < 0) {
             ui_error("Warning! Failed to set netplay-safe settings.");
@@ -754,8 +758,9 @@ void network_disconnect(void)
         network_mode = NETWORK_SERVER;
     } else {
         vice_network_socket_close(listen_socket);
+		disc_stop_server();
         network_mode = NETWORK_IDLE;
-    }
+	}
 }
 
 void network_suspend(void)
@@ -868,9 +873,10 @@ static void network_hook_connected_receive(void)
             for (i = 0; i < 5; i++) {
                 if (((uint32_t *)client_event_list->base->data)[i]
                     != ((uint32_t *)server_event_list->base->data)[i]) {
+                    
                     ui_error("Network out of sync - disconnecting.");
                     network_disconnect();
-                    /* shouldn't happen but resyncing would be nicer */
+                    // shouldn't happen but resyncing would be nicer
                     break;
                 }
             }
@@ -904,7 +910,8 @@ void network_hook(void)
                                                (void *)0);
             }
         }
-    }
+		disc_run_server();
+	}
 
     if (network_connected()) {
         network_hook_connected_send();

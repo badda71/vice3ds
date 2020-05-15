@@ -28,6 +28,9 @@
 #include <string.h>
 #include <SDL/SDL.h>
 #include <sys/stat.h>
+#include <arpa/inet.h>
+#include <errno.h>
+
 #include "archdep.h"
 #include "vice3ds.h"
 #include "uibottom.h"
@@ -795,8 +798,178 @@ char *result_translate(Result r) {
 	char *s_desc = get_entry(err_description, desc);
 	char *s_mod = get_entry(err_module, mod);
 //	char *s_sum = get_entry(err_summary, sum);
-//<	char *s_lvl = get_entra(err_level, lvl);
+//	char *s_lvl = get_entra(err_level, lvl);
 
 	snprintf(buf, 256, "%s in %s Module", s_desc?s_desc:"Error", s_mod?s_mod:"Unknown");
 	return buf;
+}
+
+// ************************************************************************
+// autodiscovery server & client function
+// ************************************************************************
+
+static int disc_serv_socket=-1;
+static int disc_client_socket=-1;
+const static char disc_req_msg[] = "vice3DS-WHO_IS_SERVER";
+const static char disc_ack_msg[] = "vice3DS-I_AM_SERVER";
+const static int disc_port = 19050;
+static char disc_name[40] = {0};
+
+int disc_start_server()
+{
+	if (disc_serv_socket > -1) return disc_serv_socket;
+	if (archdep_network_init()) return -1;
+
+	if (*disc_name == 0) {
+		frdInit();
+		FRD_GetMyScreenName(disc_name, sizeof(disc_name));
+		frdExit();
+		if (*disc_name == 0)
+			strcpy(disc_name,"-");
+	}
+
+	struct sockaddr_in server_addr = {0};
+
+	disc_serv_socket = socket(AF_INET, SOCK_DGRAM, 0);
+	if (disc_serv_socket < 0) {
+		log_error(LOG_ERR, "socket(): %s",strerror(errno));
+		return -1;
+	}
+	int broadcast=1;
+	if(setsockopt(disc_serv_socket,SOL_SOCKET,0x04,&broadcast,sizeof(broadcast)) < 0) {
+		log_error(LOG_ERR, "setsockopt(): %s",strerror(errno));
+		disc_stop_server();
+		return -1;
+	}
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_addr.s_addr = INADDR_ANY;
+	server_addr.sin_port = htons(disc_port);
+
+	int ret = bind(disc_serv_socket, (struct sockaddr*)&server_addr, sizeof(server_addr));
+	if (ret < 0) {
+		disc_stop_server();
+		return -1;
+	}
+//log_citra("disc server started on port %d\n",disc_port);
+	return disc_serv_socket;
+}
+
+void disc_stop_server()
+{
+	if (disc_serv_socket>-1) {
+		closesocket(disc_serv_socket);
+		disc_serv_socket = -1;
+//log_citra("disc server stopped\n");
+	}
+}
+void disc_run_server()
+{
+	static struct timeval t={0,0};
+	fd_set readfd;
+
+	if (disc_serv_socket<0) return;
+	FD_ZERO(&readfd);
+	FD_SET(disc_serv_socket, &readfd);
+
+	if (select(disc_serv_socket+1, &readfd, NULL, NULL, &t)) {
+		char buffer[128];
+		struct sockaddr_in client_addr;
+		socklen_t addr_len = sizeof(client_addr);
+		recvfrom(disc_serv_socket, buffer, sizeof(buffer), 0, (struct sockaddr*)&client_addr, &addr_len);
+//log_citra("disc server received '%s' from %s : %d\n",buffer, inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+		if (strstr(buffer, disc_req_msg)) {
+			int p;
+			resources_get_int( "NetworkServerPort", &p );
+			snprintf(buffer, sizeof(buffer), "%s:%s:%d", disc_ack_msg, disc_name, p);
+//log_citra("sending response: %s\n", buffer);
+			sendto(disc_serv_socket, buffer, strlen(buffer), 0, (struct sockaddr*)&client_addr, addr_len);
+		}
+	}
+}
+
+static unsigned long disc_get_broadcast_addr() {
+	static unsigned long s_addr=0;
+	if (!s_addr) {
+		// check SOCU_IPInfo first;
+		SOCU_IPInfo ipinfo={0};
+		socklen_t ipinfo_len = sizeof(ipinfo);
+		SOCU_GetNetworkOpt(SOL_CONFIG, NETOPT_IP_INFO , &ipinfo, &ipinfo_len);
+		if (ipinfo.broadcast.s_addr) s_addr = ipinfo.broadcast.s_addr;
+		else {
+			s_addr = INADDR_BROADCAST;
+		}
+	}
+	return s_addr;
+}
+
+int disc_run_client(int send_broadcast, disc_server *d_server)
+{
+	static struct sockaddr_in broadcastaddr = {0};
+
+	if (disc_client_socket < 0) {
+		if (archdep_network_init()) {
+			log_error(LOG_ERR, "could not init network");
+			return -2;
+		}
+		disc_client_socket = socket(AF_INET, SOCK_DGRAM, 0);
+	    if (disc_client_socket < 0) {
+			log_error(LOG_ERR, "socket(): %s",strerror(errno));
+			return -2;
+		}
+
+		int broadcastEnable = 1;
+		if (setsockopt(disc_client_socket, SOL_SOCKET, 0x04, &broadcastEnable, sizeof(broadcastEnable)) < 0) {
+			log_error(LOG_ERR, "setsockopt(): %s",strerror(errno));
+			disc_stop_client();
+			return -2;
+		}
+		broadcastaddr.sin_family = AF_INET;
+		broadcastaddr.sin_port = htons(disc_port);
+		broadcastaddr.sin_addr.s_addr = disc_get_broadcast_addr();
+	}
+	struct sockaddr_in server_addr;
+	fd_set readfd;
+	char buffer[128];
+	socklen_t addr_len = sizeof(server_addr);
+	char *saveptr,*p;
+
+	struct timeval t={0, 0};
+	
+	// send request
+	if (send_broadcast) {
+//log_citra("disc client broadcast to %s %d\n", inet_ntoa(broadcastaddr.sin_addr), disc_port);
+		sendto(disc_client_socket, disc_req_msg, strlen(disc_req_msg), 0, (struct sockaddr *)&broadcastaddr, sizeof(broadcastaddr));
+	}
+
+	// check for ack
+	FD_ZERO(&readfd);
+	FD_SET(disc_client_socket, &readfd);
+	int ret = select(disc_client_socket + 1, &readfd, NULL, NULL, &t);
+	if (ret > 0) {
+//log_citra("select returned ok\n");
+		if (FD_ISSET(disc_client_socket, &readfd))
+		{
+			recvfrom(disc_client_socket, buffer, sizeof(buffer), 0, (struct sockaddr*)&server_addr, &addr_len);
+//log_citra("disc client received '%s' from %s : %d\n",buffer, inet_ntoa(server_addr.sin_addr), ntohs(server_addr.sin_port));
+			if (strstr(buffer, disc_ack_msg)) {
+				if (strtok_r(buffer,":",&saveptr) && (p=strtok_r(NULL,":",&saveptr)))
+					snprintf(d_server->name, sizeof(d_server->name), "%s", p);
+				if ((p=strtok_r(NULL,":",&saveptr)))
+					d_server->port = atoi(p);
+				snprintf(d_server->addr, sizeof(d_server->addr), "%s", inet_ntoa(server_addr.sin_addr));
+//log_citra("disc client finish: %s %s %d", d_server->name, d_server->addr, d_server->port);
+				return 0;
+			}
+		}
+	}
+	return -1;
+}
+
+void disc_stop_client()
+{
+	if (disc_client_socket > -1) {
+		closesocket(disc_client_socket);
+		disc_client_socket = -1;
+//log_citra("disc client stopped\n");
+	}
 }

@@ -127,7 +127,7 @@ static const ui_menu_entry_t x64_main_menu[] = {
       submenu_callback,
       (ui_callback_data_t)reset_menu },
 #ifdef HAVE_NETWORK
-    { "Network",
+    { "Netplay",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)network_menu },
