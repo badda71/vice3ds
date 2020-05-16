@@ -556,7 +556,7 @@
 //#define HAVE_SOCKET 1
 
 /* Define to 1 if the system has the type `socklen_t'. */
-//#define HAVE_SOCKLEN_T 1
+#define HAVE_SOCKLEN_T 1
 
 /* Define to 1 if you have the <soundcard.h> header file. */
 /* #undef HAVE_SOUNDCARD_H */

@@ -143,8 +143,6 @@ static UI_MENU_CALLBACK(custom_start_server_callback)
 		waitSync(0);
         if (trap_result < 0) {
             ui_error("Couldn't start netplay server.");
-        } else {
-            return sdl_menu_text_exit_ui;
         }
     }
     return NULL;
@@ -165,7 +163,25 @@ static UI_MENU_CALLBACK(custom_disconnect_callback)
     return NULL;
 }
 
+static UI_MENU_CALLBACK(custom_netplay_status)
+{
+	switch(network_get_mode()) {
+	case NETWORK_SERVER:
+		return "Server listening";
+	case NETWORK_SERVER_CONNECTED:
+		return "Server connected";
+	case NETWORK_CLIENT:
+		return "Client connected";
+	}
+	return "Idle";
+}
+
 const ui_menu_entry_t network_menu[] = {
+	{ "Status:",
+	  MENU_ENTRY_TEXT,
+	  custom_netplay_status,
+	  NULL },
+	SDL_MENU_ITEM_SEPARATOR,
     { "Start server",
       MENU_ENTRY_OTHER,
       custom_start_server_callback,
