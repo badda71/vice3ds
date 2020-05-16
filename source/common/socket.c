@@ -41,6 +41,9 @@
 #include <string.h>
 #include <malloc.h>
 
+#undef assert
+#define assert(x)
+
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
 #endif
