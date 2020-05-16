@@ -864,26 +864,17 @@ void disc_stop_server()
 }
 void disc_run_server()
 {
-	static struct timeval t={0,0};
-	fd_set readfd;
-
-	if (disc_serv_socket<0) return;
-	FD_ZERO(&readfd);
-	FD_SET(disc_serv_socket, &readfd);
-
-	if (select(disc_serv_socket+1, &readfd, NULL, NULL, &t)) {
-		char buffer[128];
-		struct sockaddr_in client_addr;
-		socklen_t addr_len = sizeof(client_addr);
-		recvfrom(disc_serv_socket, buffer, sizeof(buffer), 0, (struct sockaddr*)&client_addr, &addr_len);
+	char buffer[128];
+	struct sockaddr_in client_addr;
+	socklen_t addr_len = sizeof(client_addr);
+	recvfrom(disc_serv_socket, buffer, sizeof(buffer), 0, (struct sockaddr*)&client_addr, &addr_len);
 //log_citra("disc server received '%s' from %s : %d\n",buffer, inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
-		if (strstr(buffer, disc_req_msg)) {
-			int p;
-			resources_get_int( "NetworkServerPort", &p );
-			snprintf(buffer, sizeof(buffer), "%s:%s:%d", disc_ack_msg, disc_name, p);
+	if (strstr(buffer, disc_req_msg)) {
+		int p;
+		resources_get_int( "NetworkServerPort", &p );
+		snprintf(buffer, sizeof(buffer), "%s:%s:%d", disc_ack_msg, disc_name, p);
 //log_citra("sending response: %s\n", buffer);
-			sendto(disc_serv_socket, buffer, strlen(buffer), 0, (struct sockaddr*)&client_addr, addr_len);
-		}
+		sendto(disc_serv_socket, buffer, strlen(buffer), 0, (struct sockaddr*)&client_addr, addr_len);
 	}
 }
 

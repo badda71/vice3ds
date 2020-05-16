@@ -35,13 +35,11 @@
 
 #ifdef HAVE_NETWORK
 
-#include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
 
-#undef assert
 #define assert(x)
 
 #ifdef HAVE_STRINGS_H
@@ -84,63 +82,6 @@
    Make sure to really pass an array, not a pointer, as _x
 */
 #define arraysize(_x) ( sizeof _x / sizeof _x[0] )
-
-/*! \internal \brief Access to socket addresses
- *
- * This union is used to access socket addresses.
- * It replaces the casts needed otherwise.
- *
- * Furthermore, it ensures we have always enough
- * memory for any type needed. (sizeof struct sockaddr_in6
- * is bigger than struct sockaddr).
- *
- * Note, however, that there is no consensus if the C standard
- * guarantees that all union members start at the same
- * address. There are arguments for and against this.
- *
- * However, in practice, this approach works.
- */
-union socket_addresses_u {
-    struct sockaddr generic;     /*!< the generic type needed for calling the socket API */
-
-#ifdef HAVE_UNIX_DOMAIN_SOCKETS
-    struct sockaddr_un local;    /*!< an Unix Domain Socket (file system) socket address */
-#endif
-
-    struct sockaddr_in ipv4;     /*!< an IPv4 socket address */
-
-#ifdef HAVE_IPV6
-    struct sockaddr_in6 ipv6;    /*!< an IPv6 socket address */
-#endif
-};
-
-/*! \internal \brief opaque structure describing an address for use with socket functions
- *
- */
-struct vice_network_socket_address_s {
-    unsigned int used;      /*!< 1 if this entry is being used, 0 else.
-                             * This is used for debugging the buffer
-                             * allocation strategy.
-                             */
-    int domain;             /*!< the address family (AF_INET, ...) of this address */
-    int protocol;           /*!< the protocol of this address. This can be used to distinguish between different types of an address family. */
-#ifdef HAVE_SOCKLEN_T
-    socklen_t len;          /*!< the length of the socket address */
-#else
-    int len;
-#endif
-    union socket_addresses_u address; /* the socket address */
-};
-
-/*! \internal \brief opaque structure describing a socket */
-struct vice_network_socket_s {
-    SOCKET sockfd;           /*!< the socket handle */
-    vice_network_socket_address_t address; /*!< place for an address. It is updated on accept(). */
-    unsigned int used;      /*!< 1 if this entry is being used, 0 else.
-                             * This is used for debugging the buffer
-                             * allocation strategy.
-                             */
-};
 
 static int network_isinit = 0;
 static u32 *SOC_buffer = NULL;

@@ -28,7 +28,7 @@
 
 #ifdef HAVE_NETWORK
 
-#include <assert.h>
+#define assert(x)
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -78,6 +78,7 @@ static int frame_buffer_full;
 static int current_frame, frame_to_play;
 static event_list_state_t *frame_event_list = NULL;
 static char *snapshotfilename;
+static int disc_socket=-1;
 
 static int set_server_name(const char *val, void *param)
 {
@@ -662,7 +663,7 @@ int network_start_server(void)
         }
 
 		// set the listening socket for server discovery
-		disc_start_server();
+		disc_socket = disc_start_server();
 
         /* Set proper settings */
         if (resources_set_event_safe() < 0) {
@@ -902,15 +903,31 @@ void network_hook(void)
     }
 
     if (network_mode == NETWORK_SERVER) {
-        if (vice_network_select_poll_one(listen_socket) != 0) {
-            network_socket = vice_network_accept(listen_socket);
+		static int frame = 0;
 
-            if (network_socket) {
-                interrupt_maincpu_trigger_trap(network_server_connect_trap,
-                                               (void *)0);
-            }
-        }
-		disc_run_server();
+	    // do this only every 10th frame
+		if (frame == 0) {
+			struct timeval timeout = { 0, 0 };
+			fd_set readfd;
+			FD_ZERO(&readfd);
+			if (disc_socket >= 0) FD_SET(disc_socket, &readfd);
+			FD_SET(listen_socket->sockfd, &readfd);
+
+			if (select((disc_socket > listen_socket->sockfd ? disc_socket : listen_socket->sockfd) + 1, &readfd, NULL, NULL, &timeout)) {
+
+				if (FD_ISSET(listen_socket->sockfd, &readfd)) {
+					network_socket = vice_network_accept(listen_socket);
+
+					if (network_socket) {
+						interrupt_maincpu_trigger_trap(network_server_connect_trap,
+													   (void *)0);
+					}
+				} else {
+					if (disc_socket >= 0) disc_run_server();
+				}
+			}
+		}
+		frame = (frame + 1) % 10;
 	}
 
     if (network_connected()) {
