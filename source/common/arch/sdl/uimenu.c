@@ -565,9 +565,8 @@ static ui_menu_retval_t sdl_ui_menu_display(ui_menu_entry_t *menu, const char *t
     value_offsets = sdl_ui_menu_get_offsets(menu, num_items);
 
     /* If a subtitle is at the top of the menu, then start at the next line. */
-    if (menu[0].type == MENU_ENTRY_TEXT) {
-        cur = 1;
-    }
+    while (menu[cur].type == MENU_ENTRY_TEXT)
+		++cur;
 
     while (in_menu) {
         if (redraw) {
