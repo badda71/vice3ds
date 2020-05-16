@@ -30,7 +30,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "assert.h"
+#define assert(x)
 #include "c64cart.h"
 #include "c64cartsystem.h"
 #include "export.h"

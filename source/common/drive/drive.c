@@ -42,7 +42,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <assert.h>
+#define assert(x)
 
 #include "attach.h"
 #include "diskconstants.h"

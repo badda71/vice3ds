@@ -29,7 +29,7 @@
 
 #ifdef HAVE_RAWNET
 
-#include <assert.h>
+#define assert(x)
 #include <stddef.h>
 #include <stdlib.h>
 

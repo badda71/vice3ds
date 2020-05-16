@@ -28,7 +28,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
+#define assert(x)
 
 #include "cartio.h"
 #include "cartridge.h"

@@ -28,7 +28,7 @@
 
 #include "vice.h"
 
-#include <assert.h>
+#define assert(x)
 #include <stdio.h>
 #include <string.h>
 

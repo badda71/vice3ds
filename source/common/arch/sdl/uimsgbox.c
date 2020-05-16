@@ -28,7 +28,7 @@
 #include "vice_sdl.h"
 #include "types.h"
 
-#include <assert.h>
+#define assert(x)
 #include <string.h>
 
 #include "lib.h"

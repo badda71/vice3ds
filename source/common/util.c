@@ -31,7 +31,7 @@
 
 #include "vice.h"
 
-#include <assert.h>
+#define assert(x)
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>

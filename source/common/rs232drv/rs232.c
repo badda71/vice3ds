@@ -40,7 +40,7 @@
 
 #if defined(HAVE_RS232DEV) || defined(HAVE_RS232NET)
 
-#include <assert.h>
+#define assert(x)
 #include <errno.h>
 #include <string.h>
 
