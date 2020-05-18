@@ -43,7 +43,6 @@
 #include "vice3ds.h"
 
 UI_MENU_DEFINE_STRING(NetworkServerName)
-UI_MENU_DEFINE_STRING(NetworkServerBindAddress)
 UI_MENU_DEFINE_INT(NetworkServerPort)
 
 static UI_MENU_CALLBACK(custom_network_control_callback)
@@ -122,7 +121,7 @@ static UI_MENU_CALLBACK(custom_connect_client_callback)
         interrupt_maincpu_trigger_trap(connect_client_trap, NULL);
 		waitSync(0);
         if (trap_result < 0) {
-            ui_error("Couldn't connect client.");
+            if (trap_result == -2) ui_error("Couldn't connect client.");
         } else {
             return sdl_menu_text_exit_ui;
         }
@@ -148,17 +147,10 @@ static UI_MENU_CALLBACK(custom_start_server_callback)
     return NULL;
 }
 
-static void disconnect_trap(uint16_t addr, void *data)
-{
-    network_disconnect();
-    triggerSync(0);
-}
-
 static UI_MENU_CALLBACK(custom_disconnect_callback)
 {
     if (activated) {
-        interrupt_maincpu_trigger_trap(disconnect_trap, NULL);
-		waitSync(0);
+	    network_disconnect();
     }
     return NULL;
 }
@@ -212,10 +204,6 @@ const ui_menu_entry_t network_menu[] = {
       MENU_ENTRY_RESOURCE_INT,
       int_NetworkServerPort_callback,
       (ui_callback_data_t)"Set network server port" },
-    { "Bind address",
-      MENU_ENTRY_RESOURCE_STRING,
-      string_NetworkServerBindAddress_callback,
-      (ui_callback_data_t)"Set network server bind address" },
     SDL_MENU_LIST_END
 };
 #endif

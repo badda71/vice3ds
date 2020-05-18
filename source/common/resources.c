@@ -110,6 +110,14 @@ typedef struct resource_callback_desc_s {
     struct resource_callback_desc_s *next;
 } resource_callback_desc_t;
 
+struct res_backup {
+	int resnr;
+	void *value;
+};
+
+#define MAXBACKUP 64
+static struct res_backup resources_backup[MAXBACKUP];
+static int res_backup_nr = 0;
 
 static unsigned int num_resources, num_allocated_resources;
 static resource_ram_t *resources;
@@ -347,6 +355,18 @@ int resources_register_string(const resource_string_t *r)
     return 0;
 }
 
+static void resources_free_backup()
+{
+	unsigned int i;
+	for (i=0; i < res_backup_nr; ++i) {
+		if (resources[resources_backup[i].resnr].type == RES_STRING
+			&& resources_backup[i].value)
+		{
+			free(resources_backup[i].value);
+		}
+	}
+	res_backup_nr = 0;
+}
 
 static void resources_free(void)
 {
@@ -357,14 +377,14 @@ static void resources_free(void)
     }
 }
 
-
 /** \brief  Shutown resources
  */
 void resources_shutdown(void)
 {
+	resources_free_backup();
     resources_free();
 
-    lib_free(resources);
+	lib_free(resources);
     lib_free(hashTable);
     lib_free(machine_id);
     lib_free(vice_config_file);
@@ -883,29 +903,73 @@ int resources_set_defaults(void)
     return 0;
 }
 
+void resources_restore_backup(void)
+{
+	int i;
+	if (!res_backup_nr) return;
+	for (i = 0; i < res_backup_nr; ++i) {
+		resource_ram_t *r = &(resources[resources_backup[i].resnr]);
+		switch (r->type) {
+		case RES_INTEGER:
+//log_citra("Resource restore '%s': %d -> %d", r->name, *(int*)r->value_ptr, (int)resources_backup[i].value);
+			r->set_func_int((int)resources_backup[i].value,r->param);
+			break;
+		case RES_STRING:
+//log_citra("Resource restore '%s': %d -> %d", r->name, *(char**)r->value_ptr, (char*)resources_backup[i].value);
+			r->set_func_string((char*)resources_backup[i].value, r->param);
+			break;
+		}
+	    resources_issue_callback(resources + resources_backup[i].resnr, 0);
+	}
+    if (resource_modified_callback != NULL) {
+        resources_exec_callback_chain(resource_modified_callback, NULL);
+    }
+	resources_free_backup();
+}
+
 int resources_set_event_safe(void)
 {
     unsigned int i;
-
-    for (i = 0; i < num_resources; i++) {
-        switch (resources[i].type) {
-            case RES_INTEGER:
-                if (resources[i].event_relevant == RES_EVENT_STRICT) {
-                    if ((*resources[i].set_func_int)(vice_ptr_to_int(resources[i].event_strict_value),
-                                                     resources[i].param) < 0) {
-                        return -1;
-                    }
-                }
-                break;
-            case RES_STRING:
-                if (resources[i].event_relevant == RES_EVENT_STRICT) {
-                    if ((*resources[i].set_func_string)((const char *)(resources[i].event_strict_value),
-                                                        resources[i].param) < 0) {
-                        return -1;
-                    }
-                }
-                break;
-        }
+	char *o, *n;
+    resources_free_backup();
+	
+	for (i = 0; i < num_resources; i++) {
+        if (resources[i].event_relevant == RES_EVENT_STRICT) {
+			switch (resources[i].type) {
+			case RES_INTEGER:
+				if (*(int*)resources[i].value_ptr != vice_ptr_to_int(resources[i].event_strict_value) &&
+					res_backup_nr < MAXBACKUP)
+				{
+					resources_backup[res_backup_nr++] = 
+						(struct res_backup){
+							.resnr = i,
+							.value = (void*)(*(int*)resources[i].value_ptr)
+						};
+//log_citra("Resource set '%s': %d -> %d", resources[i].name, *(int*)resources[i].value_ptr, vice_ptr_to_int(resources[i].event_strict_value));
+				}
+				if ((*resources[i].set_func_int)(vice_ptr_to_int(resources[i].event_strict_value),
+												 resources[i].param) < 0) {
+					return -1;
+				}
+				break;
+			case RES_STRING:
+				o=*(char**)resources[i].value_ptr;
+				n=(char*)resources[i].event_strict_value;
+				if (strcmp(o, n) &&	res_backup_nr < MAXBACKUP)
+				{
+					resources_backup[res_backup_nr++] = 
+						(struct res_backup){
+							.resnr = i,
+							.value = lib_stralloc(o)
+						};
+//log_citra("Resource set '%s': %s -> %s", resources[i].name, o, n);
+				}
+				if ((*resources[i].set_func_string)(n, resources[i].param) < 0) {
+					return -1;
+				}
+				break;
+			}
+		}
         resources_issue_callback(resources + i, 0);
     }
 

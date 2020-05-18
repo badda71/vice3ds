@@ -164,6 +164,7 @@ extern int resources_set_default_string(const char *name, char *value);
 
 extern int resources_set_event_safe(void);
 extern void resources_get_event_safe_list(struct event_list_state_s *list);
+extern void resources_restore_backup(void);
 
 /* Register a callback for a resource; use name=NULL to register a callback for all.
    Resource-specific callbacks are always called with a valid resource name as parameter.

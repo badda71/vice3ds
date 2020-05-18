@@ -50,6 +50,7 @@
 #include "resources.h"
 #include "types.h"
 #include "uiapi.h"
+#include "uibottom.h"
 #include "util.h"
 #include "vice-event.h"
 #include "vice3ds.h"
@@ -394,11 +395,11 @@ static void network_test_delay(void)
     testpacket pkt;
 
     long packet_delay[NUM_OF_TESTPACKETS];
-    char st[256];
 
     vsyncarch_init();
 
-    ui_display_statustext("Testing best frame delay...", 0);
+    uib_show_message(5000, "Testing best frame delay...");
+    // ui_display_statustext("Testing best frame delay...", 0);
 
     buf = (unsigned char*)&pkt;
 
@@ -448,9 +449,8 @@ static void network_test_delay(void)
     network_free_frame_event_list();
     frame_delta = new_frame_delta;
     network_init_frame_event_list();
-    sprintf(st, "Using %d frames delay.", frame_delta);
+    uib_show_message(5000, "Using %d frames delay.", frame_delta);
     log_debug("netplay connected with %d frames delta.", frame_delta);
-    ui_display_statustext(st, 1);
 }
 
 static void network_server_connect_trap(uint16_t addr, void *data)
@@ -480,15 +480,16 @@ static void network_server_connect_trap(uint16_t addr, void *data)
         }
         fclose(f);
 
-        ui_display_statustext("Sending snapshot to client...", 0);
+        uib_show_message(5000 , "Sending snapshot to client...");
+        //ui_display_statustext("Sending snapshot to client...", 0);
         util_int_to_le_buf4(send_size4, (int)buf_size);
         network_send_buffer(network_socket, send_size4, 4);
         i = network_send_buffer(network_socket, buf, (int)buf_size);
         lib_free(buf);
         if (i < 0) {
             ui_error("Cannot send snapshot to client");
-            ui_display_statustext("", 0);
-            lib_free(snapshotfilename);
+            uib_show_message(0, NULL);
+	        lib_free(snapshotfilename);
             return;
         }
 
@@ -673,7 +674,7 @@ int network_start_server(void)
         network_mode = NETWORK_SERVER;
 
         vsync_suspend_speed_eval();
-        ui_display_statustext("Server is waiting for a client...", 1);
+        uib_show_message(10000, "Netplay server (%s:%d) waiting for client...", inet_ntoa((struct in_addr){gethostid()}), server_port);
 
         ret = 0;
     } while (0);
@@ -724,11 +725,12 @@ int network_connect_client(void)
         return -1;
     }
 
-    ui_display_statustext("Receiving snapshot from server...", 0);
+    uib_show_message(5000 , "Receiving snapshot from server...");
+	//ui_display_statustext("Receiving snapshot from server...", 0);
     if (network_recv_buffer(network_socket, recv_buf4, 4) < 0) {
         lib_free(snapshotfilename);
         vice_network_socket_close(network_socket);
-        return -1;
+        return -2;
     }
 
     buf_size = (size_t)util_le_buf4_to_int(recv_buf4);
@@ -737,7 +739,7 @@ int network_connect_client(void)
     if (network_recv_buffer(network_socket, buf, (int)buf_size) < 0) {
         lib_free(snapshotfilename);
         vice_network_socket_close(network_socket);
-        return -1;
+        return -2;
     }
 
     if (fwrite(buf, 1, buf_size, f) == 0) {
@@ -757,11 +759,13 @@ void network_disconnect(void)
     vice_network_socket_close(network_socket);
     if (network_mode == NETWORK_SERVER_CONNECTED) {
         network_mode = NETWORK_SERVER;
-    } else {
+        uib_show_message(0 , NULL);
+	} else {
         vice_network_socket_close(listen_socket);
 		disc_stop_server();
         network_mode = NETWORK_IDLE;
 	}
+	resources_restore_backup();
 }
 
 void network_suspend(void)
@@ -798,8 +802,9 @@ static void network_hook_connected_send(void)
     util_int_to_le_buf4(send_len4, (int)send_len);
     if (network_send_buffer(network_socket, send_len4, 4) < 0
         || network_send_buffer(network_socket, local_event_buf, send_len) < 0) {
-        ui_display_statustext("Remote host disconnected.", 1);
+        //ui_display_statustext("Remote host disconnected.", 1);
         network_disconnect();
+        uib_show_message(5000 , "Remote host disconnected.");
     }
 #ifdef NETWORK_DEBUG
     t2 = vsyncarch_gettime();
@@ -825,22 +830,25 @@ static void network_hook_connected_receive(void)
     if (frame_buffer_full) {
         do {
             if (network_recv_buffer(network_socket, recv_len4, 4) < 0) {
-                ui_display_statustext("Remote host disconnected.", 1);
+                //ui_display_statustext("Remote host disconnected.", 1);
                 network_disconnect();
+                uib_show_message(5000 , "Remote host disconnected.");
                 return;
             }
 
             recv_len = util_le_buf4_to_int(recv_len4);
             if (recv_len == 0 && suspended == 0) {
                 /* remote host suspended emulation */
-                ui_display_statustext("Remote host suspending...", 0);
+                uib_show_message(5000 , "Remote host suspending...");
+                //ui_display_statustext("Remote host suspending...", 0);
                 suspended = 1;
                 vsync_suspend_speed_eval();
             }
         } while (recv_len == 0);
 
         if (suspended == 1) {
-            ui_display_statustext("", 0);
+            uib_show_message(0, NULL);
+            //ui_display_statustext("", 0);
         }
 
         remote_event_buf = lib_malloc(recv_len);
