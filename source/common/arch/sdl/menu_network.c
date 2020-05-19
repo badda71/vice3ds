@@ -32,6 +32,7 @@
 
 #include "types.h"
 
+#include "joyport.h"
 #include "menu_common.h"
 #include "menu_network.h"
 #include "network.h"
@@ -142,7 +143,10 @@ static UI_MENU_CALLBACK(custom_start_server_callback)
 		waitSync(0);
         if (trap_result < 0) {
             ui_error("Couldn't start netplay server.");
-        }
+        } else {
+		    resources_set_int("JoyPort1Device", JOYPORT_ID_JOYSTICK);
+			resources_set_int("JoyPort2Device", JOYPORT_ID_JOYSTICK);
+		}
     }
     return NULL;
 }

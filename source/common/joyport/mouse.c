@@ -972,7 +972,7 @@ int set_mouse_enabled(int val, void *param)
 			if (joyport_device[joy_port[i]].resource_id == JOYPORT_RES_ID_MOUSE) break;
 		}
 		if (i == JOYPORT_MAX_PORTS) {
-			message_box("VICE WARNING", "No mouse is connected to a joyport. Please map a mouse to a joyport in VICE menu under 'Machine settings' -> 'Joyport settings'.", MESSAGE_OK);
+			message_box("VICE WARNING", "No mouse is connected to a joyport. Please map a mouse to a joyport in VICE menu under 'Joyport settings'.", MESSAGE_OK);
         }
 	}
 

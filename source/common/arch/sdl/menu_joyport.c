@@ -116,6 +116,7 @@ static UI_MENU_CALLBACK(JoyPort1Device_dynmenu_callback)
 UI_MENU_CALLBACK(custom_joyport_toggle_callback)
 {
     int i, k, s;
+	static int last_dev = JOYPORT_ID_MOUSE_1351;
 
     i=joy_port[JOYPORT_1];
     k=joy_port[JOYPORT_2];
@@ -144,11 +145,14 @@ UI_MENU_CALLBACK(custom_joyport_toggle_callback)
 			break;
 		default: // toggle
 			if (i == JOYPORT_ID_JOYSTICK && k == JOYPORT_ID_JOYSTICK) {
-				i = JOYPORT_ID_MOUSE_1351;
+				k = last_dev;
 			} else if (i != JOYPORT_ID_JOYSTICK && k != JOYPORT_ID_JOYSTICK) {
-				k = JOYPORT_ID_JOYSTICK;
-			} else {
-				s=k;k=i;i=s;
+				i = JOYPORT_ID_JOYSTICK;
+			} else if (i == JOYPORT_ID_JOYSTICK) {
+				i = k; k = JOYPORT_ID_JOYSTICK;
+			} else { // k == JOYPORT_ID_JOYSTICK
+				last_dev = i;
+				i = k = JOYPORT_ID_JOYSTICK;
 			}
 		}
 	    resources_set_int("JoyPort2Device", JOYPORT_ID_NONE);
