@@ -33,6 +33,7 @@
 
 #include "archdep.h"
 #include "vice3ds.h"
+#include "http.h"
 #include "uibottom.h"
 #include "util.h"
 #include "kbd.h"
@@ -963,4 +964,22 @@ void disc_stop_client()
 		disc_client_socket = -1;
 //log_citra("disc client stopped\n");
 	}
+}
+
+int checkWifi() {
+	static int isAcInit=0;
+	u32 wifi_status;
+	if (!isAcInit) {
+		acInit();
+		atexit(acExit);
+		isAcInit=1;
+	}
+
+#ifndef CITRA
+	ACU_GetWifiStatus(&wifi_status);
+	if (wifi_status == 0) {
+		return 0;
+	}
+#endif
+	return 1;
 }

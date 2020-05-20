@@ -59,17 +59,11 @@ UI_MENU_CALLBACK(update_callback)
 {
     if (!activated) return NULL;
 	bool ishomebrew=0;
-	u32 wifi_status;
-	acInit();
-	ACU_GetWifiStatus(&wifi_status);
-	acExit();
-
-#ifndef CITRA
-	if (wifi_status == 0) {
+	if (!checkWifi()) {
 		ui_error("WiFi not enabled");
 		return NULL;
 	}
-#endif
+	
 	// check if we need an update
 	char update_info[16 * 1024] = {0};
 	u32 dSize = sizeof(update_info);

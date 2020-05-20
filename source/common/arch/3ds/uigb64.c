@@ -86,7 +86,6 @@ static u8 *downloaded;
 static char *gamedir=NULL;
 static int list_filter;
 static picoDB db = {0};
-static u32 wifi_status = 0;
 static int *searchresult=NULL;
 static int gb64_set_modes = 7;
 static SDL_Surface *priv_uigb64_top=NULL;
@@ -693,10 +692,7 @@ static char *uigb64_start()
 	static int top_shows = -1, searchpos=0;
 	static int offset = 0, cur = 0, total=0;
 
-	acInit();
-	ACU_GetWifiStatus(&wifi_status);
-	acExit();
-	if (wifi_status == 0 &&
+	if (!checkWifi() &&
 		message_box("Gamebase64", "WiFi not enabled. You will only be able to browse local or cached content.", MESSAGE_YESNO) != 0)
 		return NULL;
 

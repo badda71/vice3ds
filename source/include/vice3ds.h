@@ -97,3 +97,4 @@ extern void disc_stop_server();
 extern void disc_run_server();
 extern int disc_run_client(int send_broadcast, disc_server *d_server);
 extern void disc_stop_client();
+extern int checkWifi();

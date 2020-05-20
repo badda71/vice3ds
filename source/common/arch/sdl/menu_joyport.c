@@ -115,7 +115,7 @@ static UI_MENU_CALLBACK(JoyPort1Device_dynmenu_callback)
 
 UI_MENU_CALLBACK(custom_joyport_toggle_callback)
 {
-    int i, k, s;
+    int i, k;
 	static int last_dev = JOYPORT_ID_MOUSE_1351;
 
     i=joy_port[JOYPORT_1];

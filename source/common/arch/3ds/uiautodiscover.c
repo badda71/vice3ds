@@ -153,6 +153,10 @@ static int autodiscover_start(disc_server *s)
 UI_MENU_CALLBACK(autodiscover_callback)
 {
 	if (activated) {
+		if (!checkWifi()) {
+			ui_error("WiFi not enabled");
+			return NULL;
+		}
 		disc_server s={0};
 		int ret = autodiscover_start(&s);
 		if (ret == 0) {

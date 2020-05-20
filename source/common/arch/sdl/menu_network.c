@@ -119,7 +119,11 @@ static void connect_client_trap(void *data)
 static UI_MENU_CALLBACK(custom_connect_client_callback)
 {
     if (activated) {
-        ui_trigger_trap(connect_client_trap, NULL);
+		if (!checkWifi()) {
+			ui_error("WiFi not enabled");
+			return NULL;
+		}
+		ui_trigger_trap(connect_client_trap, NULL);
 		waitSync(0);
         if (trap_result < 0) {
             if (trap_result == -2) ui_error("Couldn't connect client.");
@@ -139,6 +143,10 @@ static void start_server_trap(void *data)
 static UI_MENU_CALLBACK(custom_start_server_callback)
 {
     if (activated) {
+		if (!checkWifi()) {
+			ui_error("WiFi not enabled");
+			return NULL;
+		}
         ui_trigger_trap(start_server_trap, NULL);
 		waitSync(0);
         if (trap_result < 0) {
