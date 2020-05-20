@@ -40,14 +40,16 @@
 #include "vicii.h"
 #include "uibottom.h"
 #include "videoarch.h"
-#include "interrupt.h"
+#include "ui.h"
+#include "vice3ds.h"
 
 /* ------------------------------------------------------------------------- */
 /* common */
 
-static void c64model_set_trap(uint16_t addr, void *data)
+static void c64model_set_trap(void *data)
 {
 	c64model_set(vice_ptr_to_int(data));
+	triggerSync(0);
 }
 
 static UI_MENU_CALLBACK(custom_C64Model_callback)
@@ -57,11 +59,10 @@ static UI_MENU_CALLBACK(custom_C64Model_callback)
     selected = vice_ptr_to_int(param);
 
     if (activated) {
-        interrupt_maincpu_trigger_trap(c64model_set_trap, param);
-		SDL_Delay(100);
+        ui_trigger_trap(c64model_set_trap, param);
+		waitSync(0);
     } else {
         model = c64model_get();
-
         if (selected == model) {
             return sdl_menu_text_tick;
         }
@@ -402,9 +403,10 @@ static void vicmodel_set(int model)
     resources_set_int("MachineVideoStandard", vicmodels[model].video);
 }
 
-static void x64_ui_vicii_model_trap(uint16_t addr, void *data)
+static void x64_ui_vicii_model_trap(void *data)
 {
 	vicmodel_set(vice_ptr_to_int(data));
+	triggerSync(0);
 }
 
 static const char *x64_ui_vicii_model(int activated, ui_callback_data_t param)
@@ -412,8 +414,8 @@ static const char *x64_ui_vicii_model(int activated, ui_callback_data_t param)
     int val = vice_ptr_to_int(param);
 
     if (activated) {
-        interrupt_maincpu_trigger_trap(x64_ui_vicii_model_trap, param);
-		SDL_Delay(100);
+        ui_trigger_trap(x64_ui_vicii_model_trap, param);
+		waitSync(0);
     } else {
         int v = vicmodel_get();
 

@@ -63,6 +63,7 @@ struct palette_s;
 extern void ui_display_speed(float percent, float framerate, int warp_flag);
 extern void ui_display_paused(int flag);
 extern void ui_handle_misc_sdl_event(SDL_Event e);
+extern void ui_trigger_trap(void (*trap_func)(void *data), void *data);
 extern ui_menu_action_t ui_dispatch_events(void);
 extern void ui_exit(void);
 extern void ui_message(const char *format, ...);

@@ -201,7 +201,7 @@ UI_MENU_CALLBACK(quit_callback)
 /* ------------------------------------------------------------------ */
 /* Menu helpers */
 
-static void toggle_helper_trap(uint16_t addr, void *data)
+static void toggle_helper_trap(void *data)
 {
     int i;
 	resources_toggle((char *)data, &i);
@@ -213,7 +213,7 @@ const char *sdl_ui_menu_toggle_helper_trap(int activated, const char *resource_n
     int value, r;
 
     if (activated) {
-        interrupt_maincpu_trigger_trap(toggle_helper_trap, (char *)resource_name);
+        ui_trigger_trap(toggle_helper_trap, (char *)resource_name);
 		waitSync(0);
 		r = resources_get_int(resource_name, &value);
 		// update keypresses on bottom screen in case we have anything mapped
@@ -256,7 +256,7 @@ typedef struct {
 	const char *resource_name;
 } radio_helper;
 
-static void radio_helper_trap(uint16_t addr, void *data)
+static void radio_helper_trap(void *data)
 {
 	radio_helper *r=(radio_helper*)data;
 	if (resources_query_type(r->resource_name) == RES_INTEGER) {
@@ -264,17 +264,16 @@ static void radio_helper_trap(uint16_t addr, void *data)
 	} else {
 		resources_set_string(r->resource_name, (char *)r->param);
 	}
-	free(r);
 	triggerSync(0);
 }
 
 const char *sdl_ui_menu_radio_helper_trap(int activated, ui_callback_data_t param, const char *resource_name)
 {
     if (activated) {
-		radio_helper *r=malloc(sizeof(radio_helper));
-		r->param=param;
-		r->resource_name=resource_name;
-        interrupt_maincpu_trigger_trap(radio_helper_trap, r);
+		radio_helper r;
+		r.param=param;
+		r.resource_name=resource_name;
+        ui_trigger_trap(radio_helper_trap, &r);
 		waitSync(0);
 		// update keypresses on bottom screen in case we have anything mapped
 		uibottom_must_redraw |= UIB_RECALC_KEYPRESS;

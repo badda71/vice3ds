@@ -110,7 +110,7 @@ static const ui_menu_entry_t network_control_menu[] = {
 
 static volatile int trap_result;
 
-static void connect_client_trap(uint16_t addr, void *data)
+static void connect_client_trap(void *data)
 {
     trap_result = network_connect_client();
 	triggerSync(0);
@@ -119,7 +119,7 @@ static void connect_client_trap(uint16_t addr, void *data)
 static UI_MENU_CALLBACK(custom_connect_client_callback)
 {
     if (activated) {
-        interrupt_maincpu_trigger_trap(connect_client_trap, NULL);
+        ui_trigger_trap(connect_client_trap, NULL);
 		waitSync(0);
         if (trap_result < 0) {
             if (trap_result == -2) ui_error("Couldn't connect client.");
@@ -130,7 +130,7 @@ static UI_MENU_CALLBACK(custom_connect_client_callback)
     return NULL;
 }
 
-static void start_server_trap(uint16_t addr, void *data)
+static void start_server_trap(void *data)
 {
     trap_result = network_start_server();
 	triggerSync(0);
@@ -139,7 +139,7 @@ static void start_server_trap(uint16_t addr, void *data)
 static UI_MENU_CALLBACK(custom_start_server_callback)
 {
     if (activated) {
-        interrupt_maincpu_trigger_trap(start_server_trap, NULL);
+        ui_trigger_trap(start_server_trap, NULL);
 		waitSync(0);
         if (trap_result < 0) {
             ui_error("Couldn't start netplay server.");

@@ -116,7 +116,7 @@ static UI_MENU_CALLBACK(load_settings_from_callback)
     return NULL;
 }
 
-static void default_settings_trap(uint16_t addr, void *data)
+static void default_settings_trap(void *data)
 {
     resources_set_defaults();
 	triggerSync(0);
@@ -125,7 +125,7 @@ static void default_settings_trap(uint16_t addr, void *data)
 static UI_MENU_CALLBACK(default_settings_callback)
 {
     if (activated) {
-        interrupt_maincpu_trigger_trap(default_settings_trap, NULL);
+        ui_trigger_trap(default_settings_trap, NULL);
 		waitSync(0);
         ui_message("Default settings restored.");
     }

@@ -472,6 +472,17 @@ void ui_dispatch_next_event(void)
 }
 #endif
 
+static int ui_trap_pending=0;
+static void (*ui_trap_func)(void *data)=NULL;
+static void *ui_trap_data=NULL;
+
+void ui_trigger_trap(void (*trap_func)(void *data), void *data)
+{
+    ui_trap_func = trap_func;
+    ui_trap_data = data;
+    ui_trap_pending = 1;
+}
+
 /* Main event handler */
 ui_menu_action_t ui_dispatch_events(void)
 {
@@ -835,8 +846,15 @@ ui_menu_action_t ui_dispatch_events(void)
 		}
 	}
 #endif
-	// update bottom screen if we are in the main thread
-	if (tid==-1) sdl_uibottom_draw();
+	if (tid==-1) {
+		// update bottom screen if we are in the main thread
+		sdl_uibottom_draw();
+		// call trap function if set
+		if (ui_trap_pending) {
+			ui_trap_pending = 0;
+			(*ui_trap_func)(ui_trap_data);
+		}
+	}
 
     return retval;
 }

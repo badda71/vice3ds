@@ -770,7 +770,7 @@ const ui_menu_entry_t c128_video_menu[] = {
 extern volatile bool app_pause; // this pauses the SDL update thread
 static char c_fs[25],c_fsm[25];
 
-static void set_resources_trap(uint16_t addr, void *data)
+static void set_resources_trap(void *data)
 {
 	int *rs=(int*)data;
 
@@ -778,8 +778,7 @@ static void set_resources_trap(uint16_t addr, void *data)
 	for (int i=0;i<rs[0];i++)
 		resources_set_int((char*)rs[i*2+1],rs[i*2+2]);
 	app_pause=false;
-	// update keypresses on bottom screen in case we have anything mapped
-	uibottom_must_redraw |= UIB_RECALC_KEYPRESS;
+	triggerSync(0);
 }
 
 static UI_MENU_CALLBACK(toggle_MaxScreen_callback)
@@ -817,8 +816,10 @@ static UI_MENU_CALLBACK(toggle_MaxScreen_callback)
 			rs[7]=(u32)"SDLCustomWidth";rs[8]=400;
 			rs[9]=(u32)"SDLCustomHeight";rs[10]=240;
 		}	
-		interrupt_maincpu_trigger_trap(set_resources_trap, rs);
-		
+		ui_trigger_trap(set_resources_trap, rs);
+		waitSync(0);
+		free(rs);
+
 		// update keypresses on bottom screen in case we have anything mapped
 		uibottom_must_redraw |= UIB_RECALC_KEYPRESS;
 	}
