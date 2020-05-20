@@ -127,7 +127,8 @@ static const resource_int_t resources_int[] = {
       &relative_speed, set_relative_speed, NULL },
     { "Slider3DFunc", 2, RES_EVENT_STRICT, NULL,
       &slider3d_func, set_slider3d_func, NULL },
-	{ "RefreshRate", 0, RES_EVENT_STRICT, (resource_value_t)1,
+	{ "RefreshRate", 0, RES_EVENT_NO, NULL,
+//	{ "RefreshRate", 0, RES_EVENT_STRICT, (resource_value_t)1,
       &refresh_rate, set_refresh_rate, NULL },
     { "WarpMode", 0, RES_EVENT_STRICT, (resource_value_t)0,
       /* FIXME: maybe RES_EVENT_NO */
@@ -145,8 +146,6 @@ static const resource_int_t resources_int_vsid[] = {
       &warp_mode_enabled, set_warp_mode, NULL },
     RESOURCE_INT_LIST_END
 };
-
-
 
 int vsync_resources_init(void)
 {
