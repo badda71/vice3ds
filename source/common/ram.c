@@ -78,9 +78,7 @@ static const resource_int_t resources_int[] = {
 
 int ram_resources_init(void)
 {
-    if (machine_class != VICE_MACHINE_VSID) {
-        return resources_register_int(resources_int);
-    }
+    return resources_register_int(resources_int);
     return 0;
 }
 /*

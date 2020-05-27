@@ -116,25 +116,19 @@ int c64rom_load_kernal(const char *rom_name, uint8_t *cartkernal)
     }
 
     /* disable traps before loading the ROM */
-    if (machine_class != VICE_MACHINE_VSID) {
-        resources_get_int("VirtualDevices", &trapfl);
-        resources_set_int("VirtualDevices", 0);
-    }
+	resources_get_int("VirtualDevices", &trapfl);
+	resources_set_int("VirtualDevices", 0);
 
     /* Load Kernal ROM.  */
     if (cartkernal == NULL) {
         if (c64rom_cartkernal_active == 1) {
-            if (machine_class != VICE_MACHINE_VSID) {
-                resources_set_int("VirtualDevices", trapfl);
-            }
+            resources_set_int("VirtualDevices", trapfl);
             return -1;
         }
 
         if (sysfile_load(rom_name, c64memrom_kernal64_rom, C64_KERNAL_ROM_SIZE, C64_KERNAL_ROM_SIZE) < 0) {
             log_error(c64rom_log, "Couldn't load kernal ROM `%s'.", rom_name);
-            if (machine_class != VICE_MACHINE_VSID) {
-                resources_set_int("VirtualDevices", trapfl);
-            }
+            resources_set_int("VirtualDevices", trapfl);
             return -1;
         }
     } else {
@@ -157,9 +151,7 @@ int c64rom_load_kernal(const char *rom_name, uint8_t *cartkernal)
     }
     memcpy(c64memrom_kernal64_trap_rom, c64memrom_kernal64_rom, C64_KERNAL_ROM_SIZE);
 
-    if (machine_class != VICE_MACHINE_VSID) {
-        resources_set_int("VirtualDevices", trapfl);
-    }
+    resources_set_int("VirtualDevices", trapfl);
 
     return 0;
 }

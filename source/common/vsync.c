@@ -136,22 +136,8 @@ static const resource_int_t resources_int[] = {
     RESOURCE_INT_LIST_END
 };
 
-static const resource_int_t resources_int_vsid[] = {
-    { "Speed", 100, RES_EVENT_SAME, NULL,
-      &relative_speed, set_relative_speed, NULL },
-    { "Slider3DFunc", 2, RES_EVENT_STRICT, NULL,
-      &slider3d_func, set_slider3d_func, NULL },
-    { "WarpMode", 0, RES_EVENT_STRICT, (resource_value_t)0,
-      /* FIXME: maybe RES_EVENT_NO */
-      &warp_mode_enabled, set_warp_mode, NULL },
-    RESOURCE_INT_LIST_END
-};
-
 int vsync_resources_init(void)
 {
-    if (machine_class == VICE_MACHINE_VSID) {
-        return resources_register_int(resources_int_vsid);
-    }
     return resources_register_int(resources_int);
 }
 
@@ -264,9 +250,7 @@ static void display_speed(int num_frames)
     frame_rate = num_frames / diff_sec;
     speed_index = 100.0 * diff_clk / (cycles_per_sec * diff_sec);
 
-    if (!console_mode && machine_class != VICE_MACHINE_VSID) {
-        vsyncarch_display_speed(speed_index, frame_rate, warp_mode_enabled);
-    }
+    vsyncarch_display_speed(speed_index, frame_rate, warp_mode_enabled);
 
     speed_eval_prev_clk = maincpu_clk;
 }

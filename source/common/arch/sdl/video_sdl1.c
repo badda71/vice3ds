@@ -393,12 +393,6 @@ int video_arch_resources_init(void)
 {
     DBG(("%s", __func__));
 
-    if (machine_class == VICE_MACHINE_VSID) {
-        if (joy_arch_resources_init() < 0) {
-            return -1;
-        }
-    }
-
 	if (uibottom_resources_init() < 0 ) {
 		return -1;
 	}
@@ -421,10 +415,6 @@ int video_arch_resources_init(void)
 void video_arch_resources_shutdown(void)
 {
     DBG(("%s", __func__));
-
-    if (machine_class == VICE_MACHINE_VSID) {
-        joy_arch_resources_shutdown();
-    }
 
 	vice3ds_resources_shutdown();
 
@@ -859,8 +849,6 @@ video_canvas_t *video_canvas_create(video_canvas_t *canvas, unsigned int *width,
 
 void video_canvas_refresh(struct video_canvas_s *canvas, unsigned int xs, unsigned int ys, unsigned int xi, unsigned int yi, unsigned int w, unsigned int h)
 {
-    uint8_t *backup;
-
 	if ((canvas == NULL) || (canvas->screen == NULL) || (canvas != sdl_active_canvas)) {
         return;
     }
@@ -896,24 +884,7 @@ void video_canvas_refresh(struct video_canvas_s *canvas, unsigned int xs, unsign
         canvas->videoconfig->readable = !(canvas->screen->flags & SDL_HWSURFACE);
     }
 
-    if (machine_class == VICE_MACHINE_VSID) {
-        canvas->draw_buffer_vsid->draw_buffer_width = canvas->draw_buffer->draw_buffer_width;
-        canvas->draw_buffer_vsid->draw_buffer_height = canvas->draw_buffer->draw_buffer_height;
-        canvas->draw_buffer_vsid->draw_buffer_pitch = canvas->draw_buffer->draw_buffer_pitch;
-        canvas->draw_buffer_vsid->canvas_physical_width = canvas->draw_buffer->canvas_physical_width;
-        canvas->draw_buffer_vsid->canvas_physical_height = canvas->draw_buffer->canvas_physical_height;
-        canvas->draw_buffer_vsid->canvas_width = canvas->draw_buffer->canvas_width;
-        canvas->draw_buffer_vsid->canvas_height = canvas->draw_buffer->canvas_height;
-        canvas->draw_buffer_vsid->visible_width = canvas->draw_buffer->visible_width;
-        canvas->draw_buffer_vsid->visible_height = canvas->draw_buffer->visible_height;
-
-        backup = canvas->draw_buffer->draw_buffer;
-        canvas->draw_buffer->draw_buffer = canvas->draw_buffer_vsid->draw_buffer;
-        video_canvas_render(canvas, (uint8_t *)canvas->screen->pixels, w, h, xs, ys, xi, yi, canvas->screen->pitch, canvas->screen->format->BitsPerPixel);
-        canvas->draw_buffer->draw_buffer = backup;
-    } else {
-        video_canvas_render(canvas, (uint8_t *)canvas->screen->pixels, w, h, xs, ys, xi, yi, canvas->screen->pitch, canvas->screen->format->BitsPerPixel);
-    }
+    video_canvas_render(canvas, (uint8_t *)canvas->screen->pixels, w, h, xs, ys, xi, yi, canvas->screen->pitch, canvas->screen->format->BitsPerPixel);
 
     if (SDL_MUSTLOCK(canvas->screen)) {
         SDL_UnlockSurface(canvas->screen);

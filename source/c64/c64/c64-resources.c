@@ -187,10 +187,8 @@ static int set_kernal_revision(int val, void *param)
         return 0;
     }
     /* disable device traps before kernal patching */
-    if (machine_class != VICE_MACHINE_VSID) {
-        resources_get_int("VirtualDevices", &trapfl);
-        resources_set_int("VirtualDevices", 0);
-    }
+	resources_get_int("VirtualDevices", &trapfl);
+	resources_set_int("VirtualDevices", 0);
     /* patch kernal to given revision */
     if ((val != -1) && (patch_rom_idx(val) < 0)) {
         val = -1;
@@ -200,9 +198,7 @@ static int set_kernal_revision(int val, void *param)
         machine_trigger_reset(MACHINE_RESET_MODE_HARD);
     }
     /* restore traps */
-    if (machine_class != VICE_MACHINE_VSID) {
-        resources_set_int("VirtualDevices", trapfl);
-    }
+    resources_set_int("VirtualDevices", trapfl);
     kernal_revision = val;
     log_verbose("set_kernal_revision new kernal_revision: %d", kernal_revision);
     return 0;

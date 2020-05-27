@@ -1611,11 +1611,6 @@ int keyboard_resources_init(void)
     int nsym, npos, mapping, idx, type;
     const char *name;
 
-    /* VSID doesn't have a keyboard */
-    if (machine_class == VICE_MACHINE_VSID) {
-        return 0;
-    }
-
     if (resources_register_string(resources_string) < 0) {
         return -1;
     }
@@ -1685,10 +1680,6 @@ int keyboard_resources_init(void)
 
 static void keyboard_resources_shutdown(void)
 {
-    /* VSID doesn't have a keyboard */
-    if (machine_class == VICE_MACHINE_VSID) {
-        return;
-    }
     lib_free(machine_keymap_file_list[KBD_INDEX_SYM]);
     lib_free(machine_keymap_file_list[KBD_INDEX_POS]);
     lib_free(machine_keymap_file_list[KBD_INDEX_USERSYM]);
@@ -1744,10 +1735,8 @@ void keyboard_init(void)
 
     kbd_arch_init();
 
-    if (machine_class != VICE_MACHINE_VSID) {
-        load_keymap_ok = 1;
-        keyboard_set_keymap_index(machine_keymap_index, NULL);
-    }
+    load_keymap_ok = 1;
+    keyboard_set_keymap_index(machine_keymap_index, NULL);
 }
 
 void keyboard_shutdown(void)

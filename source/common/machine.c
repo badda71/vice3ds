@@ -418,14 +418,12 @@ static const resource_int_t resources_int[] = {
 
 int machine_common_resources_init(void)
 {
-    if (machine_class != VICE_MACHINE_VSID) {
-        if (resources_register_string(resources_string) < 0) {
-           return -1;
-        }
-        if (machine_class == VICE_MACHINE_C128) {
-            if (resources_register_string(resources_string_c128) < 0) {
-            return -1;
-            }
+    if (resources_register_string(resources_string) < 0) {
+       return -1;
+    }
+    if (machine_class == VICE_MACHINE_C128) {
+        if (resources_register_string(resources_string_c128) < 0) {
+        return -1;
         }
     }
     return resources_register_int(resources_int);

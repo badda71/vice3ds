@@ -746,10 +746,6 @@ void drive_update_ui_status(void)
 {
     int i;
 
-    if (console_mode || (machine_class == VICE_MACHINE_VSID)) {
-        return;
-    }
-
     /* Update the LEDs and the track indicators.  */
     for (i = 0; i < DRIVE_NUM; i++) {
         drive_t *drive = drive_context[i]->drive;

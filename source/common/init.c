@@ -224,11 +224,9 @@ int init_main(void)
         palette_init();
     }
 
-    if (machine_class != VICE_MACHINE_VSID) {
-        screenshot_init();
+    screenshot_init();
 
-        drive_cpu_early_init_all();
-    }
+    drive_cpu_early_init_all();
 
     machine_bus_init();
     machine_maincpu_init();
@@ -250,9 +248,7 @@ int init_main(void)
 
     keyboard_init();
 
-    if (machine_class != VICE_MACHINE_VSID) {
-        vdrive_init();
-    }
+    vdrive_init();
 
     ui_init_finalize();
 

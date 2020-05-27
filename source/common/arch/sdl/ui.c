@@ -148,22 +148,9 @@ void ui_handle_misc_sdl_event(SDL_Event e)
             break;
 #else
         case SDL_DROPFILE:
-            if (machine_class != VICE_MACHINE_VSID) {
-                if (autostart_autodetect(e.drop.file, NULL, 0,
-                            AUTOSTART_MODE_RUN) < 0) {
-                    ui_error("Cannot autostart specified file.");
-                }
-            } else {
-                /* try to load PSID file */
-
-                if (machine_autodetect_psid(e.drop.file) < 0) {
-                    ui_error("%s is not a valid SID file.", e.drop.file);
-                }
-                if (psid_init_func != NULL && psid_play_func != NULL) {
-                    psid_init_func();
-                    psid_play_func(0);
-                    machine_trigger_reset(MACHINE_RESET_MODE_SOFT);
-                }
+            if (autostart_autodetect(e.drop.file, NULL, 0,
+                        AUTOSTART_MODE_RUN) < 0) {
+                ui_error("Cannot autostart specified file.");
             }
             break;
 #endif
@@ -1064,10 +1051,7 @@ int ui_resources_init(void)
         return -1;
     }
 
-    if (machine_class != VICE_MACHINE_VSID) {
-        return uistatusbar_init_resources();
-    }
-    return 0;
+    return uistatusbar_init_resources();
 }
 
 void ui_resources_shutdown(void)

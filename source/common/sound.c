@@ -448,11 +448,7 @@ static int set_buffer_size(int val, void *param)
     if (val > 0) {
         buffer_size = val;
     } else {
-        if (machine_class == VICE_MACHINE_VSID) {
-            buffer_size = SOUND_SAMPLE_MAX_BUFFER_SIZE;
-        } else {
-            buffer_size = SOUND_SAMPLE_BUFFER_SIZE;
-        }
+        buffer_size = SOUND_SAMPLE_BUFFER_SIZE;
     }
 
     sound_state_changed = TRUE;
