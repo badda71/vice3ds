@@ -868,7 +868,7 @@ static void fill_buffer(int size, int rise)
 
     i = snddata.playdev->write(p, size * snddata.sound_output_channels);
     if (i) {
-        sound_error("write to sound device failed.");
+        sound_error("write to sound device failed (1)");
     }
 }
 
@@ -1443,13 +1443,17 @@ double sound_flush()
     if (nr) {
         /* Flush buffer, all channels are already mixed into it. */
         if (snddata.playdev->write(snddata.buffer, nr * snddata.sound_output_channels)) {
-            sound_error("write to sound device failed.");
+            // this happens a lot on 3ds
+            // do not show an error but rather re-init sound
+            // sound_error("write to sound device failed (2)");
+            sound_close();
+            set_playback_enabled(1, NULL);
             return 0;
         }
 
         if (snddata.recdev) {
             if (snddata.recdev->write(snddata.buffer, nr * snddata.sound_output_channels)) {
-                sound_error("write to sound device failed.");
+                sound_error("write to sound device failed (3)");
                 return 0;
             }
         }
