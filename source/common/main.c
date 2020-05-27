@@ -60,6 +60,8 @@
 #include "sysfile.h"
 #include "types.h"
 #include "uiapi.h"
+#include "uimsgbox.h"
+#include "vsync.h"
 #include "version.h"
 #include "video.h"
 #include "3ds.h"
@@ -81,7 +83,6 @@ const
 #endif
 int console_mode = 0;
 int video_disabled_mode = 0;
-static int init_done = 0;
 
 
 /** \brief  Size of buffer used to write core team members' names to log/stdout
@@ -231,7 +232,12 @@ int main_program(int argc, char **argv)
 
     // initcmdline_check_attach();
 
-    init_done = 1;
+	// check 3D-slider an warn the user if it is not set to zero
+	if (slider3d_func && osGet3DSliderState() >= 0.1) {
+		char *tmp = lib_msprintf("3D-Slider is not set to OFF. Emulation will run %s!",slider3d_func==1?"slower":"faster");
+        message_box("VICE WARNING", tmp, MESSAGE_OK);
+		free (tmp);
+	}
 
     /* Let's go...  */
     log_message(LOG_DEFAULT, "Main CPU: starting at ($FFFC).");
