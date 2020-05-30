@@ -87,6 +87,6 @@ extern int help_on;
 extern int grab_sbuttons;
 extern SDL_Event lastevent;
 extern int menu_invisible;
-SDL_Surface *mediumchars;
+extern SDL_Surface *mediumchars;
 
 #endif

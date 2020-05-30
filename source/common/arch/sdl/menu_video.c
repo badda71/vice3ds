@@ -43,6 +43,7 @@
 #include "vic.h"
 #include "vicii.h"
 #include "videoarch.h"
+#include "vice3ds.h"
 #include <3ds.h>
 
 extern volatile bool app_pause; // this pauses the SDL update thread
