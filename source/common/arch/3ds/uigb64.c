@@ -844,7 +844,7 @@ tagdb:
 				if (dir2) {
 					while((dent2 = readdir(dir2)) != NULL) {
 						if ((nr_downloaded & 0xff) == 0)
-							dname=realloc(dname, nr_downloaded+256);
+							dname=realloc(dname, (nr_downloaded+256)*sizeof(*dname));
 						dname[nr_downloaded++]=util_concat(dent->d_name, "/", dent2->d_name, NULL);
 					}
 				}
