@@ -5,7 +5,7 @@ This is a port of the VICE C64 (x64) emulator v3.3 to Nintendo 3DS.
 VICE - the Versatile Commodore Emulator - http://vice-emu.sourceforge.net/
 
 ## Installation
-Install .cia file with FBI - or - copy .3dsx file to /3ds/vice3DS-C64 directory on your SD card and launch in HBL - or - launch .3ds file from flashcard
+Install .cia file with FBI - or - copy .3dsx file to /3ds/vice3DS-C64 directory on your SD card and launch in HBL - or - launch .3ds file from flashcard.
 Apart from this, a DSP-dump is required for sound to work correctly in the CIA version.
 https://gbatemp.net/threads/dsp1-a-new-dsp-dumper-cia-for-better-stability.469461/
 
