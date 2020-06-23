@@ -13,7 +13,6 @@ https://gbatemp.net/threads/dsp1-a-new-dsp-dumper-cia-for-better-stability.46946
 https://github.com/badda71/vice3ds/releases
 
 ## Usage
-Usage
 Preconfigured button functions:
 
     Select: open Vice menu
