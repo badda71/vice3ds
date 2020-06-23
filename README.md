@@ -1,7 +1,7 @@
 ![Screenshots](https://gbatemp.net/attachments/2-png.195186/ "vice3DS Screenshots")
 
 # vice3ds
-This is a port of the VICE C64 (x64) emulator to 3DS.
+This is a port of the VICE C64 (x64) emulator v3.3 to Nintendo 3DS.
 VICE - the Versatile Commodore Emulator - http://vice-emu.sourceforge.net/
 
 ## Installation
