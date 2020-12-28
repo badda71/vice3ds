@@ -48,7 +48,7 @@ struct SDL_PrivateVideoData {
     void *buffer;
     void *buffer2;
 	Uint8 *palettedbuffer;
-	GSPGPU_FramebufferFormats mode;
+	GSPGPU_FramebufferFormat mode;
 	unsigned int flags; // backup of create device flags
 	unsigned int screens; // SDL_TOPSCR, SDL_BOTTOMSCR, SDL_DUALSCR
 	unsigned int console; // SDL_CONSOLETOP, SDL_CONSOLEBOTTOM

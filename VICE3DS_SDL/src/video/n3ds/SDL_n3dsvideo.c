@@ -103,7 +103,7 @@ static int textureTranferFlags[4] = { TEXTURE_TRANSFER_FLAGS0, TEXTURE_TRANSFER_
 static int displayTranferFlags[4] = { DISPLAY_TRANSFER_FLAGS0, DISPLAY_TRANSFER_FLAGS1, DISPLAY_TRANSFER_FLAGS2, DISPLAY_TRANSFER_FLAGS3};
 static unsigned int clearcolors[4] = { CLEAR_COLOR0, CLEAR_COLOR1, CLEAR_COLOR2, CLEAR_COLOR3};
 
-static void sceneInit(GSPGPU_FramebufferFormats mode, bool scale);
+static void sceneInit(GSPGPU_FramebufferFormat mode, bool scale);
 static void sceneExit(void);
 void drawTexture( int x, int y, int width, int height, float left, float right, float top, float bottom);
 
@@ -720,7 +720,7 @@ void N3DS_VideoQuit(_THIS)
 
 
 //---------------------------------------------------------------------------------
-static void sceneInit(GSPGPU_FramebufferFormats mode, bool scale) {
+static void sceneInit(GSPGPU_FramebufferFormat mode, bool scale) {
 //---------------------------------------------------------------------------------
 	// Load the vertex shader, create a shader program and bind it
 	if (setVideoModecount <= 1) {
