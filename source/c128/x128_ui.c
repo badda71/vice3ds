@@ -49,7 +49,7 @@
 //#include "menu_media.h"
 #include "menu_midi.h"
 //#include "menu_monitor.h"
-//#include "menu_network.h"
+#include "menu_network.h"
 //#include "menu_printer.h"
 #include "menu_reset.h"
 #include "menu_misc.h"
@@ -93,7 +93,11 @@ static const ui_menu_entry_t x128_main_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)c128_hardware_menu },
-    { "Video settings",
+    { "Joyport settings",
+      MENU_ENTRY_SUBMENU,
+      submenu_callback,
+      (ui_callback_data_t)joyport_menu },
+	{ "Video settings",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)c128_video_menu },
@@ -117,18 +121,17 @@ static const ui_menu_entry_t x128_main_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)reset_menu },
-/*
 #ifdef HAVE_NETWORK
-    { "Network",
+    { "Netplay",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)network_menu },
-#endif */
+#endif
     { "Pause",
       MENU_ENTRY_OTHER_TOGGLE,
       pause_callback,
       NULL },
-    { "Advance Frame",
+    { "Advance one frame and pause",
       MENU_ENTRY_OTHER,
       advance_frame_callback,
       NULL },
@@ -144,16 +147,16 @@ static const ui_menu_entry_t x128_main_menu[] = {
       MENU_ENTRY_OTHER_TOGGLE,
       statusbar_callback,
       NULL },
+    { "Keys and commands",
+      MENU_ENTRY_SUBMENU,
+      submenu_callback,
+      (ui_callback_data_t)keys_commands_menu },
 #ifdef DEBUG
     { "Debug",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)debug_menu },
 #endif
-    { "Help",
-      MENU_ENTRY_SUBMENU,
-      submenu_callback,
-      (ui_callback_data_t)help_menu },
     { "Settings management",
       MENU_ENTRY_SUBMENU,
       submenu_callback,
@@ -168,6 +171,10 @@ static const ui_menu_entry_t x128_main_menu[] = {
       MENU_ENTRY_SUBMENU,
       submenu_callback,
       (ui_callback_data_t)misc_menu },
+    { "Help",
+      MENU_ENTRY_SUBMENU,
+      submenu_callback,
+      (ui_callback_data_t)help_menu },
 	{ "Quit emulator",
       MENU_ENTRY_OTHER,
       quit_callback,

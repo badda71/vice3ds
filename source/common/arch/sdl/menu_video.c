@@ -653,6 +653,65 @@ UI_MENU_DEFINE_FILE_STRING(CrtcPaletteFile)
 UI_MENU_DEFINE_FILE_STRING(TEDPaletteFile)
 UI_MENU_DEFINE_FILE_STRING(VICPaletteFile)
 
+extern volatile bool app_pause; // this pauses the SDL update thread
+static char c_fs[25],c_fsm[25];
+
+static void set_resources_trap(void *data)
+{
+	int *rs=(int*)data;
+
+	app_pause=true;
+	for (int i=0;i<rs[0];i++)
+		resources_set_int((char*)rs[i*2+1],rs[i*2+2]);
+	app_pause=false;
+	triggerSync(0);
+}
+
+static UI_MENU_CALLBACK(toggle_MaxScreen_callback)
+{
+	static int s_fs=0, s_fss=SDL_FULLSCREEN, s_fsm=FULLSCREEN_MODE_AUTO;
+	int r=0, fs=0, fss=0, w=0, h=0, fsm=0;
+	
+	snprintf(c_fs,25,"%sFullscreen",sdl_active_canvas->videoconfig->chip_name);
+	resources_get_int(c_fs, &fs); // 1?
+	snprintf(c_fsm,25,"%sSDLFullscreenMode",sdl_active_canvas->videoconfig->chip_name);
+	resources_get_int(c_fsm, &fsm); // FULLSCREEN_MODE_CUSTOM ?
+	resources_get_int("SDLCustomWidth", &w); // 320?
+	resources_get_int("SDLCustomHeight", &h); // 200?
+	resources_get_int("SDLFullscreenStretch", &fss); // SDL_FULLSCREEN?
+
+	if (fs==1 && w==320 && h==200 && fss==SDL_FULLSCREEN && fsm==FULLSCREEN_MODE_CUSTOM) r=1;
+
+	if (activated) {
+		u32 *rs = calloc(11,sizeof(u32));
+		if (r==0) {
+			r=1;
+			s_fs=fs; s_fss=fss; s_fsm=fsm;
+			rs[0]=5;
+			rs[1]=(u32)"SDLCustomWidth"; rs[2]=320;
+			rs[3]=(u32)"SDLCustomHeight"; rs[4]=200;
+			rs[5]=(u32)"SDLFullscreenStretch"; rs[6]=SDL_FULLSCREEN;
+			rs[7]=(u32)c_fsm; rs[8]=FULLSCREEN_MODE_CUSTOM;
+			rs[9]=(u32)c_fs;rs[10]=1;
+		} else {
+			r=0;
+			rs[0]=5;
+			rs[1]=(u32)c_fs; rs[2]=s_fs;
+			rs[3]=(u32)c_fsm; rs[4]=s_fsm;
+			rs[5]=(u32)"SDLFullscreenStretch"; rs[6]=s_fss;
+			rs[7]=(u32)"SDLCustomWidth";rs[8]=400;
+			rs[9]=(u32)"SDLCustomHeight";rs[10]=240;
+		}	
+		ui_trigger_trap(set_resources_trap, rs);
+		waitSync(0);
+		free(rs);
+
+		// update keypresses on bottom screen in case we have anything mapped
+		uibottom_must_redraw |= UIB_RECALC_KEYPRESS;
+	}
+	return r ? sdl_menu_text_tick : NULL;
+}
+
 /* C128 video menu */
 static UI_MENU_CALLBACK(toggle_VideoOutput_c128_callback)
 {
@@ -668,7 +727,11 @@ static UI_MENU_CALLBACK(toggle_VideoOutput_c128_callback)
 }
 
 const ui_menu_entry_t c128_video_menu[] = {
-    SDL_MENU_ITEM_TITLE("Video output"),
+	{ "Hide Border / Fullscreen",
+		MENU_ENTRY_OTHER_TOGGLE,
+		toggle_MaxScreen_callback,
+		NULL},
+	SDL_MENU_ITEM_TITLE("Video output"),
     { "Toggle VDC (80 cols)",
       MENU_ENTRY_RESOURCE_TOGGLE,
       toggle_VideoOutput_c128_callback,
@@ -767,66 +830,6 @@ const ui_menu_entry_t c128_video_menu[] = {
 };
 
 /* C64 video menu */
-
-extern volatile bool app_pause; // this pauses the SDL update thread
-static char c_fs[25],c_fsm[25];
-
-static void set_resources_trap(void *data)
-{
-	int *rs=(int*)data;
-
-	app_pause=true;
-	for (int i=0;i<rs[0];i++)
-		resources_set_int((char*)rs[i*2+1],rs[i*2+2]);
-	app_pause=false;
-	triggerSync(0);
-}
-
-static UI_MENU_CALLBACK(toggle_MaxScreen_callback)
-{
-	static int s_fs=0, s_fss=SDL_FULLSCREEN, s_fsm=FULLSCREEN_MODE_AUTO;
-	int r=0, fs=0, fss=0, w=0, h=0, fsm=0;
-	
-	snprintf(c_fs,25,"%sFullscreen",sdl_active_canvas->videoconfig->chip_name);
-	resources_get_int(c_fs, &fs); // 1?
-	snprintf(c_fsm,25,"%sSDLFullscreenMode",sdl_active_canvas->videoconfig->chip_name);
-	resources_get_int(c_fsm, &fsm); // FULLSCREEN_MODE_CUSTOM ?
-	resources_get_int("SDLCustomWidth", &w); // 320?
-	resources_get_int("SDLCustomHeight", &h); // 200?
-	resources_get_int("SDLFullscreenStretch", &fss); // SDL_FULLSCREEN?
-
-	if (fs==1 && w==320 && h==200 && fss==SDL_FULLSCREEN && fsm==FULLSCREEN_MODE_CUSTOM) r=1;
-
-	if (activated) {
-		u32 *rs = calloc(11,sizeof(u32));
-		if (r==0) {
-			r=1;
-			s_fs=fs; s_fss=fss; s_fsm=fsm;
-			rs[0]=5;
-			rs[1]=(u32)"SDLCustomWidth"; rs[2]=320;
-			rs[3]=(u32)"SDLCustomHeight"; rs[4]=200;
-			rs[5]=(u32)"SDLFullscreenStretch"; rs[6]=SDL_FULLSCREEN;
-			rs[7]=(u32)c_fsm; rs[8]=FULLSCREEN_MODE_CUSTOM;
-			rs[9]=(u32)c_fs;rs[10]=1;
-		} else {
-			r=0;
-			rs[0]=5;
-			rs[1]=(u32)c_fs; rs[2]=s_fs;
-			rs[3]=(u32)c_fsm; rs[4]=s_fsm;
-			rs[5]=(u32)"SDLFullscreenStretch"; rs[6]=s_fss;
-			rs[7]=(u32)"SDLCustomWidth";rs[8]=400;
-			rs[9]=(u32)"SDLCustomHeight";rs[10]=240;
-		}	
-		ui_trigger_trap(set_resources_trap, rs);
-		waitSync(0);
-		free(rs);
-
-		// update keypresses on bottom screen in case we have anything mapped
-		uibottom_must_redraw |= UIB_RECALC_KEYPRESS;
-	}
-	return r ? sdl_menu_text_tick : NULL;
-}
-
 const ui_menu_entry_t c64_video_menu[] = {
 	{ "Hide Border / Fullscreen",
 		MENU_ENTRY_OTHER_TOGGLE,
