@@ -30,7 +30,6 @@
 #include <unistd.h>
 #include <3ds.h>
 #include <curl/curl.h>
-#include <SDL/SDL_image.h>
 #include <zip.h>
 #include <png.h>
 
