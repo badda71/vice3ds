@@ -1,8 +1,7 @@
 ![Screenshots](https://gbatemp.net/attachments/2-png.195186/ "vice3DS Screenshots")
 
 # vice3ds
-This is a port of the VICE C64 (x64) emulator v3.3 to Nintendo 3DS.
-VICE - the Versatile Commodore Emulator - http://vice-emu.sourceforge.net/
+This is a port of the VICE C64 (x64) emulator v3.3 to Nintendo 3DS with **a lot** of 3DS-specific goodies and added functionality. VICE - the Versatile Commodore Emulator - http://vice-emu.sourceforge.net/
 
 ## Installation
 Install .cia file with FBI - or - copy .3dsx file to /3ds/vice3DS-C64 directory on your SD card and launch in HBL - or - launch .3ds file from flashcard.
@@ -53,25 +52,39 @@ This (and a lot of other things) can be changed in Vice menu. To change the mapp
 For further usage instructions, check here:
 https://gbatemp.net/threads/release-vice3ds-c64-emulator.534830/
 
-From v1.6 on, Vice3DS will run with acceptable framerates (~20 fps with fastSID emulation) on O3DS. However, a N3DS is recommended: Only here, you will get the full 50fps and incredible reSID sound.
+Vice3DS will run with acceptable framerates (~20 fps with fastSID emulation) on O3DS. However, a N3DS is recommended: Only here, you will get the full 50fps and incredible reSID sound.
 
 ## Compiling
 
-You need devkitARM (provided by devkitPro) and the following packages: 3ds-sdl, 3ds-sdl_image, pkg-config, devkitpro-pkgbuild-helpers and graphicsmagick.
+You need devkitARM (provided by devkitPro) and the following packages: 3ds-zlib, 3ds-curl, 3ds-libpng, 3ds-bzip2 and - optionally - graphicsmagick. Without graphicsmagick, no version numbers will be included in the icon and bottom screen images.
 
 Install these packages with pacman / dkp-pacman:
 
-Windows:
+**Windows:**
     
-    pacman -Sy 3ds-sdl 3ds-sdl_image pkg-config devkitpro-pkgbuild-helpers graphicsmagick
+    pacman -S 3ds-zlib 3ds-curl 3ds-libpng 3ds-bzip2
+optional:
 
-Linux:
+    pacman -S graphicsmagick
+**Linux:**
     
-    [sudo] pacman -Sy 3ds-sdl 3ds-sdl_image devkitpro-pkgbuild-helpers
-    [sudo] apt-get install pkg-config graphicsmagick
+    [sudo] pacman -S 3ds-zlib 3ds-curl 3ds-libpng 3ds-bzip2
+optional:
+
+    [sudo] apt-get install graphicsmagick
+
+Actually, a modified version of 3ds-curl is required for game downloads to work with the gamebase64 launcher. The 3ds-curl version provided by devkitPro is buggy and [@fincs](https://github.com/fincs) does not want to fix it. Please see https://github.com/devkitPro/pacman-packages/issues/130 for details. Providing instructions for compiling this modified 3ds-curl version, however, would go beyond the scope of this README.
 
 Apart from this, bannertool (https://github.com/Steveice10/bannertool/releases) and makerom (https://github.com/profi200/Project_CTR/releases) should be available in your path.
 
-Afterwards, the emulator can be compiled via
+Clone the repository (including symlinks) and change into the directory:
+
+    git clone -c core.symlinks=true https://github.com/badda71/vice3ds
+    cd vice3ds
+If you received any error messages regarding symlinks during cloning, execute copylinks.sh to correct the symlinks
+
+    chmod +x copylinks.sh
+    ./copylinks.sh
+Finally, start the compile with the command
 
     make
