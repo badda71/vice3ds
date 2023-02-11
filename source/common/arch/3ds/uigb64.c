@@ -63,9 +63,13 @@
 // defines
 #define GB64_FIRST_Y 3
 #define GB64_SS_URL "http://www.gb64.com/Screenshots/"
-#define GB64_GAME_URL "ftp://8bitfiles.net/gamebase_64/Games/"
+#define GB64_GAME_URL "http://badda.de/vice3ds/gb64/games/"
 #define GB64_DBNAME "gb64_2.db"
 #define GB64_DBGZ_BASEURL "http://badda.de/vice3ds/gb64/"
+
+// static vars
+static char *gb64_game_url = GB64_GAME_URL;
+static char *gb64_ss_url = GB64_SS_URL;
 
 typedef struct {
 	char *blob;
@@ -104,7 +108,7 @@ static int pdb_initDB(picoDB *d, char *filename) {
 	long fsize = ftell(f);
 	fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
 
-	char *string = malloc(fsize + 1);
+	char *string = malloc(fsize + 2);
 	if (string==NULL) {
 		fclose(f);
 		log_error(LOG_DEFAULT,"Could not allocate memory for database");
@@ -115,12 +119,13 @@ static int pdb_initDB(picoDB *d, char *filename) {
 		if (string) free(string);*/
 		return -1;
 	}
-	fread(string, 1, fsize, f);
+	string[0]='\n';
+	fread(string+1, 1, fsize, f);
 	fclose(f);
+	fsize++;
 
 	// check the entries
 	int count=0;
-	if (string[0]!='/') ++count;
 	for (int i=0; i<fsize; i++) if (string[i]=='\n' && string[i+1]!='/') ++count;
 	char **entries=malloc((count+1)*sizeof(char*));
 	if (entries==NULL) {
@@ -129,11 +134,16 @@ static int pdb_initDB(picoDB *d, char *filename) {
 		return -1;
 	}
 	count=0;
-	if (string[0]!='/') entries[count++]=string;
 	for (int i=0; i<fsize; i++) {
 		switch (string[i]) {
 			case '\n':
-				if (string[i+1]!='/') entries[count++]=string+i+1; // skip comments
+				if (string[i+1]=='/')  { // setting a variable: GAME_URL or SSHT_URL
+					if (strncmp(string+i+2, "GAME_URL", 8) == 0)
+						gb64_game_url = string+i+11;
+					else if (strncmp(string+i+2, "SSHT_URL", 8) == 0)
+						gb64_ss_url = string+i+11;
+				} else // skip comments
+					entries[count++]=string+i+1;
 				// fallthrough
 			case '\t':
 				string[i]=0;
@@ -149,6 +159,8 @@ static int pdb_initDB(picoDB *d, char *filename) {
 }
 
 static void pdb_freeDB(picoDB *d) {
+	gb64_game_url = GB64_GAME_URL;
+	gb64_ss_url = GB64_SS_URL;
 	if (d) {
 		if (d->blob) {
 			free(d->blob);
@@ -430,7 +442,7 @@ static void gb64_download(int idx) {
 	sdl_ui_init_progress_bar(buf2);
 	sdl_ui_refresh();
 
-	char *url = util_concat(GB64_GAME_URL, pdb_getEntry(&db, idx, 2), NULL);
+	char *url = util_concat(gb64_game_url, pdb_getEntry(&db, idx, 2), NULL);
 	char *fname = util_concat(archdep_xdg_data_home(), "/tmp_game.zip",NULL);
 	
 	if (http_download_file(url, fname, sdl_ui_check_cancel, sdl_ui_update_progress_bar)) {
@@ -547,12 +559,13 @@ static void uigb64_update_topscreen(SDL_Surface *s, int entry, int *screenshotid
 		p=pdb_getEntry(&db, entry, 4);
 		char *pimg_fpath=util_concat(archdep_xdg_cache_home(), "/", p, NULL);
 		char *base_fname=lib_stralloc(p);
-		*(strrchr(base_fname,'.'))=0;
+		p1=strrchr(base_fname,'.');
+		if (p1) *p1=0;
 		char *base_fpath=util_concat(archdep_xdg_cache_home(), "/", base_fname, NULL);
 
 		// check primary image
 		if (access(pimg_fpath,R_OK) != 0) {
-			snprintf(url, 256, "%s%s", GB64_SS_URL, p);
+			snprintf(url, 256, "%s%s", gb64_ss_url, p);
 			async_http_get(url, pimg_fpath, uigb64_callback_imgLoad, 0);
 		} else numimg=1;
 
@@ -565,7 +578,7 @@ static void uigb64_update_topscreen(SDL_Surface *s, int entry, int *screenshotid
 			// check img file
 			snprintf(buf2, 256, "%s_%d.png", base_fpath, j);
 			if (access(buf2,R_OK) != 0) {
-				snprintf(url, 256, "%s%s_%d.png", GB64_SS_URL, base_fname, j);
+				snprintf(url, 256, "%s%s_%d.png", gb64_ss_url, base_fname, j);
 				async_http_get(url, buf2, uigb64_callback_imgLoad, (void*)j);
 				break;
 			} else numimg=j+1;

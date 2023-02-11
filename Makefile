@@ -66,7 +66,7 @@ GITHASH		:= $(shell git rev-parse --short HEAD)
 ifeq ($(VICETARGET), C64)
 	VERSION_MAJOR :=	2
 	VERSION_MINOR :=	4
-	VERSION_MICRO :=	1
+	VERSION_MICRO :=	2
 else ifeq ($(VICETARGET), C128)
 	VERSION_MAJOR :=	0
 	VERSION_MINOR :=	2
@@ -92,16 +92,17 @@ SYSTEM_MODE_EXT :=	124MB
 BANNER_AUDIO	:=	$(TOPDIR)/$(META)/audio_3ds_$(VICETARGET).wav
 BANNER_IMAGE	:=	$(TOPDIR)/$(META)/banner_3ds_$(VICETARGET).cgfx
 LOGO			:=	$(TOPDIR)/$(META)/logo-padded.lz11
+FONT			:=	$(TOPDIR)/$(META)/picopixel.ttf
 
 ifeq (, $(shell which gm))
 	MKKBDPNG := cp -f
 	MKICOPNG := cp -f
 
 else
-	MKKBDPNG := gm convert -fill white -font "Picopixel-Standard"\
+	MKKBDPNG := gm convert -fill white -font $(FONT)\
 		-draw "font-size 8;text 3,109 'vice3DS - $(VICETARGET)';"\
 		-draw "font-size 8;text 3,116 'v$(VERSION) by badda71';"
-	MKICOPNG := gm convert -fill white -font "Picopixel-Standard"\
+	MKICOPNG := gm convert -fill white -font $(FONT)\
 		-draw "font-size 8;text 1,47 'v$(VERSION)';"
 endif
 
@@ -114,7 +115,7 @@ CFLAGS		:=	-ggdb -Wall -Wno-stringop-truncation -Wno-format-truncation -O3 -mwor
 			-fomit-frame-pointer -ffunction-sections \
 			-ffast-math $(ARCH)
 
-CFLAGS		+=	$(INCLUDE) -DARM11 -D_3DS -DVERSION3DS=\"$(VERSION)\" -DGITHASH=\"$(GITHASH)\" -DTARGETNAME=\"$(TARGET)\"
+CFLAGS		+=	$(INCLUDE) -DARM11 -D_3DS -D__3DS__ -DVERSION3DS=\"$(VERSION)\" -DGITHASH=\"$(GITHASH)\" -DTARGETNAME=\"$(TARGET)\"
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 CFLAGS		+= -std=gnu11

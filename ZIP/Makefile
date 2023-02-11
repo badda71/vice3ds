@@ -30,7 +30,7 @@ CFLAGS	:=	-ggdb -Wall -O3 -mword-relocations \
 			-fomit-frame-pointer -ffunction-sections \
 			$(ARCH)
 
-CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS -DHAVE_CONFIG_H
+CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS -D__3DS__ -DHAVE_CONFIG_H
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions
 
 ASFLAGS	:=	-g $(ARCH)
