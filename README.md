@@ -62,7 +62,7 @@ Install these packages with pacman / dkp-pacman:
 
 **Windows:**
     
-    pacman -S 3ds-zlib 3ds-curl 3ds-libpng 3ds-bzip2
+    pacman -S make 3ds-zlib 3ds-curl 3ds-libpng 3ds-bzip2
 optional:
 
     pacman -S graphicsmagick
