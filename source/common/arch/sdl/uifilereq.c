@@ -463,8 +463,12 @@ char* sdl_ui_file_selection_dialog_dir(const char* title, ui_menu_filereq_mode_t
     current_dir = lib_malloc(maxpathlen);
 
  	strncpy(current_dir,dir ? dir : persistence_get("cwd","/"), maxpathlen);
+	i=safe_chdir(current_dir);
+	if (i) {
+		strcpy(current_dir,"/");
+		safe_chdir(current_dir);
+	}
 
-    safe_chdir(current_dir);
     backup_dir = lib_stralloc(current_dir);
 
     // clear screen
