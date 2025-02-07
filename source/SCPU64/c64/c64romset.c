@@ -1,1 +1,0 @@
-../../shared/c64/c64romset.c

@@ -41,6 +41,7 @@
 #include "3ds_cia.h"
 #include "update.h"
 #include "http.h"
+#include "vice3ds.h"
 
 #define ERRBUFSIZE 256
 

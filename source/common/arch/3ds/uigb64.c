@@ -62,7 +62,7 @@
 
 // defines
 #define GB64_FIRST_Y 3
-#define GB64_SS_URL "http://www.gb64.com/Screenshots/"
+#define GB64_SS_URL "https://gb64.com/Screenshots/"
 #define GB64_GAME_URL "http://badda.de/vice3ds/gb64/games/"
 #define GB64_DBNAME "gb64_2.db"
 #define GB64_DBGZ_BASEURL "http://badda.de/vice3ds/gb64/"
