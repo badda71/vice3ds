@@ -30,56 +30,12 @@
 #include "persistence.h"
 #include "archdep_xdg.h"
 #include "archdep_join_paths.h"
+#include "lib.h"
 
 static char **data=NULL;
 static int numdata=0;
 static char *filename=NULL;
 static int persistence_isinit=0;
-
-ssize_t
-getdelim(char **buf, size_t *bufsiz, int delimiter, FILE *fp)
-{
-	char *ptr, *eptr;
-
-
-	if (*buf == NULL || *bufsiz == 0) {
-		*bufsiz = BUFSIZ;
-		if ((*buf = malloc(*bufsiz)) == NULL)
-			return -1;
-	}
-
-	for (ptr = *buf, eptr = *buf + *bufsiz;;) {
-		int c = fgetc(fp);
-		if (c == -1) {
-			if (feof(fp))
-				return ptr == *buf ? -1 : ptr - *buf;
-			else
-				return -1;
-		}
-		*ptr++ = c;
-		if (c == delimiter) {
-			*ptr = '\0';
-			return ptr - *buf;
-		}
-		if (ptr + 2 >= eptr) {
-			char *nbuf;
-			size_t nbufsiz = *bufsiz * 2;
-			ssize_t d = ptr - *buf;
-			if ((nbuf = realloc(*buf, nbufsiz)) == NULL)
-				return -1;
-			*buf = nbuf;
-			*bufsiz = nbufsiz;
-			eptr = nbuf + nbufsiz;
-			ptr = nbuf + d;
-		}
-	}
-}
-
-ssize_t
-getline(char **buf, size_t *bufsiz, FILE *fp)
-{
-	return getdelim(buf, bufsiz, '\n', fp);
-}
 
 void persistence_save() {
 	// save persistence
@@ -104,39 +60,41 @@ static void persistence_fini() {
 static void persistence_init() {
 	// what is my filename?
 	filename = archdep_join_paths(archdep_xdg_data_home(), "persistence", NULL);
+	numdata=0;
 	persistence_isinit=1;
 
 	atexit(persistence_fini);
 
 	// read in persistence data
-	unsigned int len;
-	char *line=NULL;
-	char *p,*v;
-
-	FILE* f = fopen(filename, "r");
-	if (f == NULL) return;
-	while (1) {
-		if (line) {
-			free(line);
-			line=NULL;
-		}
-		len=0;
-		if (getline(&line,&len,f)==-1)
-			break;
-		if ((v=strchr(line,'='))==NULL)
-			continue;
-		*v++=0;
-		if ((p=strchr(v,'\n'))!=NULL) // strip \n
-			*p=0;
-		data=realloc(data, (numdata*2+2)*sizeof(*data));
-		data[numdata*2]=malloc(strlen(line)+1);
-		memcpy(data[numdata*2],line,strlen(line)+1);
-		data[numdata*2+1]=malloc(strlen(v)+1);
-		memcpy(data[numdata*2+1],v,strlen(v)+1);
-		++numdata;
+	FILE *f;
+	if ((f = fopen(filename, "rb")) == NULL) return;
+	fseek(f, 0, SEEK_END);
+	long fsize = ftell(f);
+	fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
+	char *string = malloc(fsize + 2);
+	if (string==NULL) {
+		fclose(f);
+		return;
 	}
-	if (line)
-		free(line);
+	fread(string+1, 1, fsize, f);
+	fclose(f);
+	
+	// check the entries
+	for (int i=0; i<fsize; i++) if (string[i]=='\n') ++numdata;
+	data=malloc(numdata*2*sizeof(*data));
+	if (data==NULL) {
+		free(string);numdata=0;
+		return;
+	}
+	int count=0;
+    char* token;
+    char* rest = string;
+	while (count<numdata*2 && (token = strtok_r(rest, "=", &rest))) {
+		data[count++]=lib_stralloc(token);
+		token = strtok_r(rest, "\n", &rest);
+		data[count++]=lib_stralloc(token);
+	}
+	free(string);
 	fclose(f);
 }
 
@@ -169,10 +127,8 @@ int persistence_put(char *key, char *value) {
 			// insert data at existing pos
 			free(data[i*2]);
 			free(data[i*2+1]);
-			data[i*2]=malloc(strlen(key)+1);
-		    memcpy(data[i*2],key,strlen(key)+1);
-			data[i*2+1]=malloc(strlen(value)+1);
-		    memcpy(data[i*2+1],value,strlen(value)+1);
+			data[i*2]=lib_stralloc(key);
+			data[i*2+1]=lib_stralloc(value);
 		} else {
 			// delete data at existing pos
 			free(data[i*2]);
@@ -187,10 +143,8 @@ int persistence_put(char *key, char *value) {
 	} else if (value!=NULL) {
 		// append new data
 		data=realloc(data, (numdata*2+2)*sizeof(*data));
-		data[numdata*2]=malloc(strlen(key)+1);
-		memcpy(data[numdata*2],key,strlen(key)+1);
-		data[numdata*2+1]=malloc(strlen(value)+1);
-		memcpy(data[numdata*2+1],value,strlen(value)+1);
+		data[numdata*2]=lib_stralloc(key);
+		data[numdata*2+1]=lib_stralloc(value);
 		++numdata;
 	} else return -1;
 	return 0;
