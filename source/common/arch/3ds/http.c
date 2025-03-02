@@ -329,12 +329,12 @@ static Result http_download_callback(	// )
 	http_last_req_info.mtime=-1;
     void* buf = malloc(bufferSize);
     if(buf != NULL) {
-
-		log_message(LOG_DEFAULT,"downloading file %s",url);
 		
-#ifndef CITRA
+		// try (faster) httpc service if not using https
 		httpc_context context = NULL;
-        if(R_SUCCEEDED(res = httpc_open(&context, url, true, headonly ? HTTPC_METHOD_HEAD : HTTPC_METHOD_GET))) {
+        if(url[4] != 's' && R_SUCCEEDED(res = httpc_open(&context, url, true, headonly ? HTTPC_METHOD_HEAD : HTTPC_METHOD_GET))) {
+
+			log_message(LOG_DEFAULT,"downloading with httpc %s",url);
 			char modified[64];
 			if(R_SUCCEEDED(res = httpcGetResponseHeader(&(context->httpc), "Last-Modified", modified, sizeof(modified)))) {
 				http_last_req_info.mtime = curl_getdate(modified,NULL);
@@ -370,17 +370,18 @@ static Result http_download_callback(	// )
 					}
 				}
             }
-        } else if (res == R_HTTP_TLS_VERIFY_FAILED || *url == 'f')
-		{
-#endif
+
+		// try curl if https (or httpc service was redircted to https)
+        } else if (res == R_HTTP_TLS_VERIFY_FAILED || url[4] == 's') {
 			res = 0;
 
+			log_message(LOG_DEFAULT,"downloading with curl %s",url);
             CURL* curl = curl_easy_init();
             if(curl != NULL) {
                 http_curl_data curlData = {bufferSize, userData, callback, checkRunning, progress, buf, 0, 0};
 
                 curl_easy_setopt(curl, CURLOPT_URL, url);
-                curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, bufferSize);
+//                curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, bufferSize);
                 curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
                 curl_easy_setopt(curl, CURLOPT_USERAGENT, HTTP_USER_AGENT);
                 curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, (long) HTTP_TIMEOUT_SEC);
@@ -388,7 +389,7 @@ static Result http_download_callback(	// )
                 curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
                 curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
                 curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-                curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, (long) CURL_HTTP_VERSION_2TLS);
+//                curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, (long) CURL_HTTP_VERSION_2TLS);
                 curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, http_curl_write_callback);
                 curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void*) &curlData);
                 curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
@@ -432,18 +433,16 @@ static Result http_download_callback(	// )
 				snprintf(http_errbuf,HTTP_ERRBUFSIZE,"curl init failed");
                 res = R_APP_CURL_INIT_FAILED;
             }
-#ifndef CITRA
 		} else {
 			snprintf(http_errbuf,HTTP_ERRBUFSIZE,"%s (%p)", result_translate(res), (void*)res);
 		}
-#endif
 
         free(buf);
     } else {
 		snprintf(http_errbuf,HTTP_ERRBUFSIZE,"could not allocate download buffer");
         res = R_APP_OUT_OF_MEMORY;
     }
-	if (res) log_message(LOG_DEFAULT,"download error: %s",http_errbuf);
+	if (res) log_message(LOG_DEFAULT,"download error: %s, %s",http_errbuf, url);
 	return res;
 }
 

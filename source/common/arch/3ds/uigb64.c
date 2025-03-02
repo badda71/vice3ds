@@ -62,7 +62,7 @@
 
 // defines
 #define GB64_FIRST_Y 3
-#define GB64_SS_URL "https://gb64.com/Screenshots/"
+#define GB64_SS_URL "http://badda.de/vice3ds/gb64/screenshots/"
 #define GB64_GAME_URL "http://badda.de/vice3ds/gb64/games/"
 #define GB64_DBNAME "gb64_2.db"
 #define GB64_DBGZ_BASEURL "http://badda.de/vice3ds/gb64/"
@@ -802,11 +802,12 @@ tagdb:
 	list_filter = persistence_getInt("gb64_list_filter",1);
     menu_max = menu_draw->max_text_y - GB64_FIRST_Y;
 
-	// migrate old download directory structure to new download structure
 	DIR *dir;
     struct dirent *dent;
 	char **dname;
 
+/* no longer needed
+	// migrate old download directory structure to new download structure
 	if (persistence_getInt("gb64_migrated",0) == 0) {
 		dir=opendir(gamedir);
 		if (dir) {
@@ -815,7 +816,7 @@ tagdb:
 			while ((dent = readdir(dir)) != NULL) {
 				if (dent->d_type == DT_DIR && strchr(dent->d_name, '_') != NULL) {
 					if ((migcount & 0xff) == 0)
-						dname=realloc(dname, migcount+256);
+						dname=realloc(dname, (migcount+256)*sizeof(*dname));
 					dname[migcount++]=lib_stralloc(dent->d_name);
 				}
 			}
@@ -834,6 +835,7 @@ tagdb:
 		}
 		persistence_putInt("gb64_migrated",1);
 	}
+*/
 
 	// check what is downloaded
 	DIR *dir2;

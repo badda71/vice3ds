@@ -975,11 +975,9 @@ int checkWifi() {
 		isAcInit=1;
 	}
 
-#ifndef CITRA
 	ACU_GetWifiStatus(&wifi_status);
 	if (wifi_status == 0) {
 		return 0;
 	}
-#endif
 	return 1;
 }

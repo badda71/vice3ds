@@ -78,6 +78,7 @@ static void async_http_worker(void *arg) {
 		if ((req=tsq_pop(&async_queue))!=NULL) {
 			// got a request, work on it
 			partname = util_concat(req->fname, ".part", NULL);
+			unlink(partname);
 			if ((r = http_download_file(req->url, partname, async_check_cancel, async_progress)) == 0 &&
 				access(partname,W_OK) == 0)
 			{
